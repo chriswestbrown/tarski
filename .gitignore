@@ -36,3 +36,10 @@
 *~
 
 interpreter/tarskisysdep.*
+interpreter/search/qfr
+interpreter/algparse/grammar.tab.*
+interpreter/algparse/grammar.output
+interpreter/algparse/frewrite
+interpreter/bin/tarski
+interpreter/poly/go
+
