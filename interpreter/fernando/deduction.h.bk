@@ -1,0 +1,316 @@
+#ifndef DEDUCTION_H
+#define DEDUCTION_H
+
+#include <set>
+#include <utility>
+#include <forward_list>
+#include <list>
+#include <queue>
+#include <vector>
+#include <algorithm>
+#include <string>
+#include "../tarski.h"
+#include "../poly/poly.h"
+#include "../formrepconventions.h"
+#include "fern-poly-iter.h"
+
+
+namespace tarski {
+  /*
+    Using Rounds to determine UNSAT:
+    Rounds store a list of dependencies and a VarSet
+    VarSets are the explanation in terms of the original variable relops
+    the dependencies are a list of integers indicating a deduction was made during another round
+    By following the deductions, you can trace back to the explanation in terms of the original relops
+
+    All Deduction classes assume that the first sign and the first polynomial contains the actual deduction.
+    Everything else is the explanation!
+  */
+  class Deduction {
+  protected:
+    std::vector<TAtomRef> atomDeps;
+    std::vector<IntPolyRef> polys;
+    std::vector<short> signs;
+    VarSet weakVars;
+    VarKeyedMap<int> varSigns;
+    std::vector<int>  dependencies;
+
+
+  public:
+    inline virtual bool isGiven() const = 0;
+    inline virtual bool isVar() const = 0;
+    inline virtual std::string getName() const = 0;
+    inline virtual void write(PolyManager& PM) const = 0;
+    void addDep(int i) {dependencies.push_back(i);}
+    const std::vector<int>& getDeps() const {return dependencies;}
+    const std::vector<IntPolyRef>& getPolys() const {return polys;}
+    const std::vector<short>& getSigns() const {return signs;}
+    void setWeakVars(VarSet v, VarKeyedMap<int> m) {weakVars = v; varSigns = m;}
+    VarSet getWeakVars() const {return weakVars;}
+    const VarKeyedMap<int>& getWeakSigns() const {return varSigns;}
+    const std::vector<TAtomRef>& getAtoms() const {return atomDeps;}
+    virtual ~Deduction() {}
+    Deduction(const std::vector<IntPolyRef>&, const std::vector<short>&, const std::vector<TAtomRef>& );
+    Deduction() {}
+  };
+
+
+  class BBDed : public Deduction {
+  private:
+
+    bool oneVar;
+    bool notSat;
+  public:
+    inline bool isGiven() const {return false;}
+    inline bool isVar() const { return oneVar;}
+    inline bool isUnsat() const { return notSat;}
+    inline std::string getName() const { return "bb deduction";}
+    inline void write(PolyManager& PM) const {
+      if (signs[0] != NOOP) {
+        IntPolyRef p = polys[0];
+        p->write(PM); std::cout << " " << relopStrings[signs[0]] << " 0 ";
+      }
+      else {
+        std::cout << "BlackBox UNSAT";
+      }
+    }
+    BBDed(const std::vector<IntPolyRef>&, const std::vector<short>&, const std::vector<TAtomRef>&, bool);
+
+  };
+
+  class WBDed: public Deduction {
+  public:
+
+    inline void write(PolyManager& PM) const {
+      IntPolyRef p = polys[0];
+      short sgn = signs[0];
+      p->write(PM); std::cout << " " <<  relopStrings[sgn] << " 0 ";
+    }
+  };
+
+  class Given : public WBDed {
+  private:
+    bool oneVar;
+  public:
+    inline bool isGiven() const {return true;}
+    inline bool isVar() const {return oneVar;}
+    inline std::string getName() const {return "given";}
+    Given(IntPolyRef p, short sign);
+  };
+
+  class SignCombo : public Given {
+  private:
+    bool oneVar;
+  public:
+    inline bool isGiven() const {return false;}
+    inline bool isVar() const {return oneVar;}
+    inline std::string getName() const {return "given sign combination: ";}
+    SignCombo(IntPolyRef p, short sign);
+  };
+
+
+
+  class GivenAtom : public Deduction {
+  private:
+
+  public:
+    GivenAtom(TAtomRef t) {atomDeps.push_back(t); }
+    inline bool isVar() const { return false; }
+    inline bool isGiven() const {return true; }
+    inline std::string getName() const {return "given atom";}
+    const TAtomRef& getAtom() const {return atomDeps[0];}
+    inline void write(PolyManager& PM) const {atomDeps[0]->write(); }
+  };
+
+
+  class pSign : public WBDed {
+  private:
+    bool oneVar;
+  public:
+    bool isGiven() const {return false;}
+    bool isVar() const { return oneVar;}
+    pSign(IntPolyRef p, short sign);
+
+    std::string getName() const {return "poly sign";}
+
+  };
+
+  class SignDed : public WBDed {
+  private:
+    bool oneVar;
+  public:
+    SignDed(IntPolyRef p, IntPolyRef q, short signP, short signQ);
+    inline bool isVar() const { return oneVar;}
+    inline bool isGiven() const { return false;}
+    inline std::string getName() const {return "deduce sign";}
+  };
+
+
+
+  class Result {
+  public:
+    std::map<IntPolyRef, std::vector<short> > polys;
+    std::map<VarSet, std::vector<short>> varMap;
+    std::vector<TAtomRef> atoms;
+    int counter;
+
+    //Use this to translate the result to a vector of tatomrefs, which may be easier to use for many applications
+    vector<TAtomRef> toAtoms(PolyManager * pm) {
+      vector<TAtomRef> toReturn;
+      map<tarski::IntPolyRef, vector<short > >::iterator pstart, pend;
+      for (pstart = polys.begin(), pend = polys.end(); pstart != pend; ++pstart) {
+        tarski::FactRef f = new tarski::FactObj(*pm);
+        f->addFactor(pstart->first, 1);
+        vector<short>::iterator start, end;
+        for (start = pstart->second.begin(), end = pstart->second.end(); start != end; ++start) {
+          short s = *start;
+          toReturn.push_back(new TAtomObj(f, s));
+        }
+      }
+
+      map<tarski::VarSet, vector<short>>::iterator vstart,  vend;
+      for (vstart = varMap.begin(), vend = varMap.end(); vstart != vend; ++vstart) {
+        tarski::VarSet v = vstart->first;
+
+        vector<short>::iterator start, end;
+        for (start = vstart->second.begin(), end = vstart->second.end(); start != end; ++start) {
+          tarski::IntPolyRef p = new tarski::IntPolyObj(v);
+          tarski::FactRef f = new tarski::FactObj(*pm);
+          f->addFactor(p, 1);
+          short s = *start;
+          toReturn.push_back(new TAtomObj(f, s));
+        }
+      }
+
+      vector<tarski::TAtomRef>::iterator start, end;
+      for (start = atoms.begin(), end = atoms.end(); start != end; ++start) {
+        toReturn.push_back(*start);
+      }
+      return toReturn;
+    }
+  
+
+    //NOTE: Issue with using VarKeyedMaps here
+  Result(std::map<VarSet, std::vector<short>> vMap,  std::map<IntPolyRef, std::vector<short> >& p) : polys(p), varMap(vMap)  {
+      counter = 0;
+      for (std::map<IntPolyRef, std::vector<short>>::iterator it = polys.begin(); it != polys.end(); ++it) {
+        counter += it->second.size();
+      }
+      for (std::map<VarSet, std::vector<short>>::iterator it = varMap.begin(); it != varMap.end(); ++it) {
+        counter += it->second.size();
+      }
+    }
+
+    //NOTE: Issue with using VarKeyedMaps here
+  Result(std::map<VarSet, std::vector<short>> vMap,  std::map<IntPolyRef, std::vector<short> >& p,  std::vector<TAtomRef>& a) : polys(p), varMap(vMap),  atoms(a) {
+      counter = 0;
+      for (std::map<IntPolyRef, std::vector<short>>::iterator it = polys.begin(); it != polys.end(); ++it) {
+        counter += it->second.size();
+      }
+      for (std::map<VarSet, std::vector<short>>::iterator it = varMap.begin(); it != varMap.end(); ++it) {
+        counter += it->second.size();
+      }
+      counter += atoms.size();
+    }
+
+    /*
+      Returns #of polys, vars and atoms for this result
+    */
+    int count() {
+      return counter;
+    }
+
+    void write(PolyManager PM) {
+      bool first = false;
+      for (std::map<IntPolyRef, std::vector<short>>::iterator it = polys.begin(); it != polys.end(); ++it) {
+        const std::vector<short>& signs = it->second;
+        for (std::vector<short>::const_iterator iter = signs.begin(); iter != signs.end(); ++iter){
+          if (it != polys.begin()) std::cout << " /\\ ";
+          else first = true;
+          it->first->write(PM); std::cout << " " << FernPolyIter::numToRelop(*iter) << " 0, ";
+
+
+        }
+      }
+      for (std::map<VarSet, std::vector<short>>::iterator it = varMap.begin(); it != varMap.end(); ++it) {
+
+        const std::vector<short>& signs = it->second;;
+        for (std::vector<short>::const_iterator iter = signs.begin(); iter != signs.end(); ++iter)
+          if (*iter != ALOP){
+            if (first) {
+              std::cout << " /\\ ";
+            }
+            else first = true;
+            std::cout << PM.getName(it->first) << " " << FernPolyIter::numToRelop(*iter) << " 0, ";
+          }
+      }
+      for (std::vector<TAtomRef>::iterator itr = atoms.begin(); itr != atoms.end(); ++itr) {
+        if (first) {
+          std::cout << " /\\ ";
+        }
+        else first = true;
+        (*itr)->write();
+      }
+    }
+
+  };
+
+
+  class DedManager{
+  private:
+    std::vector<Deduction *> deds;
+    std::map<IntPolyRef, int> refToDed; //Stores the round used to deduce information on the ref
+    VarKeyedMap<int> varToDed;
+    std::map<TAtomRef, int> atomToDed;
+
+    VarKeyedMap<int> signs;
+    VarKeyedMap<int> lSigns;
+    std::map<IntPolyRef, short> pLSigns;
+    void writeDeps(Deduction *, PolyManager&);
+    void addGiven(IntPolyRef p, short sgn);
+    void addGivenVarAlop(VarSet);
+    void addGivenAtom(GivenAtom*);
+    short processFirstBB(BBDed *, IntPolyRef, short);
+    bool unsat;
+
+  public:
+
+
+    inline short getSign(IntPolyRef p) {
+      if (pLSigns.count(p) == 1) return pLSigns[p];
+      else {
+        VarSet var = p->getVars();
+        if (varToDed[var] == -1)
+          throw new TarskiException("This polyref does not exist! deduction.h");
+        return lSigns[var];
+      }
+    }
+    short processBB(BBDed *);
+    bool detectBBUnsat(BBDed *);
+    inline const std::map<IntPolyRef, short>&  getPLSigns() const {return pLSigns; }
+    inline const VarKeyedMap<int>&  getVLSigns() const {return lSigns; }
+    bool addDeduction(Deduction * d, VarSet weakVars, VarKeyedMap<int> m);
+    short addBBDeds(std::vector<BBDed *> toAdd);
+    inline bool isUnsat() {return unsat;}
+    inline Deduction * getLast() {return deds.back();}
+    Result traceBack();
+    Result traceBack(int idx);
+    Result getRes(VarSet v);
+    void writeProof(PolyManager &PM);
+    void writeAll(PolyManager &PM);
+    inline int size() {return deds.size();}
+    DedManager(VarSet&, const std::map<IntPolyRef, std::vector<short>>&);
+    DedManager(const std::vector<TAtomRef>&, VarSet&, const std::map<IntPolyRef, std::vector<short>>&);
+    ~DedManager();
+
+  };
+
+  /*
+    Return 0 if different
+    Return 1 if the same atom with same sign
+    Return 2 if the same atom with different sign
+  */
+  short atomSame(TAtomRef t1, TAtomRef t2); 
+
+}//end namespace
+#endif

@@ -1,0 +1,31 @@
+#!/usr/bin/perl
+
+my @A = ("qepcad +N1000000000 < qein.6.4.3.01 > qeout.6.4.3.01",
+"qepcad +N1000000000 < qein.6.4.3.02 > qeout.6.4.3.02",
+"qepcad +N1000000000 < qein.6.4.3.03 > qeout.6.4.3.03",
+"qepcad +N1000000000 < qein.6.4.3.04 > qeout.6.4.3.04",
+"qepcad +N1000000000 < qein.6.4.3.05 > qeout.6.4.3.05",
+"qepcad +N1000000000 < qein.6.4.3.06 > qeout.6.4.3.06",
+"qepcad +N1000000000 < qein.6.4.3.07 > qeout.6.4.3.07",
+"qepcad +N1000000000 < qein.6.4.3.08 > qeout.6.4.3.08",
+"qepcad +N1000000000 < qein.6.4.3.09 > qeout.6.4.3.09",
+"qepcad +N1000000000 < qein.6.4.3.10 > qeout.6.4.3.10",
+"qepcad +N1000000000 < qein.6.4.3.11 > qeout.6.4.3.11",
+"qepcad +N1000000000 < qein.6.4.3.12 > qeout.6.4.3.12",
+"qepcad +N1000000000 < qein.6.4.3.13 > qeout.6.4.3.13",
+"qepcad +N1000000000 < qein.6.4.3.14 > qeout.6.4.3.14",
+"qepcad +N1000000000 < qein.6.4.3.15 > qeout.6.4.3.15",
+"qepcad +N1000000000 < qein.6.4.3.16 > qeout.6.4.3.16",
+"qepcad +N1000000000 < qein.6.4.3.17 > qeout.6.4.3.17",
+"qepcad +N1000000000 < qein.6.4.3.18 > qeout.6.4.3.18",
+"qepcad +N1000000000 < qein.6.4.3.19 > qeout.6.4.3.19",
+"qepcad +N1000000000 < qein.6.4.3.20 > qeout.6.4.3.20",
+"qepcad +N1000000000 < qein.6.4.3.21 > qeout.6.4.3.21",
+"qepcad +N1000000000 < qein.6.4.3.22 > qeout.6.4.3.22",
+"qepcad +N1000000000 < qein.6.4.3.23 > qeout.6.4.3.23",
+"qepcad +N1000000000 < qein.6.4.3.24 > qeout.6.4.3.24",
+"qepcad +N1000000000 < qein.6.4.3.25 > qeout.6.4.3.25");
+print " a. starting $A[$ARGV[0]-1] ...\n";
+#print `/home/scs/wcbrown/qesource/bin/$A[$ARGV[0]-1]`;
+print `cd tarski/ISSAC2017/suite1/qepcad/; /home/scs/wcbrown/qesource/bin/$A[$ARGV[0]-1]`;
+print " b. ending   $A[$ARGV[0]-1] ...\n";

@@ -1,0 +1,8 @@
+(set-info :status unsat)
+(set-logic QF_NRA)
+(set-info :source | Simple test example.|)
+(set-info :smt-lib-version 2.0)
+(declare-fun x () Real)
+(declare-fun y () Real)
+(assert (exists ((z Real)) (and (< (+ (+ (* x x) (* y y)) (* z z)) (/ 1 2)) (< (+ (+ x y) z) (/ 1 3)))))
+(checksat)

@@ -1,0 +1,81 @@
+#include "GC_System_Header.h"
+
+#ifndef _GC_System_Inlines_
+#define _GC_System_Inlines_
+
+template<class GC_Obj_Ext>
+inline GC_Hand<GC_Obj_Ext>::GC_Hand() { p = NULL; }
+
+template<class GC_Obj_Ext>
+inline GC_Hand<GC_Obj_Ext>::GC_Hand(GC_Obj_Ext *ptr) 
+{
+  p = ptr;
+  if (p != NULL) p->ref_count++;
+}
+
+template<class GC_Obj_Ext>
+inline GC_Hand<GC_Obj_Ext>::GC_Hand(const GC_Hand &H)
+{
+  p = H.p;
+  if (p != NULL) p->ref_count++;
+}
+
+template<class GC_Obj_Ext>
+template<class T>
+inline GC_Hand<GC_Obj_Ext>::GC_Hand(const GC_Hand<T> &H) 
+{ 
+  p = dynamic_cast<GC_Obj_Ext*>(&(*H)); 
+  if (p != NULL) p->ref_count++;
+}
+
+template<class GC_Obj_Ext>
+inline void GC_Hand<GC_Obj_Ext>::free()
+{
+  if (p != NULL && (--(p->ref_count) == 0)) {
+    delete p;
+  }
+  p = NULL;
+}
+
+template<class GC_Obj_Ext>
+inline GC_Hand<GC_Obj_Ext>& GC_Hand<GC_Obj_Ext>::operator=(const GC_Obj_Ext* &ptr) 
+{
+  free();
+  p = ptr;
+  if (p != NULL) p->ref_count++;
+  return *this;
+}
+
+template<class GC_Obj_Ext>
+inline GC_Hand<GC_Obj_Ext>& GC_Hand<GC_Obj_Ext>::operator=(const GC_Hand& H)
+{
+  free();
+  p = H.p;
+  if (p != NULL) p->ref_count++;
+  return *this;
+}
+
+template<class GC_Obj_Ext>
+inline GC_Obj_Ext&  GC_Hand<GC_Obj_Ext>::operator*() const { return *p; }
+
+template<class GC_Obj_Ext>
+inline GC_Obj_Ext* GC_Hand<GC_Obj_Ext>::operator->() const { return p; }
+
+
+template<class GC_Obj_Ext>
+inline int GC_Hand<GC_Obj_Ext>::ref_value() const 
+{ return p == NULL ? -1 : p->ref_count; }
+
+template<class GC_Obj_Ext>
+inline int GC_Hand<GC_Obj_Ext>::is_null() const { return p == NULL; }
+
+template<class GC_Obj_Ext>
+void* GC_Hand<GC_Obj_Ext>::vpval() const { return static_cast<void*>(p); }
+
+template<class GC_Obj_Ext>
+template<class A>
+inline bool GC_Hand<GC_Obj_Ext>::identical(const GC_Hand<A> &a) const { return p == a.p; }
+
+
+#endif
+

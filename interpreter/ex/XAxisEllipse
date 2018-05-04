@@ -1,0 +1,42 @@
+
+# This is the negation of the x axis ellipse problem
+[
+ex x,y [  b^2 (x - c)^2 + a^2 y^2 - a^2 b^2 = 0 /\ x^2 + y^2 - 1 > 0 /\ a > 0 /\ b > 0 ]
+]
+
+#######################################################################################
+# This is another variation:  The "Equality Version".  If we take the initial problem
+# to mean that the ellipse must be strictly inside the unit circle, this "equality
+# version defines a set any CAD for which can be reassigned truth values to represent
+# the answer to the original problem.
+#######################################################################################
+
+# What's nice is the way the two different substitutions give us different results.
+[ ex x,y [  b^2 (x - c)^2 + a^2 y^2 - a^2 b^2 = 0 /\ x^2 + y^2 - 1 = 0 /\ a > 0 /\ b > 0 ] ]
+
+
+[]
+(a,b,c,x,y)
+3
+(A x)(A y)[[ b^2 (x - c)^2 + a^2 y^2 - a^2 b^2 = 0] ==> x^2 + y^2 - 1 <= 0 ].
+assume [ a > 0 /\ b > 0 ].
+
+
+# Redlog automatically chooses the substitution that gives (x + 1)(x - 1) <= 0, rather
+# than (x - c + a)(x - c - a) <= 0.
+ex({y},b^2 (x - c)^2 + a^2 y^2 - a^2 b^2 = 0 and x^2 + y^2 - 1 = 0 and a > 0 and b > 0)
+ex({y},x^2 + y^2 - 1 = 0 and b^2 (x - c)^2 + a^2 y^2 - a^2 b^2 = 0  and a > 0 and b > 0)
+
+# Mathematica runs for ever on this problem
+Exists[{y},b^2 (x - c)^2 + a^2 y^2 - a^2 b^2 == 0 && x^2 + y^2 - 1 == 0 && a > 0 && b > 0]
+
+
+#######################################################################################
+# Here's another variant.  Here we've added (x - c + a)(x - c - a) <= 0 to the input
+# so that the substitution giving (x + 1)(x - 1) <= 0 should be less desireable.
+# Redlog chooses it regardless, qfr adapts ... of course.
+#######################################################################################
+[ex y [  b^2 (x - c)^2 + a^2 y^2 - a^2 b^2 = 0 /\ x^2 + y^2 - 1 = 0 /\ a > 0 /\ b > 0 /\ (x - c + a)(x - c - a) <= 0 ]]
+rlgsn(rlqe(ex({y},x^2 + y^2 - 1 = 0 and b^2 (x - c)^2 + a^2 y^2 - a^2 b^2 = 0),{a > 0, b > 0, (x - c + a)*(x - c - a) <= 0}));
+
+

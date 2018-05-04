@@ -1,0 +1,111 @@
+(def F [x y z <= 0 /\ x y z >= 0 /\ x a b > 0 /\ y a b > 0  /\ y x b c > 0 /\ z x > 0 /\ y z a e f > 0])
+
+(def res (bbsat F))
+(def res1 (head res))
+(def res2 (head (tail res)))
+(def res3 (normalize 'level 15 (head (tail res))))
+
+(display "Test 1 (handmade):") 
+(if (equal? res1 'UNSAT) (display "pass UNSAT, ") (display "fail UNSAT, "))
+(if (equal? res2 [(x)(y)(z) <= 0 /\ (x)(y)(z) >= 0 /\ (x)(z) > 0 /\ (y)(a)(b) > 0]) (display "pass CORE, " ) (display "fail CORE? "))
+(if (equal? res3 [false]) (display "pass CORE is UNSAT\n") (display "fail CORE is UNSAT\n"))
+
+
+
+
+
+
+
+
+(def F [(skoY^4 - 20 skoY^2 + 20 skoX^2)(skoY) <= 0 /\ (skoY^4 - 20 skoY^2 + 20 skoX^2)(skoY) > 0 /\ (skoY)(skoY^8 - 72 skoY^6 + 3024 skoY^4 - 60480 skoY^2 + 72 skoX^6 - 3024 skoX^4 + 60480 skoX^2) > 0 /\ (110 skoY^8 - 7920 skoY^6 + 332640 skoY^4 - 6652800 skoY^2 + skoX^10 - 110 skoX^8 + 7920 skoX^6 - 332640 skoX^4 + 6652800 skoX^2)(skoX) > 0 /\ -1(skoX) <= 0 /\ skoX > 0 /\ (skoX)(42 skoY^4 - 840 skoY^2 + skoX^6 - 42 skoX^4 + 840 skoX^2) > 0 /\ 5000000 pi - 15707963 > 0 /\ -1(10000000 pi - 31415927) > 0 /\ -1(pi - 2 skoY) <= 0 /\ skoY - skoX > 0])
+
+(def res (bbsat F))
+(def res1 (head res))
+(def res2 (head (tail res)))
+(def res3 (normalize 'level 15 (head (tail res))))
+
+(display "Test 2 (sin-problem-7-chunk-0344.smt2): ")
+(if (equal? res1 'UNSAT) (display "pass UNSAT, ") (display "fail UNSAT, "))
+(if (equal? res2 [(skoY^4 - 20 skoY^2 + 20 skoX^2)(skoY) <= 0 /\ (skoY^4 - 20 skoY^2 + 20 skoX^2)(skoY) > 0]) (display "pass CORE, ") (display "fail CORE? "))
+(if (equal? res3 [false]) (display "pass CORE is UNSAT\n") (display "fail CORE is UNSAT\n"))   
+
+
+
+
+
+
+
+
+
+
+(def F[-1(skoX^2 - 2) > 0 /\ skoX^2 - 2 > 0 /\ skoX^14 - 182 skoX^12 + 24024 skoX^10 - 2162160 skoX^8 + 121080960 skoX^6 - 3632428800 skoX^4 + 43589145600 skoX^2 - 87178291200 > 0 /\ skoX^10 - 90 skoX^8 + 5040 skoX^6 - 151200 skoX^4 + 1814400 skoX^2 - 3628800 > 0 /\ skoX^6 - 30 skoX^4 + 360 skoX^2 - 720 > 0 /\ skoY - skoX > 0 /\ -1(10000000 pi - 31415927) > 0 /\ 5000000 pi - 15707963 > 0])
+(def res (bbsat F))
+(def res1 (head res))
+(def res2 (head (tail res)))
+(def res3 (normalize 'level 15 (head (tail res))))
+
+(display "Test 3 (sqrt-1mcosq-7-chunk-0180.smt2): ")
+(if (equal? res1 'UNSAT) (display "pass UNSAT, ") (display "fail UNSAT, "))
+(if (equal? res2 [-1(skoX^2 - 2) > 0 /\ skoX^2 - 2 > 0]) (display "pass CORE, ") (display "fail CORE? "))
+(if (equal? res3 [false]) (display "pass CORE is UNSAT\n") (display "fail CORE is UNSAT\n"))   
+
+
+
+
+
+
+
+
+
+
+
+
+
+(def F [skoSQ3 > 0 /\ -1(skoSQ3)^6 <= 0 /\ (skoSQ3)^6 <= 0 /\ skoX^6 - 30 skoSQ3^2 skoX^4 + 360 skoSQ3^4 skoX^2 + 480 skoSQ3^6 - 2160 skoSQ3^4 > 0 /\ skoSQ3^2 - 3 = 0 /\ 5000000 pi - 10000000 skoX - 1 > 0 /\ 5000000 pi - 15707963 > 0 /\ -1(10000000 pi - 31415927) > 0 /\ skoX > 0])
+
+(def res (bbsat F))
+(def res1 (head res))
+(def res2 (head (tail res)))
+(def res3 (normalize 'level 15 (head (tail res))))
+(display "Test 4 (sin-cos-346-b-chunk-0380.smt2): ")
+(if (equal? res1 'UNSAT) (display "pass UNSAT, ") (display "fail UNSAT, "))
+(if (equal? res2 [skoSQ3 > 0 /\ (skoSQ3)^6 <= 0]) (display "pass CORE, ") (display "fail CORE? "))
+(if (equal? res3 [false]) (display "pass CORE is UNSAT\n") (display "fail CORE is UNSAT\n"))   
+
+
+
+
+
+
+
+
+(def F [-1(skoX) <= 0 /\ skoX <= 0 /\ skoX > 0 /\ (343 skoX^3 - 147000 skoX^2 + 42000000 skoX - 6000000000)^4(15 skoS - 76 skoC) > 0 /\ skoS^2 + skoC^2 - 1 = 0 /\ skoX - 75 <= 0])
+
+(def res (bbsat F))
+(def res1 (head res))
+(def res2 (head (tail res)))
+(def res3 (normalize 'level 15 (head (tail res))))
+(display "Test 5 (Chua-2-VC2-U-chunk-0117.smt2): ")
+(if (equal? res1 'UNSAT) (display "pass UNSAT, ") (display "fail UNSAT, "))
+(if (equal? res2 [-1(skoX) <= 0 /\ skoX <= 0 /\ skoX > 0]) (display "pass CORE, ") (display "fail CORE? "))
+(if (equal? res3 [false]) (display "pass CORE is UNSAT\n") (display "fail CORE is UNSAT\n"))   
+
+
+
+(def F [-1(skoY) > 0 /\ -1(skoY skoX skoZ - skoZ - skoX - skoY) > 0 /\ skoY skoX skoZ - skoZ - skoX - skoY > 0 /\ skoZ > 0 /\ skoX + 1 > 0 /\ -1(skoY - 1) > 0 /\ -1(skoX - skoY) > 0])
+
+(def res (bbsat F))
+(def res1 (head res))
+(def res2 (head (tail res)))
+(def res3 (normalize 'level 15 (head (tail res))))
+(display "Test 6 (atan-vega-3-chunk-0055.smt2): ")
+(if (equal? res1 'UNSAT) (display "pass UNSAT, ") (display "fail UNSAT, "))
+(if (equal? res2 -1(skoY skoX skoZ - skoZ - skoX - skoY) > 0 /\ skoY skoX skoZ - skoZ t- skoX - skoY > 0]) (display "pass CORE, ") (display "fail CORE? "))
+(if (equal? res3 [false]) (display "pass CORE is UNSAT\n") (display "fail CORE is UNSAT\n")) 
+
+
+
+
+
+(display "end\n")
+

@@ -1,0 +1,14 @@
+; here are some examples that you can easily look at and "by hand"
+; figure out whether the NuCAD you get is OK.
+
+(def F [ x > 1 /\ x < 2 \/ x < -1 /\ x > -2 ])
+(make-NuCADDNF '(x) '(0) F)
+
+(def F [ x > 0 \/ y > 0 ])
+(make-NuCADDNF '(x y) '(0 0) F)
+
+(def F [ y > 0 \/ x + y > 0 /\ x^2 + y^2 < 1 ])
+(make-NuCADDNF '(x y) '(0 0) F)
+
+(def F [ y > _root_2 x^2 + y^2 - 1 \/ x < 0 /\ y < 0 ])
+(make-NuCADDNF '(x y) '(0 0) F)

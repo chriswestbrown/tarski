@@ -1,0 +1,30 @@
+# from http://shemesh.larc.nasa.gov/people/cam/Bernstein/benchmarks.pvs
+
+# NOTE: for these two problems, there is a solution only if there is
+#       is a full-dimensional solution.  Thus, "open" NuCAD suffices.
+
+(def F1 [~[
+-16<=x1 /\ x1<=16 /\ -16<=x2 /\ x2<=16 /\ -16<=x3 /\ x3<=16 /\ -16<=x4 /\ x4<=16
+ ==>
+(x1-1)^2 + (x2-1)^2 + (x3-1)^2 + (x4-1)^2 - x1 x2 - x2 x3 - x3 x4 + 16001/1000 >= 0
+]])
+
+(def G1 (normalize F1))
+
+(def D1 (SAT-NuCADConjunction G1))
+
+(display "F1 status is: " (head D1) "\n")
+
+
+(def F2 [~[
+-16<=x1 /\ x1<=16 /\ -16<=x2 /\ x2<=16 /\ -16<=x3 /\ x3<=16 /\ -16<=x4 /\ x4<=16
+ ==>
+(x1-1)^2 + (x2-1)^2 + (x3-1)^2 + (x4-1)^2 - x1 x2 - x2 x3 - x3 x4 +15999/1000 >= 0
+]])
+
+(def G2 (normalize F2))
+
+(def D2 (SAT-NuCADConjunction G2))
+
+(display "F2 status is: " (head D2) "\n")
+

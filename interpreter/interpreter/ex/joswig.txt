@@ -1,0 +1,176 @@
+[
+ex s, x1, x2, x3, x4 [
+1  +  s^2 * x1 * x3  +  s^8 * x2 * x3  +  s^19 * x1 * x2 * x4 = 0
+/\
+x1  +  s^8 * x1 * x2 * x3  +  s^19 * x2 * x4 = 0
+/\
+x2  +  s^11 * x1 * x4  +  s^10 * x3 * x4 = 0
+/\
+s^4 * x1 * x2  +  x3  +  s^19 * x1 * x3 * x4  +  s^24 * x2 * x3 *x4 = 0
+/\
+x4  +  s^31 * x1 * x2 * x3 * x4 = 0
+/\
+0 < s /\ s < 1
+#/\ x1 x2 x3 x4 /= 0
+] ]
+
+
+
+Stopped search because of 20 minute time limit!
+mainLoopCount = 161
+Num Formulas  = 1236 (Note: duplicates are counted!)
+Num Nodes @ end  = 2182 (Note: duplicates are counted!)
+Num QNodes enqueued  = 6362 (Note: duplicates are counted!)
+Num Generic Substitutions = 1311
+Num Degenerate Substitutions = 1311
+Total QAnd nodes generated = 2793
+Total unique QAnd nodes    = 1670
+
+-----------------------------------------------------------------------------
+1452 Garbage collections, 1350695661 Cells and 0 Arrays reclaimed, in 416651 milliseconds.
+1092125 Cells in AVAIL, 10000000 Cells in SPACE.
+
+System time: 1575118 milliseconds.
+System time after the initialization: 1574650 milliseconds.
+-----------------------------------------------------------------------------
+Time in IPFAC = 1155599ms
+Time in IPRESPRS = 100ms
+##################################################
+min formula: [s /= 0 /\ x1 /= 0 /\ s^23 x1 - 1 /= 0 /\ x1 + 1 /= 0 /\
+x1 - 1 /= 0 /\ s^95 x1^10 + s^92 x1^10 - 3 s^72 x1^9 - 4 s^69 x1^9 - 2
+s^95 x1^8 - 3 s^92 x1^8 + 3 s^49 x1^8 + 6 s^46 x1^8 + 6 s^72 x1^7 + 12
+s^69 x1^7 - s^26 x1^7 - 4 s^23 x1^7 + s^95 x1^6 + 3 s^92 x1^6 - 6 s^49
+x1^6 - 18 s^46 x1^6 + x1^6 - 3 s^72 x1^5 - 12 s^69 x1^5 + 2 s^26 x1^5
++ 12 s^23 x1^5 - s^92 x1^4 + 3 s^49 x1^4 + 18 s^46 x1^4 - s^45 x1^4 -
+3 x1^4 + 4 s^69 x1^3 - s^26 x1^3 - 12 s^23 x1^3 - 6 s^46 x1^2 + 3 x1^2
++ 4 s^23 x1 - 1 = 0 /\ s^93 x1^10 - 4 s^70 x1^9 - 3 s^93 x1^8 + 6 s^47
+x1^8 + 12 s^70 x1^7 - s^69 x1^7 - 4 s^24 x1^7 + 3 s^93 x1^6 + s^64
+x1^6 - 18 s^47 x1^6 + 3 s^46 x1^6 + s x1^6 - 12 s^70 x1^5 + 2 s^69
+x1^5 - 2 s^41 x1^5 + 12 s^24 x1^5 - 3 s^23 x1^5 - s^93 x1^4 - 2 s^64
+x1^4 + 18 s^47 x1^4 - 6 s^46 x1^4 - s^41 x1^4 + s^18 x1^4 - 3 s x1^4 +
+x1^4 + 4 s^70 x1^3 - s^69 x1^3 + 4 s^41 x1^3 - 12 s^24 x1^3 + 6 s^23
+x1^3 + s^64 x1^2 - 6 s^47 x1^2 + 3 s^46 x1^2 - 2 s^18 x1^2 + 3 s x1^2
+- 2 x1^2 - 2 s^41 x1 + 4 s^24 x1 - 3 s^23 x1 + s^18 - s + 1 = 0] 
+min grade  = 39029
+Derivation is:
+genericcase subsituting for x2 in s^19 x2 x4 + s^8 x1 x2 x3 + x1 = 0
+branch s^11 x4 - s^23 x1^2 x3 + x1 x3 = 0 from (x4)(s^11 x4 - s^23 x1^2 x3 + x1 x3) = 0
+genericcase subsituting for x4 in s^11 x4 - s^23 x1^2 x3 + x1 x3 = 0
+genericcase subsituting for x3 in s^25 x1^2 x3 - s^23 x1^3 + x1^2 + s^23 x1 - 1 = 0
+time is    = 1158335 ms.
+193562 166995
+
+### Playing around with the substitutions in maple, I showed that
+### the substitutions gave what they were supposed to!
+jsys :=
+[
+1  +  s^2 * x1 * x3  +  s^8 * x2 * x3  +  s^19 * x1 * x2 * x4,
+x1  +  s^8 * x1 * x2 * x3  +  s^19 * x2 * x4,
+x2  +  s^11 * x1 * x4  +  s^10 * x3 * x4,
+s^4 * x1 * x2  +  x3  +  s^19 * x1 * x3 * x4  +  s^24 * x2 * x3 *x4,
+x4  +  s^31 * x1 * x2 * x3 * x4
+];
+subs({x2=solve(x2*x4 + s^8*x1*x2*x3 + x1 = 0,x2)},jsys);
+
+jsys1 := [
+ resultant(s^19*x2*x4 + s^8*x1*x2*x3 + x1,jsys[1],x2),
+ resultant(s^19*x2*x4 + s^8*x1*x2*x3 + x1,jsys[2],x2),
+ resultant(s^19*x2*x4 + s^8*x1*x2*x3 + x1,jsys[3],x2),
+ resultant(s^19*x2*x4 + s^8*x1*x2*x3 + x1,jsys[4],x2),
+ resultant(s^19*x2*x4 + s^8*x1*x2*x3 + x1,jsys[5],x2)];
+jsys2 := [
+ resultant(s^11* x4 - s^23*x1^2*x3 + x1*x3,jsys1[1],x4),
+ resultant(s^11* x4 - s^23*x1^2*x3 + x1*x3,jsys1[2],x4),
+ resultant(s^11* x4 - s^23*x1^2*x3 + x1*x3,jsys1[3],x4),
+ resultant(s^11* x4 - s^23*x1^2*x3 + x1*x3,jsys1[4],x4),
+ resultant(s^11* x4 - s^23*x1^2*x3 + x1*x3,jsys1[5],x4)];
+jsys3 := [
+ resultant(s^25*x1^2*x3 - s^23*x1^3 + x1^2 + s^23*x1 - 1,jsys2[1],x3),
+ resultant(s^25*x1^2*x3 - s^23*x1^3 + x1^2 + s^23*x1 - 1,jsys2[2],x3),
+ resultant(s^25*x1^2*x3 - s^23*x1^3 + x1^2 + s^23*x1 - 1,jsys2[3],x3),
+ resultant(s^25*x1^2*x3 - s^23*x1^3 + x1^2 + s^23*x1 - 1,jsys2[4],x3),
+ resultant(s^25*x1^2*x3 - s^23*x1^3 + x1^2 + s^23*x1 - 1,jsys2[5],x3)];
+
+
+p1 := s^95*x1^10+s^92*x1^10-3*s^72*x1^9-4*s^69*x1^9-2*s^95*x1^8-3*s^92*x1^8+3*s^49*x1^8+6*s^46*x1^8+6*s^72*x1^7+12*s^69*x1^7-s^26*x1^7-4*s^23*x1^7+s^95*x1^6+3*s^92*x1^6-6*s^49*x1^6-18*s^46*x1^6+x1^6-3*s^72*x1^5-12*s^69*x1^5+2*s^26*x1^5+12*s^23*x1^5-s^92*x1^4+3*s^49*x1^4+18*s^46*x1^4-s^45*x1^4-3*x1^4+4*s^69*x1^3-s^26*x1^3-12*s^23*x1^3-6*s^46*x1^2+3*x1^2+4*s^23*x1-1;
+p2 := s^93*x1^10-4*s^70*x1^9-3*s^93*x1^8+6*s^47*x1^8+12*s^70*x1^7-s^69*x1^7-4*s^24*x1^7+3*s^93*x1^6+s^64*x1^6-18*s^47*x1^6+3*s^46*x1^6+s*x1^6-12*s^70*x1^5+2*s^69*x1^5-2*s^41*x1^5+12*s^24*x1^5-3*s^23*x1^5-s^93*x1^4-2*s^64*x1^4+18*s^47*x1^4-6*s^46*x1^4-s^41*x1^4+s^18*x1^4-3*s*x1^4+x1^4+4*s^70*x1^3-s^69*x1^3+4*s^41*x1^3-12*s^24*x1^3+6*s^23*x1^3+s^64*x1^2-6*s^47*x1^2+3*s^46*x1^2-2*s^18*x1^2+3*s*x1^2-2*x1^2-2*s^41*x1+4*s^24*x1-3*s^23*x1+s^18-s+1;
+
+
+######################################################################
+Let's try Fabrice's RS
+S := [
+1  +  s^2 * x1 * x3  +  s^8 * x2 * x3  +  s^19 * x1 * x2 * x4,
+x1  +  s^8 * x1 * x2 * x3  +  s^19 * x2 * x4,
+x2  +  s^11 * x1 * x4  +  s^10 * x3 * x4,
+s^4 * x1 * x2  +  x3  +  s^19 * x1 * x3 * x4  +  s^24 * x2 * x3 *x4,
+x4  +  s^31 * x1 * x2 * x3 * x4
+];
+rs_isolate(S);
+
+
+Can I pass this formula to him to use?
+min formula: [s /= 0 /\ x1 /= 0 /\ s^23 x1 - 1 /= 0 /\ x1 + 1 /= 0 /\
+x1 - 1 /= 0 /\ s^95 x1^10 + s^92 x1^10 - 3 s^72 x1^9 - 4 s^69 x1^9 - 2
+s^95 x1^8 - 3 s^92 x1^8 + 3 s^49 x1^8 + 6 s^46 x1^8 + 6 s^72 x1^7 + 12
+s^69 x1^7 - s^26 x1^7 - 4 s^23 x1^7 + s^95 x1^6 + 3 s^92 x1^6 - 6 s^49
+x1^6 - 18 s^46 x1^6 + x1^6 - 3 s^72 x1^5 - 12 s^69 x1^5 + 2 s^26 x1^5
++ 12 s^23 x1^5 - s^92 x1^4 + 3 s^49 x1^4 + 18 s^46 x1^4 - s^45 x1^4 -
+3 x1^4 + 4 s^69 x1^3 - s^26 x1^3 - 12 s^23 x1^3 - 6 s^46 x1^2 + 3 x1^2
++ 4 s^23 x1 - 1 = 0 /\ s^93 x1^10 - 4 s^70 x1^9 - 3 s^93 x1^8 + 6 s^47
+x1^8 + 12 s^70 x1^7 - s^69 x1^7 - 4 s^24 x1^7 + 3 s^93 x1^6 + s^64
+x1^6 - 18 s^47 x1^6 + 3 s^46 x1^6 + s x1^6 - 12 s^70 x1^5 + 2 s^69
+x1^5 - 2 s^41 x1^5 + 12 s^24 x1^5 - 3 s^23 x1^5 - s^93 x1^4 - 2 s^64
+x1^4 + 18 s^47 x1^4 - 6 s^46 x1^4 - s^41 x1^4 + s^18 x1^4 - 3 s x1^4 +
+x1^4 + 4 s^70 x1^3 - s^69 x1^3 + 4 s^41 x1^3 - 12 s^24 x1^3 + 6 s^23
+x1^3 + s^64 x1^2 - 6 s^47 x1^2 + 3 s^46 x1^2 - 2 s^18 x1^2 + 3 s x1^2
+- 2 x1^2 - 2 s^41 x1 + 4 s^24 x1 - 3 s^23 x1 + s^18 - s + 1 = 0] 
+
+Here's the two big polynomials as a Maple list:
+Sp :=
+[
+s^95*x1^10+s^92*x1^10-3*s^72*x1^9-4*s^69*x1^9-2*s^95*x1^8
+-3*s^92*x1^8+3*s^49*x1^8+6*s^46*x1^8+6*s^72*x1^7
++12*s^69*x1^7-s^26*x1^7-4*s^23*x1^7+s^95*x1^6+3*s^92*x1^6
+-6*s^49*x1^6-18*s^46*x1^6+x1^6-3*s^72*x1^5-12*s^69*x1^5
++2*s^26*x1^5+12*s^23*x1^5-s^92*x1^4+3*s^49*x1^4+18*s^46*x1^4
+-s^45*x1^4-3*x1^4+4*s^69*x1^3-s^26*x1^3-12*s^23*x1^3
+-6*s^46*x1^2+3*x1^2+4*s^23*x1-1
+,
+s^93*x1^10-4*s^70*x1^9-3*s^93*x1^8+6*s^47*x1^8+12*s^70*x1^7
+-s^69*x1^7-4*s^24*x1^7+3*s^93*x1^6+s^64*x1^6-18*s^47*x1^6
++3*s^46*x1^6+s*x1^6-12*s^70*x1^5+2*s^69*x1^5-2*s^41*x1^5
++12*s^24*x1^5-3*s^23*x1^5-s^93*x1^4-2*s^64*x1^4+18*s^47*x1^4
+-6*s^46*x1^4-s^41*x1^4+s^18*x1^4-3*s*x1^4+x1^4+4*s^70*x1^3
+-s^69*x1^3+4*s^41*x1^3-12*s^24*x1^3+6*s^23*x1^3+s^64*x1^2
+-6*s^47*x1^2+3*s^46*x1^2-2*s^18*x1^2+3*s*x1^2-2*x1^2-2*s^41*x1
++4*s^24*x1-3*s^23*x1+s^18-s+1
+];
+
+
+Mathematica formulation:
+
+redsys = 
+(s \[NotEqual] 0 && x1 \[NotEqual] 0 && s^23 x1 - 1 \[NotEqual] 0 && x1 + 1 \[NotEqual] 0 &&
+x1 - 1 \[NotEqual] 0 && s^95 x1^10 + s^92 x1^10 - 3 s^72 x1^9 - 4 s^69 x1^9 - 2
+s^95 x1^8 - 3 s^92 x1^8 + 3 s^49 x1^8 + 6 s^46 x1^8 + 6 s^72 x1^7 + 12
+s^69 x1^7 - s^26 x1^7 - 4 s^23 x1^7 + s^95 x1^6 + 3 s^92 x1^6 - 6 s^49
+x1^6 - 18 s^46 x1^6 + x1^6 - 3 s^72 x1^5 - 12 s^69 x1^5 + 2 s^26 x1^5
++ 12 s^23 x1^5 - s^92 x1^4 + 3 s^49 x1^4 + 18 s^46 x1^4 - s^45 x1^4 -
+3 x1^4 + 4 s^69 x1^3 - s^26 x1^3 - 12 s^23 x1^3 - 6 s^46 x1^2 + 3 x1^2
++ 4 s^23 x1 - 1 == 0 && s^93 x1^10 - 4 s^70 x1^9 - 3 s^93 x1^8 + 6 s^47
+x1^8 + 12 s^70 x1^7 - s^69 x1^7 - 4 s^24 x1^7 + 3 s^93 x1^6 + s^64
+x1^6 - 18 s^47 x1^6 + 3 s^46 x1^6 + s x1^6 - 12 s^70 x1^5 + 2 s^69
+x1^5 - 2 s^41 x1^5 + 12 s^24 x1^5 - 3 s^23 x1^5 - s^93 x1^4 - 2 s^64
+x1^4 + 18 s^47 x1^4 - 6 s^46 x1^4 - s^41 x1^4 + s^18 x1^4 - 3 s x1^4 +
+x1^4 + 4 s^70 x1^3 - s^69 x1^3 + 4 s^41 x1^3 - 12 s^24 x1^3 + 6 s^23
+x1^3 + s^64 x1^2 - 6 s^47 x1^2 + 3 s^46 x1^2 - 2 s^18 x1^2 + 3 s x1^2
+- 2 x1^2 - 2 s^41 x1 + 4 s^24 x1 - 3 s^23 x1 + s^18 - s + 1 == 0)
+
+
+
+# Straightup Maple
+use RealDomain in solve([1+s^2*x1*x3+s^8*x2*x3+s^19*x1*x2*x4 = 0 ,
+x1+s^8*x1*x2*x3+s^19*x2*x4 = 0 , x2+s^11*x1*x4+s^10*x3*x4 = 0 ,
+s^4*x1*x2+x3+s^19*x1*x3*x4+s^24*x2*x3*x4 = 0 , x4+s^31*x1*x2*x3*x4 =
+0 , 0 < s , s < 1]) end use;
+

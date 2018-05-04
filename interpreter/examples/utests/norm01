@@ -1,0 +1,41 @@
+; tests "normalization" - these are basic simplifications on conjunctions
+
+(def expr (normalize [ a b > 0 /\ a < 0 ]))
+(def targ [a < 0 /\ b < 0])
+(def res (if (equal? expr targ) "pass" "fail"))
+(display res " : test norm01 - a\n")
+
+(def expr (normalize [ a b >= 0 /\ a^2 <= 0 ]))
+(def targ [a = 0])
+(def res (if (equal? expr targ) "pass" "fail"))
+(display res " : test norm01 - b\n")
+
+(def expr (normalize [ a b c < 0 /\ a b < 0 /\ a c > 0 ]))
+(def targ [ a > 0 /\ b < 0 /\ c > 0 ])
+(def res (if (equal? expr targ) "pass" "fail"))
+(display res " : test norm01 - c\n")
+
+(def expr (normalize [ a b c < 0 /\ a b < 0 /\ a c < 0 /\ b c < 0 ]))
+(def targ [ false ])
+(def res (if (equal? expr targ) "pass" "fail"))
+(display res " : test norm01 - d\n")
+
+(def expr (normalize [ a > 0 /\ [ b < 0 \/ c^2 < 0 ] ]))
+(def targ [ a > 0 /\ b < 0 ])
+(def res (if (equal? expr targ) "pass" "fail"))
+(display res " : test norm01 - e\n")
+
+(def expr (normalize [ a > 0 \/ [ b < 0 /\ c^2 < 0 ] ]))
+(def targ [ a > 0 ])
+(def res (if (equal? expr targ) "pass" "fail"))
+(display res " : test norm01 - f\n")
+
+(def expr (normalize [ a > 0 \/ [ b < 0 /\ c^2 >= 0 ] ]))
+(def targ [ a > 0 \/ b < 0 ])
+(def res (if (equal? expr targ) "pass" "fail"))
+(display res " : test norm01 - g\n")
+
+(def expr (normalize [ a > 0 /\ [ b^2 >= 0 \/ c < 0 ] ]))
+(def targ [ a > 0 ])
+(def res (if (equal? expr targ) "pass" "fail"))
+(display res " : test norm01 - h\n")

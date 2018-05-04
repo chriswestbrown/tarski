@@ -1,0 +1,10 @@
+[]
+(x,y,z,w)
+0
+(F x)(F y)(F z)(F w)[32 x z + 35 y - 9 x - 24 w - 55 > 0 /\ -1(12 z - 20 y + 63 w x + 86 w - 54) > 0 /\ 52 z + 53 x y + 50 x + 47 w - 33 > 0 /\ 55 z - 25 y + 14 w x - 72 w - 29 > 0].
+meas
+go
+go
+go
+d-stat
+quit

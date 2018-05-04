@@ -1,0 +1,925 @@
+Terminals unused in grammar
+
+   LEXERR
+
+
+Grammar
+
+    0 $accept: O $end
+
+    1 O: LB E RB
+    2  | LB F RB
+
+    3 F: F OR C
+    4  | F LIMPLR C
+    5  | C
+
+    6 C: C AND N
+    7  | N
+
+    8 N: NEG N
+    9  | A
+
+   10 A: Q LB F RB
+   11  | E RELOP ROOT P E
+   12  | E RELOP E
+   13  | LB F RB
+   14  | LP F RP
+   15  | TCONST
+   16  | FCONST
+   17  | INTERP VAR
+   18  | INTERP PERCENT
+
+   19 Q: Q COMMA VAR
+   20  | QF VAR
+
+   21 E: E PLUS T
+   22  | E MINUS T
+   23  | T
+
+   24 T: T Pb
+   25  | T MULT P
+   26  | T DIV P
+   27  | P
+
+   28 P: MINUS P
+   29  | B EXP P
+   30  | B
+
+   31 Pb: B EXP P
+   32   | B
+
+   33 B: VAR
+   34  | NUM
+   35  | LP E RP
+
+
+Terminals, with rules where they appear
+
+$end (0) 0
+error (256)
+PLUS (258) 21
+MINUS (259) 22 28
+MULT (260) 25
+DIV (261) 26
+EXP (262) 29 31
+VAR (263) 17 19 20 33
+NUM (264) 34
+LP (265) 14 35
+RP (266) 14 35
+RELOP (267) 11 12
+TCONST (268) 15
+FCONST (269) 16
+LB (270) 1 2 10 13
+RB (271) 1 2 10 13
+AND (272) 6
+OR (273) 3
+LIMPLR (274) 4
+NEG (275) 8
+ROOT (276) 11
+LEXERR (277)
+QF (278) 20
+COMMA (279) 19
+INTERP (280) 17 18
+PERCENT (281) 18
+
+
+Nonterminals, with rules where they appear
+
+$accept (27)
+    on left: 0
+O (28)
+    on left: 1 2, on right: 0
+F (29)
+    on left: 3 4 5, on right: 2 3 4 10 13 14
+C (30)
+    on left: 6 7, on right: 3 4 5 6
+N (31)
+    on left: 8 9, on right: 6 7 8
+A (32)
+    on left: 10 11 12 13 14 15 16 17 18, on right: 9
+Q (33)
+    on left: 19 20, on right: 10 19
+E (34)
+    on left: 21 22 23, on right: 1 11 12 21 22 35
+T (35)
+    on left: 24 25 26 27, on right: 21 22 23 24 25 26
+P (36)
+    on left: 28 29 30, on right: 11 25 26 27 28 29 31
+Pb (37)
+    on left: 31 32, on right: 24
+B (38)
+    on left: 33 34 35, on right: 29 30 31 32
+
+
+State 0
+
+    0 $accept: . O $end
+
+    LB  shift, and go to state 1
+
+    O  go to state 2
+
+
+State 1
+
+    1 O: LB . E RB
+    2  | LB . F RB
+
+    MINUS   shift, and go to state 3
+    VAR     shift, and go to state 4
+    NUM     shift, and go to state 5
+    LP      shift, and go to state 6
+    TCONST  shift, and go to state 7
+    FCONST  shift, and go to state 8
+    LB      shift, and go to state 9
+    NEG     shift, and go to state 10
+    QF      shift, and go to state 11
+    INTERP  shift, and go to state 12
+
+    F  go to state 13
+    C  go to state 14
+    N  go to state 15
+    A  go to state 16
+    Q  go to state 17
+    E  go to state 18
+    T  go to state 19
+    P  go to state 20
+    B  go to state 21
+
+
+State 2
+
+    0 $accept: O . $end
+
+    $end  shift, and go to state 22
+
+
+State 3
+
+   28 P: MINUS . P
+
+    MINUS  shift, and go to state 3
+    VAR    shift, and go to state 4
+    NUM    shift, and go to state 5
+    LP     shift, and go to state 23
+
+    P  go to state 24
+    B  go to state 21
+
+
+State 4
+
+   33 B: VAR .
+
+    $default  reduce using rule 33 (B)
+
+
+State 5
+
+   34 B: NUM .
+
+    $default  reduce using rule 34 (B)
+
+
+State 6
+
+   14 A: LP . F RP
+   35 B: LP . E RP
+
+    MINUS   shift, and go to state 3
+    VAR     shift, and go to state 4
+    NUM     shift, and go to state 5
+    LP      shift, and go to state 6
+    TCONST  shift, and go to state 7
+    FCONST  shift, and go to state 8
+    LB      shift, and go to state 9
+    NEG     shift, and go to state 10
+    QF      shift, and go to state 11
+    INTERP  shift, and go to state 12
+
+    F  go to state 25
+    C  go to state 14
+    N  go to state 15
+    A  go to state 16
+    Q  go to state 17
+    E  go to state 26
+    T  go to state 19
+    P  go to state 20
+    B  go to state 21
+
+
+State 7
+
+   15 A: TCONST .
+
+    $default  reduce using rule 15 (A)
+
+
+State 8
+
+   16 A: FCONST .
+
+    $default  reduce using rule 16 (A)
+
+
+State 9
+
+   13 A: LB . F RB
+
+    MINUS   shift, and go to state 3
+    VAR     shift, and go to state 4
+    NUM     shift, and go to state 5
+    LP      shift, and go to state 6
+    TCONST  shift, and go to state 7
+    FCONST  shift, and go to state 8
+    LB      shift, and go to state 9
+    NEG     shift, and go to state 10
+    QF      shift, and go to state 11
+    INTERP  shift, and go to state 12
+
+    F  go to state 27
+    C  go to state 14
+    N  go to state 15
+    A  go to state 16
+    Q  go to state 17
+    E  go to state 28
+    T  go to state 19
+    P  go to state 20
+    B  go to state 21
+
+
+State 10
+
+    8 N: NEG . N
+
+    MINUS   shift, and go to state 3
+    VAR     shift, and go to state 4
+    NUM     shift, and go to state 5
+    LP      shift, and go to state 6
+    TCONST  shift, and go to state 7
+    FCONST  shift, and go to state 8
+    LB      shift, and go to state 9
+    NEG     shift, and go to state 10
+    QF      shift, and go to state 11
+    INTERP  shift, and go to state 12
+
+    N  go to state 29
+    A  go to state 16
+    Q  go to state 17
+    E  go to state 28
+    T  go to state 19
+    P  go to state 20
+    B  go to state 21
+
+
+State 11
+
+   20 Q: QF . VAR
+
+    VAR  shift, and go to state 30
+
+
+State 12
+
+   17 A: INTERP . VAR
+   18  | INTERP . PERCENT
+
+    VAR      shift, and go to state 31
+    PERCENT  shift, and go to state 32
+
+
+State 13
+
+    2 O: LB F . RB
+    3 F: F . OR C
+    4  | F . LIMPLR C
+
+    RB      shift, and go to state 33
+    OR      shift, and go to state 34
+    LIMPLR  shift, and go to state 35
+
+
+State 14
+
+    5 F: C .
+    6 C: C . AND N
+
+    AND  shift, and go to state 36
+
+    $default  reduce using rule 5 (F)
+
+
+State 15
+
+    7 C: N .
+
+    $default  reduce using rule 7 (C)
+
+
+State 16
+
+    9 N: A .
+
+    $default  reduce using rule 9 (N)
+
+
+State 17
+
+   10 A: Q . LB F RB
+   19 Q: Q . COMMA VAR
+
+    LB     shift, and go to state 37
+    COMMA  shift, and go to state 38
+
+
+State 18
+
+    1 O: LB E . RB
+   11 A: E . RELOP ROOT P E
+   12  | E . RELOP E
+   21 E: E . PLUS T
+   22  | E . MINUS T
+
+    PLUS   shift, and go to state 39
+    MINUS  shift, and go to state 40
+    RELOP  shift, and go to state 41
+    RB     shift, and go to state 42
+
+
+State 19
+
+   23 E: T .
+   24 T: T . Pb
+   25  | T . MULT P
+   26  | T . DIV P
+
+    MULT  shift, and go to state 43
+    DIV   shift, and go to state 44
+    VAR   shift, and go to state 4
+    NUM   shift, and go to state 5
+    LP    shift, and go to state 23
+
+    $default  reduce using rule 23 (E)
+
+    Pb  go to state 45
+    B   go to state 46
+
+
+State 20
+
+   27 T: P .
+
+    $default  reduce using rule 27 (T)
+
+
+State 21
+
+   29 P: B . EXP P
+   30  | B .
+
+    EXP  shift, and go to state 47
+
+    $default  reduce using rule 30 (P)
+
+
+State 22
+
+    0 $accept: O $end .
+
+    $default  accept
+
+
+State 23
+
+   35 B: LP . E RP
+
+    MINUS  shift, and go to state 3
+    VAR    shift, and go to state 4
+    NUM    shift, and go to state 5
+    LP     shift, and go to state 23
+
+    E  go to state 48
+    T  go to state 19
+    P  go to state 20
+    B  go to state 21
+
+
+State 24
+
+   28 P: MINUS P .
+
+    $default  reduce using rule 28 (P)
+
+
+State 25
+
+    3 F: F . OR C
+    4  | F . LIMPLR C
+   14 A: LP F . RP
+
+    RP      shift, and go to state 49
+    OR      shift, and go to state 34
+    LIMPLR  shift, and go to state 35
+
+
+State 26
+
+   11 A: E . RELOP ROOT P E
+   12  | E . RELOP E
+   21 E: E . PLUS T
+   22  | E . MINUS T
+   35 B: LP E . RP
+
+    PLUS   shift, and go to state 39
+    MINUS  shift, and go to state 40
+    RP     shift, and go to state 50
+    RELOP  shift, and go to state 41
+
+
+State 27
+
+    3 F: F . OR C
+    4  | F . LIMPLR C
+   13 A: LB F . RB
+
+    RB      shift, and go to state 51
+    OR      shift, and go to state 34
+    LIMPLR  shift, and go to state 35
+
+
+State 28
+
+   11 A: E . RELOP ROOT P E
+   12  | E . RELOP E
+   21 E: E . PLUS T
+   22  | E . MINUS T
+
+    PLUS   shift, and go to state 39
+    MINUS  shift, and go to state 40
+    RELOP  shift, and go to state 41
+
+
+State 29
+
+    8 N: NEG N .
+
+    $default  reduce using rule 8 (N)
+
+
+State 30
+
+   20 Q: QF VAR .
+
+    $default  reduce using rule 20 (Q)
+
+
+State 31
+
+   17 A: INTERP VAR .
+
+    $default  reduce using rule 17 (A)
+
+
+State 32
+
+   18 A: INTERP PERCENT .
+
+    $default  reduce using rule 18 (A)
+
+
+State 33
+
+    2 O: LB F RB .
+
+    $default  reduce using rule 2 (O)
+
+
+State 34
+
+    3 F: F OR . C
+
+    MINUS   shift, and go to state 3
+    VAR     shift, and go to state 4
+    NUM     shift, and go to state 5
+    LP      shift, and go to state 6
+    TCONST  shift, and go to state 7
+    FCONST  shift, and go to state 8
+    LB      shift, and go to state 9
+    NEG     shift, and go to state 10
+    QF      shift, and go to state 11
+    INTERP  shift, and go to state 12
+
+    C  go to state 52
+    N  go to state 15
+    A  go to state 16
+    Q  go to state 17
+    E  go to state 28
+    T  go to state 19
+    P  go to state 20
+    B  go to state 21
+
+
+State 35
+
+    4 F: F LIMPLR . C
+
+    MINUS   shift, and go to state 3
+    VAR     shift, and go to state 4
+    NUM     shift, and go to state 5
+    LP      shift, and go to state 6
+    TCONST  shift, and go to state 7
+    FCONST  shift, and go to state 8
+    LB      shift, and go to state 9
+    NEG     shift, and go to state 10
+    QF      shift, and go to state 11
+    INTERP  shift, and go to state 12
+
+    C  go to state 53
+    N  go to state 15
+    A  go to state 16
+    Q  go to state 17
+    E  go to state 28
+    T  go to state 19
+    P  go to state 20
+    B  go to state 21
+
+
+State 36
+
+    6 C: C AND . N
+
+    MINUS   shift, and go to state 3
+    VAR     shift, and go to state 4
+    NUM     shift, and go to state 5
+    LP      shift, and go to state 6
+    TCONST  shift, and go to state 7
+    FCONST  shift, and go to state 8
+    LB      shift, and go to state 9
+    NEG     shift, and go to state 10
+    QF      shift, and go to state 11
+    INTERP  shift, and go to state 12
+
+    N  go to state 54
+    A  go to state 16
+    Q  go to state 17
+    E  go to state 28
+    T  go to state 19
+    P  go to state 20
+    B  go to state 21
+
+
+State 37
+
+   10 A: Q LB . F RB
+
+    MINUS   shift, and go to state 3
+    VAR     shift, and go to state 4
+    NUM     shift, and go to state 5
+    LP      shift, and go to state 6
+    TCONST  shift, and go to state 7
+    FCONST  shift, and go to state 8
+    LB      shift, and go to state 9
+    NEG     shift, and go to state 10
+    QF      shift, and go to state 11
+    INTERP  shift, and go to state 12
+
+    F  go to state 55
+    C  go to state 14
+    N  go to state 15
+    A  go to state 16
+    Q  go to state 17
+    E  go to state 28
+    T  go to state 19
+    P  go to state 20
+    B  go to state 21
+
+
+State 38
+
+   19 Q: Q COMMA . VAR
+
+    VAR  shift, and go to state 56
+
+
+State 39
+
+   21 E: E PLUS . T
+
+    MINUS  shift, and go to state 3
+    VAR    shift, and go to state 4
+    NUM    shift, and go to state 5
+    LP     shift, and go to state 23
+
+    T  go to state 57
+    P  go to state 20
+    B  go to state 21
+
+
+State 40
+
+   22 E: E MINUS . T
+
+    MINUS  shift, and go to state 3
+    VAR    shift, and go to state 4
+    NUM    shift, and go to state 5
+    LP     shift, and go to state 23
+
+    T  go to state 58
+    P  go to state 20
+    B  go to state 21
+
+
+State 41
+
+   11 A: E RELOP . ROOT P E
+   12  | E RELOP . E
+
+    MINUS  shift, and go to state 3
+    VAR    shift, and go to state 4
+    NUM    shift, and go to state 5
+    LP     shift, and go to state 23
+    ROOT   shift, and go to state 59
+
+    E  go to state 60
+    T  go to state 19
+    P  go to state 20
+    B  go to state 21
+
+
+State 42
+
+    1 O: LB E RB .
+
+    $default  reduce using rule 1 (O)
+
+
+State 43
+
+   25 T: T MULT . P
+
+    MINUS  shift, and go to state 3
+    VAR    shift, and go to state 4
+    NUM    shift, and go to state 5
+    LP     shift, and go to state 23
+
+    P  go to state 61
+    B  go to state 21
+
+
+State 44
+
+   26 T: T DIV . P
+
+    MINUS  shift, and go to state 3
+    VAR    shift, and go to state 4
+    NUM    shift, and go to state 5
+    LP     shift, and go to state 23
+
+    P  go to state 62
+    B  go to state 21
+
+
+State 45
+
+   24 T: T Pb .
+
+    $default  reduce using rule 24 (T)
+
+
+State 46
+
+   31 Pb: B . EXP P
+   32   | B .
+
+    EXP  shift, and go to state 63
+
+    $default  reduce using rule 32 (Pb)
+
+
+State 47
+
+   29 P: B EXP . P
+
+    MINUS  shift, and go to state 3
+    VAR    shift, and go to state 4
+    NUM    shift, and go to state 5
+    LP     shift, and go to state 23
+
+    P  go to state 64
+    B  go to state 21
+
+
+State 48
+
+   21 E: E . PLUS T
+   22  | E . MINUS T
+   35 B: LP E . RP
+
+    PLUS   shift, and go to state 39
+    MINUS  shift, and go to state 40
+    RP     shift, and go to state 50
+
+
+State 49
+
+   14 A: LP F RP .
+
+    $default  reduce using rule 14 (A)
+
+
+State 50
+
+   35 B: LP E RP .
+
+    $default  reduce using rule 35 (B)
+
+
+State 51
+
+   13 A: LB F RB .
+
+    $default  reduce using rule 13 (A)
+
+
+State 52
+
+    3 F: F OR C .
+    6 C: C . AND N
+
+    AND  shift, and go to state 36
+
+    $default  reduce using rule 3 (F)
+
+
+State 53
+
+    4 F: F LIMPLR C .
+    6 C: C . AND N
+
+    AND  shift, and go to state 36
+
+    $default  reduce using rule 4 (F)
+
+
+State 54
+
+    6 C: C AND N .
+
+    $default  reduce using rule 6 (C)
+
+
+State 55
+
+    3 F: F . OR C
+    4  | F . LIMPLR C
+   10 A: Q LB F . RB
+
+    RB      shift, and go to state 65
+    OR      shift, and go to state 34
+    LIMPLR  shift, and go to state 35
+
+
+State 56
+
+   19 Q: Q COMMA VAR .
+
+    $default  reduce using rule 19 (Q)
+
+
+State 57
+
+   21 E: E PLUS T .
+   24 T: T . Pb
+   25  | T . MULT P
+   26  | T . DIV P
+
+    MULT  shift, and go to state 43
+    DIV   shift, and go to state 44
+    VAR   shift, and go to state 4
+    NUM   shift, and go to state 5
+    LP    shift, and go to state 23
+
+    $default  reduce using rule 21 (E)
+
+    Pb  go to state 45
+    B   go to state 46
+
+
+State 58
+
+   22 E: E MINUS T .
+   24 T: T . Pb
+   25  | T . MULT P
+   26  | T . DIV P
+
+    MULT  shift, and go to state 43
+    DIV   shift, and go to state 44
+    VAR   shift, and go to state 4
+    NUM   shift, and go to state 5
+    LP    shift, and go to state 23
+
+    $default  reduce using rule 22 (E)
+
+    Pb  go to state 45
+    B   go to state 46
+
+
+State 59
+
+   11 A: E RELOP ROOT . P E
+
+    MINUS  shift, and go to state 3
+    VAR    shift, and go to state 4
+    NUM    shift, and go to state 5
+    LP     shift, and go to state 23
+
+    P  go to state 66
+    B  go to state 21
+
+
+State 60
+
+   12 A: E RELOP E .
+   21 E: E . PLUS T
+   22  | E . MINUS T
+
+    PLUS   shift, and go to state 39
+    MINUS  shift, and go to state 40
+
+    $default  reduce using rule 12 (A)
+
+
+State 61
+
+   25 T: T MULT P .
+
+    $default  reduce using rule 25 (T)
+
+
+State 62
+
+   26 T: T DIV P .
+
+    $default  reduce using rule 26 (T)
+
+
+State 63
+
+   31 Pb: B EXP . P
+
+    MINUS  shift, and go to state 3
+    VAR    shift, and go to state 4
+    NUM    shift, and go to state 5
+    LP     shift, and go to state 23
+
+    P  go to state 67
+    B  go to state 21
+
+
+State 64
+
+   29 P: B EXP P .
+
+    $default  reduce using rule 29 (P)
+
+
+State 65
+
+   10 A: Q LB F RB .
+
+    $default  reduce using rule 10 (A)
+
+
+State 66
+
+   11 A: E RELOP ROOT P . E
+
+    MINUS  shift, and go to state 3
+    VAR    shift, and go to state 4
+    NUM    shift, and go to state 5
+    LP     shift, and go to state 23
+
+    E  go to state 68
+    T  go to state 19
+    P  go to state 20
+    B  go to state 21
+
+
+State 67
+
+   31 Pb: B EXP P .
+
+    $default  reduce using rule 31 (Pb)
+
+
+State 68
+
+   11 A: E RELOP ROOT P E .
+   21 E: E . PLUS T
+   22  | E . MINUS T
+
+    PLUS   shift, and go to state 39
+    MINUS  shift, and go to state 40
+
+    $default  reduce using rule 11 (A)

@@ -1,0 +1,8 @@
+; tests reading basic smt input - test division of quantities by constant
+
+(def F (smtlib-load "smt/smt004.smt2"))
+
+(def expr F)
+(def targ [ (a + b)/2 > (5 + x)/7])
+(def res (if (equal? expr targ) "pass" "fail"))
+(display res " : test smt04\n")

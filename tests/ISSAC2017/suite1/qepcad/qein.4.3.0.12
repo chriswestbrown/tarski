@@ -1,0 +1,10 @@
+[]
+(x,y,z)
+0
+(F x)(F y)(F z)[-1(28 z - 33 x y + y + 77) > 0 /\ 41 z^2 + 72 y + 58 x + 1 > 0 /\ 57 x z - 33 z - 3 y + 8 > 0 /\ 35 z + 75 x y - 38 y + 24 > 0].
+meas
+go
+go
+go
+d-stat
+quit

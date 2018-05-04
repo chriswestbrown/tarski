@@ -1,0 +1,20 @@
+[
+ex a, b, t[
+t >= 0 /\ a^2 + b^2 = 1 /\
+0 = 2 x1 - 2 x2 t + (x3 + b - a) t^2 /\
+0 = x2 + (a - x3) t - t^2 /\ 0 = x3 - t
+]
+]
+
+# Redlog version:
+ex({a,b,t},t >= 0 and a^2+b^2 = 1 and 0 = 2*x1-2*x2*t+(x3+b-a)*t^2 and
+0 = x2+(a-x3)*t-t^2 and 0 = x3-t)
+
+# Mathematica
+Resolve[Exists[{a,b,t},
+t >= 0 && a^2+b^2 == 1 && 0 == 2*x1-2*x2*t+(x3+b-a)*t^2 &&
+0 == x2+(a-x3)*t-t^2 && 0 == x3-t],Reals]
+
+
+
+

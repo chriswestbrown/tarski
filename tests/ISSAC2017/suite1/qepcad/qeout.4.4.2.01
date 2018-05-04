@@ -1,0 +1,121 @@
+=======================================================
+                Quantifier Elimination                 
+                          in                           
+            Elementary Algebra and Geometry            
+                          by                           
+      Partial Cylindrical Algebraic Decomposition      
+                                                       
+               Version B 1.69, 16 Mar 2012
+                                                       
+                          by                           
+                       Hoon Hong                       
+                  (hhong@math.ncsu.edu)                
+                                                       
+With contributions by: Christopher W. Brown, George E. 
+Collins, Mark J. Encarnacion, Jeremy R. Johnson        
+Werner Krandick, Richard Liska, Scott McCallum,        
+Nicolas Robidoux, and Stanly Steinberg                 
+=======================================================
+Enter an informal description  between '[' and ']':
+[]Enter a variable list:
+(x,y,z,w)Enter the number of free variables:
+2
+Enter a prenex formula:
+(F z)(F w)[-1(81 z + 52 w y + 81 x - 2 w - 11) > 0 /\ 39 x z + 19 z + 66 y - 36 w + 95 > 0 /\ 43 z - 90 w y + 8 x - 66 w - 72 > 0 /\ -1(79 y z + 2 z + 96 x - 14 w - 69) > 0].
+
+=======================================================
+
+Before Normalization >
+meas
+
+Before Normalization >
+go
+
+Before Projection (w) >
+go
+
+Before Choice >
+go
+
+Before Solution >
+d-stat
+==============================================================
+
+Total time without garbage collection  :      1276
+Total time for garbage collection      :         0
+Total time with garbage collection     :      1276
+
+Time taken for database management     :         0
+Time saved by utilizing databases      :         0
+Net time saving                        :         0
+
+Time taken for Normalization Phase     :         0
+
+Time taken for Projection Phase:
+----------------------------------------------------
+Level                1         2         3     Total
+----------------------------------------------------
+PROJECT             44         0         0        44
+..PROJ              16         0         0        16
+....IPFZT            0         0         0         0
+..IPLFAC            24         0         0        24
+..APPEND             4         0         0         4
+----------------------------------------------------
+
+Counts for Projection Phase:
+--------------------------------------------------------------
+Level                1         2         3         4     Total
+--------------------------------------------------------------
+Proj Poly          104        21         8         0       133
+Proj Fact           62        15         6         4        87
+--------------------------------------------------------------
+
+Time taken for Truth Invariant CAD Construction Phase:
+--------------------------------------------------------------
+Level                1         2         3         4     Total
+--------------------------------------------------------------
+TICAD                4       108       316       804      1232
+..CHOOSE             0         4         8        28        40
+..CONVERT            0         0         0         4         4
+....TCN              0         0         0         0         0
+....NORMAL           0         0         0         0         0
+....SIMPLE           0         0         0         0         0
+..CONSTRUCT          4       104       308       712      1128
+....SUBST            0         0         0         0         0
+....AFUPLM           0         0         0         0         0
+....AFCSBM           0         0         0         0         0
+....AFUPBRI          0         0         0         0         0
+...AFUPHIBRI         0         0         0         0         0
+....EC               0         0         0         0         0
+....SIGNP            0         0         0         0         0
+....RCFAFC           0         0         0         4         4
+....SUBSTR           0         4        60       124       188
+....IPLSRP           0         0         4        32        36
+....IPFSBM           0        28        32       128       188
+....IPLRRI           4        48       124       260       436
+....ECR              0         4        36        96       136
+....SIGNPR           0        20        32        44        96
+..EVALUATE           0         0         0        40        40
+..PROPAGATE          0         0         0         8         8
+..APEQC              0         0         0        12        12
+--------------------------------------------------------------
+
+Counts for Truth--Invariant CAD Construction Phase:
+--------------------------------------------------------------
+Level                1         2         3         4     Total
+--------------------------------------------------------------
+Stacks               1       110      2602     11457     14170
+..Rational           1       110      2602     11457     14170
+Cells              219      5094     33826    103113    142252
+Conversion           0         0         0         0         0
+..Trivial            0         0         0         0         0
+--------------------------------------------------------------
+
+Timings for solution formula construction:
+--------------------------------------------------------------
+
+==============================================================
+
+Before Solution >
+quit
+Quitting the QEPCAD system... Bye!

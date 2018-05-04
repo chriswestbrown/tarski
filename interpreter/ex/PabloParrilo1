@@ -1,0 +1,18 @@
+[ ex x,y[x^3 -8 x -2 y = 0 /\ (x-1)^2 + (y-1)^2 < gam] ]
+
+[
+Ex Ey  (x^3 -8 x -2 y = 0 ) and ( (x-1)^2 + (y-1)^2 < gam )
+]
+(gam,x,y)
+1
+(Ex)(Ey)[
+x^3 -8 x -2 y = 0 /\ (x-1)^2 + (y-1)^2 < gam
+].
+prop
+go
+res-alg S
+eqn-const-l(A_3,1)
+go
+fast
+go
+sol T

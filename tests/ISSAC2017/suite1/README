@@ -1,0 +1,255 @@
+Experiements 8GB RAM
+Intel(R) Core(TM) i7-3770 CPU @ 3.40GHz
+(8-core machine, but these are all single-threaded application)
+
+NOTE: Memory (in GCA cells) in qepcad runs were
+      10 million cells for 2-variable problems
+      100 million cells for 3-variable problems
+      1000 million cells for 4-variable problems
+
+Q: How does the time required to compute the projection
+   compare to the time required to construct the Open
+   NuCAD in the first place?
+
+A: It's typically a small percentage.  What precentage
+   exactly depends on the problem parameters.  Generally,
+   projection seems to cost the most when the projection
+   level is about half the NuCAD level.  There was only
+   one instance in all the tests where the time for both
+   was measurable (i.e. more than the 4ms resolution of
+   the timer) that the time for projection exceeded the 
+   time to construct: that was a m=6,n=4,r=3 example for
+   which projection took 183% of the construction time.
+
+Table for the 3-variable case
+m r=1 r=2
+4 5.2 4.1
+5 5.4 5.1
+6 5.0 5.9
+
+Table for the 4-variable case
+m  r=1  r=2  r=3
+4  5.8 10.0  7.6
+5  4.5 12.6  6.2
+6  3.8 16.6 11.7
+
+Caption: average time to compute the NuCAD of the projection, as
+         a percentage of the time to compute the original NuCAD.
+
+Q: How does the number of cells in the projected NuCAD
+   compare with the number of cells in the original?
+   We note that it is not clear what one should expect
+   here.
+
+A: In all cases in these experiments, there were fewer
+   cells in the NuCAD for the projection than in the
+   original NuCAD.  How much?  For the most part that
+   seemed to depend on the number of variables eliminated
+   in the projection.  We note the worst case (the number of 
+   cells in the projected NuCAD is 70.3% of that in the original) 
+   came on the one and only example for which computing the 
+   projection actually took longer than computing the original
+   NuCAD (6.4.3 F15).
+
+  2vars     3vars           4vars
+m   r=1    r=1   r=2   r=1   r=2   r=3
+4  32.3    4.9  32.9    .3   5.5  35.6
+5  25.0    6.0  30.7    .3   3.9  33.2
+6  24.7    6.7  28.6    .1   3.9  32.7
+
+Caption: average number of cells in projected NuCAD as a 
+         percentage of number of cells in the original NuCAD
+
+
+Q: How does the number of cells in the projected NuCAD compare
+   to the number of cells in the projected CAD?
+
+A: There are generally a lot fewer in the projected NuCAD
+
+m n r NuQ  QEP  #QC ratio
+4 2 1 2.72 10.98 25 0.24772
+5 2 1 3.04 17.78 25 0.17098
+6 2 1 3.04 24.86 25 0.12228
+4 3 1 4.32 34.5 25 0.12522
+4 3 2 34.76 373.1 25 0.09317
+5 3 1 5.84 83.06 25 0.07031
+5 3 2 42.8 1342.94 25 0.03187
+6 3 1 5.4 189.46 25 0.02850
+6 3 2 41.16 4201.14 25 0.00980
+4 4 1 1.4 223.22 25 0.00627
+4 4 2 72.72 7618.18 25 0.00955
+4 4 3 826.88 86301.3 25 0.00958
+5 4 1 3.56 1943.5 25 0.00183
+5 4 2 128.12 131456.68 25 0.00097
+5 4 3 1492.2 1259602 23 0.00118
+6 4 1 4.44 13689.17 24 0.00032
+6 4 2 322.32 1023992 8 0.00031
+6 4 3 4108.88 N/A 0 N/A
+
+Caption: average number of cells in the projected NuCAD compared to 
+         the average number of cells in the projected CAD.
+
+
+Q: How does the time required to compute the original + projected 
+   NuCAD compare to the time required to compute the partial CAD
+   of the projected set.
+
+
+
+
+
+
+
+
+Average #opencells in projected CAD (num open is approximated by 1/2 the reported number of cells)
+4 2 1 10.98 25
+5 2 1 17.78 25
+6 2 1 24.86 25
+4 3 1 34.5 25
+4 3 2 373.1 25
+5 3 1 83.06 25
+5 3 2 1342.94 25
+6 3 1 189.46 25
+6 3 2 4201.14 25
+4 4 1 223.22 25
+4 4 2 7618.18 25
+4 4 3 86301.3 25
+5 4 1 1943.5 25
+5 4 2 131456.68 25
+5 4 3 1259602 23
+6 4 1 13689.1666666667 24
+6 4 2 1023992 8
+6 4 3 N/A 0
+
+
+Average #opencells in projected NuCAD 
+4 2 1 2.72 25
+5 2 1 3.04 25
+6 2 1 3.04 25
+4 3 1 4.32 25
+4 3 2 34.76 25
+5 3 1 5.84 25
+5 3 2 42.8 25
+6 3 1 5.4 25
+6 3 2 41.16 25
+4 4 1 1.4 25
+4 4 2 72.72 25
+4 4 3 826.88 25
+5 4 1 3.56 25
+5 4 2 128.12 25
+5 4 3 1492.2 25
+6 4 1 4.44 25
+6 4 2 322.32 25
+6 4 3 4108.88 25
+
+
+
+r  m=4  m=5  m=6
+1  5.8  4.5  3.8
+2 10.0 12.6 16.6
+3  7.6  6.2 11.7
+
+
+
+4 4 1 1.95569 5.75778 33.9977
+5 4 1 1.88275 4.53054 32.4425
+6 4 1 1.30452 3.83094 10.7165
+4 4 2 2.73416 10.0367 45.9347
+5 4 2 2.17707 12.5835 47.4112
+6 4 2 3.13097 16.5531 53.104
+4 4 3 2.83682 7.61336 34.3919
+5 4 3 2.63598 6.23109 30.6092
+6 4 3 1.62422 11.6638 183.143
+
+
+
+Note: In ./tst.pl 5 4 2 > res.5.4.r2
+F05 exits throwing an error 'TarskiException'
+  what():  Error in projectionResolve - point alpha on cell boundary!
+Which is because I haven't implemented this yet!
+
+(def F05 [  -51 x-33 y x-10 z+3 w+22 > 0 /\ 84 x z-y-14 z-22 w-32 > 0 /\ -88 x+26 y-76 z^2+91 w+77 > 0 /\ -43 x+9 y z-90 z-99 w+54 > 0 /\ -82 x+59 y-5 z-60 w^2-45 > 0 ])
+
+
+./tst.pl 6 2 0 > res.6.2.r0
+./tst.pl 6 2 1 > res.6.2.r1
+
+./tst.pl 5 2 0 > res.5.2.r0
+./tst.pl 5 2 1 > res.5.2.r1
+
+./tst.pl 4 2 0 > res.4.2.r0
+./tst.pl 4 2 1 > res.4.2.r1
+
+
+./tst.pl 6 3 0 > res.6.3.r0
+./tst.pl 6 3 1 > res.6.3.r1
+./tst.pl 6 3 2 > res.6.3.r2
+
+./tst.pl 5 3 0 > res.5.3.r0
+./tst.pl 5 3 1 > res.5.3.r1
+./tst.pl 5 3 2 > res.5.3.r2
+
+./tst.pl 4 3 0 > res.4.3.r0
+./tst.pl 4 3 1 > res.4.3.r1
+./tst.pl 4 3 2 > res.4.3.r2
+
+
+./tst.pl 6 4 0 > res.6.4.r0
+./tst.pl 6 4 1 > res.6.4.r1
+./tst.pl 6 4 2 > res.6.4.r2
+./tst.pl 6 4 3 > res.6.4.r3
+
+./tst.pl 5 4 0 > res.5.4.r0
+./tst.pl 5 4 1 > res.5.4.r1
+./tst.pl 5 4 2 > res.5.4.r2
+./tst.pl 5 4 3 > res.5.4.r3
+
+./tst.pl 4 4 0 > res.4.4.r0
+./tst.pl 4 4 1 > res.4.4.r1
+./tst.pl 4 4 2 > res.4.4.r2
+./tst.pl 4 4 3 > res.4.4.r3
+
+
+./dataAnalyze < res.6.2.r1
+./dataAnalyze < res.5.2.r1
+./dataAnalyze < res.4.2.r1
+
+./dataAnalyze < res.6.3.r1
+./dataAnalyze < res.5.3.r1
+./dataAnalyze < res.4.3.r1
+./dataAnalyze < res.6.3.r2
+./dataAnalyze < res.5.3.r2
+./dataAnalyze < res.4.3.r2
+
+
+# in order to compute 
+cat res.4.4.r1 | cut -d' ' -f5,6 | ./sumLine.pl | cut -d' ' -f5 | ./producePlotValues -l2 > plot/nucad441
+cat res.4.4.r2 | cut -d' ' -f5,6 | ./sumLine.pl | cut -d' ' -f5 | ./producePlotValues -l2 > plot/nucad442
+cat res.4.4.r3 | cut -d' ' -f5,6 | ./sumLine.pl | cut -d' ' -f5 | ./producePlotValues -l2 > plot/nucad443
+cat res.5.4.r1 | cut -d' ' -f5,6 | ./sumLine.pl | cut -d' ' -f5 | ./producePlotValues -l2 > plot/nucad541
+cat res.5.4.r2 | cut -d' ' -f5,6 | ./sumLine.pl | cut -d' ' -f5 | ./producePlotValues -l2 > plot/nucad542
+cat res.5.4.r3 | cut -d' ' -f5,6 | ./sumLine.pl | cut -d' ' -f5 | ./producePlotValues -l2 > plot/nucad543
+cat res.6.4.r1 | cut -d' ' -f5,6 | ./sumLine.pl | cut -d' ' -f5 | ./producePlotValues -l2 > plot/nucad641
+cat res.6.4.r2 | cut -d' ' -f5,6 | ./sumLine.pl | cut -d' ' -f5 | ./producePlotValues -l2 > plot/nucad642
+cat res.6.4.r3 | cut -d' ' -f5,6 | ./sumLine.pl | cut -d' ' -f5 | ./producePlotValues -l2 > plot/nucad643
+
+
+
+
+# getting qepcadb values
+./zzCollectResults 4 4 1 | grep -v '\-9999' | cut -d' ' -f5 | ../producePlotValues -l2 > ../plot/cad441
+./zzCollectResults 4 4 2 | grep -v '\-9999' | cut -d' ' -f5 | ../producePlotValues -l2 > ../plot/cad442
+./zzCollectResults 4 4 3 | grep -v '\-9999' | cut -d' ' -f5 | ../producePlotValues -l2 > ../plot/cad443
+./zzCollectResults 5 4 1 | grep -v '\-9999' | cut -d' ' -f5 | ../producePlotValues -l2 > ../plot/cad541
+./zzCollectResults 5 4 2 | grep -v '\-9999' | cut -d' ' -f5 | ../producePlotValues -l2 > ../plot/cad542
+./zzCollectResults 5 4 3 | grep -v '\-9999' | cut -d' ' -f5 | ../producePlotValues -l2 > ../plot/cad543
+./zzCollectResults 6 4 1 | grep -v '\-9999' | cut -d' ' -f5 | ../producePlotValues -l2 > ../plot/cad641
+./zzCollectResults 6 4 2 | grep -v '\-9999' | cut -d' ' -f5 | ../producePlotValues -l2 > ../plot/cad642
+./zzCollectResults 6 4 3 | grep -v '\-9999' | cut -d' ' -f5 | ../producePlotValues -l2 > ../plot/cad643
+
+
+
+plot "nucad441" with lines , "nucad442" with lines , "nucad443" with lines, "nucad541" with lines , \\
+"nucad542" with lines , "nucad543" with lines, "nucad641" with lines , "nucad642" with lines , "nucad643" with lines, \\
+"cad441" with lines , "cad442" with lines , "cad443" with lines, "cad541" with lines , "cad542" with lines , \\
+"cad543" with lines, "cad641" with lines , "cad642" with lines , "cad643" with lines

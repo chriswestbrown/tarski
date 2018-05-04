@@ -1,0 +1,10 @@
+; tests collecting factors appearin formula: collect-factors
+
+(def A  [ (x + 1) (x - y) > 0 /\ x + 1 < 0 /\ 2 y^2 - t y x > 1 \/ y - t x > 1 /\ (x + 1) (x - y) > 0 ])
+(def B [ (x + 1) (y^2 - 1) > 0 /\ x^2 + x /= 0 ])
+(def C [$A \/ $B])
+
+(def expr (collect-factors C))
+(def targ '( [x] [x + 1] [y - 1] [y + 1] [y - x] [x t - y + 1] [x y t - 2 y^2 + 1]))
+(def res (if (equal? expr targ) "pass" "fail"))
+(display res " : test col-fac01\n")

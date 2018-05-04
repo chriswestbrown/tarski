@@ -1,0 +1,38 @@
+tarski - a simple interpreter for manipulating tarski formulas
+
+UPDATE: The new Tarski language is basically scheme.  Everything
+works a whole bunch nicer now.  Still to do, though:
+- [open] lambda!
+- [open] setup getline to make command history, etc. work
+- [open] setup a result history (like %% is last result, or something)
+- [open] make map work
+- [open] start working on some sort of simplification for disjunctions
+
+
+
+
+
+
+1) The main point of tarski is to test some of the formula manipulation code
+
+2) The language is really ugly
+
+
+* assignment
+set <varname> <algebraic/tarski-value>
+
+* print
+print <varname>
+
+* normalization
+$normalize <tarskiform>
+
+* linear substitution, generic case
+$genlinsub <algvarname> index-of-atom <varcontianingtarskiform> bool
+
+* factor conjunction into chunks where variable sets are disjoint w.r.t. the given vars
+factor <varname> <var> (\s <var>)* ; 
+
+* find atoms containing unique occurences of variables.
+ufactor <varname>
+

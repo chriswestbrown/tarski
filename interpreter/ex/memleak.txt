@@ -1,0 +1,3 @@
+[ x = 1 /\ x + y = 0 ]
+# even in this simple problem, there's a GC_Obj that
+# doesn't get cleaned up!

@@ -1,0 +1,38 @@
+set key left top ; \
+plot \
+'tmpA.4.1' with linespoints title "m=4,r=1", \
+'tmpA.4.2' with linespoints title "m=4,r=2", \
+'tmpA.4.3' with linespoints title "m=4,r=3", \
+'tmpA.5.1' with linespoints title "m=5,r=1", \
+'tmpA.5.2' with linespoints title "m=5,r=2", \
+'tmpA.5.3' with linespoints title "m=5,r=3", \
+'tmpA.6.1' with linespoints title "m=6,r=1", \
+'tmpA.6.2' with linespoints title "m=6,r=2", \
+'tmpA.6.3' with linespoints title "m=6,r=3"
+
+set terminal postscript enhanced monochrome dashed font 'Helvetica,18'
+set output "tst.eps"
+set key left top ; \
+set xlabel "base 2 log of time in ms"
+set xrange [0:30]
+set yrange [0:26]
+plot \
+'tmpA.4.1' with lines title "m=4,r=1" linetype 2 linecolor rgb "black" lw 4, \
+'tmpA.4.2' with lines title "m=4,r=2" linetype 2 linecolor rgb "black" lw 4, \
+'tmpB.4.2' with lines title "NuCADm=4" linetype -1 linecolor rgb "black" lw 4, \
+'tmpA.4.3' with lines title "m=4,r=3" linetype 2 linecolor rgb "black" lw 4, \
+'tmpB.5.2' with lines title "NuCADm=5" linetype -1 linecolor rgb "black" lw 4, \
+'tmpB.6.2' with lines title "NuCADm=6" linetype -1 linecolor rgb "black" lw 4, \
+'tmpA.5.1' with lines title "m=5,r=1" linetype 2 linecolor rgb "black" lw 4, \
+'tmpA.5.2' with lines title "m=5,r=2" linetype 2 linecolor rgb "black" lw 4, \
+'tmpA.5.3' with lines title "m=5,r=3" linetype 2 linecolor rgb "black" lw 4, \
+'tmpA.6.1' with lines title "m=6,r=1" linetype 2 linecolor rgb "black" lw 4, \
+'tmpA.6.2' with lines title "m=6,r=2" linetype 2 linecolor rgb "black" lw 4, \
+'tmpA.6.3' with lines title "m=6,r=3" linetype 2 linecolor rgb "black" lw 4
+
+set key right bottom ; \
+plot \
+'tmpB.4.2' with linespoints title "m=4,r=2", \
+'tmpB.5.2' with linespoints title "m=4,r=2", \
+'tmpB.6.2' with linespoints title "m=4,r=2", \
+

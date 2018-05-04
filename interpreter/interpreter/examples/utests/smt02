@@ -1,0 +1,8 @@
+; tests reading basic smt input
+
+(def F (smtlib-load "smt/smt002.smt2"))
+
+(def expr F)
+(def targ [ x < 1 /\ y/3 > 2 ])
+(def res (if (equal? expr targ) "pass" "fail"))
+(display res " : test smt02\n")

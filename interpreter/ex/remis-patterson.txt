@@ -1,0 +1,33 @@
+[ ex x1, x2, x3, x4
+[
+(y - u3)*x2 + (-x + u2)*x1 - u2*y + u3*x = 0		/\
+2*u1*x2 - u1^2 = 0					/\
+y*x4 + (-x + u1)*x3 - u1*y = 0				/\
+2*u2*x4 + 2*u3*x3 - u3^2 - u2^2 = 0			/\
+(u1*u3*x2 + u1*u2*x1)*x4 + (-u1*u2*x2 + u1*u3*x1)*x3	
++ (-u1*u3^2 - u1*u2^2)*x1 /= 0
+# If we give the system the following non-degenerecy conditions,
+# it finds the solution instantly.  Without them ... things get
+# ugly!
+# /\ u1*u2 - u2*x - u3*y /= 0 /\ u2 - x /= 0 /\  y /= 0
+]
+]
+
+
+
+
+REMIS: Real geometry proving - Paterson's problem
+Paterson's problem
+
+ex14 := all({x1,x2,x3,x4},
+(y - u3)*x2 + (-x + u2)*x1 - u2*y + u3*x = 0		and
+2*u1*x2 - u1**2 = 0					and
+y*x4 + (-x + u1)*x3 - u1*y = 0				and
+2*u2*x4 + 2*u3*x3 - u3**2 - u2**2 = 0			impl
+(u1*u3*x2 + u1*u2*x1)*x4 + (-u1*u2*x2 + u1*u3*x1)*x3	
++ (-u1*u3**2 - u1*u2**2)*x1 = 0)$
+
+rlgqe ex14;
+
+end;  % of file
+

@@ -1,0 +1,39 @@
+The directory suite1 contains all the test inputs and
+and results used for the ISSAC2017 submission.
+
+
+
+
+
+
+
+
+
+
+### SIMPLE EXAMPLE - now seems to work!
+(def F [ y > 0 /\ x^2 + y^2 - 1 < 0 \/ y < 0 /\ x - (y + 1)^2 > 0 ])
+(def D (make-NuCADDNF '(x y) '(0 0) F))
+(msg D 'project 1)
+
+### COMPLEX EXAMPLE - now seems to work
+(def F05 [  -51 x-33 y x-10 z+3 w+22 > 0 /\ 84 x z-y-14 z-22 w-32 > 0 /\ -88 x+26 y-76 z^2+91 w+77 > 0 /\ -43 x+9 y z-90 z-99 w+54 > 0 /\ -82 x+59 y-5 z-60 w^2-45 > 0 ])
+(def D (make-NuCADConjunction '(x y z w) '(0 0 0 0) F05))
+(msg D 'project 2)
+
+[ Here's how we would do this with regular CAD :
+  NOTE: This ran out of memory after 25min computation with
+        200 million cells of garbage collected space.
+  NOTE2: after 115sec of cputime and 400 million cells, the Open
+        CAD of 2-space was constructed with 659718 full dimensional
+        cells.  After more than 4985sec (83min) of cpu time a CAD
+        representing the answer was produced ... the first step of
+        solution formula construction crashed due to lack of memory.
+  
+]
+(x,y,z,w)
+2
+(F z)(F w)[
+[  -51 x-33 y x-10 z+3 w+22 > 0 /\ 84 x z-y-14 z-22 w-32 > 0 /\ -88 x+26 y-76 z^2+91 w+77 > 0 /\ -43 x+9 y z-90 z-99 w+54 > 0 /\ -82 x+59 y-5 z-60 w^2-45 > 0 ]
+].
+meas
+

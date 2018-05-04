@@ -1,0 +1,18 @@
+p cnf 4 7
+3 2 1  0 
+-1 -2 -3  0 
+-2 -3 4  0 
+-1 3 -4  0 
+3 -2 1 4  0  
+3 2 1  0 
+-1 -2 -3  0 
+
+
+
+Write a script that selects k clauses to remove
+Theory Solver then takes the k removed clauses
+Gives one of the k clauses as a theory clause
+Does this until runs out of clauses to add
+Allows to run to completion
+
+Compare original file + satisfying assignment if one exists to a run with original minisat

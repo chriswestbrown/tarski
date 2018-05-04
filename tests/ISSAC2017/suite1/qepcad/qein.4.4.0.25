@@ -1,0 +1,10 @@
+[]
+(x,y,z,w)
+0
+(F x)(F y)(F z)(F w)[70 w z + 61 z - 26 y + 7 x + 55 > 0 /\ -1(5 z^2 + 74 y - 82 x + 91 w + 3) > 0 /\ 42 z - 63 w y - 47 x - 12 w - 10 > 0 /\ 3 y z + 53 z - 31 x + w + 42 > 0].
+meas
+go
+go
+go
+d-stat
+quit

@@ -1,0 +1,57 @@
+Here are some possible to dos:
+
+KNOWN BUGS
+############################################
+1) Right now, on the joswig.txt example, Maple
+returns an error ... no idea why.  Doesn't
+do it when I run the thing through the debugger
+though.  The error message is:
+
+  Error, (in factors) polynomials are not relatively prime
+
+
+TODOs
+############################################
+1) Split sums of squares. e.g. x^2 + y^2 = 0 ---> x = 0 /\ y = 0
+   Question: How often does this happen?
+2) Get a stronger version of degree decreaser
+3) Do something along the lines of adding multiples of equations
+   to knock out terms to get one of them to be linear so I can
+   do a substitution!
+4) Recognize inequalities that imply one another:
+   e.g. x^2 + y > 1 ==> x^2 + y > 0, so if they occur in 
+   conjunction I can drop the latter.  Perhaps deduce
+   inconsistencies, etc.  So far I'm doing OK on adding this, but
+   I need to think about how to determine whether =,>=,> can be
+   deduced.
+7) Finish adding <== and <==> boolen connectives.
+*) Command-line option to get output as a qepcad formula with the
+   hueristic variable order thing ... and maybe automatic
+   assumptions ... and maybe automatic use of equational constraints
+   and ... automatic phrasing with variant quantifiers when
+   applicable.
+*) Keep info in each Queue about what's known about signs of polynomials
+   in that context.  Add what gets deduced about the signs of polynomials
+   when something is deduced false.  Use this to deduce that coefficients
+   can't vanish, that certain formulas are unsat, and that kind of thing.
+*) Make better use of variables set to zero or set equal to one another
+   in deduction.  Ex: x = 0 /\ x + y = 0 we should be deducing y = 0 and
+   adding it to our deduced variable signs!
+*) Analyze how often different simplification tests or substitution
+   possibilities actually get used.
+*) In a scenario like  "a b > 0 /\ a b c > 0" we can simplify to "a b > 0 /\ c > 0".
+   It'd be nice to find these.  Is this a "normalization" issue?  Or is this
+   a rewrite operator?
+
+TODOs COMPLETED!
+############################################
+8) Get the fractions to work right!!!!
+9) Detect non-prenex and exit gracefully with message!
+6) DNF conversion, so non-DNF input can be dealt with.
+5) If all factors in p1*...*pk <= 0 are determined to be non-zero,
+   then change the inequality to strict.
+   NOTE: This change basically involved little more than adding
+      const int ALLOWS_STR  = G;
+   ... to the list of "actions" in level-2 normalization. 
+*) Deal correctly with (x+y)/2 constructs!
+*) Added command-line options, suppression of info during computation.

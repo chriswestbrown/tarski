@@ -1,0 +1,37 @@
+; Test of basic SAT on conjunctions with three variables
+
+(def F [ -36 x z+36 y-42 z+89 > 0 /\ 25 x+81 y z-76 z+59 > 0 /\ -20 x y+41 y+45 z-76 > 0 /\ -65 x-74 y-83 z x-65 > 0 /\ -55 x-69 y+21 z x+80 > 0 /\ -23 x^2-99 y-13 z+21 > 0 ] )
+(def V '(x y z))
+(def p '(0 0 0))
+(def target "sat")
+(def D (SAT-NuCADConjunction V p F))
+(def res
+  (if (equal? (head D) false)
+      "unsat"
+      (if (equal? (evalf (head (head D)) (head (tail (head D))) F) [true]) "sat" "sat-error!"))
+)
+(display (if (equal? res target) "pass" "fail") " : test sat02 - a\n")
+
+(def F [ -10 x-92 y^2+4 z-57 > 0 /\ -94 x+60 y-83 z x-88 > 0 /\ -29 x-57 y-82 z y+29 > 0 /\ 81 x-70 y-68 z^2+59 > 0 /\ -14 x^2-72 y+97 z+90 > 0 /\ 23 x y-19 y-84 z+56 > 0 ] )
+(def V '(x y z))
+(def p '(0 0 0))
+(def target "unsat")
+(def D (SAT-NuCADConjunction V p F))
+(def res
+  (if (equal? (head D) false)
+      "unsat"
+      (if (equal? (evalf (head (head D)) (head (tail (head D))) F) [true]) "sat" "sat-error!"))
+)
+(display (if (equal? res target) "pass" "fail") " : test sat02 - b\n")
+
+(def F [ 16 x+2 y z-35 z-17 > 0 /\ -97 x-46 y+45 z x+75 > 0 /\ -45 x+11 y+z x-8 > 0 /\ -79 x+97 y z-50 z-69 > 0 /\ 30 x-43 y^2-51 z-23 > 0 /\ -74 x-81 y^2-12 z+23 > 0 ] )
+(def V '(x y z))
+(def p '(0 0 0))
+(def target "sat")
+(def D (SAT-NuCADConjunction V p F))
+(def res
+  (if (equal? (head D) false)
+      "unsat"
+      (if (equal? (evalf (head (head D)) (head (tail (head D))) F) [true]) "sat" "sat-error!"))
+)
+(display (if (equal? res target) "pass" "fail") " : test sat02 - c\n")

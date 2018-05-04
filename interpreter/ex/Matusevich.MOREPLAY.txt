@@ -1,0 +1,158 @@
+####################################################################################
+# Mautesvitch problem:
+# Other investigations showed that 
+# 2 w - 1 > 0 /\ 4 w - 3 < 0 /\ 2 u - 1 < 0 /\ 4 u - 1 > 0 /\ 3 v - 2 < 0 /\ 3 v - 1 > 0
+# was implied by this problem.  I discovered that with QEPCADB.
+####################################################################################
+[
+ex a, b, c, r, s
+[
+0<r /\ r<s /\ a<b /\ b<c /\
+a (a-r) (a-s)+(a+1) (a-r) (a-s)+(a+1) a (a-s)+(a+1) a (a-r)=0 /\
+b (b-r) (b-s)+(b+1) (b-r) (b-s)+(b+1) b (b-s)+(b+1) b (b-r)=0 /\
+c (c-r) (c-s)+(c+1) (c-r) (c-s)+(c+1) c (c-s)+(c+1) c (c-r)=0 /\
+a=u-1 /\
+b=r v /\
+c=(s-r) w+r
+/\
+# Here are conditions I learned from QEPCADB
+2 w - 1 > 0 /\ 4 w - 3 < 0 /\ 2 u - 1 < 0 /\ 4 u - 1 > 0 /\ 3 v - 2 < 0 /\ 3 v - 1 > 0
+]
+]
+
+## qfr gives me the following:
+ex b[2 w - 1 > 0 /\ 4 w - 3 < 0 /\ 2 u - 1 < 0 /\ 4 u - 1 > 0 /\ 3 v - 2 < 0 /\ 3 v - 1 > 0 /\ b > 0 /\ (3 b v + 2 v - 2 b - 1)(4 b v + 3 v - 2 b - 1) < 0 /\ (3 b v + 2 v - 2 b - 1)(4 b v w + 3 v w - 2 b w - w - 3 b v - 2 v + 2 b + 1) < 0 /\ 12 b u^2 v^2 + 8 u^2 v^2 - 16 b u v^2 - 10 u v^2 + 4 b v^2 + 2 v^2 - 8 b u^2 v - 4 u^2 v - 8 b^2 u v + 6 b u v + 5 u v + 4 b^2 v - b v - v + 6 b^2 u + 3 b u - 3 b^2 - b = 0 /\ 16 b^2 v^3 w^2 + 12 b v^3 w^2 - 40 b^2 v^2 w^2 - 28 b v^2 w^2 + 32 b^2 v w^2 + 20 b v w^2 - 8 b^2 w^2 - 4 b w^2 + 8 b v^3 w + 6 v^3 w + 16 b^2 v^2 w - 2 b v^2 w - 9 v^2 w - 26 b^2 v w - 11 b v w + 3 v w + 10 b^2 w + 5 b w + 3 b v^2 + 2 v^2 + 3 b^2 v - v - 2 b^2 - b = 0]
+
+## quantifier-free part is
+[2 w - 1 > 0 /\ 4 w - 3 < 0 /\ 2 u - 1 < 0 /\ 4 u - 1 > 0 /\ 3 v - 2 < 0 /\ 3 v - 1 > 0 /\ b > 0 /\ (3 b v + 2 v - 2 b - 1)(4 b v + 3 v - 2 b - 1) < 0 /\ (3 b v + 2 v - 2 b - 1)(4 b v w + 3 v w - 2 b w - w - 3 b v - 2 v + 2 b + 1) < 0 /\ 12 b u^2 v^2 + 8 u^2 v^2 - 16 b u v^2 - 10 u v^2 + 4 b v^2 + 2 v^2 - 8 b u^2 v - 4 u^2 v - 8 b^2 u v + 6 b u v + 5 u v + 4 b^2 v - b v - v + 6 b^2 u + 3 b u - 3 b^2 - b = 0 /\ 16 b^2 v^3 w^2 + 12 b v^3 w^2 - 40 b^2 v^2 w^2 - 28 b v^2 w^2 + 32 b^2 v w^2 + 20 b v w^2 - 8 b^2 w^2 - 4 b w^2 + 8 b v^3 w + 6 v^3 w + 16 b^2 v^2 w - 2 b v^2 w - 9 v^2 w - 26 b^2 v w - 11 b v w + 3 v w + 10 b^2 w + 5 b w + 3 b v^2 + 2 v^2 + 3 b^2 v - v - 2 b^2 - b = 0]
+
+Let's simplify subject to the assumptions.  This allows any variable order!
+[]
+(v,b,w,u)
+4
+[[[[[[[[[[[2 w-1 > 0] /\ [4 w-3 < 0]] /\ [2 u-1 < 0]] /\ [4 u-1 > 0]] /\ [3 v-2 < 0]] /\ [3 v-1 > 0]] /\ [b > 0]] /\ [(3 b v+2 v-2 b-1) (4 b v+3 v-2 b-1) < 0]] /\ [(3 b v+2 v-2 b-1) (4 b v w+3 v w-2 b w-w-3 b v-2 v+2 b+1) < 0]] /\ [12 b u^2 v^2+8 u^2 v^2-16 b u v^2-10 u v^2+4 b v^2+2 v^2-8 b u^2 v-4 u^2 v-8 b^2 u v+6 b u v+5 u v+4 b^2 v-b v-v+6 b^2 u+3 b u-3 b^2-b = 0]] /\ [16 b^2 v^3 w^2+12 b v^3 w^2-40 b^2 v^2 w^2-28 b v^2 w^2+32 b^2 v w^2+20 b v w^2-8 b^2 w^2-4 b w^2+8 b v^3 w+6 v^3 w+16 b^2 v^2 w-2 b v^2 w-9 v^2 w-26 b^2 v w-11 b v w+3 v w+10 b^2 w+5 b w+3 b v^2+2 v^2+3 b^2 v-v-2 b^2-b = 0]].
+assume [ 2 w - 1 > 0 /\ 4 w - 3 < 0 /\ 2 u - 1 < 0 /\ 4 u - 1 > 0 /\ 3 v - 2 < 0 /\ 3 v - 1 > 0 ]
+finish
+
+An equivalent quantifier-free formula:
+b > 0 /\ 16 v^3 b^2 w^2 - 40 v^2 b^2 w^2 + 32 v b^2 w^2 - 8 b^2 w^2 + 12 v^3 b w^2 - 28 v^2 b w^2 + 20 v b w^2 - 4 b w^2 + 16 v^2 b^2 w - 26 v b^2 w + 10 b^2 w + 8 v^3 b w - 2 v^2 b w - 11 v b w + 5 b w + 6 v^3 w - 9 v^2 w + 3 v w + 3 v b^2 - 2 b^2 + 3 v^2 b - b + 2 v^2 - v = 0 /\ 12 v^2 b u^2 - 8 v b u^2 + 8 v^2 u^2 - 4 v u^2 - 8 v b^2 u + 6 b^2 u - 16 v^2 b u + 6 v b u + 3 b u - 10 v^2 u + 5 v u + 4 v b^2 - 3 b^2 + 4 v^2 b - v b - b + 2 v^2 - v = 0
+
+###### So, our first shot is feeding the simplified version to qepcad using equational constraints
+[]
+(v,w,u,b)
+3
+(E b)[
+b > 0 /\ 16 v^3 b^2 w^2 - 40 v^2 b^2 w^2 + 32 v b^2 w^2 - 8 b^2 w^2 + 12 v^3 b w^2 - 28 v^2 b w^2 + 20 v b w^2 - 4 b w^2 + 16 v^2 b^2 w - 26 v b^2 w + 10 b^2 w + 8 v^3 b w - 2 v^2 b w - 11 v b w + 5 b w + 6 v^3 w - 9 v^2 w + 3 v w + 3 v b^2 - 2 b^2 + 3 v^2 b - b + 2 v^2 - v = 0 /\ 12 v^2 b u^2 - 8 v b u^2 + 8 v^2 u^2 - 4 v u^2 - 8 v b^2 u + 6 b^2 u - 16 v^2 b u + 6 v b u + 3 b u - 10 v^2 u + 5 v u + 4 v b^2 - 3 b^2 + 4 v^2 b - v b - b + 2 v^2 - v = 0
+].
+assume [ 2 w - 1 > 0 /\ 4 w - 3 < 0 /\ 2 u - 1 < 0 /\ 4 u - 1 > 0 /\ 3 v - 2 < 0 /\ 3 v - 1 > 0 ]
+prop
+go
+eqn-const-l (A_4,3)
+eqn-const-l (A_4,2)
+
+### This barfs because the resultant of the two constraints factors.  So ... let's
+### go ahead and split on those factors.  the only ones that are possibly vanishing are:
+Cases
+P_3,5  = fac(J_3,4) = fac(res(A_4,2|A_4,3))
+       = 32 v^3 w^2 u^2 - 48 v^2 w^2 u^2 + 16 v w^2 u^2 + 24 v^2 w u^2 - 16 v w u^2 - 64 v^3 w^2 u + 120 v^2 w^2 u - 64 v w^2 u + 8 w^2 u - 48 v^2 w u + 52 v w u - 10 w u - 6 v u + 2 u + 32 v^3 w^2 - 72 v^2 w^2 + 48 v w^2 - 8 w^2 + 24 v^2 w - 30 v w + 6 w + 4 v - 1
+
+P_3,6  = fac(J_3,4) = fac(res(A_4,2|A_4,3))
+       = 16 v^2 w^2 u^2 - 16 v w^2 u^2 - 12 v^2 w u^2 + 16 v w u^2 - 3 v u^2 - 20 v^2 w^2 u + 24 v w^2 u - 4 w^2 u + 16 v^2 w u - 24 v w u + 5 w u + 3 v u - u + 4 v^2 w^2 - 5 v w^2 + w^2 - 4 v^2 w + 5 v w - w
+
+P_1,4  = fac(J_3,3) = fac(res(A_4,1|A_4,3))
+       = fac(J_3,4) = fac(res(A_4,2|A_4,3))
+       = 2 v - 1
+
+
+[CASE A:]
+(v,w,u,b)
+3
+(E b)[
+b > 0 /\ 16 v^3 b^2 w^2 - 40 v^2 b^2 w^2 + 32 v b^2 w^2 - 8 b^2 w^2 + 12 v^3 b w^2 - 28 v^2 b w^2 + 20 v b w^2 - 4 b w^2 + 16 v^2 b^2 w - 26 v b^2 w + 10 b^2 w + 8 v^3 b w - 2 v^2 b w - 11 v b w + 5 b w + 6 v^3 w - 9 v^2 w + 3 v w + 3 v b^2 - 2 b^2 + 3 v^2 b - b + 2 v^2 - v = 0 /\ 12 v^2 b u^2 - 8 v b u^2 + 8 v^2 u^2 - 4 v u^2 - 8 v b^2 u + 6 b^2 u - 16 v^2 b u + 6 v b u + 3 b u - 10 v^2 u + 5 v u + 4 v b^2 - 3 b^2 + 4 v^2 b - v b - b + 2 v^2 - v = 0
+/\
+0       = 32 v^3 w^2 u^2 - 48 v^2 w^2 u^2 + 16 v w^2 u^2 + 24 v^2 w u^2 - 16 v w u^2 - 64 v^3 w^2 u + 120 v^2 w^2 u - 64 v w^2 u + 8 w^2 u - 48 v^2 w u + 52 v w u - 10 w u - 6 v u + 2 u + 32 v^3 w^2 - 72 v^2 w^2 + 48 v w^2 - 8 w^2 + 24 v^2 w - 30 v w + 6 w + 4 v - 1
+].
+assume [ 2 w - 1 > 0 /\ 4 w - 3 < 0 /\ 2 u - 1 < 0 /\ 4 u - 1 > 0 /\ 3 v - 2 < 0 /\ 3 v - 1 > 0 ]
+prop
+go
+eqn-const-l (A_4,3)
+eqn-const-l (A_3,3)
+
+An equivalent quantifier-free formula:
+
+32 v^3 w^2 u^2 - 48 v^2 w^2 u^2 + 16 v w^2 u^2 + 24 v^2 w u^2 - 16 v w u^2 - 64 v^3 w^2 u + 120 v^2 w^2 u - 64 v w^2 u + 8 w^2 u - 48 v^2 w u + 52 v w u - 10 w u - 6 v u + 2 u + 32 v^3 w^2 - 72 v^2 w^2 + 48 v w^2 - 8 w^2 + 24 v^2 w - 30 v w + 6 w + 4 v - 1 = 0 /\ [ w <= _root_-2 144 v^4 w^4 - 384 v^3 w^4 + 352 v^2 w^4 - 128 v w^4 + 16 w^4 - 192 v^4 w^3 + 656 v^3 w^3 - 728 v^2 w^3 + 304 v w^3 - 40 w^3 + 64 v^4 w^2 - 344 v^3 w^2 + 492 v^2 w^2 - 236 v w^2 + 33 w^2 + 48 v^3 w - 116 v^2 w + 66 v w - 10 w + 9 v^2 - 6 v + 1 \/ [ w < _root_-1 144 v^4 w^4 - 384 v^3 w^4 + 352 v^2 w^4 - 128 v w^4 + 16 w^4 - 192 v^4 w^3 + 656 v^3 w^3 - 728 v^2 w^3 + 304 v w^3 - 40 w^3 + 64 v^4 w^2 - 344 v^3 w^2 + 492 v^2 w^2 - 236 v w^2 + 33 w^2 + 48 v^3 w - 116 v^2 w + 66 v w - 10 w + 9 v^2 - 6 v + 1 /\ u > _root_1 32 v^3 w^2 u^2 - 48 v^2 w^2 u^2 + 16 v w^2 u^2 + 24 v^2 w u^2 - 16 v w u^2 - 64 v^3 w^2 u + 120 v^2 w^2 u - 64 v w^2 u + 8 w^2 u - 48 v^2 w u + 52 v w u - 10 w u - 6 v u + 2 u + 32 v^3 w^2 - 72 v^2 w^2 + 48 v w^2 - 8 w^2 + 24 v^2 w - 30 v w + 6 w + 4 v - 1 ] \/ [ 2 v - 1 > 0 /\ u = _root_-1 32 v^3 w^2 u^2 - 48 v^2 w^2 u^2 + 16 v w^2 u^2 + 24 v^2 w u^2 - 16 v w u^2 - 64 v^3 w^2 u + 120 v^2 w^2 u - 64 v w^2 u + 8 w^2 u - 48 v^2 w u + 52 v w u - 10 w u - 6 v u + 2 u + 32 v^3 w^2 - 72 v^2 w^2 + 48 v w^2 - 8 w^2 + 24 v^2 w - 30 v w + 6 w + 4 v - 1 ] ]
+
+[ CASE B: ]
+(v,w,u,b)
+3
+(E b)[
+b > 0 /\ 16 v^3 b^2 w^2 - 40 v^2 b^2 w^2 + 32 v b^2 w^2 - 8 b^2 w^2 + 12 v^3 b w^2 - 28 v^2 b w^2 + 20 v b w^2 - 4 b w^2 + 16 v^2 b^2 w - 26 v b^2 w + 10 b^2 w + 8 v^3 b w - 2 v^2 b w - 11 v b w + 5 b w + 6 v^3 w - 9 v^2 w + 3 v w + 3 v b^2 - 2 b^2 + 3 v^2 b - b + 2 v^2 - v = 0 /\ 12 v^2 b u^2 - 8 v b u^2 + 8 v^2 u^2 - 4 v u^2 - 8 v b^2 u + 6 b^2 u - 16 v^2 b u + 6 v b u + 3 b u - 10 v^2 u + 5 v u + 4 v b^2 - 3 b^2 + 4 v^2 b - v b - b + 2 v^2 - v = 0
+/\
+0 = 16 v^2 w^2 u^2 - 16 v w^2 u^2 - 12 v^2 w u^2 + 16 v w u^2 - 3 v u^2 - 20 v^2 w^2 u + 24 v w^2 u - 4 w^2 u + 16 v^2 w u - 24 v w u + 5 w u + 3 v u - u + 4 v^2 w^2 - 5 v w^2 + w^2 - 4 v^2 w + 5 v w - w
+].
+assume [ 2 w - 1 > 0 /\ 4 w - 3 < 0 /\ 2 u - 1 < 0 /\ 4 u - 1 > 0 /\ 3 v - 2 < 0 /\ 3 v - 1 > 0 ]
+prop
+go
+eqn-const-l (A_4,3)
+eqn-const-l (A_3,3)
+
+An equivalent quantifier-free formula:
+
+FALSE
+
+[ CASE C: ]
+(v,w,u,b)
+3
+(E b)[
+b > 0 /\ 16 v^3 b^2 w^2 - 40 v^2 b^2 w^2 + 32 v b^2 w^2 - 8 b^2 w^2 + 12 v^3 b w^2 - 28 v^2 b w^2 + 20 v b w^2 - 4 b w^2 + 16 v^2 b^2 w - 26 v b^2 w + 10 b^2 w + 8 v^3 b w - 2 v^2 b w - 11 v b w + 5 b w + 6 v^3 w - 9 v^2 w + 3 v w + 3 v b^2 - 2 b^2 + 3 v^2 b - b + 2 v^2 - v = 0 /\ 12 v^2 b u^2 - 8 v b u^2 + 8 v^2 u^2 - 4 v u^2 - 8 v b^2 u + 6 b^2 u - 16 v^2 b u + 6 v b u + 3 b u - 10 v^2 u + 5 v u + 4 v b^2 - 3 b^2 + 4 v^2 b - v b - b + 2 v^2 - v = 0
+/\
+0 = 16 v^2 w^2 u^2 - 16 v w^2 u^2 - 12 v^2 w u^2 + 16 v w u^2 - 3 v u^2 - 20 v^2 w^2 u + 24 v w^2 u - 4 w^2 u + 16 v^2 w u - 24 v w u + 5 w u + 3 v u - u + 4 v^2 w^2 - 5 v w^2 + w^2 - 4 v^2 w + 5 v w - w
+/\
+2 v - 1 = 0
+].
+assume [ 2 w - 1 > 0 /\ 4 w - 3 < 0 /\ 2 u - 1 < 0 /\ 4 u - 1 > 0 /\ 3 v - 2 < 0 /\ 3 v - 1 > 0 ]
+prop
+go
+eqn-const-l (A_4,3)
+
+An equivalent quantifier-free formula:
+
+FALSE
+
+
+
+
+So CASE A gives the answer!  Now, if I ask QEPCADB to
+give a full-on Tarski formula for that, I get:
+
+An equivalent quantifier-free formula:
+3 v - 2 < 0 /\ 3 v - 1 > 0 /\ 2 w - 1 > 0 /\ 4 w - 3 < 0 /\ 4 v w - 4 w + 1 < 0 /\ 32 v^3 w^2 u^2 - 48 v^2 w^2 u^2 + 16 v w^2 u^2 + 24 v^2 w u^2 - 16 v w u^2 - 64 v^3 w^2 u + 120 v^2 w^2 u - 64 v w^2 u + 8 w^2 u - 48 v^2 w u + 52 v w u - 10 w u - 6 v u + 2 u + 32 v^3 w^2 - 72 v^2 w^2 + 48 v w^2 - 8 w^2 + 24 v^2 w - 30 v w + 6 w + 4 v - 1 = 0 /\ [ [ 2 v - 1 < 0 /\ 3 v^2 - 6 v + 2 < 0 /\ 3 v w - 3 w + 1 < 0 /\ 288 v^4 w^3 - 768 v^3 w^3 + 704 v^2 w^3 - 256 v w^3 + 32 w^3 - 288 v^4 w^2 + 984 v^3 w^2 - 1092 v^2 w^2 + 456 v w^2 - 60 w^2 + 64 v^4 w - 344 v^3 w + 492 v^2 w - 236 v w + 33 w + 24 v^3 - 58 v^2 + 33 v - 5 < 0 ] \/ [ 2 v - 1 = 0 /\ 288 v^4 w^3 - 768 v^3 w^3 + 704 v^2 w^3 - 256 v w^3 + 32 w^3 - 288 v^4 w^2 + 984 v^3 w^2 - 1092 v^2 w^2 + 456 v w^2 - 60 w^2 + 64 v^4 w - 344 v^3 w + 492 v^2 w - 236 v w + 33 w + 24 v^3 - 58 v^2 + 33 v - 5 < 0 /\ 32 v^3 w^2 u - 48 v^2 w^2 u + 16 v w^2 u + 24 v^2 w u - 16 v w u - 32 v^3 w^2 + 60 v^2 w^2 - 32 v w^2 + 4 w^2 - 24 v^2 w + 26 v w - 5 w - 3 v + 1 < 0 ] \/ [ 3 v^2 - 6 v + 2 < 0 /\ 3 v w - 3 w + 1 = 0 /\ 32 v^3 w^2 u - 48 v^2 w^2 u + 16 v w^2 u + 24 v^2 w u - 16 v w u - 32 v^3 w^2 + 60 v^2 w^2 - 32 v w^2 + 4 w^2 - 24 v^2 w + 26 v w - 5 w - 3 v + 1 < 0 ] \/ [ 2 v - 1 > 0 /\ 32 v^3 w^2 u - 48 v^2 w^2 u + 16 v w^2 u + 24 v^2 w u - 16 v w u - 32 v^3 w^2 + 60 v^2 w^2 - 32 v w^2 + 4 w^2 - 24 v^2 w + 26 v w - 5 w - 3 v + 1 < 0 ] \/ [ 3 v w - 3 w + 1 > 0 /\ 32 v^3 w^2 u - 48 v^2 w^2 u + 16 v w^2 u + 24 v^2 w u - 16 v w u - 32 v^3 w^2 + 60 v^2 w^2 - 32 v w^2 + 4 w^2 - 24 v^2 w + 26 v w - 5 w - 3 v + 1 < 0 ] ]
+
+
+Now, after some playing around with different variable orders, I
+hypothesized the solution 
+[
+2 w - 1 > 0 /\ 4 w - 3 < 0 /\ 2 u - 1 < 0 /\ 2 w u - 2 w + 1 > 0 /\ 4 u - 1 > 0 /\ 32 w^2 u^2 v^3 - 64 w^2 u v^3 + 32 w^2 v^3 - 48 w^2 u^2 v^2 + 24 w u^2 v^2 + 120 w^2 u v^2 - 48 w u v^2 - 72 w^2 v^2 + 24 w v^2 + 16 w^2 u^2 v - 16 w u^2 v - 64 w^2 u v + 52 w u v - 6 u v + 48 w^2 v - 30 w v + 4 v + 8 w^2 u - 10 w u + 2 u - 8 w^2 + 6 w - 1 = 0
+]
+which seems to be verified by
+ 
+[]
+(v,w,u)
+3
+[
+[32 v^3 w^2 u^2 - 48 v^2 w^2 u^2 + 16 v w^2 u^2 + 24 v^2 w u^2 - 16 v w u^2 - 64 v^3 w^2 u + 120 v^2 w^2 u - 64 v w^2 u + 8 w^2 u - 48 v^2 w u + 52 v w u - 10 w u - 6 v u + 2 u + 32 v^3 w^2 - 72 v^2 w^2 + 48 v w^2 - 8 w^2 + 24 v^2 w - 30 v w + 6 w + 4 v - 1 = 0 /\ [ w <= _root_-2 144 v^4 w^4 - 384 v^3 w^4 + 352 v^2 w^4 - 128 v w^4 + 16 w^4 - 192 v^4 w^3 + 656 v^3 w^3 - 728 v^2 w^3 + 304 v w^3 - 40 w^3 + 64 v^4 w^2 - 344 v^3 w^2 + 492 v^2 w^2 - 236 v w^2 + 33 w^2 + 48 v^3 w - 116 v^2 w + 66 v w - 10 w + 9 v^2 - 6 v + 1 \/ [ w < _root_-1 144 v^4 w^4 - 384 v^3 w^4 + 352 v^2 w^4 - 128 v w^4 + 16 w^4 - 192 v^4 w^3 + 656 v^3 w^3 - 728 v^2 w^3 + 304 v w^3 - 40 w^3 + 64 v^4 w^2 - 344 v^3 w^2 + 492 v^2 w^2 - 236 v w^2 + 33 w^2 + 48 v^3 w - 116 v^2 w + 66 v w - 10 w + 9 v^2 - 6 v + 1 /\ u > _root_1 32 v^3 w^2 u^2 - 48 v^2 w^2 u^2 + 16 v w^2 u^2 + 24 v^2 w u^2 - 16 v w u^2 - 64 v^3 w^2 u + 120 v^2 w^2 u - 64 v w^2 u + 8 w^2 u - 48 v^2 w u + 52 v w u - 10 w u - 6 v u + 2 u + 32 v^3 w^2 - 72 v^2 w^2 + 48 v w^2 - 8 w^2 + 24 v^2 w - 30 v w + 6 w + 4 v - 1 ] \/ [ 2 v - 1 > 0 /\ u = _root_-1 32 v^3 w^2 u^2 - 48 v^2 w^2 u^2 + 16 v w^2 u^2 + 24 v^2 w u^2 - 16 v w u^2 - 64 v^3 w^2 u + 120 v^2 w^2 u - 64 v w^2 u + 8 w^2 u - 48 v^2 w u + 52 v w u - 10 w u - 6 v u + 2 u + 32 v^3 w^2 - 72 v^2 w^2 + 48 v w^2 - 8 w^2 + 24 v^2 w - 30 v w + 6 w + 4 v - 1 ] ]
+/\
+[ 2 w - 1 > 0 /\ 4 w - 3 < 0 /\ 2 u - 1 < 0 /\ 4 u - 1 > 0 /\ 3 v - 2 < 0 /\ 3 v - 1 > 0 ]
+]
+<==>
+[
+2 w - 1 > 0 /\ 4 w - 3 < 0 /\ 2 u - 1 < 0 /\ 2 w u - 2 w + 1 > 0 /\ 4 u - 1 > 0 /\ 32 w^2 u^2 v^3 - 64 w^2 u v^3 + 32 w^2 v^3 - 48 w^2 u^2 v^2 + 24 w u^2 v^2 + 120 w^2 u v^2 - 48 w u v^2 - 72 w^2 v^2 + 24 w v^2 + 16 w^2 u^2 v - 16 w u^2 v - 64 w^2 u v + 52 w u v - 6 u v + 48 w^2 v - 30 w v + 4 v + 8 w^2 u - 10 w u + 2 u - 8 w^2 + 6 w - 1 = 0
+]
+].
+
+The magic polynomial that needed to be added was 2 w u - 2 w + 1 > 0.
+It's worth noting that, with this simple solution, it is clear that
+the solution is a function of v over the region 
+2 w - 1 > 0 /\ 4 w - 3 < 0 /\ 2 u - 1 < 0 /\ 2 w u - 2 w + 1 > 0 /\ 4 u - 1 > 0
+in (u,w)-space.
+

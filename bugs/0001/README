@@ -1,0 +1,16 @@
+STATUS: CLOSED
+
+SUMMARY
+On sin problem, get different results based on whether or not 'clear
+option is used.
+
+On tmp problem, w/o clear the input won't be read.  There's a div with
+constant denom, which the w/o-clear seems to accept on the sin problem,
+so there's some kind of mismatch there.
+
+The file tmp.smt2 shows a small version of what's causing the problem.
+
+ACTION
+In prettyprint.cpp, I had to wrap an extra ()'s around unary minus.
+Fixed in rev149.
+

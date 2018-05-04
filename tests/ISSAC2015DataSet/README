@@ -1,0 +1,20 @@
+The in.a.b.c files are the non-linear test files from the ISSAC 2015
+paper "Open Non-uniform Cylindrical Algebraic Decompositions."
+
+Additionally, there are scripts that use these inputs to test the
+make-NuCADConjunction command by running it, producing a defining
+formula, then running qepcad to test whether the resulting formula
+is "generically equivalent" to the input formula - which means that
+space can be weakly decomposed into a finite number of open cells
+in which the formulas are equivalent.
+
+1. To Test all the 2-level (i.e. 2-variable)  
+./runTestsLevel.2
+
+2. To Test all the 3-level (i.e. 3-variable)  
+./runTestsLevel.3
+
+A test is a file in.a.b.c and an input formula name Fxx.  If the
+result for that test is "TRUE" the test is passed.
+
+

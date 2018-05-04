@@ -1,0 +1,51 @@
+=======================================================
+                Quantifier Elimination                 
+                          in                           
+            Elementary Algebra and Geometry            
+                          by                           
+      Partial Cylindrical Algebraic Decomposition      
+                                                       
+               Version B 1.69, 16 Mar 2012
+                                                       
+                          by                           
+                       Hoon Hong                       
+                  (hhong@math.ncsu.edu)                
+                                                       
+With contributions by: Christopher W. Brown, George E. 
+Collins, Mark J. Encarnacion, Jeremy R. Johnson        
+Werner Krandick, Richard Liska, Scott McCallum,        
+Nicolas Robidoux, and Stanly Steinberg                 
+=======================================================
+Enter an informal description  between '[' and ']':
+[]Enter a variable list:
+(x,y,z,w)Enter the number of free variables:
+3
+Enter a prenex formula:
+(F w)[-1(54 z^2 + 81 y + 90 x - 16 w - 8) > 0 /\ -1(50 z^2 - 63 y + 61 x - 34 w - 23) > 0 /\ 3 z - 13 y + 4 x - 42 w^2 - 41 > 0 /\ -1(8 z^2 - 52 y - 78 x - 73 w + 45) > 0 /\ 47 z + 86 x y - 36 y - 52 w + 65 > 0 /\ 80 z - 31 y^2 - 58 x + 81 w - 66 > 0].
+
+=======================================================
+
+Before Normalization >
+meas
+
+Before Normalization >
+go
+
+Before Projection (w) >
+go
+
+Before Choice >
+go
+
+** 99998426 cells, 19999 arrays in 7108 milliseconds.
+
+
+Failure occurred in:    GCSI (final check)
+Reason for the failure: Too few cells reclaimed.
+
+N   = 99998426
+NU  = 1000000000
+RHO = 10
+
+
+Now the FAIL handler is aborting the program ...

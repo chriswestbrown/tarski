@@ -1,0 +1,1 @@
+(def F25 [  7 x-26 y+61 z+70 w z+55 > 0 /\ 82 x-74 y-5 z^2-91 w-3 > 0 /\ -47 x-63 y w+42 z-12 w-10 > 0 /\ -31 x+3 y z+53 z+w+42 > 0 ] ) (def t0 (cputime)) (def D (make-NuCADConjunction '( x y z w) '( 0 0 0 0 ) F25)) (def nx (msg D 'num-x-cells)) (def t1 (cputime)) (msg D 'project 3) (def t2 (cputime)) (display (- t1 t0) " " (- t2 t1) " " nx " " (msg D 'num-x-cells) )

@@ -1,0 +1,17 @@
+; tests suggesting variable order
+
+(def expr (suggest-var-order [ a + b^2 > 0 ]))
+(def targ '(b a))
+(def res (if (equal? expr targ) "pass" "fail"))
+(display res " : test sug-ord01 - a\n")
+
+(def expr (suggest-var-order [ex b [ a + b^2 > 0 ]]))
+(def targ '(a b))
+(def res (if (equal? expr targ) "pass" "fail"))
+(display res " : test sug-ord02 - b\n")
+
+(def F [ex a [ a + b^2 > 0 /\ [all c [c /= 0 ==> c a < b ]]]])
+(def expr (typename (suggest-var-order F)))
+(def targ "err")
+(def res (if (equal? expr targ) "pass" "fail"))
+(display res " : test sug-ord03 - c\n")

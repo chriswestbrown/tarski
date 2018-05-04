@@ -1,0 +1,10 @@
+; list01: this tests list construction
+(def expr '())
+(def targ (quote ()))    
+(def res (if (equal? expr targ) "pass" "fail"))
+(display res " : test list01 - a\n")
+
+(def expr '(1 2 "three" (4 5 6) ()))
+(def targ (quote (1 2 "three" (4 5 6) ())))
+(def res (if (equal? expr targ) "pass" "fail"))
+(display res " : test list01 - b\n")

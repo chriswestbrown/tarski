@@ -1,0 +1,63 @@
+[
+ex  x1,  x2,  x3,  x4,  x5,  x6 [
+1+s^2 x5 x6 +s^8 x1 x6 +s^55 x1 x3 +s^57 x1 x3 x5 x6 +s^124 x2 x3
++ s^151 x2 x3 x5 x6 +
+                   s^157 x1 x2 x3 x6 +s^197 x1 x2 x4 +s^218 x2 x4 x6
+		   +s^224 x1 x2 x4 x5 x6 
+= 0 /\
+x6 +s^4 x1 x5 +s^41 x2 x5 x6 +s^55 x1 x3 x6 +s^122 x1 x4 x5 x6 +s^128 x1 x2 x3 x5 +
+                   s^149 x2 x3 x6 +s^167 x3 x4 x5 x6 +s^189 x2 x4 x5
+		   +s^222 x1 x2 x4 x6 
+= 0 /\
+x5 +s^8x1 x5 x6 +s^55 x1 x3 x5 +s^124 x2 x3 x5 +s^157 x1 x2 x3 x5 x6
++s^197 x1 x2 x4 x5 +
+                   s^218 x2 x4 x5 x6 
+= 0 /\
+x1 +s^8 x2 x5 +s^35 x3 x6 +s^55 x4 x5 x6 +s^89 x1 x4 x5 +s^92 x1 x2 x6
++s^124 x1 x2 x3 +
+                   s^134 x3 x4 x5 +s^185 x2 x4 +s^218 x1 x3 x4 x6
+		   +s^311 x2 x3 x4 x6 +
+                   s^380 x1 x2 x3 x4 x5 x6 
+= 0 /\
+x2 +s^10 x3 x5 +s^39 x4 x6 +s^67 x1 x2 x5 +s^81 x1 x4 +s^126 x3 x4
++s^193 x1 x3 x4 x5 +
+                   s^286 x2 x3 x4 x5 +s^364 x1 x2 x3 x4 x6 
+= 0 /\
+x3 +s^12 x4 x5 +s^37 x2 x6 +s^57 x1 x2 +s^118 x1 x4 x6 +s^163 x3 x4 x6
++s^183 x1 x3 x4 +
+                   s^276x2 x3 x4 +s^337x1 x2 x3 x4 x5 
+= 0 /\
+x4 +s^49 x3 x5 x6 +s^106 x1 x2 x5 x6 +s^325 x1 x2 x3 x4 +s^325 x2 x3 x4 x5 x6 +
+                   s^232 x1 x3 x4 x5 x6 
+= 0
+/\
+0 < s /\ s <= 1
+#/\ x1 /= 0 /\ x2 /= 0 /\ x3 /= 0 /\ x4 /= 0 /\ x5 /= 0 /\ x6 /= 0
+] ]
+
+
+
+Stopped search because of 600 minute time limit!
+mainLoopCount = 984
+Num Formulas  = 41529 (Note: duplicates are counted!)
+Num Nodes @ end  = 82239 (Note: duplicates are counted!)
+Num QNodes enqueued  = 204254 (Note: duplicates are counted!)
+Num Generic Substitutions = 40053
+Num Degenerate Substitutions = 40053
+Total QAnd nodes generated = 82239
+Total unique QAnd nodes    = 38396
+
+-----------------------------------------------------------------------------
+6099 Garbage collections, -1487069271 Cells and 0 Arrays reclaimed, in 7184423 milliseconds.
+26788463 Cells in AVAIL, 30000000 Cells in SPACE.
+
+System time: 34156126 milliseconds.
+System time after the initialization: 34155302 milliseconds.
+-----------------------------------------------------------------------------
+Time in IPFAC = 26542624ms
+Time in IPRESPRS = 22757ms
+##################################################
+min formula: [[s - 1 <= 0 /\ s > 0 /\ (s^218 x2 x4 x6 + s^157 x1 x2 x3 x6 + s^8 x1 x6 + s^197 x1 x2 x4 + s^124 x2 x3 + s^55 x1 x3 + 1)(s^325 x1 x2 x3 + 1)(x4) = 0 /\ x6 /= 0 /\ s^476 x2 x3^2 x4^2 x6^2 + s^383 x1 x3^2 x4^2 x6^2 + s^431 x1 x2 x3 x4^2 x6^2 + s^338 x1^2 x3 x4^2 x6^2 + s^200 x3^2 x4 x6^2 + s^350 x2^2 x3 x4 x6^2 + 2 s^257 x1 x2 x3 x4 x6^2 + s^155 x1 x3 x4 x6^2 + s^212 x1^2 x2 x4 x6^2 + s^74 x2 x3 x6^2 + s^131 x1 x2^2 x6^2 + s^589 x2^2 x3^2 x4^2 x6 + 2 s^496 x1 x2 x3^2 x4^2 x6 + s^403 x1^2 x3^2 x4^2 x6 + 2 s^313 x2 x3^2 x4 x6 + 2 s^220 x1 x3^2 x4 x6 + 2 s^370 x1 x2^2 x3 x4 x6 + 2 s^277 x1^2 x2 x3 x4 x6 + s^37 x3^2 x6 + 2 s^94 x1 x2 x3 x6 + s^151 x1^2 x2^2 x6 - s^650 x1^2 x2^2 x3^2 x4^2 - 2 s^325 x1 x2 x3 x4^2 - x4^2 = 0 /\ s^276 x2 x3 x4 + s^183 x1 x3 x4 + x3 + s^57 x1 x2 /= 0 /\ s^403 x1 x2 x3 x4 x6^2 + s^78 x4 x6^2 + s^165 x3 x4 x6 + s^120 x1 x4 x6 + s^39 x2 x6 - s^325 x1 x2 x3 x4 - x4 = 0 /\ s^628 x2^2 x3^2 x4^2 x6^2 + 2 s^535 x1 x2 x3^2 x4^2 x6^2 + s^442 x1^2 x3^2 x4^2 x6^2 + 2 s^352 x2 x3^2 x4 x6^2 + 2 s^259 x1 x3^2 x4 x6^2 + 2 s^409 x1 x2^2 x3 x4 x6^2 + 2 s^316 x1^2 x2 x3 x4 x6^2 + s^76 x3^2 x6^2 + 2 s^133 x1 x2 x3 x6^2 + s^190 x1^2 x2^2 x6^2 - s^697 x1^2 x2^2 x3^2 x4^2 x6 + s^502 x2^2 x3 x4^2 x6 + s^409 x1 x2 x3 x4^2 x6 - 2 s^372 x1 x2 x3 x4^2 x6 - s^47 x4^2 x6 + s^441 x1 x2^2 x3^2 x4 x6 + s^348 x1^2 x2 x3^2 x4 x6 + s^317 x1 x2 x3 x4 x6 + s^226 x2 x3 x4 x6 + s^224 x1^2 x3 x4 x6 + s^283 x1 x2^2 x4 x6 + s^165 x1 x2 x3^2 x6 + s^222 x1^2 x2^2 x3 x6 + s^41 x1 x3 x6 + s^98 x1^2 x2 x6 - s^451 x1 x2 x3^2 x4^2 - s^406 x1^2 x2 x3 x4^2 - s^126 x3 x4^2 - s^81 x1 x4^2 - s^325 x1 x2^2 x3 x4 - x2 x4 = 0 /\ s^543 x1 x2^2 x3 x4^2 x6^2 + s^450 x1^2 x2 x3 x4^2 x6^2 + s^470 x2^2 x3^2 x4 x6^2 + s^377 x1 x2 x3^2 x4 x6^2 + s^376 x1 x2 x3^2 x4 x6^2 + s^283 x1^2 x3^2 x4 x6^2 + s^267 x1 x2 x3 x4 x6^2 + s^321 x2 x3 x4 x6^2 + s^228 x1 x3 x4 x6^2 + s^324 x1^2 x2^2 x4 x6^2 + s^194 x2 x3^2 x6^2 + s^100 x1 x3^2 x6^2 + s^251 x1 x2^2 x3 x6^2 + s^157 x1^2 x2 x3 x6^2 + s^45 x3 x6^2 + s^102 x1 x2 x6^2 - s^488 x1 x2 x3^2 x4^2 x6 - s^443 x1^2 x2 x3 x4^2 x6 - s^163 x3 x4^2 x6 - s^118 x1 x4^2 x6 - s^362 x1 x2^2 x3 x4 x6 - s^37 x2 x4 x6 - s^510 x1 x2^2 x3 x4^2 - s^185 x2 x4^2 - s^449 x1^2 x2^2 x3^2 x4 - s^325 x1^2 x2 x3 x4 - s^124 x1 x2 x3 x4 - x1 x4 = 0 /\ s^541 x2^2 x3 x4^2 x6 + s^448 x1 x2 x3 x4^2 x6 + s^480 x1 x2^2 x3^2 x4 x6 + s^387 x1^2 x2 x3^2 x4 x6 + s^331 x1 x2 x3 x4 x6 + s^265 x2 x3 x4 x6 + s^238 x1^2 x3 x4 x6 + s^322 x1 x2^2 x4 x6 + s^204 x1 x2 x3^2 x6 + s^261 x1^2 x2^2 x3 x6 + s^55 x1 x3 x6 + s^112 x1^2 x2 x6 - s^547 x1^2 x2^2 x3 x4^2 + s^520 x1 x2^2 x3 x4^2 + s^427 x1^2 x2 x3 x4^2 - s^222 x1 x2 x4^2 - s^474 x1 x2^2 x3^2 x4 + s^447 x2^2 x3^2 x4 - s^380 x1^2 x2 x3^2 x4 + s^378 x1 x2 x3^2 x4 + s^354 x1 x2 x3^2 x4 + s^285 x1^2 x3^2 x4 - s^325 x1 x2 x3 x4 + s^244 x1 x2 x3 x4 + s^323 x2 x3 x4 - s^149 x2 x3 x4 + s^230 x1 x3 x4 - s^55 x1 x3 x4 + s^301 x1^2 x2^2 x4 - x4 + s^171 x2 x3^2 + s^102 x1 x3^2 + s^228 x1 x2^2 x3 + s^159 x1^2 x2 x3 + s^47 x3 + s^104 x1 x2 = 0] \/ [s - 1 <= 0 /\ s > 0 /\ (x5)(s^344 x3 x4^2 x6^2 + s^299 x1 x4^2 x6^2 + s^283 x1 x3^2 x4 x6^2 + s^238 x1^2 x3 x4 x6^2 - s^8 x1 x6^2 + s^193 x4^2 x5 x6 - s^308 x1^2 x3 x4 x5 x6 + s^132 x1 x3 x4 x5 x6 + s^364 x1 x3 x4^2 x6 + s^323 x1 x3 x4^2 x6 + s^278 x1^2 x4^2 x6 + s^303 x1^2 x3^2 x4 x6 + s^250 x3^2 x4 x6 - s^247 x1 x3 x4 x6 + s^205 x1 x3 x4 x6 + s^181 x3 x4 x6 + s^120 x1 x3^2 x6 - s^55 x1 x3 x6 - s^28 x1^2 x6 - x6 + s^172 x1 x4^2 x5 - s^355 x1^2 x3^2 x4 x5 - s^300 x1 x3 x4 x5 + s^99 x3 x4 x5 + s^343 x1^2 x3 x4^2 - s^294 x1 x3^2 x4 + s^270 x1 x3^2 x4 + s^160 x1 x3 x4 - s^239 x3 x4 + s^87 x3^2 - s^75 x1^2 x3 - s^20 x1) = 0 /\ (x6)(s^402 x3^2 x4^2 x6 + s^357 x1 x3 x4^2 x6 + s^138 x1^2 x4 x6 - x3 x6 - s^483 x1^2 x3^2 x4^2 x5 + s^251 x3 x4^2 x5 - s^300 x1 x3^2 x4 x5 + s^32 x1 x4 x5) = 0 /\ (x4)(s^451 x1 x3^2 x4 x6 + s^406 x1^2 x3 x4 x6 - x6 + s^471 x1^2 x3^2 x4 - s^239 x3 x4 + s^288 x1 x3^2 - s^20 x1) = 0 /\ x6 + s^300 x1 x3 x4 x5 + s^239 x3 x4 + s^20 x1 /= 0 /\ s^527 x1 x3^2 x4^2 x6^2 + s^482 x1^2 x3 x4^2 x6^2 - s^76 x4 x6^2 + s^449 x3^2 x4^2 x5 x6 + s^404 x1 x3 x4^2 x5 x6 + s^185 x1^2 x4 x5 x6 - s^47 x3 x5 x6 + s^547 x1^2 x3^2 x4^2 x6 - s^315 x3 x4^2 x6 + s^364 x1 x3^2 x4 x6 - s^96 x1 x4 x6 - s^530 x1^2 x3^2 x4^2 x5^2 + s^298 x3 x4^2 x5^2 - s^347 x1 x3^2 x4 x5^2 + s^79 x1 x4 x5^2 - s^463 x1 x3^2 x4^2 x5 - s^418 x1^2 x3 x4^2 x5 + s^12 x4 x5 - s^402 x3^2 x4^2 - s^357 x1 x3 x4^2 - s^138 x1^2 x4 + x3 = 0 /\ s^535 x1 x3^2 x4^2 x5 x6^2 + s^490 x1^2 x3 x4^2 x5 x6^2 - s^84 x4 x5 x6^2 + s^466 x3^2 x4^2 x6^2 + s^421 x1 x3 x4^2 x6^2 + s^202 x1^2 x4 x6^2 - s^64 x3 x6^2 + s^555 x1^2 x3^2 x4^2 x5 x6 - s^547 x1^2 x3^2 x4^2 x5 x6 - s^323 x3 x4^2 x5 x6 + s^315 x3 x4^2 x5 x6 + s^372 x1 x3^2 x4 x5 x6 - s^364 x1 x3^2 x4 x5 x6 - s^104 x1 x4 x5 x6 + s^96 x1 x4 x5 x6 + s^340 x3 x4^2 x6 + s^295 x1 x4^2 x6 + s^279 x1 x3^2 x4 x6 + s^234 x1^2 x3 x4 x6 - s^29 x1 x6 - s^463 x1 x3^2 x4^2 x5^2 - s^418 x1^2 x3 x4^2 x5^2 + s^12 x4 x5^2 - s^402 x3^2 x4^2 x5 - s^357 x1 x3 x4^2 x5 + s^189 x4^2 x5 - s^329 x1^2 x3 x4 x5 + s^128 x1 x3 x4 x5 - s^138 x1^2 x4 x5 + x3 x5 + s^360 x1 x3 x4^2 + s^299 x1^2 x3^2 x4 - s^268 x1 x3 x4 + s^177 x3 x4 + s^116 x1 x3^2 - s^49 x1^2 = 0 /\ s^348 x1 x3 x4^2 x6^2 + s^303 x1^2 x4^2 x6^2 + s^275 x3^2 x4 x6^2 + s^230 x1 x3 x4 x6^2 - s^55 x1 x3 x6^2 - x6^2 - s^467 x1 x3^2 x4^2 x5^2 x6 - s^422 x1^2 x3 x4^2 x5^2 x6 + s^16 x4 x5^2 x6 - s^406 x3^2 x4^2 x5 x6 - s^361 x1 x3 x4^2 x5 x6 + s^315 x3 x4^2 x5 x6 + s^270 x1 x4^2 x5 x6 + s^197 x1 x4^2 x5 x6 - s^355 x1^2 x3^2 x4 x5 x6 + s^254 x1 x3^2 x4 x5 x6 + s^209 x1^2 x3 x4 x5 x6 - s^300 x1 x3 x4 x5 x6 + s^124 x3 x4 x5 x6 - s^142 x1^2 x4 x5 x6 + s^4 x3 x5 x6 - s^4 x1 x5 x6 + s^368 x1^2 x3 x4^2 x6 + s^295 x1 x3^2 x4 x6 - s^294 x1 x3^2 x4 x6 + s^185 x1 x3 x4 x6 - s^239 x3 x4 x6 + s^112 x3^2 x6 - s^75 x1^2 x3 x6 - s^20 x1 x6 + s^164 x4^2 x5^2 - s^304 x1^2 x3 x4 x5^2 + s^103 x1 x3 x4 x5^2 + s^335 x1 x3 x4^2 x5 + s^274 x1^2 x3^2 x4 x5 - s^243 x1 x3 x4 x5 + s^152 x3 x4 x5 + s^91 x1 x3^2 x5 - s^24 x1^2 x5 = 0 /\ s^350 x1 x3 x4^2 x5 x6^2 + s^305 x1^2 x4^2 x5 x6^2 + s^277 x3^2 x4 x5 x6^2 + s^232 x1 x3 x4 x5 x6^2 - s^57 x1 x3 x5 x6^2 - s^2 x5 x6^2 + s^344 x3 x4^2 x6^2 + s^299 x1 x4^2 x6^2 + s^283 x1 x3^2 x4 x6^2 + s^238 x1^2 x3 x4 x6^2 - s^8 x1 x6^2 + s^199 x1 x4^2 x5^2 x6 - s^357 x1^2 x3^2 x4 x5^2 x6 - s^302 x1 x3 x4 x5^2 x6 + s^126 x3 x4 x5^2 x6 + s^370 x1^2 x3 x4^2 x5 x6 + s^193 x4^2 x5 x6 + s^297 x1 x3^2 x4 x5 x6 - s^296 x1 x3^2 x4 x5 x6 - s^308 x1^2 x3 x4 x5 x6 + s^187 x1 x3 x4 x5 x6 + s^132 x1 x3 x4 x5 x6 - s^241 x3 x4 x5 x6 + s^114 x3^2 x5 x6 - s^77 x1^2 x3 x5 x6 - s^22 x1 x5 x6 + s^364 x1 x3 x4^2 x6 + s^323 x1 x3 x4^2 x6 + s^278 x1^2 x4^2 x6 + s^303 x1^2 x3^2 x4 x6 + s^250 x3^2 x4 x6 - s^247 x1 x3 x4 x6 + s^205 x1 x3 x4 x6 + s^181 x3 x4 x6 + s^120 x1 x3^2 x6 - s^55 x1 x3 x6 - s^28 x1^2 x6 - x6 + s^172 x1 x4^2 x5 - s^355 x1^2 x3^2 x4 x5 - s^300 x1 x3 x4 x5 + s^99 x3 x4 x5 + s^343 x1^2 x3 x4^2 - s^294 x1 x3^2 x4 + s^270 x1 x3^2 x4 + s^160 x1 x3 x4 - s^239 x3 x4 + s^87 x3^2 - s^75 x1^2 x3 - s^20 x1 = 0] \/ [s - 1 <= 0 /\ s > 0 /\ (x5)(s^518 x1 x2 x3 x4^2 x5 + s^457 x1^2 x2 x3^2 x4 x5 + s^308 x1^2 x3 x4 x5 + s^457 x2 x3 x4^2 + s^396 x1 x2 x3^2 x4 + s^247 x1 x3 x4 + s^238 x1 x2 x4 - s^197 x1 x2 x4 + s^177 x1^2 x2 x3 - s^124 x2 x3 - s^55 x1 x3 + s^28 x1^2 - 1) = 0 /\ (s^276 x2 x3 x4 + s^183 x1 x3 x4 + x3 + s^57 x1 x2)(s^280 x1 x3 x4 x5 + s^219 x3 x4 + x1) = 0 /\ (s^325 x1 x2 x3 + 1)(x4) = 0 /\ s^664 x1^2 x2 x3^2 x4^2 x5 + s^339 x1 x3 x4^2 x5 - s^286 x2 x3 x4 x5 - s^193 x1 x3 x4 x5 - s^10 x3 x5 - s^67 x1 x2 x5 + s^603 x1 x2 x3^2 x4^2 + s^278 x3 x4^2 + s^384 x1^2 x2 x3 x4 - s^126 x3 x4 - s^81 x1 x4 + s^59 x1 x4 - x2 = 0 /\ s^680 x1^2 x2 x3^2 x4^2 x5^2 + s^355 x1 x3 x4^2 x5^2 + s^619 x1 x2 x3^2 x4^2 x5 + s^611 x1 x2 x3^2 x4^2 x5 + s^518 x1^2 x3^2 x4^2 x5 + s^294 x3 x4^2 x5 + s^335 x1 x3^2 x4 x5 + s^400 x1^2 x2 x3 x4 x5 + s^392 x1^2 x2 x3 x4 x5 - s^134 x3 x4 x5 - s^89 x1 x4 x5 + s^75 x1 x4 x5 - s^8 x2 x5 + s^550 x2 x3^2 x4^2 + s^457 x1 x3^2 x4^2 + s^274 x3^2 x4 + 2 s^331 x1 x2 x3 x4 + s^238 x1^2 x3 x4 - s^185 x2 x4 - s^124 x1 x2 x3 + s^55 x1 x3 + s^112 x1^2 x2 - x1 = 0 /\ s^463 x1 x3^2 x4^2 x5^2 + s^418 x1^2 x3 x4^2 x5^2 + s^337 x1 x2 x3 x4 x5^2 + s^402 x3^2 x4^2 x5 + s^518 x1^2 x2 x3 x4^2 x5 + s^357 x1 x3 x4^2 x5 + s^445 x1 x2 x3^2 x4 x5 + s^351 x1^2 x3^2 x4 x5 + s^276 x2 x3 x4 x5 + s^296 x1 x3 x4 x5 + s^183 x1 x3 x4 x5 - s^185 x2 x4 x5 + s^138 x1^2 x4 x5 - s^124 x1 x2 x3 x5 + s^57 x1 x2 x5 - x1 x5 + s^457 x1 x2 x3 x4^2 + s^384 x2 x3^2 x4 + s^290 x1 x3^2 x4 + s^235 x3 x4 + s^238 x1^2 x2 x4 + s^165 x1 x2 x3 + s^71 x1^2 x3 + s^16 x1 = 0 /\ s^524 x1^2 x2 x3 x4^2 x5^2 + s^451 x1 x2 x3^2 x4 x5^2 + s^357 x1^2 x3^2 x4 x5^2 + s^302 x1 x3 x4 x5^2 + s^518 x1 x2 x3 x4^2 x5 + s^463 x1 x2 x3 x4^2 x5 + s^457 x1^2 x2 x3^2 x4 x5 + s^390 x2 x3^2 x4 x5 + s^296 x1 x3^2 x4 x5 + s^308 x1^2 x3 x4 x5 + s^241 x3 x4 x5 + s^244 x1^2 x2 x4 x5 + s^171 x1 x2 x3 x5 + s^77 x1^2 x3 x5 + s^22 x1 x5 + s^457 x2 x3 x4^2 + s^396 x1 x2 x3^2 x4 + s^247 x1 x3 x4 + s^238 x1 x2 x4 - s^197 x1 x2 x4 + s^177 x1^2 x2 x3 - s^124 x2 x3 - s^55 x1 x3 + s^28 x1^2 - 1 = 0 /\ s^463 x1 x3^2 x4^2 x5 + s^418 x1^2 x3 x4^2 x5 - s^12 x4 x5 + s^402 x3^2 x4^2 + s^357 x1 x3 x4^2 + s^138 x1^2 x4 - x3 = 0]]
+min grade  = 636995
+time is    = 27082134 ms.
+9353019 8413632

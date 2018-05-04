@@ -1,0 +1,12 @@
+STATUS: CLOSED
+
+SUMMARY
+For the input G below, bbsb does not detect UNSAT, but
+it should!
+
+(def G [ x y < 0 /\ x^2 - y < 0 /\ x z > 1 /\ x < z /\ y x^2 z > 0 ])
+(bbwb (normalize 'level 1 G))
+(normalize G)
+
+ACTION
+Fixed an error relating to detection of rows of the form [x, 0, 1, 0]

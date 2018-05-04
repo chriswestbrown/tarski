@@ -1,0 +1,29 @@
+; tests evalf on "point" inputs and single var-value inputs
+
+(def res (equal? [false] (evalf '(x y z) '(0 0 0) [ x y z > 0 ])))
+(display (if res "pass" "fail") " : test evalf01 - a\n")
+
+(def res (equal? [true] (evalf '(x y z) '(0 0 0) [ x y z = 0 ])))
+(display (if res "pass" "fail") " : test evalf01 - b\n")
+
+(def F [ x^2 + y^2 - 2 x z - 3 y z + 1 < 0 ])
+(def R1 (evalf 'z -2/3 (evalf 'y 3/4 F)))
+(def R2 (evalf '(y z) '(3/4 -2/3) F))
+(def res (equal? R1 R2))
+(display (if res "pass" "fail") " : test evalf01 - c\n")
+
+(def F [4 - z^2 - x y^2 + x^3 y + x y + y - x^2 - 1 > 0 ])
+(def R1 (evalf 'x 1 (evalf 'z 2 F)))
+(def R2 (evalf '(x z) '(1 2) F))
+(def res (equal? R1 R2))
+(display (if res "pass" "fail") " : test evalf01 - d\n")
+
+; tests on a random polynomial
+(def F [ 97 a e-73 a f-4 b c-83 d^2-10 e^2+62 e f-62 e > 0 ])
+(def R1 (evalf '(b d e) '(0 2/3 -5) F))
+(def R2 [ -657 a f-4365 a-2790 f+208 > 0 ])
+(def res (equal? R1 R2))
+(display (if res "pass" "fail") " : test evalf01 - e\n")
+
+(def res (equal? (evalf '(x y) '(0 2) [ x < y ]) [ true ]))
+(display (if res "pass" "fail") " : test evalf01 - f\n")

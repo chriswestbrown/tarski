@@ -1,0 +1,8 @@
+(def F (smtlib-load "tiwariNonLinear-Linear4Depth3Base.smt2"))
+(def G (normalize (dnf F)))
+(def Q (getargs G))
+
+(def L (map (lambda (x) (qfr (exclose (normalize (clear-assignments x))))) Q))
+(def R (map qepcad-qe L))
+
+(display R "\n")

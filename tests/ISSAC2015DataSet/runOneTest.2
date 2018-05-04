@@ -1,0 +1,6 @@
+#!/bin/bash
+echo -n $1 $2 " - "
+echo '(load "'$1'") (test ' $2 ')' > foobar
+tarski test.2 foobar | qepcad +N20000000 | grep 'An equivalent quantifier-free formula:' -A 2 | tr '\n' ' '
+echo
+

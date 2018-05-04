@@ -1,0 +1,8 @@
+; tests basic formula interpolation
+
+(def F [ x^2 + y^2 - 1 < 0 /\ x + y > 0 ])
+
+(def expr [ ex x [ $F \/ y = 5 /\ x + y - x^2 = 0 ]])
+(def targ [ ex x [ x^2 + y^2 - 1 < 0 /\ x + y > 0 \/  y = 5 /\ x + y - x^2 = 0 ]])
+(def res (if (equal? expr targ) "pass" "fail"))
+(display res " : test interp01\n")

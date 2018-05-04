@@ -1,0 +1,212 @@
+
+/*
+/*
+  An "Advanced Bit Row", because
+
+class AdvBitRow : public vector <bool> {
+
+ public:
+
+
+  AdvBitRow(int i) {
+    this->resize(i);
+  }
+  /*
+    Returns number of non-zero rows
+  
+  int weight(bool ignoreFirst) {
+    int w = 0;
+    for (vector<bool>::iterator itr = this->begin(); itr != this->end(); ++itr) {
+      if (itr == this->begin() && ignoreFirst) continue;
+      if (*itr != 0)
+        w++;
+    }
+    return w;
+  }
+
+
+  static void swap(AdvBitRow* p1, AdvBitRow* p2) {
+    AdvBitRow* tmp = p2;
+    p2 = p1;
+    p1 = tmp;
+  }
+
+  AdvBitRow& operator +=(const AdvBitRow& rhs) {
+    for (int i = 0; i < this->size(); i++) {
+      this->at(i) = this->at(i) ^ rhs.at(i);
+    }
+    return *this;
+  }
+
+
+
+};
+
+
+/*
+  A class designed to have an easy interface for gaussian elimination on a full matrix
+  Given a MonoIneqRep, generates a matrix as a double vector of chars
+  Can do gaussian elimination(TODO)
+  Spits out the TATOMRefs used to identify signs (TODO)
+
+ 
+
+class Matrix2 : public vector< AdvBitRow* > {
+ private:
+  int r, c;
+  MonoIneqRep * MIR;
+
+ public:
+  Matrix2(int r, int c) {
+    this->r = r;
+    this->c = c;
+    this->resize(r);
+    for (int i = 0; i < r; i++) {
+      this->at(i) = new AdvBitRow(c);
+    }
+  }
+
+
+
+  Matrix2(const MonoIneqRep &MIR);
+
+  /*
+    do Gaussian elimination
+
+  void doGauss(vector<DBV> &george, vector<int> &pivotCols, vector<int> &pivotRows, bool ignoreFirstColumn);
+
+  /*
+    do Gaussian elimination and leave the matrix in reduced form
+
+  void doRedGauss();
+
+  void write();
+
+
+
+  ~Matrix2();
+
+};
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+Matrix2::Matrix2(const MonoIneqRep &MIR)  {
+  r = MIR.B.size();
+  DBV s = MIR.B[0].strictPart;
+  FunnyVec n = MIR.B[0].nonstrictPart;
+  c = s.size() + n.size()/2;
+
+  this->resize(r);
+  for (int i = 0; i < r; i++) {
+    this->at(i) = new AdvBitRow(c);
+  }
+  for (unsigned int i = 0; i < r; i++) {
+    DBV strict = MIR.B[i].strictPart;
+    FunnyVec nonStrict = MIR.B[i].nonstrictPart;
+    int a, b;
+    for (a = 0; a < strict.size(); a++) {
+      this->at(i)->at(a) = strict.get(a);
+    }
+    for (b = 0; b < nonStrict.size()/2; b++) {
+      if (nonStrict.get(b) == 3) this->at(i)->at(a) = 1;;
+      if (nonStrict.get(b) == 2) this->at(i)->at(a) = 0;
+      a++;
+    }
+  }
+
+}
+
+
+
+
+void Matrix2::write()  {
+  for (int i = 0 ; i < r; i++) {
+    for (int j = 0; j < c; j++) {
+      cout << (short) this->at(i)->at(j);
+    }
+    cout << endl;
+  }
+}
+
+
+Matrix2::~Matrix2() {
+  for (vector< AdvBitRow*>::iterator it = this->begin(); it != this->end(); ++it) {
+    delete *it;
+  }
+}
+
+
+void Matrix2::doGauss(vector<DBV> &george, vector<int> &pivotCols, vector<int> &pivotRows, bool ignoreFirstColumn)
+{
+  int r = this->size();// number of rows
+  if (r == 0) return;
+  int c = this->at(0)->size(); // number of columns
+
+  for(int i = 0; i < r; ++i)
+    {
+      // Find next pivot row
+      int wmin = INT_MAX, kmin, tmp=0;
+      for(int k = i; k < r; ++k)
+        if ((tmp = this->at(k)->weight(ignoreFirstColumn)) < wmin && tmp != 0) { wmin = tmp; kmin = k; }
+      if (wmin == INT_MAX) { return; }
+      swap(this->at(i), this->(kmin)); //do the original swap,
+      swap(george[i], george[kmin]); //then swap for the george matrix,
+      pivotRows.push_back(kmin); //then log the original position
+      // Find next pivot column & reduce other rows by pivot rows that aren't in pivot row list
+      int j = ignoreFirstColumn ? 1 : 0; while(this->at(i)->at(j) == 0) ++j;
+      pivotCols.push_back(j);
+      for(int k = i + 1; k < r; ++k)
+        if (this->at(k)->at(j))
+          {
+            M[k] += M[i];
+            george[k] += george[i];
+
+          }
+    }
+}
+*/
+/*
+void Matrix2::reducedGaussExplain(vector< DBV > &M, vector<DBV> &george, vector<int> &pivotCols, vector<int> &pivotRows, bool ignoreFirstColumn)
+{
+  gaussianEliminationExplain(M, george, pivotCols, pivotRows, ignoreFirstColumn);
+
+  for(int r = pivotCols.size() - 1; r > 0; --r)
+    {
+      int p = pivotCols[r];
+      for(int k = r-1; k >= 0; -- k) {
+
+        if (M[k][p])
+          {
+            M[k] += M[r];
+            george[k] += george[r];
+          }
+      }
+    }
+  //Now time to use pivotRows to undo all of our swaps
+  for (int i = pivotRows.size()-1; i >= 0; i--) {
+    swap(M[i], M[pivotRows[i]]);
+    swap(george[i], george[pivotRows[i]]);
+  }
+}
+
+*/

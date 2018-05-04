@@ -1,0 +1,16 @@
+; tests prenex conversion
+
+(def expr (make-prenex [true]))
+(def targ [true])
+(def res (if (equal? expr targ) "pass" "fail"))
+(display res " : test prenex01 - a\n")
+
+(def expr (make-prenex [x y z > 0 ]))
+(def targ [x y z > 0])
+(def res (if (equal? expr targ) "pass" "fail"))
+(display res " : test prenex01 - b\n")
+
+(def expr (make-prenex [ex x,y[x > 0 /\ [all y,z [x y z > 0 ]]]]))
+(def targ [ex x[all y,z[x > 0 /\ x y z > 0]]])
+(def res (if (equal? expr targ) "pass" "fail"))
+(display res " : test prenex01 - c\n")

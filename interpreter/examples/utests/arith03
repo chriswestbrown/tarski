@@ -1,0 +1,5 @@
+; arith03: this tests simple multiplication
+(def expr (* 9/5 7/6))
+(def targ 21/10)    
+(def res (if (equal? expr targ) "pass" "fail"))
+(display res " : test arith03\n")

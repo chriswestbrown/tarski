@@ -1,0 +1,23 @@
+; tests "rename-variables"
+
+(def expr (rename-variables '(y) '(z) [ x + 2 y > w^2 ]))
+(def targ [x + 2 z - w^2 > 0])
+;(display "expr = " expr "\n")
+;(display "targ = " targ "\n")
+(def res (if (equal? expr targ) "pass" "fail"))
+(display res " : test rename01 - a\n")
+
+(def expr (rename-variables '(x y) '(u z) [ x + 2 y > w^2 ]))
+(def targ [u + 2 z > w^2])
+(def res (if (equal? expr targ) "pass" "fail"))
+(display res " : test rename01 - b\n")
+
+(def expr (rename-variables '(a y) '(A Y) [ ex x [ a + x^2 - 3 y < 0 /\ [ex y [ x^2 + y^2 < a - b] ] ] ]))
+(def targ (normalize [ ex x [ A + x^2 - 3 Y < 0 /\ [ex y [ x^2 + y^2 < A - b] ] ] ]))
+(def res (if (equal? expr targ) "pass" "fail"))
+(display res " : test rename01 - c\n")
+
+(def expr (rename-variables '(a) '(z) [ a + 2 b - 3 c > 0 /\ a b - c d > 0 ]))
+(def targ (normalize [ z + 2 b - 3 c > 0 /\ z b - c d > 0 ]))
+(def res (if (equal? expr targ) "pass" "fail"))
+(display res " : test rename01 - d\n")

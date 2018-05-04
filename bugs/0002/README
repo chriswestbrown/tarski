@@ -1,0 +1,8 @@
+STATUS: CLOSED
+
+SUMMARY
+SAT-NuCADConjunction crashes on the CMOS input here.
+
+ACTION
+Fixing BUG 0001 might well have been all it took, but in any
+event the bug

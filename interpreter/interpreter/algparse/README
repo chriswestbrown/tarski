@@ -1,0 +1,28 @@
+Chris Brown, 3/16/2006
+
+This module is concerned with parsing Tarski Formulas.
+It provides:
+
+  - class LexContext: which allows you to define the lexical
+    context for parsing.  Currently, any istream can be used
+    as the basis for the lexical context.
+
+  - classes TarskiObj/TarskiRef and their derived classes, which
+    provide the data structure for the parsed formula.
+
+  - function algparse(LCp,T), which parses from the lexical context
+    pointed to by LCp and stores the result in TarskiRef T.
+
+  - class TarskiApply, which allows the definition of function
+    objects that are polymorphic on their first argument.  This
+    provides a mechanism for traversing the parse tree.
+
+  - function objects GetVars and PrettyPrint, which perform two
+    usefull operations on Tarski formulas.
+
+  - main.cpp, which defines a small driver program that simply 
+    reads a formula or algebraic expression (wrapped in [ ]'s)
+    and pretty prints it and then prints it in another sort
+    of form.
+
+01/11/2007 - now has the -r option for printing in Redlog format

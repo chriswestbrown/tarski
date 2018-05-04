@@ -1,0 +1,13 @@
+body { 
+  font-family: Helvetica, sans-serif;
+  font-size: 10pt;
+  margin-left: 5em; margin-right: 5em; 
+  margin-top: 5em; margin-bottom: 2em; 
+  color: #000084; background: #FFFFFF; 
+}
+
+h1 { font-size: 1.5em; font-weight: normal; }
+
+.tarski {
+    font-weight: 900;
+}

@@ -1,0 +1,5 @@
+; arith04: this tests subtraction with one argument
+(def expr (- 2/3))
+(def targ -2/3)    
+(def res (if (equal? expr targ) "pass" "fail"))
+(display res " : test arith04\n")

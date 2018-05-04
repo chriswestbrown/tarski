@@ -1,0 +1,27 @@
+#!/usr/bin/perl
+
+$m = $ARGV[0];
+$n = $ARGV[1];
+$r = $ARGV[2];
+for(my $i = 1; $i <= 25; $i++)
+{
+    $ns = ($i < 10 ? "0" : "").$i;
+
+    $filename = "qeout.$m.$n.$r.$ns";
+#    print "Reading from $filename ...\n";
+    open(my $fh, '<', $filename) or die "Could not open file '$filename' $!";
+    
+    $rtime = -99999999;
+    while(<$fh>)
+    {
+#    print "read: $_";
+	$line = $_;
+	if ($line =~ /Total time with garbage collection\s+:\s*(\d+)/)
+	{
+	    $rtime = $1;
+	}
+	
+    }
+    print "$m $n $r F$ns $rtime\n";
+}
+ 

@@ -1,0 +1,1 @@
+commit 130 - change poly.h signDeduce functions so that they took a const VKM

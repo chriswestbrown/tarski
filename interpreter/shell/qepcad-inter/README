@@ -1,0 +1,8 @@
+This module should define a protocol for interfacing with
+QEPCAD.  Here are my draft ideas for a protocol
+
+IDEAS 1:
+
+* on the tarski side, I (at least initially) want 
+(qepcad-qe <input-formula> <assumptions>)
+

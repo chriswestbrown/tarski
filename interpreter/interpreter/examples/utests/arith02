@@ -1,0 +1,5 @@
+; arith02: this tests simple subtraction
+(def expr (- 3/5 1/2))
+(def targ 1/10)    
+(def res (if (equal? expr targ) "pass" "fail"))
+(display res " : test arith02\n")

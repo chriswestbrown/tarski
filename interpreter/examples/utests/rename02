@@ -1,0 +1,10 @@
+; tests "rename-variables" for catching error conditions
+
+(rename-variables '(x y) '(z z) [ x^2 + y^2 - 1 < 0 ])
+(def res (if (equal? (typename %e) "err") "pass" "fail"))
+(display res " : test rename02 - a\n")
+
+(rename-variables '(x) '(y) [ x^2 + y^2 - 1 < 0 ])
+(def res (if (equal? (typename %e) "err") "pass" "fail"))
+(display res " : test rename02 - b\n")
+

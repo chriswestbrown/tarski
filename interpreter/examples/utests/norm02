@@ -1,0 +1,16 @@
+; tests normalization.  These test that quantifiers are handled correctly
+
+(def expr (normalize [ex x[ a^2 x^2 < 0 ]]))
+(def targ [false])
+(def res (if (equal? expr targ) "pass" "fail"))
+(display res " : test norm02 - a\n")
+
+(def expr (normalize [all t [ex x [ a^2 + b^2 t < 0 ]]]))
+(def targ [all t [ a^2 + b^2 t < 0 ]])
+(def res (if (equal? expr targ) "pass" "fail"))
+(display res " : test norm02 - b\n")
+
+(def expr (normalize [all x [ a x - x b^2 + a^2 < 0 \/ ex b, c [ a^2 + b^2 x < 0 \/ c^2 < 0 ]]]))
+(def targ [all x[b^2 x - a x - a^2 > 0 \/ ex b[[b^2 x + a^2 < 0]]]])
+(def res (if (equal? expr targ) "pass" "fail"))
+(display res " : test norm02 - c\n")

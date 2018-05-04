@@ -1,0 +1,11 @@
+[ ex x, y
+[
+a + x^2 y - (b + 1)x = 0
+/\
+b x - x^2 y = 0
+/\ x > 0 /\ y > 0 /\ a > 0 /\ b > 0
+]
+]
+
+dx/dt = a + x^2 y - (B + 1)x
+dy/dt = b x - x^2 y

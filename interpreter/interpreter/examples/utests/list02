@@ -1,0 +1,16 @@
+; list02: this tests list head, get, length
+(def L '(1 2 "three" 'four (5 6 7) (8 9) ()))
+(def expr (head L))
+(def targ 1)
+(def res (if (equal? expr targ) "pass" "fail"))
+(display res " : test list02 - a\n")
+
+(def expr (get L 4))
+(def targ '(5 6 7))
+(def res (if (equal? expr targ) "pass" "fail"))
+(display res " : test list02 - b\n")
+
+(def expr (length L))
+(def targ 7)
+(def res (if (equal? expr targ) "pass" "fail"))
+(display res " : test list02 - c\n")

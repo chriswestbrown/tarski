@@ -1,0 +1,177 @@
+[
+ex s,F,J,T
+[
+        d - d s - b1 J s = 0 /\
+        b1 J s + b2 J T - (d + v + r1) F + (1 - q) r2 J = 0 /\
+        v F - (d + r2) J = 0 /\
+        -d T + r1 F + q r2 J - b2 T J = 0
+        /\ F > 0 /\ J > 0 /\ T > 0 /\ s > 0
+        /\
+        b1 > 0  /\  b2 > 0  /\  d > 0  /\  v > 0 /\        
+        r1 > 0  /\  r2 > 0 /\  q > 0 /\  b1 > b2
+]
+]
+
+
+
+HERE are some reasonable looking substitutions that don't work out so well.
+[b2 - b1 < 0 /\ q > 0 /\ r2 > 0 /\ r1 > 0 /\ v > 0 /\ d > 0 /\ b2 > 0 /\ b1 > 0
+/\ J > 0 /\ d^3 + v d^2 + r1 d^2 + r2 d^2 + J b2 d^2 + J b1 d^2 + q r2 v d + J b
+2 v d + J b1 v d - b1 v d + r2 r1 d + J b1 r1 d + J b2 r2 d + J b1 r2 d + J^2 b1
+ b2 d + J b1 q r2 v + J^2 b1 b2 v - J b1 b2 v + J b1 r2 r1 + J^2 b1 b2 r2 = 0 /\
+ q r2 d^2 - r2 d^2 - b1 d^2 + J b1 q r2 d - J b2 r2 d - J b1 r2 d - J b1 b2 d -
+J^2 b1 b2 r2 < 0]
+Derivation is:
+genericcase subsituting for F in T d - F r1 - J q r2 + J T b2 = 0
+genericcase subsituting for s in s d - d + s J b1 = 0
+genericcase subsituting for T in T d^3 + T v d^2 + T r1 d^2 - J q r2 d^2 + J T b
+2 d^2 + J T b1 d^2 - J q r2 v d + J T b2 v d + J T b1 v d - J r2 r1 d + J T b1 r
+1 d - J b1 r1 d - J^2 b1 q r2 d + J^2 T b1 b2 d - J^2 b1 q r2 v + J^2 T b1 b2 v
+- J^2 b1 r2 r1 = 0
+
+
+
+[b2 - b1 < 0 /\ q > 0 /\ r2 > 0 /\ r1 > 0 /\ v > 0 /\ d > 0 /\ b2 > 0 /\ b1 > 0
+/\ s > 0 /\ s - 1 < 0 /\ s b2 d^2 - b2 d^2 - s b1 d^2 + s b2 v d - b2 v d - s b1
+ v d - s b1 r1 d + s b2 r2 d - b2 r2 d - s b1 r2 d - s b1 q r2 v - s^2 b1 b2 v +
+ s b1 b2 v + s^2 b1^2 v - s b1 r2 r1 = 0 /\ s b2 d - b2 d - s b1 d + s b2 v - b2
+ v - s b1 v - s b1 r1 < 0 /\ s b1 q r2 + s b2 r2 - b2 r2 - s b1 r2 + s^2 b1 b2 -
+ s b1 b2 - s^2 b1^2 < 0]
+Derivation is:
+genericcase subsituting for F in T d - F r1 - J q r2 + J T b2 = 0
+genericcase subsituting for J in s d - d + s J b1 = 0
+genericcase subsituting for T in s q r2 d - q r2 d - s T b2 d + T b2 d + s T b1
+d + s q r2 v - q r2 v - s T b2 v + T b2 v + s T b1 v + s r2 r1 - r2 r1 + s T b1
+r1 + s^2 b1 r1 - s b1 r1 = 0
+
+
+
+Stopped search because of 5 minute time limit!
+mainLoopCount = 340
+Num Formulas  = 4251 (Note: duplicates are counted!)
+Num Nodes @ end  = 4960 (Note: duplicates are counted!)
+Num QNodes enqueued  = 7992 (Note: duplicates are counted!)
+Num Generic Substitutions = 4757
+Num Degenerate Substitutions = 4757
+Total QAnd nodes generated = 5537
+Total unique QAnd nodes    = 2998
+
+-----------------------------------------------------------------------------
+334 Garbage collections, -1137697606 Cells and 0 Arrays reclaimed, in 110169 milliseconds.
+7168951 Cells in AVAIL, 10000000 Cells in SPACE.
+
+System time: 398116 milliseconds.
+System time after the initialization: 397708 milliseconds.
+-----------------------------------------------------------------------------
+Time in IPFAC = 267090ms
+Time in IPRESPRS = 912ms
+##################################################
+min formula: [b2 - b1 < 0 /\ q > 0 /\ r2 > 0 /\ r1 > 0 /\ v > 0 /\ d > 0 /\ b2 > 0 /\ b1 > 0 /\ s > 0 /\ s - 1 < 0 /\ s b2 d^2 - b2 d^2 - s b1 d^2 + s b2 v d - b2 v d - s b1 v d - s b1 r1 d + s b2 r2 d - b2 r2 d - s b1 r2 d - s b1 q r2 v - s^2 b1 b2 v + s b1 b2 v + s^2 b1^2 v - s b1 r2 r1 = 0]
+min grade  = 19281
+Derivation is:
+genericcase subsituting for F in T d - F r1 - J q r2 + J T b2 = 0
+genericcase subsituting for T in T v d - J r1 d - J q r2 v + J T b2 v - J r2 r1 = 0
+genericcase subsituting for J in s d - d + s J b1 = 0
+time is    = 288799 ms.
+1240629 1137994
+
+
+
+#########################################################
+load_package redlog;
+rlset(OFSF);
+
+inform := ex({s,F,J,T},
+        d - d*s - b1*J*s = 0 and
+        b1*J*s + b2*J*T - (d + v + r1)*F + (1 - q)*r2*J = 0 and
+        v*F - (d + r2)*J = 0 and
+        -d*T + r1*F + q*r2*J - b2*T*J = 0
+        and F > 0 and J > 0 and T > 0 and s > 0
+);
+
+
+inform2 := ex({s,T,J,F},
+        d - d*s - b1*J*s = 0 and
+        b1*J*s + b2*J*T - (d + v + r1)*F + (1 - q)*r2*J = 0 and
+        v*F - (d + r2)*J = 0 and
+        -d*T + r1*F + q*r2*J - b2*T*J = 0
+        and F > 0 and J > 0 and T > 0 and s > 0
+);
+
+assumptions :=
+{b1 > 0 ,  b2 > 0 ,  d > 0 ,  v > 0,  r1 > 0 ,  r2 > 0,  q > 0,  b1 > b2};
+
+
+reform := ex({s},
+s > 0 and s - 1 < 0 and s*b2*d^2 - b2*d^2 - s*b1*d^2 + s*b2*v*d - b2*v*d
+- s*b1*v*d - s*b1*r1*d + s*b2*r2*d - b2*r2*d - s*b1*r2*d - s*b1*q*r2*v
+- s^2*b1*b2*v + s*b1*b2*v + s^2*b1^2*v - s*b1*r2*r1 = 0
+);
+
+##########################################################
+Resolve[
+Exists[{s,F,J,T},
+        d - d s - b1 J s == 0 &&
+        b1 J s + b2 J T - (d + v + r1) F + (1 - q) r2 J == 0 &&
+        v F - (d + r2) J == 0 &&
+        -d T + r1 F + q r2 J - b2 T J == 0
+        && F > 0 && J > 0 && T > 0 && s > 0
+&& b2 - b1 < 0 && q > 0 && r2 > 0 && r1 > 0 && v > 0 && d > 0 && b2 > 0 && b1 > 0
+]
+]
+
+Resolve[
+Exists[s,
+[b2 - b1 < 0 && q > 0 && r2 > 0 && r1 > 0 && v > 0 && d > 0 && b2 > 0 && b1 > 0 && s > 0 && s - 1 < 0 && s b2 d^2 - b2 d^2 - s b1 d^2 + s b2 v d - b2 v d - s b1 v d - s b1 r1 d + s b2 r2 d - b2 r2 d - s b1 r2 d - s b1 q r2 v - s^2 b1 b2 v + s b1 b2 v + s^2 b1^2 v - s b1 r2 r1 == 0
+]
+]
+
+
+[
+ex s,F,J,T
+[
+        d - d s - b1 J s = 0 /\
+        b1 J s + b2 J T - (d + v + r1) F + (1 - q) r2 J = 0 /\
+        v F - (d + r2) J = 0 /\
+        -d T + r1 F + q r2 J - b2 T J = 0
+        /\ F > 0 /\ J > 0 /\ T > 0 /\ s > 0
+        /\
+        b1 > 0  /\  b2 > 0  /\  d > 0  /\  v > 0 /\        
+        r1 > 0  /\  r2 > 0 /\  q > 0 /\  b1 > b2
+]
+]
+
+
+# Maple
+use RealDomain in solve([d-d*s-b1*J*s = 0 ,
+b1*J*s+b2*J*T-(d+v+r1)*F+(1-q)*r2*J = 0 , v*F-(d+r2)*J = 0 ,
+-d*T+r1*F+q*r2*J-b2*T*J = 0 , F > 0 , J > 0 , T > 0 , s > 0 , b1 > 0 ,
+b2 > 0 , d > 0 , v > 0 , r1 > 0 , r2 > 0 , q > 0 , b1 > b2],[s,F,J,T])
+end use;
+
+After  44 sec gives a very long complicated answer:
+
+
+
+[]
+(b1,d,b2,v,r2,q,r1,s)
+7
+(E s)
+[ s > 0 /\ s-1 < 0 /\ b1 s q r2 v+b1 s^2 b2 v-d s b2 v-b1 s b2 v+d b2 v-b1^2 s^2 v+b1 d s v+b1 s r1 r2-d s b2 r2+d b2 r2+b1 d s r2+b1 d s r1-d^2 s b2+d^2 b2+b1 d^2 s = 0].
+assume [ b1 > 0 /\ b2 > 0 /\ d > 0 /\ v > 0 /\ r1 > 0 /\ r2 > 0 /\ q >
+0 /\ b2-b1 < 0 ]
+
+[]
+(b1,d,b2,v,r2,q,r1,s)
+8
+[ s > 0 /\ s-1 < 0 /\ b1 s q r2 v+b1 s^2 b2 v-d s b2 v-b1 s b2 v+d b2 v-b1^2 s^2 v+b1 d s v+b1 s r1 r2-d s b2 r2+d b2 r2+b1 d s r2+b1 d s r1-d^2 s b2+d^2 b2+b1 d^2 s = 0].
+assume [ b1 > 0 /\ b2 > 0 /\ d > 0 /\ v > 0 /\ r1 > 0 /\ r2 > 0 /\ q >
+0 /\ b2-b1 < 0 ]
+
+
+
+
+
+
+
+
