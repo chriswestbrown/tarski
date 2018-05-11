@@ -17,7 +17,7 @@ namespace tarski {
 
     bool stats = false;
 
-    for(int i = 0; i < N-1; i++)
+    for(unsigned int i = 0; i < N-1; i++)
       {
         SymRef opt = args[i]->sym();
         if (!opt.is_null() && opt->val == "stat" )

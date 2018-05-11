@@ -59,7 +59,7 @@ namespace tarski {
       if (given) cout << endl;
       else {
         std::cout << " from  [ ";
-        for (int i = 0; i < deps.size(); i++) {
+        for (unsigned int i = 0; i < deps.size(); i++) {
           if (deps[i]->getRelop() != ALOP) {
             deps[i]->write();
             if (i != deps.size()-1) std::cout << " /\\ ";
