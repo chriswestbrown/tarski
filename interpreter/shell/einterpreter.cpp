@@ -1044,6 +1044,7 @@ void NewEInterpreter::init()
   add(new CommSuggestVarOrder(this));
   add(new CommSuggQepcad(this));
   add(new CommQepcadQE(this));
+  add(new CommQepcadSat(this));
   add(new CommSyntax(this));
   
   add(new NewOCBuilderComm(this));
