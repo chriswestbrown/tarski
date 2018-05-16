@@ -152,7 +152,10 @@ namespace tarski {
       if (A->getFactors()->numFactors() < B->getFactors()->numFactors()) return true;
       if (A->getFactors()->numFactors() > B->getFactors()->numFactors()) return false;
       int t = OCOMP(A->getFactors()->getContent(),B->getFactors()->getContent());
-      if (t != 0) { return t < 0 ? -1 : 1; }
+      if (t != 0) {
+	if (t < 0) return -1;
+        return 1;
+      }
       FactObj::factorIterator itrA= A->getFactors()->factorBegin();
       FactObj::factorIterator itrB= B->getFactors()->factorBegin();
       while(itrA != A->getFactors()->factorEnd())

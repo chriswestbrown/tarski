@@ -159,7 +159,7 @@ void reducedGaussExplain(vector< DBV > &M, vector<DBV> &george, vector<int> &piv
 
 
 bool detectUnsat(vector< DBV > &M, vector < DBV> george, vector <int> &reasons, bool verbose){
-  for (int i = 0; i < M.size(); i++){
+  for (unsigned int i = 0; i < M.size(); i++){
 
     if (M[i][0] == true) {
       bool UNSAT = true;
@@ -208,7 +208,7 @@ bool detectUnsat(vector< DBV > &M, vector < DBV> george, vector <int> &reasons, 
 
 bool detectUnsat(vector<DBV> &M, vector <DBV> george, vector <int> &reasons,  vector < DBV> og, bool verbose) {
 
-  for (int i = 0; i < M.size(); i++){
+  for (unsigned int i = 0; i < M.size(); i++){
 
     if (M[i][0] == true) {
       bool UNSAT = true;

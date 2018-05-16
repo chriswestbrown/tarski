@@ -17,7 +17,7 @@ using namespace std;
 
 inline bool intSort (int i, int j) { return (i < j);}
 
-BoxSolver::BoxSolver(TFormRef formula) :  limit(5), count(0), isPureConj(true), numAtoms(-1) {
+BoxSolver::BoxSolver(TFormRef formula) :  isPureConj(true),  numAtoms(-1), limit(5), count(0) {
   this->formula = formula;
   IM = new IdxManager();
   pm = formula->getPolyManagerPtr();
@@ -189,7 +189,7 @@ void BoxSolver::getFinalClause(vec<Lit>& lits, bool& conf) {
 
 void BoxSolver::getQEPUnsatCore(vec<Lit>& lits, vector<int> indices, TAndRef tand) {
   int curr = 0;
-  int currVec = 0;
+  unsigned int currVec = 0;
   //TAndRef t = new TAndObj();
   for (set<TFormRef, ConjunctOrder>::iterator begin = tand->begin(), end = tand->end();
        begin != end; ++begin) {

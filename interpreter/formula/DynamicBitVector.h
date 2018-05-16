@@ -195,7 +195,7 @@ public:
   int getNumCols() {return c;}
 
   void write() {
-    for (int i = 0; i < size(); i++) {
+    for (unsigned int i = 0; i < size(); i++) {
       at(i).write(); std::cout << std::endl;
     }
   }

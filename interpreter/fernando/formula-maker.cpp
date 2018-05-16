@@ -150,7 +150,7 @@ namespace Minisat{
     else if (type == 1 && topLevel) {
       //This makes one big disjunct for all the topLevel atoms
       vector<Lit> a(atoms.size());
-      for (int i = 0; i < atoms.size(); i++) {
+      for (unsigned int i = 0; i < atoms.size(); i++) {
         a[i] = mkLit(atoms[i], false);
       }
       formula.push_back(a);
@@ -158,8 +158,8 @@ namespace Minisat{
     else if (type == 1) {
       //Again, we make one big disjunct, but this time include the varNum of the node itself
       vector<Lit> a(atoms.size()+oppNodes.size()+1);
-      int i, j;
-      for (i = 0; i < atoms.size(); i++) {
+      unsigned int i, j;
+      for ( i = 0; i < atoms.size(); i++) {
         a[i] = mkLit(atoms[i], false);
       }
       for (j = 0; j < oppNodes.size(); j++) {

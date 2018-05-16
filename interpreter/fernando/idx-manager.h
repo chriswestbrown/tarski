@@ -25,7 +25,7 @@ namespace Minisat {
       revMapping[t] = s;
       s++;
     }
-    inline bool getAtom(int idx, tarski::TAtomRef& t) const {
+    inline bool getAtom(unsigned int idx, tarski::TAtomRef& t) const {
       if (idx < 0) return false;
       if (idx >= mapping.size()) return false;
       t = mapping[idx];

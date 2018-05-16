@@ -8,7 +8,7 @@ void MonoIneqRep::printCandidates(TFormRef F){
   //Loop to display all the var to SIneq map if requested
   for (map<IntPolyRef, vector <TAtomRef > >::iterator it = RefToSIneq.begin(); it != RefToSIneq.end(); ++it) {
     it->first->write(*(F->getPolyManagerPtr())); cout << ": ";
-    for (int i = 0; i < it->second.size(); i++) {
+    for (unsigned int i = 0; i < it->second.size(); i++) {
       vector < TAtomRef > ex = it->second;
       (ex[i])->write(); cout << ", ";
     }
@@ -214,7 +214,7 @@ vector<TAtomRef> scoringFunction(map<IntPolyRef, vector<TAtomRef> > candidates, 
   set < pair <TAtomRef, int> > goodCandFast;
   vector < vector<int> > factsToCand (weakFactors.size());
   vector < vector<int> > candToFacts;
-  for  (i = 0; i < weakFactors.size(); i++){ //For every factor...
+  for  (unsigned i = 0; i < weakFactors.size(); i++){ //For every factor...
     //cerr << "first" << endl;
     bool done = false;
     vector<TAtomRef> toCheck = candidates[arrWeakFactors[i]];
@@ -255,7 +255,7 @@ vector<TAtomRef> scoringFunction(map<IntPolyRef, vector<TAtomRef> > candidates, 
   //Step 3a: Check to make sure none of the potential inequalities have been chosen. If one has, skip this round (the inequality has already been strengthened)
   //Step 3b: Choose the highest scored inequality. Instert it into strength
   //Step 3c: For all other inequalities of the current member of arrWeakFactors, leverage a -7 penalty
-  for (int i = 0; i < weakFactors.size(); i++) {
+  for (unsigned int i = 0; i < weakFactors.size(); i++) {
     bool alreadySelected = false;
     int highestIdx  = factsToCand[i][0];
     for (vector<int>::iterator iter = factsToCand[i].begin(); iter != factsToCand[i].end(); ++iter) {
@@ -535,7 +535,7 @@ TFormRef BBSat(TFormRef F)
     //weakFacts := weakFacts - strongFacts ?
     map<IntPolyRef, bool> weakFacts;
     map<IntPolyRef, bool> strongFacts;
-    for (int i = 0; i < reasons.size(); i++) {
+    for (unsigned int i = 0; i < reasons.size(); i++) {
       int j = reasons[traceRow[i]];
       TAtomRef A = MIR.rowIndexToAtom(j);
       r2->AND(A);
@@ -571,7 +571,7 @@ TFormRef BBSat(TFormRef F)
         }
       }
     }
-    for (int i = 0; i < toRemove.size(); i++)
+    for (unsigned int i = 0; i < toRemove.size(); i++)
       weakFacts.erase(toRemove[i]);
     if (verbose) {
       cout << endl;

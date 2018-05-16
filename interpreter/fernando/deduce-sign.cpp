@@ -535,7 +535,6 @@ namespace tarski {
     VarKeyedMap<int> bestExplain;
     int minScore = -1;
     short bestSign = ALOP;
-    short signToReturn = ALOP;
     VarSet allVars;
     bool success = true;
 
@@ -662,7 +661,6 @@ namespace tarski {
           bestExplain = explain;
           allVars = fin->getVars();
           bestSign = currSign;
-          signToReturn = sign;
           //std::cerr << "DS2: now " << numToRelop(bestSign) << " is the best sign to return\n";
         }
         i++;

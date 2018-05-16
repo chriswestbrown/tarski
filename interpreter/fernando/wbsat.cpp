@@ -250,10 +250,11 @@ namespace tarski {
       polySigns.erase(it);
       lastUsed = p;
       short sign = p->signDeduce(dedM->getVars());
-      VarSet testVars = p->getVars();
+
       /*
-      cerr << "Poly: "; p->write(*PM); cerr << endl;
-      for (VarSet::iterator itr = testVars.begin(), end = testVars.end(); itr != end; ++itr){
+	VarSet testVars = p->getVars();
+	cerr << "Poly: "; p->write(*PM); cerr << endl;
+	for (VarSet::iterator itr = testVars.begin(), end = testVars.end(); itr != end; ++itr){
         IntPolyRef p = new IntPolyObj(*itr);
         //p->write(*PM);cerr << " sign is " << numToRelop(dedM->getVars()[*itr]) << " " << dedM->getVars()[*itr];
         cerr<<endl;

@@ -5,10 +5,6 @@ namespace tarski{
 
   SRef QepSolverComm::execute(SRef input, std::vector<SRef> &args) {
 
-    Minisat::lbool l_true = Minisat::lbool((uint8_t)0);
-    Minisat::lbool l_false = Minisat::lbool((uint8_t)1);
-    Minisat::lbool l_undef = Minisat::lbool((uint8_t)2);
-
     int N = args.size();
     if (N < 1) {return new ErrObj("Qep-Solver requires 1 argument");}
 

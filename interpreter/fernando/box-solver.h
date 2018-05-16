@@ -68,8 +68,8 @@ namespace Minisat {
     //Call this only after calling mkFormula;
     inline void printCNF(tarski::TFormRef formula) {
       
-      for (int i = 0; i < form.size(); i++) {
-        for (int j = 0; j < form[i].size(); j++) {
+      for (unsigned int i = 0; i < form.size(); i++) {
+        for (unsigned int j = 0; j < form[i].size(); j++) {
           write(form[i][j]); std::cout << " ";
         }
         std::cout << std::endl;
@@ -80,14 +80,15 @@ namespace Minisat {
     Solver * S;
     MHSGenerator * M;
     IdxManager * IM;
+    bool isPureConj;
     int numAtoms;
+    int limit;
+    int count;
     tarski::TAndRef genMHS();
     tarski::TFormRef formula;
     //Returns the CNF translation of a formula
     std::vector<std::vector<Lit> > makeFormula(tarski::TFormRef formula);
-    bool isPureConj;
-    int limit;
-    int count;
+
     vector<vector<Lit> > form;
     tarski::PolyManager * pm;
     //If [idx] maps to an atom with sign GTOP, [idx+1] maps to the opposite LEOP. The >= sign always goes before < and != signs

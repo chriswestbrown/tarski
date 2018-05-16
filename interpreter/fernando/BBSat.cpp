@@ -14,17 +14,9 @@ namespace tarski {
     TarRef tarRef = args[N-1]->tar();
     if (tarRef.is_null()) {return new StrObj("bbsat argument not a Tarski formula");}
 
-
-    bool stats = false;
-
-    for(unsigned int i = 0; i < N-1; i++)
-      {
-        SymRef opt = args[i]->sym();
-        if (!opt.is_null() && opt->val == "stat" )
-          stats = true;
-        else
-          return new ErrObj("smt-load optional argument '" + args[i]->toStr() +"' not understood.");
-      }
+    for( int i = 0; i < N-1; i++) {
+	return new ErrObj("smt-load optional argument '" + args[i]->toStr() +"' not understood.");
+    }
 
     TFormRef tRef = tarRef->getValue();
     TAndRef F = asa<TAndObj>(tRef);
@@ -47,7 +39,7 @@ namespace tarski {
       LisRef res = new LisObj();
       SymRef r1 = new SymObj("SAT");
       res->push_back(r1);
-      for (int i = 0; i < results.size(); i++) {
+      for (unsigned int i = 0; i < results.size(); i++) {
         dedToLis(results[i], PM, res);
       }
       return res;
