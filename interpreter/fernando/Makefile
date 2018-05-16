@@ -66,16 +66,14 @@ qep-solver-comm.o: qep-solver.o
 
 lib:
 	$(LIB)
-	rm -f *.o
 
 deb:
 	$(LIB)
-	rm -f *.o
+
 
 clean:
 	rm -f $(LIB)
 	rm -f *.o
 
 $(LIB): $(LIB_OBJS)
-	rm -f *.o
 
