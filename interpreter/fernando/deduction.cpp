@@ -16,7 +16,6 @@ namespace tarski {
       processGiven(*itr);
       if (unsat) return;
     }
-
   }
 
   //This requires at least one member of a
@@ -26,6 +25,7 @@ namespace tarski {
       if (unsat) return;
     }
     PM = a[0]->getPolyManagerPtr();
+
   }
 
 
@@ -55,6 +55,7 @@ namespace tarski {
   void DedManager::addGiven(TAtomRef t) {
     vector<int> tmp;
     depIdxs.push_back(tmp);
+    cerr << "Inserting: "; t->write(); cerr << endl;
     atomToDed[t] = deds.size();
     deds.push_back(new Given(t));
   }
@@ -99,13 +100,17 @@ namespace tarski {
     vector<int> deps;
     const vector<TAtomRef>& dA = d->getDeps();
     for (vector<TAtomRef>::C_ITR itr = dA.begin(), end = dA.end(); itr != end; ++itr) {
+      int idx = -1;
       if ((*itr)->relop == ALOP) continue;
       if (atomToDed.find(*itr) == atomToDed.end()) {
-        (*itr)->write();
-        throw TarskiException("No index for dependency!");
+	idx = searchMap(*itr);
+	if (idx == -1) {
+	  (*itr)->write(); cerr << " is the offender \n";
+	  throw TarskiException("No index for dependency!");
+	}
       } 
-      int idx = (atomToDed.find(*itr))->second;
-      if (idx == -1) throw TarskiException("Unknown Dependency! Line 66 deduction.cpp");
+      if (idx == -1) idx = (atomToDed.find(*itr))->second;
+      if (idx == -1) throw TarskiException("Unknown Dependency!");
       deps.push_back(idx);
     }
     return deps;

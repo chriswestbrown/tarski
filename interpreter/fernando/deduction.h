@@ -234,7 +234,31 @@ namespace tarski {
     DedManager(const std::vector<TAtomRef>&);
     DedManager(TAndRef t);
     ~DedManager();
-
+    int searchMap(TAtomRef A) {
+      int ret = -1;
+      for (map<TAtomRef, int, managerComp>::iterator itr = atomToDed.begin(); itr != atomToDed.end(); ++itr) {
+	if (isEquiv(A, itr->first)) {
+	  ret = itr->second;
+	  break;
+	}
+      }
+      return ret;
+    }
+    bool isEquiv(TAtomRef A, TAtomRef B) {
+      if (A->getFactors()->numFactors() != B->getFactors()->numFactors()) return false;
+      int t = OCOMP(A->getFactors()->getContent(),B->getFactors()->getContent());
+      if (t != 0) { return false; }
+      FactObj::factorIterator itrA= A->getFactors()->factorBegin();
+      FactObj::factorIterator itrB= B->getFactors()->factorBegin();
+      while(itrA != A->getFactors()->factorEnd())
+	{
+	  if (itrA->second != itrB->second) return false;
+	  if (itrA->first < itrB->first || itrB->first < itrA->first) return false;
+	  ++itrA;
+	  ++itrB;
+	}
+      return true;
+    }
   };
 
 
