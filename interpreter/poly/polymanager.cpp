@@ -40,8 +40,11 @@ IntPolyRef PolyManager::resultant(IntPolyRef p, IntPolyRef q, VarSet x)
   compTracker.recordUnordered("res",A,B);
 
     Word t0 = ACLOCK();
-    //  Word R = IPRESPRS(r,A,B);
-    Word R = GVCAP->IPRES(r,A,B);
+    Word R = NIL;
+    if (PDEG(A) == 1 || PDEG(B) == 1)
+      R = IPRESPRS(r,A,B);
+    else
+      R = GVCAP->IPRES(r,A,B);
     getStats()->time_sac_resultant += (ACLOCK() - t0);
   return new IntPolyObj(r-1,R,V ^ x);
 }

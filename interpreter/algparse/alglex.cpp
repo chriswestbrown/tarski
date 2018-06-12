@@ -127,6 +127,9 @@ int alglex(union algValue *pT, LexContext *LC)
     else if (value == "_root_") tok = ROOT;
     else if (value == "ex") tok = QF;
     else if (value == "all") tok = QF;
+    else if (value == "and") tok = AND; // TEMP?
+    else if (value == "or") tok = OR; // TEMP?
+    else if (value == "impl") tok = LIMPLR; // TEMP?
   }
   if (retval == 0)
   {
