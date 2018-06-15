@@ -1,11 +1,14 @@
 #include "bbwb.h"
+#include "blackbox-solve.h"
+#include "whitebox-solve.h"
+#include "solver-manager.h"
 
 namespace tarski {
 
 
   vector<string> BBWBComm::options = {"verbose"};
 
-  virtual TAndRef preProcess(std::vector<SRef> &args, optionsHandler& o) {
+  TAndRef BBWBComm::preProcess(std::vector<SRef> &args, optionsHandler& o) {
       int N = args.size();
       if (N < 1) {throw TarskiException("bbwb requires 1 arguement");}
       TarRef tarRef = args[N-1]->tar();
@@ -32,10 +35,14 @@ namespace tarski {
     catch (TarskiException t) {
       return new ErrObj(t.what());
     }
-    Boxer * b = new Boxer(A);
-    LisRef l = b->genLisResult();
-    if (o.getOpt(0)) b->prettyPrintResult();
-    delete b;
+
+    vector<QuickSolver *> solvers;
+    solvers.push_back(new WBSolver(A));
+    solvers.push_back(new BBSolver(A));
+    SolverManager s(solvers, A);
+    s.deduceAll();
+    LisRef l = s.genLisResult();
+    if (o.getOpt(0)) s.prettyPrintResult();
     return l;
   }
 
