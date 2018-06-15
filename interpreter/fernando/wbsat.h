@@ -4,6 +4,7 @@
 
 #include "deduction.h"
 #include "../poly/poly.h"
+#include "../shell/einterpreter.h" 
 #include <set>
 #include <utility>
 
@@ -13,6 +14,10 @@ namespace tarski {
   class WBManager {
   protected:
 
+    Result finResult;
+    bool hasRan;
+
+    
     bool unsat;
     PolyManager* PM;
     VarSet allVars;
@@ -52,6 +57,9 @@ namespace tarski {
 
     void saveAllPolySigns(IntPolyRef poly);
 
+
+
+    
     IntPolyRef lastUsed;
     WBDed * toDed(VarKeyedMap<int> signs, VarSet v, IntPolyRef pMain, short sgn) {
       vector<TAtomRef> deps;
@@ -90,6 +98,9 @@ namespace tarski {
       return new WBDed(t, deps, DEDSGN);
     }
 
+
+    
+    
     WBManager();
 
   public:
@@ -109,9 +120,46 @@ namespace tarski {
     */
     virtual Result deduceAll();
     Result getLearnedSigns();
-
     void writeProof() { dedM->writeProof(); }
     void writeAll() {dedM->writeAll(); }
+
+    void prettyPrintResult() {
+      if (!hasRan) throw TarskiException("DeduceAll not yet called, but prettyPrintResult called!");
+      std::cout << "##################################################" << std::endl;
+      Result res = finResult;
+      if (isUnsat()) {
+	std::cout << "UNSAT\n";
+	std::cout << "Explanation: "; res.write(); std::cout << std::endl << std::endl;
+	std::cout << "Proof: \n";
+	writeProof();
+	std::cout << std::endl;
+	std::cout << "All Deductions: \n";
+	writeAll();
+      }
+      else {
+	std::cout << "BBWBSAT\n";
+	std::cout << std::endl;
+	std::cout << "All Deductions: \n";
+	writeAll();
+      }
+      std::cout << "##################################################" << std::endl;
+
+    
+}
+    
+    LisRef genLisResult() {
+      Result r = deduceAll();
+      LisRef l = new LisObj();
+      if (isUnsat()) l->push_back(new SymObj("UNSAT"));
+      else l->push_back(new SymObj("SAT"));
+      vector<TAtomRef>& vec = r.atoms;
+      TAndRef t = new TAndObj();
+      for (vector<TAtomRef>::iterator itr = vec.begin(); itr != vec.end(); ++itr) {
+	t->AND(*itr);
+      }
+      l->push_back(new TarObj(t));
+      return l;
+    }
 
   };
 

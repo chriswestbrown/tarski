@@ -7,7 +7,7 @@
 namespace tarski {
 
   //Do nothing, just initalize the list properly for inheritance purposes
-  WBManager::WBManager(): varToIneq(forward_list<IntPolyRef>()) {//Do nothing, just initalize the list properly
+  WBManager::WBManager(): varToIneq(forward_list<IntPolyRef>()), hasRan(false) {//Do nothing, just initalize the list properly
 
   }
 
@@ -19,7 +19,7 @@ namespace tarski {
     knownInfo - the information we know about all the signs
   */
   WBManager::WBManager(TAndRef &taf)
-    : varToIneq(forward_list<IntPolyRef>())
+    : varToIneq(forward_list<IntPolyRef>()), hasRan(false)
   {
     unsat = false;
     PM = taf->getPolyManagerPtr();
@@ -111,6 +111,10 @@ namespace tarski {
     If not, generate a Result object which contains all the known sign information after applying WhiteBox
   */
   Result WBManager::deduceAll() {
+    if (hasRan) {
+      return finResult;
+    }
+    hasRan = true;
     while (notDone()) {
       if (verbose) std::cerr << "WB: Beginning round \n";
       Deduction * res = doWBRound();
@@ -119,7 +123,8 @@ namespace tarski {
 
         if (dedM->isUnsat()) {
           if (verbose) std::cerr << "WB: Unsat detected\n";
-          return dedM->traceBack();
+	  finResult = dedM->traceBack();
+	  return finResult;
         }
         else if (useful) {
           if (verbose) std::cerr << "WB: Useful, so saving new deductions\n";
@@ -131,8 +136,10 @@ namespace tarski {
         delete res;
       }
     }
+    if (dedM->isUnsat()) return finResult;
     Result r;
-    return r;
+    finResult = r;
+    return finResult;
 
   }
 
@@ -226,8 +233,6 @@ namespace tarski {
 
 
   Deduction *  WBManager::doWBRound() {
-
-    //std::cerr << "In a round\n";
     if (!singleVarsDed.empty()) {
       //std::cerr << "sVD\n";
       std::set<pair<IntPolyRef, IntPolyRef>>::iterator it = singleVarsDed.begin();
