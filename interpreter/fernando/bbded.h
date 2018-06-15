@@ -4,6 +4,7 @@
 #include "../shell/einterpreter.h"
 #include "deduction.h"
 #include "../formula/formula.h"
+#include "../formula/monomialinequality.h"
 #include "../poly/factor.h"
 #include <vector>
 #include <set>

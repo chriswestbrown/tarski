@@ -2,12 +2,25 @@
 
 namespace tarski {
 
-  SolverManager::SolverManager(vector<QuickSolver *>& v, TAndRef tand) : lastChange(-1), dedM(tand), hasRan(false) {
-      solvers = v;
+  SolverManager::SolverManager(vector<QuickSolver *>& v, TAndRef tand) : solvers(v), lastChange(-1), dedM(tand), lastDeds(v.size(), 0), hasRan(false) {
       t = tand;
       for (int i = 0; i < solvers.size(); i++) {
 	solvers[i]->setDedM(&dedM);
       }
+    }
+
+  LisRef SolverManager::genLisResult() {
+      Result r = deduceAll();
+      LisRef l = new LisObj();
+      if (isUnsat()) l->push_back(new SymObj("UNSAT"));
+      else l->push_back(new SymObj("SAT"));
+      vector<TAtomRef>& vec = r.atoms;
+      TAndRef t = new TAndObj();
+      for (vector<TAtomRef>::iterator itr = vec.begin(); itr != vec.end(); ++itr) {
+	t->AND(*itr);
+      }
+      l->push_back(new TarObj(t));
+      return l;
     }
   
   Result SolverManager::deduceAll() {
@@ -25,6 +38,10 @@ namespace tarski {
     else { Result r; finResult = r; return r;}
   }
 
+  void SolverManager::updateSolver() {
+
+  }
+  
   short SolverManager::deduceLoop(QuickSolver * q) {
     Deduction * d = q->deduce(t);
     short retCode = 0;

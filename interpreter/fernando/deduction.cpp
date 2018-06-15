@@ -55,7 +55,6 @@ namespace tarski {
   void DedManager::addGiven(TAtomRef t) {
     vector<int> tmp;
     depIdxs.push_back(tmp);
-    cerr << "Inserting: "; t->write(); cerr << endl;
     atomToDed[t] = deds.size();
     deds.push_back(new Given(t));
   }
@@ -64,8 +63,6 @@ namespace tarski {
     vector<int> tmp;
     depIdxs.push_back(tmp);
     deds.push_back(new Given(t));
-
-
     TAtomRef t1 = deds.back()->getDed();
     vector<TAtomRef> atomDeps(2);
     atomDeps[0] = t;

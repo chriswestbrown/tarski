@@ -5,10 +5,10 @@ ARFLAGS := crvU
 
 LIB = fernando.a
 LIB_OBJS = \
- $(LIB)(sample-comm.o type-comm.o BBSat.o fern-poly-iter.o sactester.o mono-explain.o poly-explain.o deduce-sign.o deduction.o wbsat.o wbsat-tester.o  formula-maker.o minhitset/naive/hitset.o mhs-gen.o minwtbasis.o bbded.o boxer.o bbwb.o box-solver.o box-solver-comm.o qep-solver.o qep-solver-comm.o)
+ $(LIB)(sample-comm.o type-comm.o BBSat.o fern-poly-iter.o sactester.o mono-explain.o poly-explain.o deduce-sign.o deduction.o wbsat.o wbsat-tester.o  formula-maker.o minhitset/naive/hitset.o mhs-gen.o minwtbasis.o bbded.o boxer.o bbwb.o box-solver.o box-solver-comm.o qep-solver.o qep-solver-comm.o solver-manager.o whitebox-solve.o blackbox-solve.o )
 #dont forget to add back in miwtbasis.o!
 
-fernando.a: sample-comm.o type-comm.o BBSat.o fern-poly-iter.o sactester.o mono-explain.o poly-explain.o deduce-sign.o deduction.o wbsat.o wbsat-tester.o  formula-maker.o minhitset/naive/hitset.o mhs-gen.o minwtbasis.o bbded.o boxer.o bbwb.o box-solver.o box-solver-comm.o qep-solver.o qep-solver-comm.o
+fernando.a: sample-comm.o type-comm.o BBSat.o fern-poly-iter.o sactester.o mono-explain.o poly-explain.o deduce-sign.o deduction.o wbsat.o wbsat-tester.o  formula-maker.o minhitset/naive/hitset.o mhs-gen.o minwtbasis.o bbded.o boxer.o bbwb.o box-solver.o box-solver-comm.o qep-solver.o qep-solver-comm.o solver-manager.o whitebox-solve.o blackbox-solve.o 
 
 sample-comm.o: sample-comm.cpp sample-comm.h
 
@@ -38,7 +38,15 @@ minwtbasis.o: minwtbasis.cpp minwtbasis.h bbded.o deduction.o ../formula/formula
 
 boxer.o: boxer.cpp boxer.h wbsat.o bbded.o deduction.o
 
+
+
 bbwb.o: bbwb.cpp bbwb.h boxer.o
+
+solver-manager.o: solver-manager.cpp solver-manager.h deduction.o
+
+whitebox-solve.o: whitebox-solve.cpp whitebox-solve.h deduction.o  solver-manager.o
+
+blackbox-solve.o: blackbox-solve.h  blackbox-solve.cpp deduction.o solver-manager.o bbded.o
 
 formula-maker.o: formula-maker.cpp formula-maker.h ../minisat/core/lib.a ../formula/formula.a idx-manager.h
 

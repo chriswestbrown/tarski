@@ -30,7 +30,6 @@ namespace tarski {
   Boxer::Boxer(TAndRef &taf) : WBManager() {
 
     tand = taf;
-    unsat = false;
     PM = taf->getPolyManagerPtr();
     allVars = taf->getVars();
     std::map<IntPolyRef, std::vector<short>> pSigns;
@@ -133,13 +132,14 @@ namespace tarski {
 
 
   Result Boxer::deduceAll() {
-
+    if (hasRan) {
+      return finResult;
+    }
+    hasRan = true;
     bool dedRound = true;
     bool first = true;
     if (dedM->isUnsat()) {
-      if (verbose) std::cerr << "dedM: given conflict\n";
       return dedM->traceBack();
-
     }
 
     while (dedRound) {
@@ -163,7 +163,8 @@ namespace tarski {
 
             if (dedM->isUnsat()) {
               if (verbose) std::cerr << "WB: Unsat detected\n";
-              return dedM->traceBack();
+	      finResult = dedM->traceBack();
+              return finResult;
             }
             else if (useful) {
               if (verbose) std::cerr << "Boxer: WB: dedRound std::set to true\n";
@@ -189,7 +190,8 @@ namespace tarski {
     
     }
     Result r;
-    return r;
+    finResult = r;
+    return finResult;
   }
 
 

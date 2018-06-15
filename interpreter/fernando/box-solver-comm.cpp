@@ -27,11 +27,14 @@ namespace tarski {
     }
     Minisat::BoxSolver b(tRef);
 
-    //b.printMapping();
-    //cout << "----------------------------------------------\n";
-    //b.printCNF(tRef);
-    //cout << "----------------------------------------------\n";
+    /*
+    b.printMapping();
+    cout << "----------------------------------------------\n";
+    b.printCNF(tRef);
+    cout << "----------------------------------------------\n";
+    */
 
+    
     string err;
     bool res = b.solve(err);
     if (err.size() == 0) {

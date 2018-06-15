@@ -1,3 +1,6 @@
+#ifndef WHITEBOX_SOLVE_MAN_H
+#define WHITEBOX_SOLVE_MAN_H
+
 #include "deduction.h"
 #include "../poly/poly.h"
 #include "solver-manager.h"
@@ -6,8 +9,9 @@
 
 namespace tarski {
 
-  class WBSolver : QuickSolver {
+  class WBSolver : public QuickSolver {
   private:
+    DedManager * dedM;
     PolyManager* PM;
     VarSet allVars;
     std::set<IntPolyRef> singleVars;
@@ -58,3 +62,5 @@ namespace tarski {
 
   
 }//end namespace tarski
+
+#endif

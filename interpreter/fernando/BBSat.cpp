@@ -20,6 +20,9 @@ namespace tarski {
 
     TFormRef tRef = tarRef->getValue();
     TAndRef F = asa<TAndObj>(tRef);
+    if (F.is_null()) {
+            return new StrObj("ERROR - NOT A CONJUNCTION");
+    }
     PolyManager * PM = F->getPolyManagerPtr();
     std::vector<Deduction *> results = bbsat(F);
     if (results.size() == 0) {

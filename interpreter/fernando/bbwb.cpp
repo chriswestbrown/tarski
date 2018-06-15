@@ -1,7 +1,4 @@
 #include "bbwb.h"
-#include "blackbox-solve.h"
-#include "whitebox-solve.h"
-#include "solver-manager.h"
 
 namespace tarski {
 
@@ -35,14 +32,10 @@ namespace tarski {
     catch (TarskiException t) {
       return new ErrObj(t.what());
     }
-
-    vector<QuickSolver *> solvers;
-    solvers.push_back(new WBSolver(A));
-    solvers.push_back(new BBSolver(A));
-    SolverManager s(solvers, A);
-    s.deduceAll();
-    LisRef l = s.genLisResult();
-    if (o.getOpt(0)) s.prettyPrintResult();
+    Boxer * b = new Boxer(A);
+    LisRef l = b->genLisResult();
+    if (o.getOpt(0)) b->prettyPrintResult();
+    delete b;
     return l;
   }
 
