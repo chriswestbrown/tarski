@@ -11,7 +11,6 @@ namespace tarski {
 
   class WBSolver : public QuickSolver {
   private:
-    DedManager * dedM;
     PolyManager* PM;
     VarSet allVars;
     std::set<IntPolyRef> singleVars;
@@ -55,7 +54,7 @@ namespace tarski {
     WBSolver(TAndRef tf);
     Deduction * deduce(TAndRef t);
     void notify();
-    
+    void update(std::vector<Deduction *>::const_iterator begin, std::vector<Deduction *>::const_iterator end);
 
   
   };

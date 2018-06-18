@@ -181,13 +181,13 @@ namespace tarski {
     VarKeyedMap<int> varSigns; //A fast mapping for variables, which is needed for WB algorithms
     //The index of the last deduction on an atom
     std::map<TAtomRef, int, managerComp> atomToDed; 
-    short getSgn(TAtomRef t) {
+    inline short getSgn(TAtomRef t) {
       return (atomToDed.find(t) == atomToDed.end())
         ? ALOP : deds[atomToDed[t]]->getDed()->relop;
     }
     void writeDeps(Deduction *);
 
-    void updateVarSigns(TAtomRef t) {
+    inline void updateVarSigns(TAtomRef t) {
       if (t->F->numFactors() == 1 && t->factorsBegin()->first->isVariable().any() &&
           t->getRelop() != ALOP) {
         VarSet v = t->getVars();
@@ -231,6 +231,10 @@ namespace tarski {
     void writeProof(int idx);
     void writeAll();
     inline int size() {return deds.size();}
+    inline void getItrs(int idx, vector<Deduction *>::const_iterator& itr, vector<Deduction *>::const_iterator& end) {
+      itr = deds.begin()+idx;
+      end = deds.end();
+    }
     DedManager(const std::vector<TAtomRef>&);
     DedManager(TAndRef t);
     ~DedManager();

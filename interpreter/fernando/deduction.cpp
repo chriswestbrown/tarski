@@ -8,8 +8,6 @@ namespace tarski {
 #define C_ITR const_iterator
 #define ITR iterator
 
-  //NOTE: Does not yet process "givens" from intpolyrefs embedded in multi factor atoms
-  //Will this work? Let me test it and find out!
   DedManager::DedManager(TAndRef a) : unsat(false), varSigns(ALOP) {
     PM = a->getPolyManagerPtr();
     for (TAndObj::conjunct_iterator itr = a->begin(), end = a->end(); itr != end; ++itr) {

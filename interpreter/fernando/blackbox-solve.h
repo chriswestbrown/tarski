@@ -25,9 +25,10 @@ namespace tarski{
     std::vector<Deduction *> deductions;
     bool once;
   public:
-    inline BBSolver(TAndRef tf) : deductions(0), once(false) {};
+    inline BBSolver(TAndRef tf) : deductions(0), once(true) {};
     Deduction * deduce(TAndRef t);
     inline void notify() {}
+    void update(std::vector<Deduction *>::const_iterator begin, std::vector<Deduction *>::const_iterator end) {}
   };
 } //end namespace
 

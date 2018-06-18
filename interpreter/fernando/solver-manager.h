@@ -24,9 +24,11 @@ namespace tarski {
     //called when that deduction causes deduction manager to deduce false,
     //as the solving process stops as soon as false is deduced
     virtual void notify() = 0;
-    inline void setDedM(DedManager * d) { dedM = d; }
-    virtual void update(std::vector<Deduction *>::iterator begin,
-			std::vector<Deduction *>::iterator end) {};
+    inline void setDedM(DedManager * d) {
+      this->dedM = d;
+    }
+    virtual void update(std::vector<Deduction *>::const_iterator
+			begin, std::vector<Deduction *>::const_iterator end) = 0;
   };
 
 
@@ -47,30 +49,28 @@ namespace tarski {
   class SolverManager {
   private:
     std::vector<QuickSolver *> solvers; //All the solving procedures
-    std::vector<short> lastDeds;
-    int lastChange; //The index of the last solver which deduced something new
+    std::vector<short> lastDeds; //The index of the last deduction made by each solver
     TAndRef t; //The conjunction to solve, which WILL BE MODIFIED
-    bool hasRan;
-    Result finResult;
-    DedManager dedM;
+    bool hasRan; //Indicates whether or not deduceAll has already been called
+    Result finResult; //The final result of the program
+    DedManager * dedM; //The deduction manager which stores the results of each deduce()
   public:
     SolverManager(vector<QuickSolver *>& v, TAndRef tand);
     //Adds a quicksolver
-    inline void addNew(QuickSolver * q) { solvers.push_back(q); solvers.back()->setDedM(&dedM); }
+    inline void addNew(QuickSolver * q) { solvers.push_back(q); solvers.back()->setDedM(dedM); }
     //Checks if the solvers have determined UNSAT 
-    inline bool isUnsat() { return dedM.isUnsat(); }
-  
+    inline bool isUnsat() { return dedM->isUnsat(); }
     //The "main" method which loops through all the QuickSolver objects
     Result deduceAll();
-    
     //return 0 if nothing has changed
     //return 1 if somehting hew has been deduced
     //return 2 if UNSAT deduced
-    short deduceLoop(QuickSolver * q);
-    void updateSolver();
-  
+    short deduceLoop(int i);
+    //Updates a solver by getting iterators from the deduction manager
+    void updateSolver(int i);
+    //nice, human readable format with a proof and a list of all deductions
     void prettyPrintResult();
-
+    //returns a tarksi object containing the results of deduceAll
     LisRef genLisResult();
   
   };
