@@ -35,10 +35,7 @@ namespace tarski {
     catch (TarskiException t) {
       return new ErrObj(t.what());
     }
-    vector<QuickSolver *> v;
-    v.push_back(new BBSolver(A));
-    v.push_back(new WBSolver(A));
-    SolverManager s(v, A);
+    SolverManager s({ new BBSolver(A) , new WBSolver(A) }, A);
     LisRef l = s.genLisResult();
     if (o.getOpt(0)) s.prettyPrintResult();
     return l;

@@ -54,25 +54,33 @@ namespace tarski {
     bool hasRan; //Indicates whether or not deduceAll has already been called
     Result finResult; //The final result of the program
     DedManager * dedM; //The deduction manager which stores the results of each deduce()
+
   public:
-    SolverManager(vector<QuickSolver *>& v, TAndRef tand);
+    SolverManager(const vector<QuickSolver *>& v, TAndRef tand);
+
     //Adds a quicksolver
     inline void addNew(QuickSolver * q) { solvers.push_back(q); solvers.back()->setDedM(dedM); }
+
     //Checks if the solvers have determined UNSAT 
     inline bool isUnsat() { return dedM->isUnsat(); }
+
     //The "main" method which loops through all the QuickSolver objects
     Result deduceAll();
+
+    //nice, human readable format with a proof and a list of all deductions
+    void prettyPrintResult();
+
+    //returns a tarksi object containing the results of deduceAll
+    LisRef genLisResult();
+
+  private:
     //return 0 if nothing has changed
     //return 1 if somehting hew has been deduced
     //return 2 if UNSAT deduced
     short deduceLoop(int i);
+
     //Updates a solver by getting iterators from the deduction manager
     void updateSolver(int i);
-    //nice, human readable format with a proof and a list of all deductions
-    void prettyPrintResult();
-    //returns a tarksi object containing the results of deduceAll
-    LisRef genLisResult();
-  
   };
   
   

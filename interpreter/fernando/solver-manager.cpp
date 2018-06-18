@@ -2,7 +2,7 @@
 
 namespace tarski {
 
-  SolverManager::SolverManager(vector<QuickSolver *>& v, TAndRef tand) : solvers(v), lastDeds(v.size(), 0), hasRan(false) {
+  SolverManager::SolverManager(const vector<QuickSolver *>& v, TAndRef tand) : solvers(v), lastDeds(v.size(), 0), hasRan(false) {
     dedM = new DedManager(tand);
     t = tand;
     for (int i = 0; i < solvers.size(); i++) {
