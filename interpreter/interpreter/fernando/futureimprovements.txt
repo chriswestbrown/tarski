@@ -1,3 +1,0 @@
--No Tseitin Transformation for top-level conjunction
--Hitting Set Problem for solution provided to QEPCAD
--Redesign minisat so that TS frequency controlled by TS
