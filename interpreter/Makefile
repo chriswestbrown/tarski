@@ -26,6 +26,7 @@ CPPFLAGS ?= $(INC_FLAGS) -MMD -MP -g
 
 $(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
 	$(CC) $(OBJS) -o $@ $(LDFLAGS)
+	mv build/tarski shell/tarski
 
 # assembly
 $(BUILD_DIR)/%.s.o: %.s
@@ -41,7 +42,6 @@ $(BUILD_DIR)/%.c.o: %.c
 $(BUILD_DIR)/%.cpp.o: %.cpp
 	$(MKDIR_P) $(dir $@)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -c $< -o $@
-
 
 .PHONY: clean
 
