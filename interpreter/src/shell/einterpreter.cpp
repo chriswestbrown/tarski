@@ -1072,7 +1072,7 @@ void NewEInterpreter::init()
   add(new RanCompComm(this));
   add(new NumToRanComm(this));
   add(new IndexedRootToRanComm(this));
-  //  add(new TestComm(this));
+  add(new TestComm(this));
 
   //Fernando Additions
   //add(new SampleComm(this));

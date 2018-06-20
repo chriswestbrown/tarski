@@ -319,7 +319,11 @@ public:
 	if (r < 0) { if (verbose){RNWRITE(val);} constants[x] = val;}
 	else if (G.getValue(r) == 0) { if (verbose){RNWRITE(0);} constants[x] = 0; }
 	else { 
-	  if (verbose){RNWRITE(val); std::cout << " " << PMptr->getName(G.getVarFromVertex(r));}
+	  if (verbose){
+	    if (RNCOMP(val,RNINT(-1)) == 0)       { SWRITE("- "); }
+	    else if (RNCOMP(val,RNINT(1)) != 0)   { RNWRITE(val); SWRITE(" "); }
+	    std::cout << PMptr->getName(G.getVarFromVertex(r));
+	  }
 	  multiples[x] =  pair<GCWord,VarSet>(val,G.getVarFromVertex(r));
 	}
 	if (verbose){std::cout << std::endl;}
