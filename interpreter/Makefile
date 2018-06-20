@@ -22,7 +22,9 @@ BUILD_DIR ?= ./build
 SRC_DIRS ?= ./src
 
 SRCS := $(sort $(shell find $(SRC_DIRS) -name *.cpp -or -name *.c -or -name *.s))
+ASRC := $(filter-out */shell.cpp, $(sort $(shell find $(SRC_DIRS) -name *.cpp -or -name *.c -or -name *.s)))
 OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)
+AOBJ := $(ASRC:%=$(BUILD_DIR)/%.o)
 DEPS := $(OBJS:.o=.d)
 
 LDFLAGS := -lssl -lcrypto -lreadline $(extLibSACLIB) $(extLibMINISAT) 
@@ -35,6 +37,13 @@ CPPFLAGS ?= $(INC_FLAGS) -MMD -MP -g
 $(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
 	$(CC) $(OBJS) -o $@ $(LDFLAGS)
 	mv build/tarski shell/tarski
+	cp shell/tarski bin/tarski
+
+tarski.a:
+	$(CXX) $(CPPFLAGS)  -c $< -o $(filter-out */shell.cpp.o, $(OBJS))
+	$(AR) r $@ $(OBJS)
+	mv tarski.a lib/tarski.a
+
 
 # assembly
 $(BUILD_DIR)/%.s.o: %.s
