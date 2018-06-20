@@ -1,4 +1,12 @@
-CXX=clang++ 
+# Master Makefile for the Tarski Intepreter
+# Sourced from a blog post by Job Vranish
+# https://spin.atomicobject.com/2016/08/26/makefile-c-projects/
+#
+#
+#
+
+
+CXX=clang++
 CC=clang++ 
 MROOT=-I../minisat
 extIncludesSACLIB:=-I${saclib}/include
@@ -13,7 +21,7 @@ TARGET_EXEC ?= tarski
 BUILD_DIR ?= ./build
 SRC_DIRS ?= ./src
 
-SRCS := $(shell find $(SRC_DIRS) -name *.cpp -or -name *.c -or -name *.s)
+SRCS := $(sort $(shell find $(SRC_DIRS) -name *.cpp -or -name *.c -or -name *.s))
 OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)
 DEPS := $(OBJS:.o=.d)
 
