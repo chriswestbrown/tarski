@@ -11,7 +11,7 @@
 #include "funcEvalFormAtRat.h"
 #include "funcSyntax.h"
 #include "../search/qfr.h"
-// #include "../nucad/TestComm.h"
+#include "../nucad/TestComm.h"
 //#include "../fernando/sample-comm.h"
 //#include "../fernando/type-comm.h"
 //#include "../fernando/sactester.h"

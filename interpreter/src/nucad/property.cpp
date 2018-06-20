@@ -1,6 +1,8 @@
 #include "property.h"
 #include "goal.h"
 
+using namespace tarski;
+
 bool prop::check(prop::Tag p, GoalContextRef GC, IntPolyRef f)
 {
   SamplePointManagerRef SM = GC->getSamplePointManager();
@@ -57,7 +59,6 @@ string prop::name(prop::Tag p)
 
 prop::Tag prop::nameToProp(const string& str)
 {
-  cerr << "in nameToProp(" + str + ")" << endl;
   int i = 0;
   while(i < prop::err && name((prop::Tag)i) != str)
     i++;
