@@ -142,6 +142,12 @@ string RealRootIUPObj::toStr()
   return sout.str();
 }
 
+  Word RealRootIUPObj::tryToGetExactRationalValue()
+  {
+    if (PDEG(sP) == 1)
+      return RED2(sP) == NIL ? RNINT(0) : RNRED(INEG(PTRCF(sP)),PLDCF(sP));
+    return NIL;
+  }
 
 RealAlgNumRef integerToRealAlgNum(Word I) 
 { 

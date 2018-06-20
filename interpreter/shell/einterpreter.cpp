@@ -11,7 +11,9 @@
 #include "funcEvalFormAtRat.h"
 #include "funcSyntax.h"
 #include "../search/qfr.h"
-// #include "../nucad/TestComm.h"
+
+#include "../nucad/TestComm.h"
+
 #include "../fernando/sample-comm.h"
 #include "../fernando/type-comm.h"
 #include "../fernando/sactester.h"
@@ -1072,7 +1074,7 @@ void NewEInterpreter::init()
   add(new RanCompComm(this));
   add(new NumToRanComm(this));
   add(new IndexedRootToRanComm(this));
-  //  add(new TestComm(this));
+  add(new TestComm(this));
 
   //Fernando Additions
   add(new SampleComm(this));

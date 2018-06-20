@@ -61,6 +61,10 @@ public:
 
   // -1 if this is less than x, 0 if this is equal to x, +1 if this is greater than x
   virtual int compareToLBRN(Word x) { return -99999; }
+
+  // If returns non-NIL, then the real-algebraic number is in fact rational, and
+  // that rational in SACLIB format is returned.  Otherwise, nothing is known.
+  virtual Word tryToGetExactRationalValue() { return NIL; }
 };
 template<class T>
 T* asa(const RealAlgNumRef& p) { return dynamic_cast<T*>(&(*p)); }
@@ -122,6 +126,7 @@ public:
   virtual void refineTo(int logOfWidth);
   virtual double approximate(int dir);
   inline int getTrend() const { return t; }
+  virtual Word tryToGetExactRationalValue();
 };
 
 double approximateLBRN(Word x, int dir);
