@@ -1,8 +1,0 @@
-; tests reading basic smt input - test alternation!
-
-(def F (smtlib-load "smt/smt003.smt2"))
-
-(def expr F)
-(def targ [ex a,b [ all x [x^2 + a x + b > 0]]])
-(def res (if (equal? expr targ) "pass" "fail"))
-(display res " : test smt03\n")

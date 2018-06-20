@@ -1,8 +1,0 @@
-; tests reading basic smt input with let expressions
-
-(def F (smtlib-load "smt/smt006.smt2"))
-
-(def expr F)
-(def targ [ex z[z^2 + y^2 + x^2 < 1/2 /\ z + y + x < 1/3]])
-(def res (if (equal? expr targ) "pass" "fail"))
-(display res " : test smt01\n")

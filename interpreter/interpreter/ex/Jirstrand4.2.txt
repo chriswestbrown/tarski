@@ -1,4 +1,0 @@
-[
- ex u, lambda [ -1 <= u /\ u <= 1 /\ lambda > 0 /\
- t x1 + u = lambda x1 /\ (t(x2 - 1) + 1)^2 = lambda (x2 - 1) ]
-]
