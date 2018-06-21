@@ -18,7 +18,7 @@ TFormRef linearSubstDegenerateCase(PolyManager &M,
 {
   IntPolyRef c1 = M.ldcf(A,x);
   IntPolyRef c0 = M.trcf(A,x);
-  if (c1->isConstant() || c0->isConstant() && ! c0->isZero()) { return new TConstObj(FALSE); }
+  if (c1->isConstant() || (c0->isConstant() && ! c0->isZero())) { return new TConstObj(FALSE); }
   TAndRef res = new TAndObj;
   res->AND(copyAndRemove(target,sourceEQ));
   res->AND(makeAtom(M,c1,EQOP));

@@ -176,7 +176,7 @@ int countUNSATStrictConjunctionAtPoint(VarOrderRef X, GCWord alpha, TAndRef C)
     TAtomRef A = asa<TAtomObj>(*itr);
     TExtAtomRef B = asa<TExtAtomObj>(*itr);
     if (A.is_null() && B.is_null()) { throw TarskiException("evalStrictConjunctionAtPoint requires conjunction of atomic formulas."); }
-    if (!A.is_null() && evalAtomAtPoint(X,alpha,A,P2sign) == FALSE || !B.is_null() && evalExtAtomAtPoint(X,alpha,B,P2sign) == FALSE)
+    if ((!A.is_null() && evalAtomAtPoint(X,alpha,A,P2sign) == FALSE) || (!B.is_null() && evalExtAtomAtPoint(X,alpha,B,P2sign) == FALSE))
       ++count;
   }
   return count;

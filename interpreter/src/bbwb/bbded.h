@@ -2,7 +2,7 @@
 #define _BBDED_H_
 
 #include "deduction.h"
-#include "../shell/einterpreter.h"
+#include "shell/einterpreter.h"
 #include "../formula/formula.h"
 #include "../formula/monomialinequality.h"
 #include "../poly/factor.h"

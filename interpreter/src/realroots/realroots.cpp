@@ -23,7 +23,7 @@ Word BRNICOMP(Word A, Word B)
   Word A_L = RNLBRN(FIRST(A)), A_R = RNLBRN(SECOND(A));
   Word B_L = RNLBRN(FIRST(B)), B_R = RNLBRN(SECOND(B));
   Word t1 = LBRNCOMP(A_R,B_L);
-  if (t1 < 0 || t1 == 0 && !(EQUAL(A_L,A_R) && EQUAL(B_L,B_R)))
+  if (t1 < 0 || (t1 == 0 && !(EQUAL(A_L,A_R) && EQUAL(B_L,B_R))))
     return -1;
   if (t1 == 0) return 0;
   Word t2 = LBRNCOMP(B_R,A_L);
@@ -42,7 +42,7 @@ int RealRootIUPObj::compareToBrittle(RealAlgNumRef y)
     Word J1, J2, s;
     modIPIIS(sP,z->sP,I,z->I,t,z->t,&J1,&J2,&s);
 
-    while(s < 0 && EQUAL(SECOND(J1),FIRST(J2)) || s > 0 && EQUAL(SECOND(J2),FIRST(J1)))
+    while((s < 0 && EQUAL(SECOND(J1),FIRST(J2))) || (s > 0 && EQUAL(SECOND(J2),FIRST(J1))))
     {
       J1 = IPIIR1BISECT(sP,J1,t);
       J2 = IPIIR1BISECT(z->sP,J2,z->t);
@@ -96,7 +96,7 @@ bool RealRootIUPObj::separate(RealAlgNumRef y)
     Word J1, J2, s;
     modIPIIS(sP,z->sP,I,z->I,t,z->t,&J1,&J2,&s);
 
-    while(s < 0 && EQUAL(SECOND(J1),FIRST(J2)) || s > 0 && EQUAL(SECOND(J2),FIRST(J1)))
+    while((s < 0 && EQUAL(SECOND(J1),FIRST(J2))) || (s > 0 && EQUAL(SECOND(J2),FIRST(J1))))
     {
       J1 = IPIIR1BISECT(sP,J1,t);
       J2 = IPIIR1BISECT(z->sP,J2,z->t);
@@ -112,7 +112,7 @@ bool RealRootIUPObj::separate(RealAlgNumRef y)
     else
     {
       Word J1 = I, J2 = z->I;
-      while(j < z->j && EQUAL(SECOND(J1),FIRST(J2)) || j > z->j && EQUAL(SECOND(J2),FIRST(J1)))
+      while((j < z->j && EQUAL(SECOND(J1),FIRST(J2))) || (j > z->j && EQUAL(SECOND(J2),FIRST(J1))))
       {
 	J1 = IPIIR1BISECT(sP,J1,t);
 	J2 = IPIIR1BISECT(z->sP,J2,z->t);
@@ -274,9 +274,9 @@ bool equal(RealAlgNumRef a, RealAlgNumRef b)
       Word s2a = IUPBRES(C,x2->LBRNPointAbove()), s2b =  IUPBRES(C,x2->LBRNPointBelow());
       if (s1a*s1b < 0 && s2a*s2b < 0) { return true; }
       if (s1a*s1b == 0 && EQUAL(x1->LBRNPointAbove(),x1->LBRNPointBelow())
-	  && (s2a*s2b < 0 || s2a*s2b == 0 && EQUAL(x2->LBRNPointAbove(),x2->LBRNPointBelow()))) return true;
+          && (s2a*s2b < 0 || (s2a*s2b == 0 && EQUAL(x2->LBRNPointAbove(),x2->LBRNPointBelow())))) return true;
       if (s2a*s2b == 0 && EQUAL(x2->LBRNPointAbove(),x2->LBRNPointBelow())
-	  && (s1a*s1b < 0 || s1a*s1b == 0 && EQUAL(x1->LBRNPointAbove(),x1->LBRNPointBelow()))) return true;
+          && (s1a*s1b < 0 || (s1a*s1b == 0 && EQUAL(x1->LBRNPointAbove(),x1->LBRNPointBelow())))) return true;
       
     }
     return false;

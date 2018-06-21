@@ -274,7 +274,7 @@ Word addConstraint(Word newc, Word c)
 
   // Non-trivial overlap case!
   Word sL,sR,lb,ub;
-  Word t_strict = c_strict & iq_mid | newc_strict & iq_mid;
+  Word t_strict = (c_strict & iq_mid) | (newc_strict & iq_mid);
   Word t_equal  = (c_equal & iq_mid) & (newc_equal & iq_mid);
   sL = ERNCOMP(FIRST(newc_I),FIRST(c_I));
   if (sL == -1) { 
@@ -402,7 +402,7 @@ static Word f(Word r, Word P, VarSet::iterator itrP,
 	  newP = P;
 	  newQ = PRED(Q);
 	}
-	if (res_h == FALSE || newP == 0 && newQ == 0) result = res_h;
+	if (res_h == FALSE || (newP == 0 && newQ == 0)) result = res_h;
 	else result = f(r,newP,itrP,s,newQ,itrQ,porq,ssf,varSign,res_h,varP,varQ,used);
       }}
     else if (*itrQ < *itrP)

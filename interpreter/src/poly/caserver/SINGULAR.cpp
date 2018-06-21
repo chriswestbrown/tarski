@@ -60,7 +60,7 @@ void SingularServer::reportStats(ostream &out)
 
 static char peekNonWS(istream &in) 
 { 
-  char c; while((c = in.peek()) && c == ' ' || c == '\t' || c == '\n') in.get(); return c; 
+  char c; while(((c = in.peek()) && c == ' ') || c == '\t' || c == '\n') in.get(); return c; 
 }
 
 

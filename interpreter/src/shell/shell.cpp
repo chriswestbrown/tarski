@@ -125,7 +125,7 @@ int mainDUMMY(int argc, char **argv, void* topOfTheStack)
     bool explicitQuit = false;
     while(iin || (file && inputFilePos < inputFileNames.size()))
     {
-      if (!iin || file && inputFilePos == -1) 
+      if (!iin || (file && inputFilePos == -1)) 
       { 
 	fin.clear(); 
 	fin.close();

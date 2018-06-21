@@ -505,7 +505,7 @@ string ONuCADObj::toString(int mask)
   {
     NodeRef n = S.top(); S.pop();
     if (!n->hasChildren()) { nx++; if (n->truthValue == TRUE) nt++; if (n->truthValue == FALSE) nf++; }
-    if ((mask & m_acells) || (mask & m_tcells) && n->truthValue == TRUE || (mask & m_fcells) && n->truthValue == FALSE)
+    if ((mask & m_acells) || ((mask & m_tcells) && n->truthValue == TRUE) || ((mask & m_fcells) && n->truthValue == FALSE))
     {
       sout << "Cell " << n->getLabel() 
 	   << " " << (n->truthValue == TRUE ? "TRUE" : (n->truthValue == FALSE ? "FALSE" : "UNDET")) << " ";
@@ -789,8 +789,8 @@ bool splitLevelsOfAllDescendentsLessThan(int m, NodeRef P)
 {
   if (!P->hasChildren()) return true;
   if (P->XYchild->splitLevel >= m || 
-      P->Lchild.size() > 0 && P->Lchild.back()->splitLevel >= m ||
-      P->Uchild.size() > 0 && P->Uchild.back()->splitLevel >= m )
+      (P->Lchild.size() > 0 && P->Lchild.back()->splitLevel >= m) ||
+      (P->Uchild.size() > 0 && P->Uchild.back()->splitLevel >= m ))
     return false;
   if (!splitLevelsOfAllDescendentsLessThan(m,P->XYchild)) return false;
   for(int i = 0; i < P->Lchild.size(); i++)
@@ -1027,7 +1027,7 @@ pair<int,int> tissHelper(NodeRef n)
     if (t == TRUE) ++nt; else if (t == FALSE) ++nf; else ++nu;
     count += V.back().second;
   }
-  if (nu > 0 || nt > 0 && nf > 0)
+  if (nu > 0 || (nt > 0 && nf > 0))
   {
     for(int i = 0; i < V.size(); i++)
       if (V[i].first != UNDET && V[i].second > 1)

@@ -299,11 +299,11 @@ TFormRef testmi(TFormRef F)
   // Process the formula
   if (asa<TConstObj>(F)) return F;
   TAndRef C = asa<TAndObj>(F);
-  if (C.is_null())
+  if (C.is_null()) {
     if (asa<TAtomObj>(F)) 
     { C = new TAndObj(); C->AND(F); }
-    else
-    { return F; }
+    else { return F; }
+  }
   if (C->size() == 0) return new TConstObj(TRUE);
   PolyManager &PM = *(F->getPolyManagerPtr());
   MonoIneqRep MIR;
@@ -451,11 +451,12 @@ TFormRef BBSat(TFormRef F)
     return F;
   }
   TAndRef C = asa<TAndObj>(F);
-  if (C.is_null())
+  if (C.is_null()) {
     if (asa<TAtomObj>(F)) 
       { C = new TAndObj(); C->AND(F); }
     else
       { return F; }
+  }
   if (C->size() == 0)  {
     //LisRef res = new LisObj();
     //SymRef r1 = new SymObj("SAT");

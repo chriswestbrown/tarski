@@ -310,7 +310,7 @@ void FindEquations::action(TAndObj* p)
 TConstRef constInEqToBoolConst(int LHSsign, int relop)
 {
   int lt = 1, et = 2, gt = 4;
-  if ((lt & relop) && LHSsign < 0 || (et & relop) && LHSsign == 0 || (gt & relop) && LHSsign > 0)
+  if (((lt & relop) && LHSsign < 0) || ((et & relop) && LHSsign == 0) || ((gt & relop) && LHSsign > 0))
     return new TConstObj(TRUE);
   else
     return new TConstObj(FALSE);

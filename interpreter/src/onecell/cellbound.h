@@ -218,9 +218,9 @@ public:
   bool equal(CellBoundRef b)
   {
     bool lna = this->l.is_null(), lnb = b->l.is_null();
-    if (!( lna && lnb || !lna && !lnb && this->l->equal(b->l))) return false;
+    if (!( (lna && lnb) || (!lna && !lnb && this->l->equal(b->l)))) return false;
     bool una = this->u.is_null(), unb = b->u.is_null();
-    if (!( una && unb || !una && !unb && this->u->equal(b->u))) return false;
+    if (!( (una && unb) || (!una && !unb && this->u->equal(b->u)))) return false;
     if (!lna)
     {
       RealRootIUPObj* pa = dynamic_cast<RealRootIUPObj*>(&*(this->a));

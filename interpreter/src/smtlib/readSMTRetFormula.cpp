@@ -337,7 +337,7 @@ public:
       Word c = F->getContent();
       bool contentOne = (ICOMP(c,1) == 0);
       int n = F->numFactors();
-      bool noProduct = (n == 0 || contentOne && n == 1 && itr->second == 1);
+      bool noProduct = (n == 0 || (contentOne && n == 1 && itr->second == 1));
 
       if (!noProduct) 
 	out << "(*";

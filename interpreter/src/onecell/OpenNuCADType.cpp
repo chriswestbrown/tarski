@@ -114,7 +114,7 @@ SRef OpenNuCADObj::project(vector<SRef>& args, bool strictFlag)
       int m = res->XYchild->getSplitLevel();
       if (res->Lchild.size() > 0 && res->Lchild.back()->getSplitLevel() == m )
 	n2 = res->Lchild.back();
-      if (n2.is_null() || res->Uchild.size() > 0  && res->Uchild.back()->getSplitLevel() == m && !n2->hasChildren())
+      if (n2.is_null() || (res->Uchild.size() > 0  && res->Uchild.back()->getSplitLevel() == m && !n2->hasChildren()))
 	n2 = res->Uchild.back();      
       nucad->projectionResolve(n1,n2,K,nucad->getDim());
       n2->setTruthValue(FALSE);

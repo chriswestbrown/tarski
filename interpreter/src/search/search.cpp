@@ -164,7 +164,7 @@ TFQueueObj* QueueManager::DFS(TFQueueRef root, TFQueueObj* q1, TFQueueObj* q2,
     // N has not yet been processed.
     N->mark = runNum + 1;
     S.push(N);
-    if (src == NULL && (&*N == q1 || &*N == q2)
+    if ((src == NULL && (&*N == q1 || &*N == q2))
 	|| src == &*N
 	|| path.size() != 0)
     { 
@@ -397,7 +397,7 @@ if (!pq1->original.is_null() && dynamic_cast<PSplitObj*>(&*(pq1->original->PR)))
       runNum += 3;
 
       // This is a hack, but if one guy is on life support, and the other is the root, we lose the root!
-      if (pq1->tag == root->tag && sroot != pq1 || pq2->tag == root->tag && sroot != pq2) continue;
+      if ((pq1->tag == root->tag && sroot != pq1) || (pq2->tag == root->tag && sroot != pq2)) continue;
 
       // Case 1: Neither Queue is an ancestor of the other
       if (src == NULL)

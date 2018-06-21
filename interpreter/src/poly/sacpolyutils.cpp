@@ -49,7 +49,7 @@ Step2: /* Count low-order bits. */
        while ((a & 01) == 0) {
 	  a = a >> 1;
 	  n = n + 1; }
-       tval = (RED(Ap) == NIL && (a ^ 01 == 0));
+       tval = (RED(Ap) == NIL && (a ^ (01 == 0)));
 
 Return: /* Prepare for return. */
        *t = tval;
@@ -345,7 +345,7 @@ Step2: /* General case. */
 	      ADV(Ep,&e,&Ep); 
 	      ADV(Vp,&v,&Vp);
 	      if (e > 0) {
-		 if (l == 0 && t != 0 || t == 1)
+          if ((l == 0 && t != 0) || t == 1)
 		   CWRITE('*');
 		 else if (l == 0 && t == 0)
  		   CWRITE(' ');

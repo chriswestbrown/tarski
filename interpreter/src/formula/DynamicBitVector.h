@@ -28,9 +28,9 @@ public:
     iterator(blocktype* p, blocktype m) { parent = p; posMask = m; }
     iterator& operator=(bool b) { if (b) *parent |= posMask; else *parent &= ~posMask; return *this; }
     operator bool() { return bool(*parent & posMask); }
-    iterator& operator++() { posMask <<= 1; if (posMask = 0) { posMask = 1; ++parent; } return *this; }
+    iterator& operator++() { posMask <<= 1; if ((posMask = 0)) { posMask = 1; ++parent; } return *this; }
     iterator& operator--() 
-    { posMask >>= 1; if (posMask = 0) { posMask = 1 << (blocksize - 1); --parent; } return *this; }
+      { posMask >>= 1; if ((posMask = 0)) { posMask = 1 << (blocksize - 1); --parent; } return *this; }
   private:
     blocktype* parent;
     blocktype posMask;
@@ -305,8 +305,8 @@ public:
   {
     for(int i = 0; i < numBlocks; ++i) 
       this->buff[i] = 
-	(this->buff[i] & altblock0) ^ (B.buff[i] & altblock0) |
-	(this->buff[i] & altblock1) | (B.buff[i] & altblock1);
+        ((this->buff[i] & altblock0) ^ (B.buff[i] & altblock0)) |
+        (this->buff[i] & altblock1) | (B.buff[i] & altblock1);
     return *this;
   }
 };

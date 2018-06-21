@@ -342,7 +342,7 @@ void BuilderObj::splitAtLevelK(BuilderRef A, BuilderRef Ap, int dim, int k, vect
     Word j_u = t_u.is_null() ? 0 : asa<RealRootIUPObj>(cAp->get(k)->a)->rootIndex();
     CellBoundRef boundk = new CellBoundObj(X,PT,k,t_l,j_l,t_u,j_u);
     cAkL->setBound(k,boundk);
-    splitPolyTruthInvariantIn[0] =  (j_u == 1 || (!t_l.is_null()) && t_l->equal(t_u) && j_u == j_l + 1);
+    splitPolyTruthInvariantIn[0] =  (j_u == 1 || ((!t_l.is_null()) && t_l->equal(t_u) && j_u == j_l + 1));
     
     //-- bounds for level > k come from A, but the algebraic coords a & b have to be recomputed with PT
     for(int i = k+1; i <= dim; ++i)
@@ -400,7 +400,7 @@ void BuilderObj::splitAtLevelK(BuilderRef A, BuilderRef Ap, int dim, int k, vect
     CellBoundRef boundk = new CellBoundObj(X,PT,k,t_l,j_l,t_u,j_u);
     cAkU->setBound(k,boundk);
     int numRootsOft_l = asa<RealRootIUPObj>(cAp->get(k)->b)->numberOfRoots();
-    splitPolyTruthInvariantIn[1] =  (j_l == numRootsOft_l || (!t_u.is_null()) && t_l->equal(t_u) && j_u == j_l + 1);
+    splitPolyTruthInvariantIn[1] =  (j_l == numRootsOft_l || ((!t_u.is_null()) && t_l->equal(t_u) && j_u == j_l + 1));
     
     //-- bounds for level > k come from A, but the algebraic coords a & b have to be recomputed with PT
     for(int i = k+1; i <= dim; ++i)

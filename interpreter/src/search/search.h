@@ -371,9 +371,9 @@ public:
     int pa = a->getPrintedLength();
     int pb = b->getPrintedLength();
     return 
-      va < vb ||
-      va == vb &&  pa < pb ||
-      va == vb &&  pa == pb && a->tag < b->tag;      
+      (va < vb) ||
+      (va == vb &&  pa < pb) ||
+      (va == vb &&  pa == pb && a->tag < b->tag);      
   }
 };
 
@@ -389,7 +389,7 @@ public:
     int vb = b->getVars().numElements() - Eb.res.size();
     int pa = a->getPrintedLength();
     int pb = b->getPrintedLength();
-    return va < vb || va == vb &&  pa < pb || va == vb &&  pa == pb && a->tag < b->tag;
+    return (va < vb) || (va == vb &&  pa < pb) || (va == vb &&  pa == pb && a->tag < b->tag);
   }
 };
 
