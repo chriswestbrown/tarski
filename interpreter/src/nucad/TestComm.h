@@ -4,7 +4,9 @@
 #include "goal.h"
 #include "../poly/factor.h"
 #include <algorithm>
-#include "rule.h"
+//#include "rule.h"
+
+namespace tarski {
 
 /* class RuleGenStar */
 /* { */
@@ -56,14 +58,22 @@ public:
     SymRef sym = args[0]->sym();
     AlgRef alg = args[1]->alg();
     VarOrderRef V = argToVarOrder(args[2],getPolyManagerPtr());
-    SamplePointManagerRef SM = new SamplePointManagerObj(V);
+    SamplePointManagerRef SM = new TestSamplePointManagerObj(V);
     GCWord alpha = argToRationalPoint(args[3]);
-    SamplePointId sid = SM->addRationalOver(0,alpha,1);
+    SamplePointId sid = SM->addRationalOver(0,alpha,0);
+    SM->debugDump(); 
+
+    IntPolyRef H = alg->getVal();
+    IntPolyRef p = getPolyManagerPtr()->getCannonicalCopy(H);
+    int polySign = SM->polynomialSignAt(sid,p);
+    std::cout << "polySign = " << polySign << std::endl;
+
+    SM->roots(sid,p);
+    
     GoalContextRef G = new GoalContextObj(SM,sid);
 
     
     prop::Tag prop = prop::nameToProp(sym->getVal());
-    IntPolyRef p = alg->getVal();
     FactRef F = makeFactor(*(getPolyManagerPtr()),p,1);
     cerr << "property: " << prop::name(prop) << endl;
 
@@ -90,8 +100,8 @@ public:
     cerr << "gid = " << gid << endl;
     cerr << "goal: " << G->toString(gid) << endl;
 
-    RuleRef r = generateRule(G,gid);
-    cerr << "rule: " << (r.is_null() ? "<none>" : r->toString()) << endl;
+    /* RuleRef r = generateRule(G,gid); */
+    /* cerr << "rule: " << (r.is_null() ? "<none>" : r->toString()) << endl; */
 
     return new SObj();
   }
@@ -100,6 +110,8 @@ public:
   string usage() { return "TO APPEAR"; }
   string name() { return "test-comm"; }
 };
+
+}
 
 #endif
 

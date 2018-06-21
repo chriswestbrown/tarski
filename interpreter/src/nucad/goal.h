@@ -2,6 +2,8 @@
 #define _NUCAD_GOAL_
 #include "property.h"
 
+namespace tarski {
+
 /******************************************************
  * The goal context encapsulates the information needed
  * to interpret and process a goal.
@@ -126,5 +128,5 @@ public:
   
 };
 
-
+}
 #endif

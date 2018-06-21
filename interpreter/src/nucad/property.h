@@ -4,6 +4,7 @@
 #include "../poly/poly.h"
 #include "samplePointManager.h"
 
+namespace tarski { 
 
 class GoalContextObj;
 typedef GC_Hand<GoalContextObj> GoalContextRef;
@@ -20,7 +21,7 @@ namespace prop
     narrowed , // went through the narrowing process
     
     // checks
-    nz_alpha ,    // non-zero at alpha
+    nz_alpha  ,    // non-zero at alpha
     nnull_alpha , // non-null at alpha
     null_alpha ,  // null at alpha
     constant  ,    // is a constant
@@ -42,5 +43,5 @@ namespace prop
   Tag nameToProp(const string& str);
 }
 
-
+}
 #endif
