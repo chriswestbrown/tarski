@@ -4,18 +4,6 @@ using namespace std;
 
 namespace tarski {
 
-void MonoIneqRep::printCandidates(TFormRef F){
-  //Loop to display all the var to SIneq map if requested
-  for (map<IntPolyRef, vector <TAtomRef > >::iterator it = RefToSIneq.begin(); it != RefToSIneq.end(); ++it) {
-    it->first->write(*(F->getPolyManagerPtr())); cout << ": ";
-    for (unsigned int i = 0; i < it->second.size(); i++) {
-      vector < TAtomRef > ex = it->second;
-      (ex[i])->write(); cout << ", ";
-    }
-    cout << endl;
-  }
-}
-
 
 
 
@@ -130,8 +118,10 @@ int MonoIneqRep::processConjunction(TAndRef C)
     }
     if (relop == NEOP) {
       for(map<IntPolyRef,int>::iterator fitr = A->factorsBegin(); fitr != A->factorsEnd(); ++fitr) {
+        /*
         if (A->relop == 1 || A->relop == 4 || A->relop == 5)
           RefToSIneq[fitr->first].push_back(A); //Only store strong inequalities in RefToSIneq
+        */
       }
 
       continue;
@@ -151,9 +141,10 @@ int MonoIneqRep::processConjunction(TAndRef C)
     {
       int index = RefToIndex[fitr->first];
       bool t = index > r; isNonStrict |= t;
+      /*
       if (A->relop == 1 || A->relop == 4 || A->relop == 5)
         RefToSIneq[fitr->first].push_back(A); //Only store strong inequalities in RefToSIneq
-
+      */
       if (!t) {
         v.strictPart.set(index,eqmul*fitr->second % 2);
       }
@@ -310,7 +301,6 @@ TFormRef testmi(TFormRef F)
   MIR.processConjunction(C);
   
   if (testwrite) {
-    MIR.printCandidates(F);
     cout << "Vector Rep:" << endl;
     cout << "sigma";
     int r = MIR.numStrict();
@@ -432,196 +422,6 @@ TFormRef testmi(TFormRef F)
   return res;
 }
 
-/*******************************************************************
- * testmi(F)
- * Input: F, a conjunction or an atomic formula such that
- *        all atoms in F have gone through level-1 normalization, i.e.
- *        there are no "constant sigma 0" atoms, and no atoms where 
- *        the LHS factors are multiplied by a constant (other than 1).
- * Output: ???
- *******************************************************************/
-TFormRef BBSat(TFormRef F)
-{
-  const bool testwrite = verbose;
-
-  // Process the formula
-  if (asa<TConstObj>(F)){
-    //LisRef res = new LisObj();
-    //res->push_back(F);
-    return F;
-  }
-  TAndRef C = asa<TAndObj>(F);
-  if (C.is_null()) {
-    if (asa<TAtomObj>(F)) 
-      { C = new TAndObj(); C->AND(F); }
-    else
-      { return F; }
-  }
-  if (C->size() == 0)  {
-    //LisRef res = new LisObj();
-    //SymRef r1 = new SymObj("SAT");
-    //res->push_back(r1);
-    TConstRef res = new TConstObj(TRUE);
-    return res;
-  }
-  PolyManager &PM = *(F->getPolyManagerPtr());
-  MonoIneqRep MIR;
-  MIR.processConjunction(C);
-  
-  if (testwrite) {
-    MIR.printCandidates(F);
-    cout << "Vector Rep:" << endl;
-    cout << "sigma";
-    int r = MIR.numStrict();
-    int m = MIR.numVars();
-    for(int i = 1; i <= m; i++)
-      {
-        if (i == r + 1) { cout << " :"; }
-        cout << " (";
-        MIR.reverseMap[i]->first->write(*(F->getPolyManagerPtr()));
-        cout << ")";
-      }
-    cout << endl;
-    
-    for(unsigned int i = 0; i < MIR.B.size(); ++i)
-      MIR.B[i].write(); }
-
-
-  
-  // Pull out the strict part
-  int r = MIR.numStrict();
-  int m = 0; for(unsigned int i = 0; i < MIR.B.size(); ++i) if (MIR.B[i].nonstrictPart.isZero()) ++m;
-  //  if (r == 0) return; // No strict part!
-  Matrix M(m,1+r);
-  vector<int> traceRow;
-  for(unsigned int i = 0, j = 0; i < MIR.B.size(); ++i) {
-    if (MIR.B[i].nonstrictPart.isZero()) {
-      M[j++] = MIR.B[i].strictPart;
-      traceRow.push_back(i);
-    }
-  }
-  if (testwrite) { cout << "Strict Part Rep:" << endl; write(M); }
-
-  //CHANGES
-  // Gaussian Elimination!
-  vector<int> piv;
-  vector<int> piv2;
-  vector<DBV> * george = identityMatrix(&M);
-  //  gaussianElimination(M,piv,true);
-  if (m > 0) reducedGaussExplain(M,*george,piv,piv2,true);
-
-  //CHANGES
-  if (testwrite) {
-    cout << "After gauss:" << endl;
-    cout << "M: " << endl; write(M);
-    cout << "George: " << endl; write(*george);
-  }
-
-  //CHANGES
-  // Detect inconsistency
-  bool unsat = false;
-  vector<int> reasons;
-  unsat = detectUnsat(M, *george, reasons, testwrite);
-  delete george;
-  // Get result formula
-  TFormRef res;
-  if (unsat){
-    //LisRef res = new LisObj();
-    //SymRef r1 = new SymObj("SAT");
-    TAndRef r2 = new TAndObj();
-
-
-    //A bunch of Fernando code down here
-    //Should I use maps or vectors, keeping in mind we have to do
-    //weakFacts := weakFacts - strongFacts ?
-    map<IntPolyRef, bool> weakFacts;
-    map<IntPolyRef, bool> strongFacts;
-    for (unsigned int i = 0; i < reasons.size(); i++) {
-      int j = reasons[traceRow[i]];
-      TAtomRef A = MIR.rowIndexToAtom(j);
-      r2->AND(A);
-      if (testwrite)
-        A->write();
-      cout << endl;
-
-      for(map<IntPolyRef,int>::iterator fitr = A->factorsBegin(); fitr != A->factorsEnd(); ++fitr)
-        {
-          if (A->relop == 1 || A->relop == 4) {
-            strongFacts[fitr->first] = true;
-          }
-          else {
-            weakFacts[fitr->first] = true;
-          }
-        }
-    }
-
-    // O(n) after changes! Woohoo!
-    vector<map<IntPolyRef, bool>::iterator> toRemove;
-    map<IntPolyRef, bool>::iterator ater = weakFacts.begin();
-    map<IntPolyRef, bool>::iterator ater2 = strongFacts.begin();
-    while (ater != weakFacts.end() && ater2 != strongFacts.end()) {
-      {
-        if (ater->first < ater2->first) {
-          ++ater;
-        }
-        else if (ater2->first < ater->first){
-          ++ater2;
-        }
-        else {
-          toRemove.push_back(ater);
-        }
-      }
-    }
-    for (unsigned int i = 0; i < toRemove.size(); i++)
-      weakFacts.erase(toRemove[i]);
-    if (verbose) {
-      cout << endl;
-      cout << "WeakFactors: " << endl;
-      if (!weakFacts.empty()) {
-        for (map<IntPolyRef, bool>::iterator iter = weakFacts.begin(); iter != weakFacts.end(); ++iter) {
-          if (iter != weakFacts.begin() && testwrite) cout << ", "; //Pretty Printing
-          if (testwrite) iter->first->write(*(F->getPolyManagerPtr()));
-
-
-        }
-
-      }
-      cout << endl;
-    }
-    //MIR.RefToSIneq, weakFacts,
-    vector<TAtomRef> additions = scoringFunction(MIR.getCandidates(), weakFacts, F);
-    if (testwrite)  {
-      cout << "Strengthening additions: " << endl;;
-      if (!additions.empty()) {
-        for (vector<TAtomRef>::iterator iter = additions.begin(); iter != additions.end(); ++iter)
-          {
-            TAtomRef a = *iter;
-            if (testwrite) {
-              a->write();
-              cout << endl;
-            }
-            r2->AND(a);
-          }
-        
-        if (testwrite) cout << endl;
-      }
-      //res->push_back(r1);
-      //res->push_back(r2);
-      return r2;
-    }
-  }
-
-  else
-    {
-      /*
-      LisRef res = new LisObj();
-      SymRef r1 = new SymObj("SAT");
-      res->push_back(r1);
-      */
-      res = new TConstObj(TRUE);
-    }
-  return res;
-}
 
 
 

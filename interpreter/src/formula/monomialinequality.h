@@ -53,7 +53,7 @@ public:
   int processAtom(TAtomRef A) ;
   int processConjunction(TAndRef C);
   MonoIneqRep() { nextIndex = 0; }
-  const std::map<IntPolyRef, std::vector < TAtomRef > >& getCandidates() const {return RefToSIneq;}
+  //const std::map<IntPolyRef, std::vector < TAtomRef > >& getCandidates() const {return RefToSIneq;}
   // Input:  i - the index of a row in B
   // Output: a - the atom in C corresponding to row i (see processConjunction)
   TAtomRef rowIndexToAtom(int i)
@@ -83,7 +83,7 @@ public:
  private:
   int nextIndex;
   std::map< IntPolyRef,int> RefToIndex;
-  std::map< IntPolyRef, std::vector < TAtomRef > > RefToSIneq; //Maps factors to each of the strong inequalities it appears in
+  //std::map< IntPolyRef, std::vector < TAtomRef > > RefToSIneq; //Maps factors to each of the strong inequalities it appears in
 
   std::vector<bool> indexToType; // 0 = strict, 1 = nonstrict
   std::vector<TAtomRef> BtoC; // BtoC[i] = j means row i of B corresponds to atom C[i] in conjunction C
