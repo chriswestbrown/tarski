@@ -3,7 +3,8 @@
 #include <vector>
 #include "../formula/formula.h"
 #include "../../../minisat/core/SolverTypes.h"
-namespace Minisat {
+
+namespace tarski {
 //NOTE: Currently not dynamic in the sense that after you process the conjunction initially, you can add extra definitions
   class IdxManager {
   private:
@@ -31,7 +32,7 @@ namespace Minisat {
       t = mapping[idx];
       return true;
     }
-    inline bool getAtom(Lit l, tarski::TAtomRef& t) const {  return getAtom(var(l), t); }
+    inline bool getAtom(Minisat::Lit l, tarski::TAtomRef& t) const {  return getAtom(var(l), t); }
     inline int size() const {return s;}
     inline void incSize() {s++;} 
     void printMapping() const  {

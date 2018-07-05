@@ -85,6 +85,12 @@ namespace tarski {
   };
 
 
+  class Simplification : public Deduction {
+  public:
+  Simplification(TAtomRef t, const std::vector<TAtomRef>& atoms)
+    : Deduction(t, atoms, "simplification") { } 
+  };
+
   class BBDed : public Deduction {
   public:
   BBDed(TAtomRef t, const std::vector<TAtomRef>& atoms)

@@ -7,7 +7,7 @@
 #include "box-solver.h"
 #include <vector>
 #include <set>
-namespace Minisat {
+namespace tarski {
   
   class FormulaMaker {
   protected:
@@ -26,8 +26,8 @@ namespace Minisat {
                  int& size);
   public:
     FormulaMaker(tarski::TFormRef formula, IdxManager * IM);
-    std::vector<std::vector<Lit> > mkFormula();
-    void mkFormulaHelper(std::vector<std::vector<Lit> >& formula);
+    std::vector<std::vector<Minisat::Lit> > mkFormula();
+    void mkFormulaHelper(std::vector<std::vector<Minisat::Lit> >& formula);
   };
 
 }

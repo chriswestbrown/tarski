@@ -1,8 +1,8 @@
 #include "qep-solver-comm.h"
 #include "qep-solver.h"
 #include "../../../minisat/core/Solver.h"
-namespace tarski{
 
+namespace tarski{
   SRef QepSolverComm::execute(SRef input, std::vector<SRef> &args) {
 
     int N = args.size();
@@ -23,7 +23,7 @@ namespace tarski{
         return new ErrObj("Formula trivially solvable");
       }
     }
-    Minisat::QEPSolver * q = new Minisat::QEPSolver(tRef);
+    QEPSolver * q = new QEPSolver(tRef);
     /*
     q.printMapping();
     cout << "----------------------------------------------\n";

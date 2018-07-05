@@ -84,13 +84,12 @@ namespace tarski {
     QuickSolver * q = solvers[i];
     updateSolver(i);
     Deduction * d = q->deduce(t);
-    updateSolver(i);
     while (d != NULL && !dedM->isUnsat()) {
       if (dedM->processDeduction(d)) {
-	if (dedM->isUnsat()) return 2;
-	retCode = 1;
-	t->AND(d->getDed());
-	q->notify();
+        if (dedM->isUnsat()) return 2;
+        retCode = 1;
+        t->AND(d->getDed());
+        q->notify();
       }
       d = q->deduce(t);
     }

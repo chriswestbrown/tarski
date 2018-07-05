@@ -5,7 +5,7 @@
 #include "../../../minisat/core/SolverTypes.h"
 #include "../../../minisat/mtl/Vec.h"
 #include "../formula/formula.h"
-#include "../bbwb/boxer.h"
+#include "../bbwb/solver-manager.h"
 #include "mhs-gen.h"
 #include "formula-maker.h"
 #include <algorithm>
@@ -20,7 +20,7 @@
 //TODO: Add the ability to detect pure conjuncts
 //TODO: Add the MHS Code!
 
-namespace Minisat {
+namespace tarski {
 
 
   const short ATOM = 0;
@@ -39,18 +39,18 @@ namespace Minisat {
     theory solver, which runs in polynomial time but is
     non-incremental
    */
-  class BoxSolver : public TSolver {
+  class BoxSolver : public Minisat::TSolver {
 
   public:
     //Intended to be called by miniSAT
     //Generates the conflict clause by applying non-incremental BB/WB
-    void getClause(vec<Lit>& lits, bool& conf);
-    void getFinalClause(vec<Lit>& lits, bool& conf);
+    void getClause(Minisat::vec<Minisat::Lit>& lits, bool& conf);
+    void getFinalClause(Minisat::vec<Minisat::Lit>& lits, bool& conf);
 
     //Intended to be called by miniSAT
     //Generates all other learned clauses which are not conflicts
     //Learned by applying BB/WB
-    void getAddition(vec<Lit>& lits, bool& conf);
+    void getAddition(Minisat::vec<Minisat::Lit>& lits, bool& conf);
 
     BoxSolver(tarski::TFormRef formula);
     virtual ~BoxSolver();
@@ -77,7 +77,7 @@ namespace Minisat {
     }
     
   protected:
-    Solver * S;
+    Minisat::Solver * S;
     MHSGenerator * M;
     IdxManager * IM;
     bool isPureConj;
@@ -87,27 +87,27 @@ namespace Minisat {
     tarski::TAndRef genMHS();
     tarski::TFormRef formula;
     //Returns the CNF translation of a formula
-    std::vector<std::vector<Lit> > makeFormula(tarski::TFormRef formula);
+    std::vector<std::vector<Minisat::Lit> > makeFormula(tarski::TFormRef formula);
 
-    vector<vector<Lit> > form;
+    vector<vector<Minisat::Lit> > form;
     tarski::PolyManager * pm;
     //If [idx] maps to an atom with sign GTOP, [idx+1] maps to the opposite LEOP. The >= sign always goes before < and != signs
-    stack<stack< Lit > > learned; //to be returned with getAddition
+    stack<stack< Minisat::Lit > > learned; //to be returned with getAddition
     //this is all the necessary implication clauses as well as whats learned by BB/WB that's not the conflict
-    void writeLearnedClause(vec<Lit>& lits);
+    void writeLearnedClause(Minisat::vec<Minisat::Lit>& lits);
     //Processes a formula and assigns indices to all the atoms
     void processAtoms(tarski::TFormRef formula);
     //Called when a conflict is discovered to translate the reason,
     //which is in tarski formula objects,
     //back into the respective minisat literals
-    void constructClauses(vec<Lit>&, const tarski::Boxer&, int numDeds);
-    void getClauseMain(vec<Lit>& lits, bool& conf);
+    void constructClauses(Minisat::vec<Minisat::Lit>&, SolverManager&, int numDeds);
+    void getClauseMain(Minisat::vec<Minisat::Lit>& lits, bool& conf);
     //Makes a clause from a single Result object taken from BB/WB Boxer object
-    stack<Lit> mkClause(tarski::Result r);
-    stack<Lit> mkClause(tarski::Result r, int idx);
+    stack<Minisat::Lit> mkClause(tarski::Result r);
+    stack<Minisat::Lit> mkClause(tarski::Result r, int idx);
     //Adds a clause of x literals to the learned clauses
-    void addToLearned(Lit a, Lit b);
-    void addToLearned(Lit a, Lit b, Lit c);
+    void addToLearned(Minisat::Lit a, Minisat::Lit b);
+    void addToLearned(Minisat::Lit a, Minisat::Lit b, Minisat::Lit c);
 
     bool directSolve();
 
@@ -115,7 +115,7 @@ namespace Minisat {
 
 
     //Generates a lit from an integer index
-    inline Lit litFromInt(int var, bool val);
+    inline Minisat::Lit litFromInt(int var, bool val);
 
 
     //given a maximum index in trail, takes all the assignments
@@ -125,8 +125,8 @@ namespace Minisat {
 
     //Given a vector of integers indices presumably taken from a QepcadConnection
     //And a TFormRef tand also presumably given to that QepcadConnection
-    //Generate the Unsat Core as minisat Lits and put it in lits
-    void getQEPUnsatCore(vec<Lit>& lits, vector<int> indices, tarski::TAndRef tand);
+    //Generate the Unsat Core as minisat Minisat::Lits and put it in lits
+    void getQEPUnsatCore(Minisat::vec<Minisat::Lit>& lits, vector<int> indices, tarski::TAndRef tand);
   };
 
 

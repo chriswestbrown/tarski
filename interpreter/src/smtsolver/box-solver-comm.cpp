@@ -23,7 +23,7 @@ namespace tarski {
         return new ErrObj("Formula trivially solvable");
       }
     }
-    Minisat::BoxSolver b(tRef);
+    BoxSolver b(tRef);
 
     /*
     b.printMapping();
@@ -31,8 +31,6 @@ namespace tarski {
     b.printCNF(tRef);
     cout << "----------------------------------------------\n";
     */
-
-    
     string err;
     bool res = b.solve(err);
     if (err.size() == 0) {

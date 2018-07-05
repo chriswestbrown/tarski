@@ -1,5 +1,6 @@
-#include "box-solver.h"
-#include "boxer.h"
+#include "solver-manager.h"
+#include "blackbox-solve.h"
+#include "whitebox-solve.h"
 #include "formula-maker.h"
 #include "../formula/formmanip.h"
 #include "idx-manager.h"
@@ -85,14 +86,21 @@ short BoxSolver::solve() {
 bool BoxSolver::directSolve() {
   TAndRef t = asa<TAndObj>(formula);
   if (t->constValue() == true) return true;
-  Boxer b(t);
+  std::cerr << "Building manager\n";
+  SolverManager b({ new BBSolver(t) , new WBSolver(t) }, t);
+  std::cerr << "Built manager!\n";
   b.deduceAll();
+  if (b.isUnsat()) std::cerr << "Determined unsat!\n";
+  else std::cerr << "Unknown\n";
   if (b.isUnsat()) return false;
   TAndRef t2 = asa<TAndObj>(formula);
   TFormRef res;
   try  {
     QepcadConnection q;
+    std::cerr << "Calling QEPCAD\n";
+    t2->write();
     res = q.basicQepcadCall(exclose(t2), true);
+    std::cerr << "QEPCAD Done\n";
   }
   catch (TarskiException& e) {
     throw TarskiException("QEPCAD timed out");
@@ -274,7 +282,7 @@ void BoxSolver::getClauseMain(vec<Lit>& lits, bool& conf) {
 
   
   //Step 2: Construct a BB/WB Solver bbwb with tand and solve
-  Boxer b(tand);
+  SolverManager b({ new BBSolver(tand) , new WBSolver(tand) }, tand);
   Result res = b.deduceAll();
   if (b.isUnsat()) {   //Step 3: IF UNSAT: construct conflict and other learned clauses
     //cout << "Foudn unsat\n" << endl;
@@ -335,11 +343,11 @@ inline void BoxSolver::writeLearnedClause(vec<Lit>& lits) {
   }
 }
 
-void BoxSolver::constructClauses(vec<Lit>& lits, const Boxer& b, int numDeds) {
+void BoxSolver::constructClauses(vec<Lit>& lits, SolverManager& b, int numDeds) {
   //Traceback the last result (AKA, the conflict)
   //Place it into lits
   
-  Result r = b.traceBack();
+  Result r = b.deduceAll();
   //cout << "Conflict: "; r.write();
   //cout << "ASSIGNMENTS: "; printStack(); cout << endl;
   /*

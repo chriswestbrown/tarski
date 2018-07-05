@@ -1,7 +1,7 @@
 #include "formula-maker.h"
-namespace Minisat{
+namespace tarski{
 
-  using namespace tarski;
+  using namespace Minisat;
   using namespace std;
 
   void FormulaMaker::getItrs(TFormRef formula, set<TFormRef, ConjunctOrder>::iterator& beg, int& size) {
