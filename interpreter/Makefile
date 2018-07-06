@@ -35,9 +35,13 @@ INC_FLAGS := $(addprefix -I,$(INC_DIRS)) $(extIncludesSACLIB)
 CPPFLAGS ?= $(INC_FLAGS) -MMD -MP -g --std=c++11
 
 $(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
+	./src/mksysdep.sh	
 	$(CC) $(OBJS) -o $@ $(LDFLAGS)
 	mv build/tarski shell/tarski
 	cp shell/tarski bin/tarski
+
+
+lib: tarski.a
 
 tarski.a:
 	$(CXX) $(CPPFLAGS)  -c $< -o $(filter-out */shell.cpp.o, $(OBJS))
