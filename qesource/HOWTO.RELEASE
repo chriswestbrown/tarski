@@ -1,0 +1,8 @@
+Notes on the process for releasing QEPCADB:
+
+1. run bin/precommit.pl
+
+2. make sure to commit source/main/PRINTBANNER.c
+
+
+
