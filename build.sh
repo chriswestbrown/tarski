@@ -21,7 +21,13 @@ function check(){
 tarskiRoot=$(pwd)
 
 ### SACLIB
-saclibRoot="$tarskiRoot/saclib2.2.7"
+if [ "$externalSaclibRoot" = "" ]
+then
+    saclibRoot="$tarskiRoot/saclib2.2.7"
+else
+    saclibRoot=$externalSaclibRoot
+fi
+
 export saclib=$saclibRoot
 pushd $saclib
 echo "Making SACLIB..."
@@ -32,6 +38,13 @@ check "bin/mklib all"
 check
 echo "Saclib done"
 popd
+
+if [ "$externalQepcadRoot" = "" ]
+then
+    qepcadRoot="$tarskiRoot/qesource"
+else
+    qepcadRoot=$externalQepcadRoot
+fi
 
 ### QEPCAD
 qepcadRoot="$tarskiRoot/qesource"

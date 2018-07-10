@@ -145,7 +145,6 @@ namespace tarski {
   bool DedManager::processDeduction(Deduction * d) {
     //Initial processing of the deduction, check if it teaches anything useful
     //If it teaches us nothing useful, return
-    d->write();
     if (d->isUnsat()) {
       depIdxs.push_back(getDepIdxs(d));
       deds.push_back(d);
