@@ -1,6 +1,6 @@
 #!/bin/bash
 
-
+if [ ! -e "tarskisysdep.h" ]; then
 {
 echo '#ifndef _TARSKI_SYSDEP_H_'
 echo '#define _TARSKI_SYSDEP_H_'
@@ -13,4 +13,4 @@ echo 'static const char * pathToSingular = "'$(which Singular | tr -d '\n')'";'
 echo '} // end namespace tarski'
 echo '#endif'
 } > tarskisysdep.h
-
+fi
