@@ -44,6 +44,7 @@ private:
       return &(*(A.first)) < &(*(B.first)) 
 	|| 
         (&(*(A.first)) == &(*(B.first)) && &(*(A.second)) < &(*(B.second)));
+
     }
     bool operator()(const pair<IntPolyRef,IntPolyRef> &A, const pair<IntPolyRef,IntPolyRef> &B) const
     { 
