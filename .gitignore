@@ -35,11 +35,11 @@
 ~*
 *~
 
-interpreter/tarskisysdep.*
-interpreter/search/qfr
-interpreter/algparse/grammar.tab.*
-interpreter/algparse/grammar.output
-interpreter/algparse/frewrite
-interpreter/bin/tarski
-interpreter/poly/go
+interpreter/src/tarskisysdep.*
+interpreter/src/search/qfr
+interpreter/src/algparse/grammar.tab.*
+interpreter/src/algparse/grammar.output
+interpreter/src/algparse/frewrite
+interpreter/src/bin/tarski
+interpreter/src/poly/go
 
