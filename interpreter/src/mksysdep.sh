@@ -13,5 +13,4 @@ echo 'static const char * pathToSingular = "'$(which Singular | tr -d '\n')'";'
 echo '} // end namespace tarski'
 echo '#endif'
 } > tarskisysdep.h
-fi
 
