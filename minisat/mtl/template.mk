@@ -9,7 +9,7 @@ PWD        = $(shell pwd)
 EXEC      ?= $(notdir $(PWD))
 
 CSRCS      = $(wildcard $(PWD)/*.cc) 
-DSRCS      = $(foreach dir, $(DEPDIR), $(filter-out $(MROOT)/$(dir)/Main.cc, $(wildcard $(MROOT)/$(dir)/*.cc)))
+DSRCS      = $(foreach dir, $(DEPDIR), $(filter-out $(TMROOT)/$(dir)/Main.cc, $(wildcard $(TMROOT)/$(dir)/*.cc)))
 CHDRS      = $(wildcard $(PWD)/*.h)
 COBJS      = $(CSRCS:.cc=.o) $(DSRCS:.cc=.o)
 
@@ -24,7 +24,7 @@ LFLAGS    ?= -Wall
 
 COPTIMIZE ?= -O3
 
-CFLAGS    += -I$(MROOT) -D __STDC_LIMIT_MACROS -D __STDC_FORMAT_MACROS
+CFLAGS    += -I$(TMROOT) -D __STDC_LIMIT_MACROS -D __STDC_FORMAT_MACROS
 LFLAGS    += -lz
 
 .PHONY : s p d r rs clean 
@@ -68,17 +68,17 @@ lib$(LIB)_release.a:	$(filter-out */Main.or, $(RCOBJS))
 
 ## Build rule
 %.o %.op %.od %.or:	%.cc
-	@echo Compiling: $(subst $(MROOT)/,,$@)
+	@echo Compiling: $(subst $(TMROOT)/,,$@)
 	@$(CXX) $(CFLAGS) -c -o $@ $<
 
 ## Linking rules (standard/profile/debug/release)
 $(EXEC) $(EXEC)_profile $(EXEC)_debug $(EXEC)_release $(EXEC)_static:
-	@echo Linking: "$@ ( $(foreach f,$^,$(subst $(MROOT)/,,$f)) )"
+	@echo Linking: "$@ ( $(foreach f,$^,$(subst $(TMROOT)/,,$f)) )"
 	@$(CXX) $^ $(LFLAGS) -o $@
 
 ## Library rules (standard/profile/debug/release)
 lib$(LIB)_standard.a lib$(LIB)_profile.a lib$(LIB)_release.a lib$(LIB)_debug.a:
-	@echo Making library: "$@ ( $(foreach f,$^,$(subst $(MROOT)/,,$f)) )"
+	@echo Making library: "$@ ( $(foreach f,$^,$(subst $(TMROOT)/,,$f)) )"
 	@$(AR) -rcsv $@ $^
 
 ## Library Soft Link rule:
@@ -94,14 +94,14 @@ clean:
 ## Make dependencies
 depend.mk: $(CSRCS) $(CHDRS)
 	@echo Making dependencies
-	@$(CXX) $(CFLAGS) -I$(MROOT) \
+	@$(CXX) $(CFLAGS) -I$(TMROOT) \
 	   $(CSRCS) -MM | sed 's|\(.*\):|$(PWD)/\1 $(PWD)/\1r $(PWD)/\1d $(PWD)/\1p:|' > depend.mk
 	@for dir in $(DEPDIR); do \
-	      if [ -r $(MROOT)/$${dir}/depend.mk ]; then \
+	      if [ -r $(TMROOT)/$${dir}/depend.mk ]; then \
 		  echo Depends on: $${dir}; \
-		  cat $(MROOT)/$${dir}/depend.mk >> depend.mk; \
+		  cat $(TMROOT)/$${dir}/depend.mk >> depend.mk; \
 	      fi; \
 	  done
 
--include $(MROOT)/mtl/config.mk
+-include $(TMROOT)/mtl/config.mk
 -include depend.mk
