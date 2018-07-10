@@ -36,13 +36,13 @@ namespace tarski {
     // Process the formula
     MonoIneqRep m;
     m.processConjunction(t);
-    BBChecker bc(&m, &polyToSIneq);
+    BBChecker bc(&m, &polyToSIneq, t->getPolyManagerPtr());
     if (bc.checkSat()) {
       return bc.explainUnsat();
     }
 
     else {
-      BBDeducer bd(&m, &polyToSIneq);
+      BBDeducer bd(&m, &polyToSIneq, t->getPolyManagerPtr());
       return bd.getDeductions();
     }
   }
@@ -54,15 +54,15 @@ namespace tarski {
   bool BBChecker::checkSat() {
     // Pull out the strict part
     Matrix M = MIR->genStrictMatrix(traceRow);
-    //printMIR(MIR, PM); printBeforeGauss(M);
+    //printMIR(); printBeforeGauss(M);
     // Gaussian Elimination!
     std::vector<int> piv;
     std::vector<int> piv2;
     std::vector<DBV>  george = idMatrix(M);
     reducedGaussExplain(M,george,piv,piv2,true);
     //printAfterGauss(M, george);
-    std::vector<int> reasons;
     return detectUnsat(M, george, reasons, false);
+
   }
 
   /*
@@ -91,9 +91,7 @@ namespace tarski {
     }
     return conflict;
   }
-
-    /*
-      Determines whether each factor in MIR is weak or strong and classifies them appropriately
+  /* determines whether each factor in MIR is weak or strong and classifies them appropriately
       Adds all the atoms involved in the conflict to a std::vector called conflict
       Output:
       weakFacts contains all the weak factors in the formula which need to be strengthened
@@ -137,7 +135,7 @@ namespace tarski {
       return sAtoms;
     }
 
-  void BBSolver::printMIR() {
+  void BBChecker::printMIR() {
     std::cout << "Vector Rep:" << std::endl;
     std::cout << "sigma";
     int r0 = MIR->numStrict();
@@ -155,12 +153,12 @@ namespace tarski {
       MIR->B[i].write();
   }
 
-  void BBSolver::printBeforeGauss(Matrix& M) {
+  void BBChecker::printBeforeGauss(Matrix& M) {
     std::cout << "Before gauss:" << std::endl;
     write(M);
   }
 
-  void BBSolver::printAfterGauss(Matrix& M, vector<DBV>& george) {
+  void BBChecker::printAfterGauss(Matrix& M, vector<DBV>& george) {
     std::cout << "After gauss:" << std::endl;
     std::cout << "M: " << std::endl; write(M);
     std::cout << "George: " << std::endl; write(george);
@@ -181,6 +179,9 @@ namespace tarski {
 
       IntPolyRef dedP = MIR->reverseMap[idx]->first;
       short dedSign = (M[i].get(0) == 0 ? GTOP : LTOP);
+      FactRef F = new FactObj(PM);
+      F->addFactor(dedP, 1);
+      TAtomRef dedAtom = new TAtomObj(F, dedSign);
 
       DBV deps = george[i];
       bool strengthen = false;
@@ -189,7 +190,7 @@ namespace tarski {
         if (deps.get(a) == 0) continue; //Indicates the row is unused for this deduction
         int j = traceRow[a];
         TAtomRef A = MIR->rowIndexToAtom(j);
-
+        atoms.push_back(A);
         //In this block, we see if one of the already existing dependencies of the deduction strengthens it
         if (!strengthen && deps.get(a) != 0) { //If it contains the polynomial which we are trying to strengthen
           if (A->relop == LEOP || A->relop == GEOP || A->relop == EQOP) continue;
@@ -202,13 +203,13 @@ namespace tarski {
           }
         }
 
-        atoms.push_back(A);
+
 
       }
-      if (strengthen == false) atoms.push_back((*polyToSIneq)[dedP]);
-      FactRef F = new FactObj(atoms[0]->getPolyManagerPtr());
-      F->addFactor(dedP, 1);
-      TAtomRef dedAtom = new TAtomObj(F, dedSign);
+      if (strengthen == false)  {
+        atoms.push_back((*polyToSIneq)[dedP]);
+      }
+
       deds.push_back(new BBDed(dedAtom, atoms));
     }
   }
@@ -387,7 +388,7 @@ namespace tarski {
     }
   }
   void BBSolver::populatePoly(TAtomRef A) {
-    if (A->getRelop() != NEOP || A->getRelop() != GTOP || A->getRelop() != LTOP) return;
+    if (A->getRelop() != NEOP && A->getRelop() != GTOP && A->getRelop() != LTOP) return;
     FactRef F = A->F;
     std::map<IntPolyRef,int>::iterator itr, end;
     for (itr = F->factorBegin(), end = F->factorEnd(); itr != end; ++itr) {

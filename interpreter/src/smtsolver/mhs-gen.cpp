@@ -60,7 +60,7 @@ namespace tarski {
       toRet.push_back(toLit(*itr));
     }
 
-  
+    /*
     cout << endl;
     cout << "TRAIL: ";
     for (int i = 0; i < trail.size(); i++) {
@@ -71,7 +71,7 @@ namespace tarski {
     for (int i = 0; i < toRet.size(); i++) {
       write(toRet[i]); cout << " ";
     }
-  
+    */
 
 
     return toRet;
@@ -149,7 +149,7 @@ namespace tarski {
         fastErase(toCalc, i);
       }
     }
-  
+    /*
     cout << "toCalc: \n";
     for (int i = 0; i < toCalc.size(); i++) {
       for (int j = 0; j < toCalc[i].size(); j++) {
@@ -157,7 +157,7 @@ namespace tarski {
       }
       cout << endl;
     }
-  
+    */
     return toCalc;
   }
 

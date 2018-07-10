@@ -21,8 +21,9 @@ namespace tarski {
       else l->push_back(new SymObj("SAT"));
       vector<TAtomRef>& vec = r.atoms;
       TAndRef t = new TAndObj();
-      for (vector<TAtomRef>::iterator itr = vec.begin(); itr != vec.end(); ++itr) {
-	t->AND(*itr);
+      for (vector<TAtomRef>::iterator itr = vec.begin();
+           itr != vec.end(); ++itr) {
+        t->AND(*itr);
       }
       l->push_back(new TarObj(t));
       return l;
@@ -35,35 +36,34 @@ namespace tarski {
 
     Remembers the last solver to learn something new. Halts when it is that
     solver's turn again but nothing new has been learned
-    
+
     Also halts immediately when UNSAT is deduced
    */
   Result SolverManager::deduceAll() {
     if (hasRan) return finResult;
     hasRan = true;
     for (int i = 0; i < lastDeds.size(); i++) lastDeds[i] = dedM->size();
-    if (dedM->isUnsat()) return dedM->traceBack();
+    if (dedM->isUnsat()) { finResult = dedM->traceBack(); return finResult; }
     int i = 0, lastChange = -1;
-    do {
+    while (true) {
       //case where solvers can't deduce UNSAT and all deductions exhausted
       if (i == lastChange) {
-	Result r; finResult = r; return r;
-
+        Result r; finResult = r; return r;
       }
-      //for first iteration
-      if (lastChange == -1) lastChange = 0;
-      
+
+      if (lastChange == -1) lastChange = 0; //for first iteration
       short res = deduceLoop(i);
       if (res == 1) lastChange = i;
-      else if (res == 2) { finResult = dedM->traceBack(); return finResult; }
+      else if (res == 2) {
+        finResult = dedM->traceBack();
+        //std::cerr << "size of result is " <<  finResult.count();
+        return finResult;
+      }
       i++;
       if (i >= solvers.size()) i = 0;
-    } while (i != lastChange);
-    
-    if (dedM->isUnsat()) {  finResult = dedM->traceBack(); return finResult; }
-    else { Result r; finResult = r; return r;}
+    } 
   }
-
+  
   /*
     Updates the solver by getting iterators from the deduction manager
     from the last new index of the solver to the end of all known deductions

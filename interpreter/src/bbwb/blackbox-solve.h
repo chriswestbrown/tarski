@@ -42,11 +42,10 @@ namespace tarski{
     bool once;
     MonoIneqRep * MIR;
 
-    void printMIR();
+
     void populatePoly(TAndRef t);
     void populatePoly(TAtomRef A);
-    void printBeforeGauss(Matrix& M);
-    void printAfterGauss(Matrix& M, vector<DBV>& george);
+
   public:
     inline BBSolver(TAndRef tf)  : deductions(0), once(true) {
       this->PM = tf->getPolyManagerPtr();
@@ -68,18 +67,23 @@ namespace tarski{
   class BBChecker {
   private:
     MonoIneqRep * MIR;
+    PolyManager * PM;
     std::map<IntPolyRef, TAtomRef> * polyToSIneq;
     std::vector<int> reasons;
     std::vector<int> traceRow;
     std::set<IntPolyRef> findWeak(std::vector<TAtomRef>& conflict);
     std::set<TAtomRef> strengthenWeak(const std::set<IntPolyRef>& weakFacts);
     std::vector<TAtomRef> getConflict();
+    void printMIR();
+    void printBeforeGauss(Matrix& M);
+    void printAfterGauss(Matrix& M, vector<DBV>& george);
   public:
     bool checkSat();
     vector<Deduction *> explainUnsat();
-    inline BBChecker(MonoIneqRep * m, std::map<IntPolyRef, TAtomRef> * pToS) {
+    inline BBChecker(MonoIneqRep * m, std::map<IntPolyRef, TAtomRef> * pToS, PolyManager * pm) {
       MIR = m;
       polyToSIneq = pToS;
+      PM = pm;
     }
   };
 
@@ -87,12 +91,14 @@ namespace tarski{
   private:
     MonoIneqRep * MIR;
     std::map<IntPolyRef, TAtomRef> * polyToSIneq;
+    PolyManager * PM;
     void strictDeds(Matrix& M, std::vector<DBV>& george, vector<int>& traceRow, std::vector<Deduction *>& deds);
   public:
     vector<Deduction *> getDeductions();
-    inline BBDeducer(MonoIneqRep * m, std::map<IntPolyRef, TAtomRef> * pToS) {
+    inline BBDeducer(MonoIneqRep * m, std::map<IntPolyRef, TAtomRef> * pToS, PolyManager * pm) {
       MIR = m;
-      polyToSIneq = pToS; 
+      polyToSIneq = pToS;
+      PM = pm;
 
     }
   };

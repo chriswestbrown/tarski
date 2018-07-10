@@ -20,7 +20,7 @@ namespace tarski {
     if (andRef.is_null()) {
       TOrRef orRef = asa<TOrObj>(tRef);
       if (orRef.is_null()) {
-        return new ErrObj("Formula trivially solvable");
+        return new StrObj("Formula trivially UNSAT");
       }
     }
     BoxSolver b(tRef);

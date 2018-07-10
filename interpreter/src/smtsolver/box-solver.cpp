@@ -84,23 +84,19 @@ short BoxSolver::solve() {
 }
 
 bool BoxSolver::directSolve() {
+  //std::cerr << "Direct solving formula\n";
+
   TAndRef t = asa<TAndObj>(formula);
   if (t->constValue() == true) return true;
-  std::cerr << "Building manager\n";
   SolverManager b({ new BBSolver(t) , new WBSolver(t) }, t);
-  std::cerr << "Built manager!\n";
   b.deduceAll();
-  if (b.isUnsat()) std::cerr << "Determined unsat!\n";
-  else std::cerr << "Unknown\n";
   if (b.isUnsat()) return false;
   TAndRef t2 = asa<TAndObj>(formula);
   TFormRef res;
   try  {
     QepcadConnection q;
-    std::cerr << "Calling QEPCAD\n";
     t2->write();
     res = q.basicQepcadCall(exclose(t2), true);
-    std::cerr << "QEPCAD Done\n";
   }
   catch (TarskiException& e) {
     throw TarskiException("QEPCAD timed out");
@@ -273,9 +269,8 @@ void BoxSolver::getClauseMain(vec<Lit>& lits, bool& conf) {
   //Step 1a.2: AND it with tand
   TAndRef tand = genTAnd(getQhead());
 
-  cout << "PROBLEM: "; tand->write(); cout << endl;
+  //cout << "PROBLEM: "; tand->write(); cout << endl;
   if (tand->constValue() == TRUE) {
-
     conf = false;
     return;
   }
@@ -285,12 +280,12 @@ void BoxSolver::getClauseMain(vec<Lit>& lits, bool& conf) {
   SolverManager b({ new BBSolver(tand) , new WBSolver(tand) }, tand);
   Result res = b.deduceAll();
   if (b.isUnsat()) {   //Step 3: IF UNSAT: construct conflict and other learned clauses
-    //cout << "Foudn unsat\n" << endl;
+    //cout << "Found unsat\n" << endl;
     constructClauses(lits, b, res.count());
     conf = true;
   }
   else {
-    //cout << "Foudn sat\n" << endl;
+    //cout << "Found sat\n" << endl;
     conf = false;
   }
 }
@@ -348,21 +343,21 @@ void BoxSolver::constructClauses(vec<Lit>& lits, SolverManager& b, int numDeds) 
   //Place it into lits
   
   Result r = b.deduceAll();
-  //cout << "Conflict: "; r.write();
-  //cout << "ASSIGNMENTS: "; printStack(); cout << endl;
   /*
-    Result r = b.traceBack();
-    vector<TAtomRef> atoms = r.atoms;
+  cout << "Conflict: "; r.write();
+  cout << "ASSIGNMENTS: "; printStack(); cout << endl;
+  vector<TAtomRef> atoms = r.atoms;
   cout << "CONFLICT   : ";
   for (int i = 0; i < atoms.size(); i++) {
     if (atoms[i]->relop != ALOP) {
       atoms[i]->write();
       cout << "(" << IM->getIdx(atoms[i]) <<  ")";
-      if (i != atoms.size()-) cout << " /\\ ";
+      if (i != atoms.size()-1) cout << " /\\ ";
     }
   }
   cout << endl;
   */
+
   stack<Lit> litStack = mkClause(r);
   while (litStack.size() > 0) {
 

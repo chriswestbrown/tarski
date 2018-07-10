@@ -79,7 +79,9 @@ namespace tarski {
   Deduction(TAtomRef t, const std::vector<TAtomRef>& atoms, std::string s) : deps(atoms), unsat(false),  given(false), name(s)   {
       deduction = t;
     }
-  Deduction(TAtomRef t, std::string s) : unsat(false), given(true), name(s) { deduction = t;}
+  Deduction(TAtomRef t, std::string s) : unsat(false), given(true), name(s) {
+      deduction = t;
+    }
   Deduction(const std::vector<TAtomRef>& atoms, std::string s) : deps(atoms), unsat(true), given(false), name(s) {}
     Deduction() {}
   };
@@ -131,19 +133,19 @@ namespace tarski {
   };
 
 
-  class Result {
+  struct Result {
   public:
     std::vector<TAtomRef> atoms;
     /*
       Returns #of polys, vars and atoms for this result
     */
     inline int count() { return atoms.size(); }
+    inline Result(const vector<TAtomRef>& a) : atoms(a) {}
+    inline Result() : atoms(0) {}
 
-    Result(const vector<TAtomRef>& atoms2) : atoms(atoms2) {}
-    Result() {}
-
-    void write() {
+    inline void write() {
       bool notFirst = false;
+      cout << "size is " << atoms.size() << endl;
       for (std::vector<TAtomRef>::iterator itr = atoms.begin(); itr != atoms.end(); ++itr) {
         if (notFirst) std::cout << " /\\ "; 
         else notFirst = true;

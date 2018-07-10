@@ -87,7 +87,9 @@ namespace tarski {
     Checks by doing a table lookup
   */
   void DedManager::processGiven(TAtomRef t) {
-    (getSgn(t) == ALOP) ? addGiven(t) : addGCombo(t);
+    if (getSgn(t) == ALOP) addGiven(t);
+    else if ((getSgn(t) & t->getRelop()) != getSgn(t)) addGCombo(t);
+    else return;
     updateVarSigns(t);
   }
 
@@ -143,8 +145,7 @@ namespace tarski {
   bool DedManager::processDeduction(Deduction * d) {
     //Initial processing of the deduction, check if it teaches anything useful
     //If it teaches us nothing useful, return
-    //d->write();
-    //cerr << endl;
+    d->write();
     if (d->isUnsat()) {
       depIdxs.push_back(getDepIdxs(d));
       deds.push_back(d);
