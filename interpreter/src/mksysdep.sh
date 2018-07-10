@@ -11,7 +11,7 @@ echo 'static const char * pathToQepcad = "'$(which qepcad | tr -d '\n')'";'
 echo 'static const char * pathToMaple = "'$(which maple | tr -d '\n')'";'
 echo 'static const char * pathToSingular = "'$(which Singular | tr -d '\n')'";'
 echo
-echo 'if (strcmp(pathToQepcad, "") == 0) throw TarskiException("Invalid location for QEPCAD")'
+echo 'if (strcmp(pathToQepcad, "") == 0) throw TarskiException("Invalid location for QEPCAD");'
 echo '} // end namespace tarski'
 echo '#endif'
 } > tarskisysdep.h

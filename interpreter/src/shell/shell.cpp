@@ -198,5 +198,6 @@ int main(int argc, char **argv)
 {
   int dummy;
   void *topOfTheStack = &dummy;
+  if (strcmp(pathToQepcad, "") == 0) throw TarskiException("Invalid location for QEPCAD")
   tarski::mainDUMMY(argc,argv,topOfTheStack);
 }
