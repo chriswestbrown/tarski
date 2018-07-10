@@ -1,5 +1,11 @@
 #!/bin/bash
 
+### To use an existing external Saclib and/or Qepcad
+### replace the empty strings below with full paths.
+externalSaclibRoot=""
+externalQepcadRoot=""
+
+
 trap "exit 1" TERM
 export TOP_PID=$$
 
