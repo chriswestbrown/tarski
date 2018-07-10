@@ -67,6 +67,10 @@ popd
 ### TARSKI
 pushd interpreter
 echo "Making tarski..."
+pushd ./src
+check ./mksysdep.sh
+popd
+
 check make
 popd
 
