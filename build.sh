@@ -39,6 +39,8 @@ check
 echo "Saclib done"
 popd
 
+
+### QEPCAD
 if [ "$externalQepcadRoot" = "" ]
 then
     qepcadRoot="$tarskiRoot/qesource"
@@ -46,8 +48,6 @@ else
     qepcadRoot=$externalQepcadRoot
 fi
 
-### QEPCAD
-qepcadRoot="$tarskiRoot/qesource"
 export qe=$qepcadRoot
 pushd $qe
 echo "Making QEPCAD..."
