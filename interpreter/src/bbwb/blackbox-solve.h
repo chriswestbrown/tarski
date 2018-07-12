@@ -6,6 +6,7 @@
 #include "shell/einterpreter.h"
 #include "../formula/formula.h"
 #include "../formula/monomialinequality.h"
+#include "matrix-manager.h"
 #include "../poly/factor.h"
 #include <vector>
 #include <set>
@@ -37,67 +38,51 @@ namespace tarski{
   class BBSolver : public QuickSolver {
   private:
     PolyManager* PM;
-    std::map<IntPolyRef, TAtomRef> polyToSIneq;
     std::vector<Deduction *> deductions;
     bool once;
-    MonoIneqRep * MIR;
-
-
-    void populatePoly(TAndRef t);
-    void populatePoly(TAtomRef A);
+    MatrixManager M;
 
   public:
-    inline BBSolver(TAndRef tf)  : deductions(0), once(true) {
+    inline BBSolver(TAndRef tf)  : deductions(0), once(true), M(tf) {
       this->PM = tf->getPolyManagerPtr();
-      populatePoly(tf);
     }
     std::vector<Deduction *> bbsat(TAndRef t);
     Deduction * deduce(TAndRef t);
     inline void notify() {}
-    void update(std::vector<Deduction *>::const_iterator begin, std::vector<Deduction *>::const_iterator end) {
-      while (begin != end) {
-        populatePoly((*begin)->getDed());
-        ++begin;
-      }
-    }
+    void update(std::vector<Deduction *>::const_iterator begin, std::vector<Deduction *>::const_iterator end);
   };
 
 
    
   class BBChecker {
   private:
-    MonoIneqRep * MIR;
+    MatrixManager * M;
     PolyManager * PM;
-    std::map<IntPolyRef, TAtomRef> * polyToSIneq;
-    std::vector<int> reasons;
-    std::vector<int> traceRow;
+    int unsatRow;
     std::set<IntPolyRef> findWeak(std::vector<TAtomRef>& conflict);
     std::set<TAtomRef> strengthenWeak(const std::set<IntPolyRef>& weakFacts);
     std::vector<TAtomRef> getConflict();
-    void printMIR();
-    void printBeforeGauss(Matrix& M);
-    void printAfterGauss(Matrix& M, vector<DBV>& george);
+    void printBeforeGauss();
+    void printAfterGauss();
   public:
     bool checkSat();
     vector<Deduction *> explainUnsat();
-    inline BBChecker(MonoIneqRep * m, std::map<IntPolyRef, TAtomRef> * pToS, PolyManager * pm) {
-      MIR = m;
-      polyToSIneq = pToS;
+    inline BBChecker(MatrixManager * m, PolyManager * pm) {
+      M = m;
       PM = pm;
     }
   };
 
   class BBDeducer {
   private:
-    MonoIneqRep * MIR;
-    std::map<IntPolyRef, TAtomRef> * polyToSIneq;
+    MatrixManager * M;
     PolyManager * PM;
-    void strictDeds(Matrix& M, std::vector<DBV>& george, vector<int>& traceRow, std::vector<Deduction *>& deds);
+    void strictDeds(std::vector<Deduction *>& deds);
+    int getNonZero(const std::vector<char>&);
   public:
     vector<Deduction *> getDeductions();
-    inline BBDeducer(MonoIneqRep * m, std::map<IntPolyRef, TAtomRef> * pToS, PolyManager * pm) {
-      MIR = m;
-      polyToSIneq = pToS;
+    inline BBDeducer(MatrixManager * m, PolyManager * pm) {
+      M = m;
       PM = pm;
 
     }
