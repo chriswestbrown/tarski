@@ -153,6 +153,23 @@ inline bool sameOrStronger(int a, int b) { return a == b || strictlyStronger(a,b
   return shortToRelop[num];
 }
 
+static const short T_combine[8][8] = {
+  //______|ZERO_LTOP_EQOP_LEOP_GTOP_NEOP_GEOP_ALOP
+  /*ZERO*/{ZERO,LTOP,EQOP,LEOP,GTOP,NEOP,GEOP,ALOP},
+  /*LTOP*/{LTOP,LTOP,ZERO,LTOP,ZERO,LTOP,ZERO,LTOP},
+  /*EQOP*/{EQOP,ZERO,EQOP,EQOP,ZERO,ZERO,EQOP,EQOP},
+  /*LEOP*/{LEOP,LTOP,EQOP,ZERO,ZERO,ZERO,ZERO,LEOP},
+  /*GTOP*/{GTOP,ZERO,ZERO,ZERO,GTOP,GTOP,GTOP,GTOP},
+  /*NEOP*/{NEOP,LTOP,ZERO,ZERO,GTOP,NEOP,ZERO,NEOP},
+  /*GEOP*/{GEOP,ZERO,EQOP,ZERO,GTOP,ZERO,GEOP,GEOP},
+  /*ALOP*/{ALOP,LTOP,EQOP,LEOP,GTOP,NEOP,GEOP,ALOP}
+};
+
+inline short sigma_combine(int a, int b)
+{
+  return T_combine[a][b];
+}
+
 } // end namespace tarski
 #endif
 

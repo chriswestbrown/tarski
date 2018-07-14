@@ -53,14 +53,15 @@ Step2: /* Projection. */
                /*Int PCNSTEP = 1; */
        PROJECT(r,A,&P,&J);
                /*Int*/ if (PCCONTINUE == TRUE) { goto Return; }
-
+       
 Step3: /* Truth-invariant CAD. */
+       if (PCTRACKUNSATCORE) { UNSATCORE.prepareForLift(); }
                /*Int*/ NMFPF = 0;
                /*Int*/ for (i=1; i<=f; i++) NMFPF=NMFPF+LENGTH(LELTI(P,i));
                /*Int*/ PCNSTEP = 1;
        D = TICAD(Q,F,f,P,A);
                /*Int*/ if (PCCONTINUE == TRUE) { goto Return; }
-
+       
 Step4: /* Solution. */
                /*Int*/ GVPC = D;
                /*Int*/ PCNSTEP = 1;

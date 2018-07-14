@@ -527,7 +527,7 @@ namespace tarski {
     FernPolyIter F2(formTwo->getSaclibPoly(), formTwo->getVars(), varMap);
     //Find the intervals of the interators
 
-    //cout << "\n------------------------DeduceSign2 for "; formOne->write(PM); cout << " and "; formTwo->write(PM); cout << "--------------------------------------\n";
+    //std::cout << "\n------------------------DeduceSign2 for "; formOne->write(*PM); cout << " and "; formTwo->write(*PM); cout << "--------------------------------------\n";
 
     std::vector<Interval> intervals = findIntervals2(F1, F2);
 
@@ -563,6 +563,14 @@ namespace tarski {
       }
       short sign = inter.getSign();
       if (sign == ALOP) continue;
+      if (sign == GTOP)  {
+        if ((GEOP & formOneSign) == (GTOP & formOneSign))
+          sign = GEOP;
+      }
+      else if (sign == LTOP)  {
+        if ((LEOP & formOneSign) == (LTOP & formOneSign))
+          sign = LEOP;
+      }
 
       Word t = 1; // td * p + tn * q
       Word td;
@@ -618,7 +626,6 @@ namespace tarski {
         std::cerr << "RNSIGN(t) is " << RNSIGN(t) << std::endl;
       }
 
-      
 
 
 
@@ -631,10 +638,12 @@ namespace tarski {
       IntPolyRef p = formOne->integerProduct(td);
       IntPolyRef q = formTwo->integerProduct(tn);
       IntPolyRef fin = PM->sum(p, q);
+
       if (verbose) {
         std::cerr << "p: "; p->write(*PM); std::cerr << std::endl;
         std::cerr << "q: "; q->write(*PM); std::cerr << std::endl;
         std::cerr << "fin: "; fin->write(*PM); std::cerr << std::endl;
+        std::cerr << "Want to prove "  << numToRelop(sign) << std::endl;
       }
 
       FernPolyIter F(fin->getSaclibPoly(), fin->getVars(), varMap);

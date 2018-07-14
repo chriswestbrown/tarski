@@ -295,6 +295,45 @@ Step2: /* Process the command. */
 	 SWRITE("\n");
 	 break;
 
+       case 107:
+	 if (!PCTRACKUNSATCORE) {
+	   SWRITE("ERROR! Unsat core tracking not enabled!\n");
+	   SWRITE("Must give track-unsat-core command prior to lifting.\n"); }
+	 else if (LELTI(GVPC,TRUTH) != FALSE)
+	   SWRITE("ERROR! Input formula is not unsatisfiable.");
+	 else
+	 {
+	   SWRITE("[ ");
+	   UNSATCORE.findUnsatCore();
+	   SWRITE(" ]\n");
+	 }
+	 break;
+	 
+       case 108:
+	 if (!PCTRACKUNSATCORE) {
+	   SWRITE("ERROR! Unsat core tracking not enabled!\n");
+	   SWRITE("Must give track-unsat-core command prior to lifting.\n"); }
+	 else if (LELTI(GVPC,TRUTH) != FALSE)
+	 {
+	   SWRITE("ERROR! Input formula is not unsatisfiable.");
+	 }
+	 else
+	 {
+	   SWRITE("[ ");
+	   UNSATCORE.findUnsatCore(true);
+	   SWRITE(" ]\n");
+	 }
+	 break;
+
+       case 109:
+	 if (UNSATCORE.isApplicable())
+	   PCTRACKUNSATCORE = TRUE;
+	 else
+	 {
+	   SWRITE("ERROR! unsat-core not applicable for this input!\n");
+	 }
+	 break;
+	 
        }
        goto Step1;
 

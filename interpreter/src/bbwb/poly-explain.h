@@ -7,8 +7,8 @@
 
 namespace tarski {
   class FernPolyIter;
-
-  static short signScores[8] = {9999, 7, 7, 5, 7, 4, 5, 0};
+  //                            NOP   LTOP EQOP LEOP GTOP NEOP GEOP ALOP
+  static short signScores[8] = {9999,   7,   7,   5,   7,   4,   5,  0};
   template<class T> class VarKeyedMap;
   //This table dictates how to combine two signs to get the stricter of the two
   //It works for VarKeyedMaps whose defaults are ALOP or NOOP

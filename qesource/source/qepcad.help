@@ -475,6 +475,54 @@ Displays all true cells using d-cell.
 @
 
 
+d-unsat-core 107 e d
+@
+d-unsat-core
+
+Displays an "unsat core" of the input formula.  This is
+available only if the "track-unsat-core" option has been
+set.  This command prints out (in Qepcad B syntax) a
+subset of the conjuncts from the input formula that are
+unsatisfiable.  See also: d-unsat-core-by-index and
+track-unsat-core.
+@
+
+d-unsat-core-by-index 108 e d
+@
+d-unsat-core-by-index
+
+Displays an "unsat core" of the input formula.  This is
+available only if the "track-unsat-core" option has been
+set.  This command prints out a list of indices describing
+a subset of the conjuncts from the input formula that are
+unsatisfiable.
+NONTE: these indices start at zero, and will not necessarily
+appear in sorted order!
+
+For example, with the following input formula
+
+  (E x)(E y)[ x^2 + y^2 - 1 < 0 /\ x + y < 0 /\ x y > 0 /\
+              y^2 - x > 0 /\ x y - 1 > 0 ].
+
+we get the following results for d-unsat-core-by-index and
+d-unsat-core.  Note that, as this example shows, there are
+smaller unsat cores, but because Qepcad B is using "partial"
+CAD, at x = 0 it finds x y > 0 to be unsat without lifting
+into y-space, and thus never discovers that x y - 1 > 0 is
+also unsat at x = 0.
+
+  Before Solution >
+  d-unsat-core-by-index
+  [ 0, 2, 4 ]
+
+  Before Solution >
+  d-unsat-core
+  [ (y^2 + x^2 - 1) < 0 /\ (x)(y) > 0 /\ (x y - 1) > 0 ]
+
+See also: d-unsat-core-by-index and track-unsat-core.
+@
+
+
 d-variable-list 11 abcde d
 @
 d-variable-list
@@ -971,6 +1019,20 @@ M is a trace option which is either 'y' or 'n'.
 
 If D is empty, the specified trace option is applied to all the
 tracable data.
+@
+
+
+track-unsat-core 109 abc pc
+@
+track-unsat-core
+
+This command switches on the additional bookkeeping required to
+support the d-unsat-core and d-unsat-core-by-index commands.  This
+operation is only allowed if the input formula is fully quantified,
+i.e. no free variables and all quantifiers are E (the usual
+existential quantifier) or F (the "exists infinitely many"
+quantifier), and the input formula is a conjunction of regular
+atomic formulas.
 @
 
 

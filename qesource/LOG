@@ -141,3 +141,14 @@ Tarski to call Qepcad, like a -t for "timeout" option.  The
 makefile now sets all calls to make to -j1, since there is
 apparently some dependency that's implicit in serial make, that
 needs to be explicit for parallel make ... but I'm unsure where.
+
+3/16/2018
+Added the track-unsat-core, d-unsat-core and
+d-unsat-core-by-index commands.  This required some substantial
+additions.  There are limitations here: first of all,
+equational constraints are handled poorly (though correctly).
+In the presence of equational constraints, all equalities in
+the input formula are automatically part of the unsat core.
+Note that if there are equational constraints declared that do
+not appear explicitly as equations in the input formula, the
+returned unsat core may be invalid.

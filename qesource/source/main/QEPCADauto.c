@@ -45,6 +45,7 @@ Step2: /* Projection. */
        PROJECTauto(r,A,&P,&J);
 
 Step3: /* Truth-invariant CAD. */
+       if (PCTRACKUNSATCORE) { UNSATCORE.prepareForLift(); }
        D = TICADauto(Q,F,f,P,A);
 
 Step4: /* Solution. */
