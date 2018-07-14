@@ -1,3 +1,7 @@
+#include <iostream>
+#include <vector>
+#include <map>
+
 #define MNV    30  /* Maximum Number of Variables = 30 */
 #define MNV1   31  /* One more for C arrary. */
 
@@ -71,6 +75,8 @@ public:
   GCWord PCCHFLAG;    /* Choose flag:  0 -> use normal CHCELL, 1 -> use niaveCHCELL. 10/11/97*/
   GCWord PCMZERROR;   /* Allow measure zero error in solution formula: 1 -> yes, 0 -> no */
 
+  GCWord PCTRACKUNSATCORE; /* FALSE means don't track for unsat core, TRUE means do. */
+  
 
   /* Statistics on Normalization Phase */
 Word TMNORMQFF;     /* Time for Normalization Phase, NORMQFF */
@@ -138,7 +144,8 @@ Word NMGENIMP;         /* Number of implicants generated */
 Word NMSELIMP;         /* Number of implicants selected */
 Word NMATOM;           /* Number of atomic formulas in the solution qff */
 
-
+#include "unsatcore.h"
+UnsatCore UNSATCORE;
 
 /* ------------------------------------------------------------------------*/
 /*                    MEMBER FUNCITONS                                     */
@@ -146,7 +153,7 @@ Word NMATOM;           /* Number of atomic formulas in the solution qff */
   
   void INITGLOBALS();
   void INITSTATS();
-  QepcadCls() { INITGLOBALS(); INITSTATS(); }
+  QepcadCls() : UNSATCORE(*this) { INITGLOBALS(); INITSTATS(); }
 
   /*********************************************************************************
    ************ BEGIN USER's QEPCADB "API" *****************************************
