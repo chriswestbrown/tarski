@@ -7,17 +7,6 @@
 namespace tarski {
 
 
-  static short T_combine[8][8] = {
-    //______|ZERO_LTOP_EQOP_LEOP_GTOP_NEOP_GEOP_ALOP
-    /*ZERO*/{ZERO,LTOP,EQOP,LEOP,GTOP,NEOP,GEOP,ALOP},
-    /*LTOP*/{LTOP,LTOP,ZERO,LTOP,ZERO,LTOP,ZERO,LTOP},
-    /*EQOP*/{EQOP,ZERO,EQOP,EQOP,ZERO,ZERO,EQOP,EQOP},
-    /*LEOP*/{LEOP,LTOP,EQOP,ZERO,ZERO,ZERO,ZERO,LEOP},
-    /*GTOP*/{GTOP,ZERO,ZERO,ZERO,GTOP,GTOP,GTOP,GTOP},
-    /*NEOP*/{NEOP,LTOP,ZERO,ZERO,GTOP,NEOP,ZERO,NEOP},
-    /*GEOP*/{GEOP,ZERO,EQOP,ZERO,GTOP,ZERO,GEOP,GEOP},
-    /*ALOP*/{ALOP,LTOP,EQOP,LEOP,GTOP,NEOP,GEOP,ALOP}
-  };
 
 
 
@@ -69,7 +58,7 @@ namespace tarski {
     else {
 
       int bestIdx = -1;
-      int bestScore = 0;
+      int bestScore = 0; // we want the minimum score!
       int currIdx = 0;
       for (std::vector<VarKeyedMap<int>>::iterator iter = candidates.begin(); iter != candidates.end(); ++iter) {
         int tmpScore = polyScoreFun(M, *iter, vars);
@@ -223,15 +212,9 @@ namespace tarski {
 
     //For all the variables in an explanation
     for (std::vector<Variable>::const_iterator vIter = vars.begin(); vIter != vars.end(); ++vIter) {
-
-      int oneScore = 0;
-      //If the oldMap has LEOP, and the candidate has LTOP, its not that bad. If the oldMap has ALOP and the candidate has LTOP, that's pretty bad. This line of code takes into account the score of the oldMap for the current variable.
-      oneScore += signScores[candidate.get(*vIter)] - signScores[oldMap.get(*vIter)];
-
-      //If the oldMap has LTOP, and the candidate has ALOP, that ALOP doesn't give us anything. This takes that into occurence.
-      if (oneScore < 0) oneScore = 0;
-
-      score += oneScore;
+      int sold = oldMap.get(*vIter);
+      int snew = sigma_combine(sold,candidate.get(*vIter));
+      score += signScores[snew] - signScores[sold];
     }
     return score;
   }
