@@ -124,4 +124,13 @@ namespace tarski {
     }
     std::cout << "##################################################" << std::endl;  
   }
+
+  SolverManager::~SolverManager() {
+    for (std::vector<QuickSolver * >::iterator itr = solvers.begin();
+         itr != solvers.end(); ++itr) {
+      delete(*itr);
+    }
+    solvers.clear();
+    delete dedM;
+  }
 }//end namespace tarski

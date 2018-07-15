@@ -17,6 +17,7 @@ namespace tarski {
   public:
     //use this method to have the solve rmake a single deduction
     //returns NULL when no deduction can be made!
+    virtual ~QuickSolver() {};
     virtual Deduction * deduce(TAndRef t) = 0;
     
     //use to notify the solver if the last deduction taught something new
@@ -59,7 +60,7 @@ namespace tarski {
 
   public:
     SolverManager(const vector<QuickSolver *>& v, TAndRef tand);
-
+    ~SolverManager();
     //Adds a quicksolver
     inline void addNew(QuickSolver * q) { solvers.push_back(q); solvers.back()->setDedM(dedM); }
 

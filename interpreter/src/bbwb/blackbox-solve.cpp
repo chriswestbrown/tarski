@@ -139,7 +139,6 @@ namespace tarski {
   std::set<TAtomRef> BBChecker::strengthenWeak(const std::set<IntPolyRef>& weakFacts) {
     set<TAtomRef> sAtoms;
     for (std::set<IntPolyRef>::const_iterator itr = weakFacts.begin(), end = weakFacts.end(); itr != end; ++itr){
-      cerr << "Attempting to strengthen "; (*itr)->write(*PM);
       TAtomRef t = M->strengthenPoly(*itr);
       sAtoms.insert(t);
     }
@@ -151,7 +150,7 @@ namespace tarski {
 
   void BBChecker::printAfterGauss() {
     std::cout << "After gauss:" << std::endl;
-    std::cout << "M: " << std::endl; M->getStrict().write();
+    std::cout << "M: " << std::endl; M->write();
   }
 
 

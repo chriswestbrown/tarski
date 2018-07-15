@@ -23,11 +23,14 @@ namespace tarski {
     MatrixManager(TAndRef);
     void addAtom(TAtomRef t);
     void write();
+
     /* INLINE CONST METHODS */
     inline IntPolyRef getPoly(int idx)           const { return cIdxToPoly[idx];      }
     inline TAtomRef getAtom(int idx)             const { return rIdxToAtom[idx];      }
     inline TAtomRef getStrictAtom(int idx)       const { return rIdxToAtom[tB[idx]];  }
-    inline TAtomRef strengthenPoly(IntPolyRef p) const { return strongMap.at(p);      }
+    inline TAtomRef strengthenPoly(IntPolyRef p) const {
+      return strongMap.at(p);
+    }
     inline const DMatrix& getStrict()            const { return strict;               }
     inline const DMatrix& getAll()               const { return all;                  }
     static inline bool isStrictRelop(TAtomRef t)  {

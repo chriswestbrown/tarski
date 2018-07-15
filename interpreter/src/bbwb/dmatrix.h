@@ -15,6 +15,7 @@ namespace tarski {
     DMatrix(); //    A simple constructor which does nothing
     DMatrix(int rows, int cols);
     DMatrix(const DMatrix &M);
+    ~DMatrix();
 
     inline int getNumRows() const { return m.size();}
     inline int getNumCols() const { return (m.size() > 0) ? m[0].size() :  0; }
@@ -22,9 +23,11 @@ namespace tarski {
     inline void set(int i, int j, bool val) { m[i][j] = val; }//Set the value of some element in the total matrix
     inline const std::vector<std::vector<bool> >& getComp() const  { return comp; }
     inline const std::vector<std::vector<char> >& getMatrix() const { return m; }
+
+
     inline void swapCol(int col1, int col2) {
       for (int i = 0; i < getNumRows(); i++) {
-        swapVal(m[col1][i], m[col2][i]);
+        swapVal(m[i][col1], m[i][col2]);
       }
     }
     inline void swapBack(int col) {
@@ -50,6 +53,7 @@ namespace tarski {
   private:
     std::vector< std::vector<char > > m; //the strict matrix
     std::vector < std::vector<bool > >comp; //the strict companion matrix
+
     inline void swapVal(bool&  val1, bool& val2){
       if (val1 == val2) return;
       else 
@@ -59,7 +63,7 @@ namespace tarski {
     inline void swapVal(char& val1, char& val2){
       char tmp = val2;
       val2 = val1;
-      val1 = tmp;
+      val1 = (tmp == 2) ? 0 : tmp;
     }
     void gaussElimExplain();
     void redGaussElimExp();

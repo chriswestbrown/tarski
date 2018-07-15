@@ -30,6 +30,7 @@ BoxSolver::BoxSolver(TFormRef formula) :  isPureConj(true),  numAtoms(-1), limit
   }
 }
 BoxSolver::~BoxSolver() {
+  delete IM;
   if (!isPureConj) {
     delete S;
     if (numAtoms > 5) delete M;

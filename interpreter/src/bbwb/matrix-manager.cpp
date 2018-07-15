@@ -2,7 +2,7 @@
 #include <assert.h>
 namespace tarski {
 
-  MatrixManager::MatrixManager(TAndRef t) : strict() {
+  MatrixManager::MatrixManager(TAndRef t) : strict(), cIdxToPoly(1) {
     PM = t->getPolyManagerPtr();
     std::set<IntPolyRef> strongPolys;
     std::set<IntPolyRef> weakPolys;
@@ -10,52 +10,62 @@ namespace tarski {
     for (TAndObj::conjunct_iterator itr = t->conjuncts.begin(); itr != t->conjuncts.end(); ++itr) {
       TAtomRef tf = asa<TAtomObj>(*itr);
       rIdxToAtom.push_back(tf);
-      if (tf->getRelop() == NEOP || tf->getRelop() == GTOP || tf->getRelop() == LTOP)
+      if (tf->getRelop() == NEOP || tf->getRelop() == GTOP || tf->getRelop() == LTOP) {
         for (map<IntPolyRef, int>::iterator fitr = tf->factorsBegin(); fitr != tf->factorsEnd(); ++fitr) {
           strongPolys.insert(fitr->first);
           strongMap[fitr->first] = tf;
         }
-      else
+      }
+      else {
         for (map<IntPolyRef, int>::iterator fitr = tf->factorsBegin(); fitr != tf->factorsEnd(); ++fitr) {
           weakPolys.insert(fitr->first);
         }
+      }
     }
 
     //These two loops give each polynomial its index
     for (std::set<IntPolyRef>::iterator itr = strongPolys.begin(), end = strongPolys.end(); itr != end; ++itr) {
-      allPolys[*itr] = cIdxToPoly.size();
-      cIdxToPoly.push_back(*itr);
-      weakPolys.erase(*itr);
+      IntPolyRef p = *itr;
+      allPolys[p] = cIdxToPoly.size();
+      cIdxToPoly.push_back(p);
+      weakPolys.erase(p);
     }
     for (std::set<IntPolyRef>::iterator itr = weakPolys.begin(), end = weakPolys.end(); itr != end; ++itr) {
-      allPolys[*itr] = cIdxToPoly.size();
-      cIdxToPoly.push_back(*itr);
+      IntPolyRef p = *itr;
+      allPolys[p] = cIdxToPoly.size();
+      cIdxToPoly.push_back(p);
     }
 
     //This loop gives each Atom in the formula a row, and populates that row
     DMatrix d(rIdxToAtom.size(), cIdxToPoly.size());
-    cerr << "strongPolys.size is " << strongPolys.size();
     for (int i = 0; i < rIdxToAtom.size(); i++) {
       TAtomRef tf = rIdxToAtom[i];
-      std::vector<char> strictRow(strongPolys.size());
+      std::vector<char> strictRow(strongPolys.size()+1);
       if (tf->getRelop() == LTOP || tf->getRelop() == LEOP) { d.set(i, 0, true); strictRow[0] = true; }
       bool noStrict = false;
       for (map<IntPolyRef, int>::iterator fitr = tf->factorsBegin();
            fitr != tf->factorsEnd(); ++fitr) {
         assert(allPolys.find(fitr->first) != allPolys.end());
+
+
         if (tf->getRelop() == GTOP || tf->getRelop() == LTOP || tf->getRelop() == GEOP || tf->getRelop() == LEOP){
           int j = allPolys[fitr->first];
-          if (fitr->second % 2 == 0 && fitr->second > 0 && j >= strongPolys.size()) d.set(i, j, 2);
+          if (fitr->second % 2 == 0 && fitr->second > 0
+              && j >= strongPolys.size()) d.set(i, j, 2);
           else if (fitr->second % 2 == 1) d.set(i, j, 1);
-          if (j >= strongPolys.size()) noStrict = true;
+          if (j >= strongPolys.size()+1) noStrict = true;
           if (!noStrict) strictRow[j] = fitr->second % 2;
         }
+
+
         else if (tf->getRelop() == NEOP || tf->getRelop() == EQOP) {
 
         }
       }
-      cerr << "strictRow size is " << strictRow.size() << endl;
-      if (noStrict) strict.addRow(strictRow);
+      if (!noStrict) {
+        strict.addRow(strictRow);
+        std::cerr << "Strict gets the row corresponding to "; tf->write(); std::cerr << endl;
+      }
     }
     all = d;
 
@@ -67,6 +77,7 @@ namespace tarski {
 
   void MatrixManager::addAtom(TAtomRef tf) {
     rIdxToAtom.push_back(tf);
+    std::cerr << "Adding atom ";  tf->write(); std::cerr << std::endl;
     vector<char> newRowVec(allPolys.size());
     for (map<IntPolyRef, int>::iterator fitr = tf->factorsBegin(); fitr != tf->factorsEnd(); ++fitr) {
       IntPolyRef p = fitr->first;
@@ -133,8 +144,10 @@ namespace tarski {
   void MatrixManager::write() {
     std::cout << "Vector Rep:" << std::endl;
     std::cout << "sigma";
-    int r0 = getStrict().getMatrix().size();
-    int m0 = getAll().getMatrix().size();
+
+
+    int r0 = getStrict().getNumCols();
+    int m0 = getAll().getNumCols();
     for(int i = 1; i < m0; i++)
       {
         if (i == r0) { std::cerr << " :"; }
@@ -142,9 +155,10 @@ namespace tarski {
         getPoly(i)->write(*PM);
         std::cerr << ")";
       }
-    std::cout << std::endl;
-
+    std::cout << std::endl <<  "Strict:" << std::endl;
     getStrict().write();
+    std::cout << std::endl << "Nonstrict: " << std::endl;
+    getAll().write();
   }
 
 

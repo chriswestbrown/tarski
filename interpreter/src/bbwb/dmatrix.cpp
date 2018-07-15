@@ -21,10 +21,12 @@ namespace tarski {
   DMatrix::DMatrix(const DMatrix &M): m(M.m) { }
 
   void DMatrix::write() const {
-    for (int i = 0; i < m.size(); i++)
-      for (int j = 0; j < m[i].size(); j++)
+    for (int i = 0; i < m.size(); i++) {
+      for (int j = 0; j < m[i].size(); j++) {
         std::cerr << (int) m[i][j] << " ";
-    std::cout << std::endl;
+      }
+      std::cout << std::endl;
+    }
   }
   
 
@@ -117,9 +119,6 @@ namespace tarski {
     for (int i = 1; i < m[i].size(); i++) {
       if (m[0][i] == true) return false;
     }
-      m.resize(m[0].size());
-    m.push_back(vb);
-    std::cerr << "m size is now " << m.size() << std::endl
     return true;
   }
 
@@ -137,7 +136,6 @@ namespace tarski {
     if (m.size() > 0)
       vc.resize(m[0].size());
     m.push_back(vc);
-    std::cerr << "m size is now " << m.size() << std::endl;
     for (int i = 0; i <  comp.size(); i++) {
       comp[i].push_back(false);
     }
@@ -146,6 +144,11 @@ namespace tarski {
     comp.push_back(b);
   }
 
+
+  DMatrix::~DMatrix() {
+    comp.clear();
+    m.clear();
+  }
 
 }//end namespace
 
