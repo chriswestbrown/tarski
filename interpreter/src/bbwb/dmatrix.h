@@ -81,11 +81,10 @@ namespace tarski {
       return sum;
     }
 
-
     template <class T> void sumRows(int i, int j, std::vector<std::vector<T> >& v) {
       typename std::vector<T>::iterator itr = v[i].begin();
       typename std::vector<T>::iterator itr2 = v[j].begin();
-      while (itr !=v[i].end() && itr2 != v[j].end()) {
+      while (itr !=v[i].end() ) {
         if (*itr && *itr2)
           *itr = false;
         else if (*itr2)

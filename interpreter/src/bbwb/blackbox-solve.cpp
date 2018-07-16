@@ -95,7 +95,7 @@ namespace tarski {
     const std::vector<bool>& exp = M->getStrict().getComp().at(unsatRow);
     for (int i = 0; i < exp.size(); i++) {
       if (exp.at(i) == true) {
-        conflict.push_back(M->getAtom(i));
+        conflict.push_back(M->getAtom(i, true));
       }
     }
     return conflict;
@@ -188,7 +188,7 @@ namespace tarski {
       //Iterating through the dependencies of this deduction, which are identified by a "1" in deps
       for (int a = 0; a < deps.size(); a++) {
         if (deps.at(a) == 0) continue; //Indicates the row is unused for this deduction
-        TAtomRef A = M->getAtom(a);
+        TAtomRef A = M->getAtom(a, true);
         atoms.push_back(A);
         //In this block, we see if one of the already existing dependencies of the deduction strengthens it
         if (!strengthen && deps.at(a) != 0) { //If it contains the polynomial which we are trying to strengthen

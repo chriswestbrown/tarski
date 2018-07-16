@@ -72,8 +72,9 @@ namespace tarski {
     int c = getNumCols();
 
     for(int i = 0; i < r; ++i)   {
+
       // Find next pivot row
-      int wmin = INT_MAX, kmin, tmp=0;
+      int wmin = INT_MAX, kmin, tmp = 0;
       for(int k = i; k < r; ++k) {
         if ((tmp = rowWeight(k, m, true)) < wmin && tmp != 0) { wmin = tmp; kmin = k; }
       }
@@ -87,8 +88,8 @@ namespace tarski {
       pivotCols.push_back(j);
       for(int k = i + 1; k < r; ++k){
         if (m[k][j]) {
-          sumRows(k, j, m);
-          sumRows(k, j, comp);
+          sumRows(k, i, m);
+          sumRows(k, i, comp);
         }
       }
     }
@@ -134,7 +135,7 @@ namespace tarski {
 
   void DMatrix::addRow(std::vector<char> vc) {
     if (m.size() > 0)
-      vc.resize(m[0].size());
+      vc.resize(m[0].size(), 0);
     m.push_back(vc);
     for (int i = 0; i <  comp.size(); i++) {
       comp[i].push_back(false);
