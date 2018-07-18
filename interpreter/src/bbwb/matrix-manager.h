@@ -3,16 +3,22 @@
 #include <vector>
 #include <iostream>
 #include <map>
+#include <list>
 #include "dmatrix.h"
 #include "formula.h"
+#include "poly.h"
 
-
-//TODO: Handle case where an atom which is only in the NS matrix
-//      Becomes eligible for the strict matrix
-//TODO: Handle NEOP/EQOP atoms
 namespace tarski {
+
+  struct IntPolyComp {
+    bool operator() (const IntPolyRef& l, const IntPolyRef& r) {
+      return IntPolyObj::ipcmp(l, r);
+    }
+  };
+
   class MatrixManager {
   private:
+    
     DMatrix strict;
     DMatrix all;
     PolyManager * PM;
@@ -28,7 +34,7 @@ namespace tarski {
     
     std::map<IntPolyRef, int>  allPolys;
     std::map<IntPolyRef, TAtomRef> strongMap;
-    std::map<TAtomRef, set<IntPolyRef> > nSR;
+    std::map<TAtomRef, std::list<IntPolyRef> > nSR;
     void addNewStrict(IntPolyRef);
     void swapToStrict(IntPolyRef);
 
@@ -38,7 +44,7 @@ namespace tarski {
   public:
     MatrixManager(TAndRef);
     void addAtom(TAtomRef t);
-    void write();
+    void write() const;
 
     /* INLINE  METHODS */
     inline IntPolyRef getPoly(int idx) const {
@@ -52,7 +58,6 @@ namespace tarski {
       return rIdxToAtom[tB[idx]];
     }
     inline TAtomRef strengthenPoly(IntPolyRef p) const {
-      std::cerr << "Strengthening: "; p->write(*PM); std::cerr << endl;
       return strongMap.at(p);
     }
     inline const DMatrix& getStrict() const { return strict; }
