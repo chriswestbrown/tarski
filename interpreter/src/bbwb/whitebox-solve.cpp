@@ -62,9 +62,11 @@ namespace tarski {
       for (set<IntPolyRef>::iterator mItr = multiVars.begin(); mItr != multiVars.end(); ++mItr){
         IntPolyRef p1 = *sItr;
         IntPolyRef p2 = *mItr;
-        //std::cerr << "adding first: "; p1->write(*PM); std::cerr << " second: ";  p2->write(*PM); std::cerr << " done0" << std::endl;
-        pair<IntPolyRef, IntPolyRef> p((p1), (p2));
-        singleVarsDed.insert(p);
+        if ((p1->getVars() & p2->getVars()).any()) {
+          //std::cerr << "adding first: "; p1->write(*PM); std::cerr << " second: ";  p2->write(*PM); std::cerr << " done0" << std::endl;
+          pair<IntPolyRef, IntPolyRef> p((p1), (p2));
+          singleVarsDed.insert(p);
+        }
       }
     }
   }
@@ -76,7 +78,7 @@ namespace tarski {
       IntPolyRef p1 = *mItr1;
       for (set<IntPolyRef>::iterator mItr2 = multiVars.begin(); mItr2 != multiVars.end(); ++mItr2){
         IntPolyRef p2 = *mItr2;
-        if (!(p1->equal(p2))) {
+        if (!(p1->equal(p2)) && (p1->getVars() & p2->getVars()).any()) {
           pair<IntPolyRef, IntPolyRef> p((p1), (p2));
           multiVarsDed.insert(p);
         }
@@ -85,8 +87,10 @@ namespace tarski {
       for (set<IntPolyRef>::iterator sItr = singleVars.begin();
 	   sItr != singleVars.end(); ++sItr) {
         IntPolyRef p2 = *sItr;
-        pair<IntPolyRef, IntPolyRef> p((p1), (p2));
-        multiVarsDed.insert(p);
+        if ((p1->getVars() & p2->getVars()).any()) {
+          pair<IntPolyRef, IntPolyRef> p((p1), (p2));
+          multiVarsDed.insert(p);
+        }
       }
       
     }

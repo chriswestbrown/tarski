@@ -523,6 +523,7 @@ namespace tarski {
 
 
   tuple<VarKeyedMap<int>, VarSet, short>  Interval::deduceSign2(const VarKeyedMap<int> &varMap, PolyManager * PM, const IntPolyRef &formOne, const IntPolyRef &formTwo, short formOneSign, short formTwoSign) {
+
     FernPolyIter F1(formOne->getSaclibPoly(), formOne->getVars(), varMap);
     FernPolyIter F2(formTwo->getSaclibPoly(), formTwo->getVars(), varMap);
     //Find the intervals of the interators

@@ -42,20 +42,23 @@ namespace tarski {
     for (int i = 0; i < rIdxToAtom.size(); i++) {
       TAtomRef tf = rIdxToAtom[i];
       std::vector<char> strictRow(strongPolys.size()+1);
-      if (tf->getRelop() == LTOP || tf->getRelop() == LEOP) { d.set(i, 0, true); strictRow[0] = true; }
+      if (tf->getRelop() == LTOP || tf->getRelop() == LEOP) {
+        d.set(i, 0, true);
+        strictRow[0] = true;
+      }
       bool noStrict = false;
       for (map<IntPolyRef, int>::iterator fitr = tf->factorsBegin();
            fitr != tf->factorsEnd(); ++fitr) {
         assert(allPolys.find(fitr->first) != allPolys.end());
 
-        if (tf->getRelop() == GTOP || tf->getRelop() == LTOP || tf->getRelop() == GEOP || tf->getRelop() == LEOP){
+        if (tf->getRelop() == GTOP || tf->getRelop() == LTOP || tf->getRelop() == GEOP || tf->getRelop() == LEOP) {
           int j = allPolys[fitr->first];
           if (fitr->second % 2 == 0 && fitr->second > 0
               && j >= strongPolys.size()) d.set(i, j, 2);
           else if (fitr->second % 2 == 1) d.set(i, j, 1);
           if (j >= strongPolys.size()+1)  {
             noStrict = true;
-            nSR[tf].push_back(fitr->first);
+            
           }
           if (!noStrict) strictRow[j] = fitr->second % 2;
         }
@@ -76,9 +79,6 @@ namespace tarski {
     else {
       rIdxToAtom.push_back(tf);
     }
-
-
-
     if (isStrictRelop(tf)) {
       std::vector<char> newRowVec(getNumStrictCols(), 0);
       if (getNumStrictCols() == 0) newRowVec.resize(1, 0);
@@ -103,7 +103,6 @@ namespace tarski {
           swapToStrict(p);
           newRowVec.push_back(val);
           strongMap[p] = tf;
-          //TODO: Some function to reassign NS atoms to strict
         }
         //known and was already strict
         else {
@@ -119,42 +118,43 @@ namespace tarski {
     }
 
 
-
-    bool isStrict = true;
-    vector<char> newRowVec(allPolys.size());
-    for (map<IntPolyRef, int>::iterator fitr = tf->factorsBegin();
-         fitr != tf->factorsEnd(); ++fitr) {
-      IntPolyRef p = fitr->first;
-      if (allPolys.find(p) == allPolys.end() ) {
-        //unknown and learned not strict
-        isStrict = false;
-        nSR[tf].push_back(p);
-        all.addCol();
-        allPolys[p] = cIdxToPoly.size();
-        cIdxToPoly.push_back(p);
-        newRowVec.push_back(false);
-      }
-      //not strict and known not strict
-      else {
-        int j = allPolys[p];
-        if (isStrict && j >= getNumStrictCols())  {
+    else {
+      bool isStrict = true;
+      vector<char> newRowVec(allPolys.size());
+      for (map<IntPolyRef, int>::iterator fitr = tf->factorsBegin();
+           fitr != tf->factorsEnd(); ++fitr) {
+        IntPolyRef p = fitr->first;
+        if (allPolys.find(p) == allPolys.end() ) {
+          //unknown and learned not strict
           isStrict = false;
-          nSR[tf].push_back(p);
+          
+          all.addCol();
+          allPolys[p] = cIdxToPoly.size();
+          cIdxToPoly.push_back(p);
+          newRowVec.push_back(false);
         }
-        if (fitr->second % 2 == 0 && fitr->second > 0
-            && j >= getNumStrictCols()) newRowVec[j] = 2;
-        else if (fitr->second % 2 == 0) newRowVec[j] = 0;
-        else newRowVec[j] = 1;
+        //not strict and known not strict
+        else {
+          int j = allPolys[p];
+          if (isStrict && j >= getNumStrictCols())  {
+            isStrict = false;
+            
+          }
+          if (fitr->second % 2 == 0 && fitr->second > 0
+              && j >= getNumStrictCols()) newRowVec[j] = 2;
+          else if (fitr->second % 2 == 0) newRowVec[j] = 0;
+          else newRowVec[j] = 1;
+        }
       }
-    }
-    if (isStrict && isRow) {
-      if (getNumStrictCols() == 0) {
-        vector<char> sRowVec(newRowVec.begin(), newRowVec.begin()+1+strongMap.size());
-        strict.addRow(sRowVec);
+      if (isStrict && isRow) {
+        if (getNumStrictCols() == 0) {
+          vector<char> sRowVec(newRowVec.begin(), newRowVec.begin()+1+strongMap.size());
+          strict.addRow(sRowVec);
+        }
+        tB.push_back(rIdxToAtom.size()-1);
       }
-      tB.push_back(rIdxToAtom.size()-1);
+      if (isRow) all.addRow(newRowVec);
     }
-    if (isRow) all.addRow(newRowVec);
   }
 
 
@@ -163,16 +163,19 @@ namespace tarski {
   //changes matrix column sizes
   void MatrixManager::addNewStrict(IntPolyRef p) {
     if (strict.getNumCols() == all.getNumCols()) {
+      allPolys[p] = cIdxToPoly.size();
       cIdxToPoly.push_back(p);
       all.addCol();
       strict.addCol();
+
     }
     else {
-      IntPolyRef oldP = cIdxToPoly[strict.getNumCols()];
+      short oldIdx = (getNumStrictCols() != 0) ? getNumStrictCols() : 1;
+      IntPolyRef oldP = cIdxToPoly[oldIdx];
       cIdxToPoly.push_back(oldP);
-      cIdxToPoly[strict.getNumCols()] = p;
+      cIdxToPoly[oldIdx] = p;
       allPolys[oldP] = all.getNumCols();
-      allPolys[p] = strict.getNumCols();
+      allPolys[p] = oldIdx;
       all.addCol();
       all.swapBack(strict.getNumCols());
       strict.addCol();
@@ -181,15 +184,19 @@ namespace tarski {
 
   void MatrixManager::swapToStrict(IntPolyRef p) {
     //We learned a polynomial is now strict that was nonstrict!
-    IntPolyRef oldP = (getNumStrictCols() != 0) ? cIdxToPoly[getNumStrictCols()] : cIdxToPoly[1];
-    cIdxToPoly[allPolys[p]] = oldP;
-    if (strict.getNumCols() == 0)
-      cIdxToPoly[1] = p;
-    else
-      cIdxToPoly[strict.getNumCols()] = p;
-    allPolys[oldP] = all.getNumCols()-1;
-    allPolys[p] = strict.getNumCols();
-    all.swapBack(strict.getNumCols());
+    short oldIdx = (getNumStrictCols() != 0) ? getNumStrictCols() : 1;
+    IntPolyRef oldP = cIdxToPoly[oldIdx];
+    short nuIdx = allPolys[p];
+    //in this case, no swap necessary since it is already in proper place
+    if (nuIdx == oldIdx) {
+      strict.addCol();
+      return;
+    }
+    cIdxToPoly[nuIdx] = oldP;
+    cIdxToPoly[oldIdx] = p;
+    allPolys[oldP] = nuIdx;
+    all.swapCol(oldIdx, nuIdx);
+    allPolys[p] = oldIdx;
     strict.addCol();
   }
 
@@ -223,22 +230,23 @@ namespace tarski {
     for (int i = 0; i < rIdxToAtom.size(); i++) {
       if (isStrict[i]) continue;
       TAtomRef tf = rIdxToAtom[i];
-      assert(nSR.find(tf) != nSR.end());
-      for (list<IntPolyRef>::iterator itr = nSR[tf].begin(); itr != nSR[tf].end(); ++itr) {
-        if (strongMap.find(*itr) != strongMap.end())  {
-          list<IntPolyRef>::iterator itr2 = itr;
-          --itr;
-          nSR[tf].erase(itr2);
-        }
-      }
-      if (nSR[tf].empty())  {
-        isStrict[i] = true;
+      if (isStrictAtom(tf))  {
         strict.addRow(all.getMatrix().at(i));
         tB.push_back(i);
-        nSR.erase(rIdxToAtom[i]);
-      }
+        }
     }
     needUpdate = false;
+  }
+
+  bool MatrixManager::isStrictAtom(TAtomRef t) {
+    FactRef F = t->getFactors();
+    std::map<IntPolyRef, int>::iterator itr = F->MultiplicityMap.begin(), end = F->MultiplicityMap.end();
+    for (; itr != end; ++itr ) {
+      IntPolyRef p = itr->first;
+      if (strongMap.find(p) == strongMap.end())
+        return false;
+    }
+    return true;
   }
 
 }//end namespace

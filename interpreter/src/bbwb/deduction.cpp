@@ -61,7 +61,7 @@ namespace tarski {
     vector<int> tmp;
     depIdxs.push_back(tmp);
     deds.push_back(new Given(t));
-    TAtomRef t1 = deds.back()->getDed();
+    TAtomRef t1 = deds[atomToDed[t]]->getDed();
     vector<TAtomRef> atomDeps(2);
     atomDeps[0] = t;
     atomDeps[1] = t1;

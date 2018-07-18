@@ -34,11 +34,10 @@ namespace tarski {
     
     std::map<IntPolyRef, int>  allPolys;
     std::map<IntPolyRef, TAtomRef> strongMap;
-    std::map<TAtomRef, std::list<IntPolyRef> > nSR;
     void addNewStrict(IntPolyRef);
     void swapToStrict(IntPolyRef);
 
-
+    bool isStrictAtom(TAtomRef t);
     void strictUpdate();
     inline int getNumStrictCols() {return strict.getNumCols(); }
   public:
@@ -72,7 +71,9 @@ namespace tarski {
       strictUpdate();
       strict.doElim();
     }
-    inline void allElim()                        { all.doElim();    }
+    inline void allElim(){
+      all.doElim();
+    }
 
 
  
