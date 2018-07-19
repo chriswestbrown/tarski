@@ -34,7 +34,7 @@ echo "Making SACLIB..."
 check bin/sconf
 check bin/mkproto
 check bin/mkmake
-check "bin/mklib all"
+check "bin/mklib all -fPIC"
 check
 echo "Saclib done"
 popd
@@ -51,7 +51,7 @@ fi
 export qe=$qepcadRoot
 pushd $qe
 echo "Making QEPCAD..."
-check make
+check "make opt"
 echo "QEPCAD done"
 popd
 
@@ -84,6 +84,7 @@ echo -e "set in order to use or recompile Tarski.  So it is"
 echo -e "strongly recommended that the lines:\n"
 echo -e "export \$saclib=$saclibRoot"
 echo -e "export \$qe=$qepcadRoot\n"
+echo -e "PATH=\$PATH:$qepcadRoot/bin\n"
 echo -e "are added to your .profile (or .bash_profile, depending"
 echo -e "on which you use) or whichever the equivalent file is on"
 echo -e "your system."
