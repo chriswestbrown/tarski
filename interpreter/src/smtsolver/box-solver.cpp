@@ -231,6 +231,7 @@ TAndRef BoxSolver::genMHS() {
 }
 
 
+
 TAndRef BoxSolver::genTAnd(int maxIdx) {
   TAndRef tand = new TAndObj();
   const vec<Lit>& trail = getTrail();
@@ -260,6 +261,27 @@ void BoxSolver::getClause(vec<Lit>& lits, bool& conf) {
     count++;
     conf = false;
   }
+}
+
+
+bool BoxSolver::compareVecs(vec<Lit>& nuVec) {
+  bool retVal = true;
+  if (nuVec.size() < lastVec.size()) {
+    retVal = false;
+  }
+  else {
+    for (int i = 0; i < lastVec.size(); i++) {
+      if (lastVec[i] != nuVec[i]) {
+        retVal = false;
+        break;
+      }
+    }
+  }
+  lastVec.clear();
+  for (int i = 0; i < nuVec.size(); i++) {
+    lastVec[i] = nuVec[i];
+  }
+  return retVal;
 }
 
 void BoxSolver::getClauseMain(vec<Lit>& lits, bool& conf) {

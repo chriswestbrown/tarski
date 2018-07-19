@@ -208,7 +208,7 @@ namespace tarski {
     }
 
     //CONSTRUCTOR METHODS
-    void addGiven(TAtomRef t);
+    
     void addGCombo(TAtomRef t);
     void processGiven(TAtomRef t);
     //END CONSTRUCTOR
@@ -221,7 +221,7 @@ namespace tarski {
 
   public:
 
-
+    void addGiven(TAtomRef t);
     inline short getSign(IntPolyRef p) {
       FactRef F = new FactObj(PM);
       F->addFactor(p, 1);

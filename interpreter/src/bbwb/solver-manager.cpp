@@ -42,8 +42,8 @@ namespace tarski {
   Result SolverManager::deduceAll() {
     if (hasRan) return finResult;
     hasRan = true;
-    for (int i = 0; i < lastDeds.size(); i++) lastDeds[i] = dedM->size();
     if (dedM->isUnsat()) { finResult = dedM->traceBack(); return finResult; }
+    for (int i = 0; i < lastDeds.size(); i++) lastDeds[i] = dedM->size();
     int i = 0, lastChange = -1;
     while (true) {
       //case where solvers can't deduce UNSAT and all deductions exhausted
@@ -74,6 +74,22 @@ namespace tarski {
     solvers[i]->update(itr, end);
   }
 
+  /*
+    
+   */
+  void SolverManager::update(const vector<Deduction *>& v) {
+
+    if (dedM->isUnsat()) { return; }
+    hasRan = false;
+    int oldLast = dedM->size();
+    for (std::vector<Deduction *>::const_iterator itr = v.begin(),
+           itr != v.end(); ++itr) {
+      dedM->addGiven(*itr);
+    }
+    for (int i  = 0; i < solvers.size(); i++) {
+      updateSolver(i);
+    }
+  }
   /*
     return 0 to indicate the solver learned nothing
     return 1 to indicate a solver learned something

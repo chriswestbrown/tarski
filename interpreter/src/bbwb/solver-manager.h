@@ -76,6 +76,8 @@ namespace tarski {
     //returns a tarksi object containing the results of deduceAll
     LisRef genLisResult();
 
+    void update();
+
   private:
     //return 0 if nothing has changed
     //return 1 if somehting hew has been deduced

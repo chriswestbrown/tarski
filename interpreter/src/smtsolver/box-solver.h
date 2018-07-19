@@ -89,6 +89,9 @@ namespace tarski {
     //Returns the CNF translation of a formula
     std::vector<std::vector<Minisat::Lit> > makeFormula(tarski::TFormRef formula);
 
+    std::vector<Minisat::Lit> lastVec;
+    bool compareVecs(Minisat::vec<Minisat::Lit>&);
+
     vector<vector<Minisat::Lit> > form;
     tarski::PolyManager * pm;
     //If [idx] maps to an atom with sign GTOP, [idx+1] maps to the opposite LEOP. The >= sign always goes before < and != signs
