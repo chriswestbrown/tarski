@@ -1,12 +1,46 @@
-###########SOFTWARE LICENSE################
 
-###########################################
+1. What's here.
 
+   This directory contains Tarski, a system for computing
+   with Tarski Formulas.  Tarski relies on Saclib, Qepcad, and
+   a modified version of MiniSAT, so those systems are included
+   in this root as well.
 
-To compile tarski:
+2. Contributors
+   Tarski includes code contributions from Chris Brown and
+   Fernando Vale-Enriquez.
 
-0. Using apt-get, install:
- a. libz-dev (for MiniSAT)
- b. libssl-dev (for the Tarski Interpreter)
- c. libreadline-dev (for the Tarski Interpreter)
-1. Run tarInstall.sh
+3. Building Tarski
+
+   Tarski should build pretty easily on Linux systems.
+
+   a. Dependencies
+      The following external packages must be installed for Tarski
+      to build (e.g. sudo apt-get install <name>):
+      - libz-dev (for MiniSAT)
+      - libssl-dev (for the Tarski Interpreter)
+      - libreadline-dev (for the Tarski Interpreter)
+
+   b. Build
+      From the root directory, building Tarski should be as simple
+      as running ./build.sh  .... and then getting a cup of coffee.
+      In fact, Saclib, Qepcad, the modified MiniSAT and Tarski will
+      all be built as part of this process.  If you have an existing
+      Saclib and/or Qepcad that you want to use in place of those
+      packaged with Tarski, read the first few lines of build.sh.
+
+   c. Run
+      From the tarski root directory, Tarski can be run as:
+
+      ./bin/tarski
+      
+      It is strongly suggested to add that bin directory to your
+      shell PATH variable.
+
+4. License
+   Saclib, Qepcad, MiniSAT and Tarski all have their own license
+   files in their resepective root directories.
+
+5. Please send bug reports or questions to Chris Brown at
+   wcbrown@usna.edu.
+   

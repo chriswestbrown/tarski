@@ -1,13 +1,9 @@
 # Master Makefile for the Tarski Intepreter
-# Sourced from a blog post by Job Vranish
+# Following the blog post by Job Vranish
 # https://spin.atomicobject.com/2016/08/26/makefile-c-projects/
-#
-#
-#
 
-
-CXX=clang++
-CC=clang++ 
+CXX=g++
+CC=g++ 
 MROOT=-I../minisat
 extIncludesSACLIB:=-I${saclib}/include
 extLibSACLIB:=${saclib}/lib/saclibo.a
