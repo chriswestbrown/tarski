@@ -49,6 +49,7 @@ else
 fi
 
 export qe=$qepcadRoot
+export PATH=$qe/bin:$PATH
 pushd $qe
 echo "Making QEPCAD..."
 check "make opt"
