@@ -231,19 +231,21 @@ TAndRef BoxSolver::genMHS() {
 }
 
 
+bool BoxSolver::atomFromLit(Lit p, TAtomRef& t) {
+  if (sign(p) == true) {
+    return false;
+  }
+  int v = var(p);
+  return IM->getAtom(v, t);
+}
 
 TAndRef BoxSolver::genTAnd(int maxIdx) {
   TAndRef tand = new TAndObj();
   const vec<Lit>& trail = getTrail();
   for (int i = 0; i < maxIdx; i++) {
-    Lit p = trail[i];
-    //write(p); cout << " ";
-    if (sign(p) == true) continue;
-    int v = var(p);
-    TAtomRef tatom;
-    bool res = IM->getAtom(v, tatom);
-    if (res) {
-      tand->AND(tatom);
+    TAtomRef t;
+    if (atomFromLit(trail[i], t)) {
+      tand->AND(t);
     }
   }
   //cout << "genTAND: ";
@@ -264,6 +266,12 @@ void BoxSolver::getClause(vec<Lit>& lits, bool& conf) {
 }
 
 
+/*
+  returns true if nuVec = lastVec + some new assumptions
+  returns false otherwise
+  Sets lastVec = nuVec in both cases
+  in other words, checks if MINISAT made any retractions
+ */
 bool BoxSolver::compareVecs(vec<Lit>& nuVec) {
   bool retVal = true;
   if (nuVec.size() < lastVec.size()) {
@@ -290,25 +298,37 @@ void BoxSolver::getClauseMain(vec<Lit>& lits, bool& conf) {
   //Step 1a: For each lit in trail
   //Step 1a.1: Map to the corresponding TAtomRef
   //Step 1a.2: AND it with tand
-  TAndRef tand = genTAnd(getQhead());
+  int i = lastVec.size();
+  if (compareVecs(lits)) {
+    vector<Deduction * > givens;
+    for (; i < lastVec.size(); i++) {
+      TAtomRef t;
+      if (atomFromLit(lits[i], t)) {
+        Given * g = new Given(t);
+        givens.push_back(g);
+      }
+    }
+    SM->updateSolver(givens);
 
-  //cout << "PROBLEM: "; tand->write(); cout << endl;
-  if (tand->constValue() == TRUE) {
-    conf = false;
-    return;
   }
 
-  
-  //Step 2: Construct a BB/WB Solver bbwb with tand and solve
-  SolverManager b({ new BBSolver(tand) , new WBSolver(tand) }, tand);
-  Result res = b.deduceAll();
-  if (b.isUnsat()) {   //Step 3: IF UNSAT: construct conflict and other learned clauses
-    //cout << "Found unsat\n" << endl;
-    constructClauses(lits, b, res.count());
+  else {
+    TAndRef tand = genTAnd(getQhead());
+    //cout << "PROBLEM: "; tand->write(); cout << endl;
+    if (tand->constValue() == TRUE) {
+      conf = false;
+      return;
+    }
+    //Step 2: Construct a BB/WB Solver bbwb with tand and solve
+    delete SM;
+    SM = new SolverManager({ new BBSolver(tand) , new WBSolver(tand) }, tand);
+  }
+  Result res = SM->deduceAll();
+  if (SM->isUnsat()) {
+    constructClauses(lits, res);
     conf = true;
   }
   else {
-    //cout << "Found sat\n" << endl;
     conf = false;
   }
 }
@@ -361,11 +381,10 @@ inline void BoxSolver::writeLearnedClause(vec<Lit>& lits) {
   }
 }
 
-void BoxSolver::constructClauses(vec<Lit>& lits, SolverManager& b, int numDeds) {
+void BoxSolver::constructClauses(vec<Lit>& lits, Result& r) {
   //Traceback the last result (AKA, the conflict)
   //Place it into lits
   
-  Result r = b.deduceAll();
   /*
   cout << "Conflict: "; r.write();
   cout << "ASSIGNMENTS: "; printStack(); cout << endl;
@@ -383,10 +402,10 @@ void BoxSolver::constructClauses(vec<Lit>& lits, SolverManager& b, int numDeds) 
 
   stack<Lit> litStack = mkClause(r);
   while (litStack.size() > 0) {
-
     lits.push(litStack.top());
     litStack.pop();
   }
+
   /*
   cout << "LEARNED    :";
   for (int i = 0; i < lits.size(); i++) {
