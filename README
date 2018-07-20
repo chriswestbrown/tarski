@@ -1,7 +1,12 @@
+###########SOFTWARE LICENSE################
+
+###########################################
+
+
 To compile tarski:
 
-0. Set the saclib environment variable to the saclib2.2 directory (IE export saclib=/home/mydir/saclib2.2)
-1. Set the qe environment variable to the qesource directory (IE export qe=/home/mydir/qesource )
-2. Set the TMROOT environment variable to the minisat directory (IE export TMROOT=home/mydir/minisat)
-3. Add $qe/bin to your PATH variable (so that tarski can find the QEPCAD binary)
-4. Run tarInstall.sh
+0. Using apt-get, install:
+ a. libz-dev (for MiniSAT)
+ b. libssl-dev (for the Tarski Interpreter)
+ c. libreadline-dev (for the Tarski Interpreter)
+1. Run tarInstall.sh
