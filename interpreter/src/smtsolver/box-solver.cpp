@@ -18,7 +18,7 @@ using namespace std;
 
 inline bool intSort (int i, int j) { return (i < j);}
 
-BoxSolver::BoxSolver(TFormRef formula) :  isPureConj(true),  numAtoms(-1), limit(5), count(0) {
+BoxSolver::BoxSolver(TFormRef formula) :  isPureConj(true),  numAtoms(-1), limit(5), count(0), lastVec(0) {
   this->formula = formula;
   IM = new IdxManager();
   pm = formula->getPolyManagerPtr();
@@ -274,7 +274,7 @@ void BoxSolver::getClause(vec<Lit>& lits, bool& conf) {
  */
 bool BoxSolver::compareVecs(vec<Lit>& nuVec) {
   bool retVal = true;
-  if (nuVec.size() < lastVec.size()) {
+  if (nuVec.size() < lastVec.size() || lastVec.size() == 0) {
     retVal = false;
   }
   else {
@@ -300,15 +300,14 @@ void BoxSolver::getClauseMain(vec<Lit>& lits, bool& conf) {
   //Step 1a.2: AND it with tand
   int i = lastVec.size();
   if (compareVecs(lits)) {
-    vector<Deduction * > givens;
+    vector<TAtomRef > nuAtoms;
     for (; i < lastVec.size(); i++) {
       TAtomRef t;
       if (atomFromLit(lits[i], t)) {
-        Given * g = new Given(t);
-        givens.push_back(g);
+        nuAtoms.push_back(t);
       }
     }
-    SM->updateSolver(givens);
+    SM->updateSolver(nuAtoms);
 
   }
 

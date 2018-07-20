@@ -79,7 +79,7 @@ namespace tarski {
     void update();
 
 
-    void updateSolver(const std::vector<Deduction *>&);
+    void updateSolver(const std::vector<TAtomRef>&);
   private:
     //return 0 if nothing has changed
     //return 1 if somehting hew has been deduced

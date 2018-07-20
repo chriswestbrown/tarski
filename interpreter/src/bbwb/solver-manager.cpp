@@ -77,12 +77,12 @@ namespace tarski {
   /*
     
    */
-  void SolverManager::update(const vector<Deduction *>& v) {
+  void SolverManager::updateSolver(const vector<TAtomRef>& v) {
 
     if (dedM->isUnsat()) { return; }
     hasRan = false;
     int oldLast = dedM->size();
-    for (std::vector<Deduction *>::const_iterator itr = v.begin(),
+    for (std::vector<TAtomRef>::const_iterator itr = v.begin();
            itr != v.end(); ++itr) {
       dedM->addGiven(*itr);
     }
