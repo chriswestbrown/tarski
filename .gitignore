@@ -40,6 +40,7 @@ interpreter/src/search/qfr
 interpreter/src/algparse/grammar.tab.*
 interpreter/src/algparse/grammar.output
 interpreter/src/algparse/frewrite
-interpreter/src/bin/tarski
+interpreter/bin/tarski
 interpreter/src/poly/go
-
+qesource/bin/qepcad
+qesource/bin/qepcadd
