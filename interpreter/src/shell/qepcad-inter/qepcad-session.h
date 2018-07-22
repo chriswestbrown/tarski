@@ -65,7 +65,7 @@ namespace tarski {
       string qscript = naiveButCompleteWriteForQepcad(F,introducedAssumptions,false,this->trackUnsatCore);
       //cerr << "qscript START>>\n" << qscript << endl << "<<END qscript\n";
       UnnamedPipe intoQepcad, outofQepcad;
-
+      
       int childpid = fork();
       if (childpid == -1) { perror("Failed to fork!"); exit(1); }
       if (childpid == 0) { // Child process's code
@@ -76,6 +76,12 @@ namespace tarski {
         intoQepcad.closeIn();
         intoQepcad.closeOut();
 
+	// Set the qe environment variable for the qe process
+	std::string tmps = pathToQepcad;
+	int n = tmps.size();
+	string qeroot = tmps.substr(0,n - 11);
+	setenv("qe",qeroot.c_str(),1);
+	
         const char *arg1 = "+N10000000", *arg2 = "-t", *arg3 = "200";
         execlp(pathToQepcad,
                pathToQepcad,
