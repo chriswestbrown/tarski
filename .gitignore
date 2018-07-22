@@ -42,5 +42,3 @@ interpreter/src/algparse/grammar.output
 interpreter/src/algparse/frewrite
 interpreter/bin/tarski
 interpreter/src/poly/go
-qesource/bin/qepcad
-qesource/bin/qepcadd
