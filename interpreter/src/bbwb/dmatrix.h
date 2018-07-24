@@ -19,6 +19,7 @@ namespace tarski {
 
     inline int getNumRows() const { return m.size();}
     inline int getNumCols() const { return (m.size() > 0) ? m[0].size() :  0; }
+    inline const std::vector<char>& getRow(int i) const { return m[i]; }
     void write() const; //Exactly what it says on the tin
     inline void set(int i, int j, bool val) { m[i][j] = val; }//Set the value of some element in the total matrix
     inline const std::vector<std::vector<bool> >& getComp() const  { return comp; }

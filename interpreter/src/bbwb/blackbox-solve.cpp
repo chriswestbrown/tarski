@@ -235,6 +235,73 @@ namespace tarski {
   }
 
 
+  void BBDeducer::minWtExplain(std::vector<Deduction *>& deds) {
+  
+  }
+
+  bool BBDeducer::isStrictRow(int cutOff, const std::vector<char>& vc) {
+    for (int i = cutoff; i < vc.size(); i++) {
+      if (vc[i] != 0) return false;
+    }
+    return true;
+  }
+
+  int BBDeducer::weight(const std::vector<char>& vc) {
+    int wt = 0;
+    for (std::vector<char>::const_iterator itr = vc.begin()+1; itr != vc.end(); ++ itr) {
+      if (*itr != 0) ++wt;
+    }
+    return wt;
+  }
+
+  //Checks if v1 is in the space of v2
+  int BBDeducer::space(const std::vector<char>& v1, const std::vector<char>& v2, int cutoff) {
+    bool a = false, b = false;
+    for (unsigned long i = cutoff; i < v1.size() && !b; i++) {
+      a |= (v1[i] == 0 && v2[i] != 0);
+      b |= (v1[i] != 0 && v2[i] == 0);
+    }
+    if (b) return -1;
+    if (!a) return 0;
+    return 1;
+  }
+
+  void BBDeducer::minWtMain() {
+    const DMatrix& nonStrict = M->getAll();
+    int ns = M->getStrict().getNumCols();
+    int nn = nonStrict.getNumCols()-ns;
+
+    map<vector<char>, set<TAtomRef> > Bi;
+    for (unsigned int i = 0; i < nonStrict.getNumRows(); i++) {
+      const std::vector<char>& vc = nonStrict.getRow(i);
+      if (isStrictRow(ns, vc)) continue;
+      set<TAtomRef> source;
+      //Reduce the strict part of getRow[i] by the strict Matrix
+      //Source is the set of TAtomRef needed to reduce this row
+      Bi[vc] = source;
+    }
+
+    while (Bi.size() > 0) {
+      //Choose w
+      int maxWeight = -1; set <vector<char> >::iterator mitr;
+      for (set<vector<char> >::iterator itr = Bi.begin();
+           itr != Bi.end(); ++itr) {
+        int tmpWeight = weight(*itr);
+        if (tmpWeight > maxWeight) { maxWeight = tmpWeight; mitr = itr; }
+      }
+      vector<char> w = *mitr;
+      Bi.erase(w);
+      //Construct Blt and Beq
+      vector<map<vector<char>, set<TAtomRef> >::iterator> Blt, Beq;
+      for (map<vector<char>, set<TAtomRef> >::iterator itr = Bi.begin();
+             itr != Bi.end(); ++itr) {
+        int sp = space(itr->first, w);
+        if (sp == 1) { Blt.push_back(itr); }
+        else if (sp == 0) {Beq.push_back(itr); }
+      }
+    }
+  }
+
 
   /*
     scoreFun2 strengthens a single intpolyref from LEOP or GEOP to LTOP or GTOP, respectively.

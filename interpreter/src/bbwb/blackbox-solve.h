@@ -77,8 +77,13 @@ namespace tarski{
   private:
     MatrixManager * M;
     PolyManager * PM;
+    //Pure Strict
     void strictDeds(std::vector<Deduction *>& deds);
     int getNonZero(const std::vector<char>&);
+
+    //NonStrict Methods
+    void minWtExplain(std::vector<Deduction *>& deds);
+
   public:
     vector<Deduction *> getDeductions();
     inline BBDeducer(MatrixManager * m, PolyManager * pm) {
@@ -87,9 +92,6 @@ namespace tarski{
 
     }
   };
-  /* FUTURE
-     class MinWtExp;
-  */
 
 } //end namespace
 

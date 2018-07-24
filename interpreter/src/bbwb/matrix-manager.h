@@ -65,8 +65,6 @@ namespace tarski {
       return (t->getRelop() == LTOP || t->getRelop() == GTOP || t->getRelop() == NEOP);
     }
 
-
-    /* INLINE METHODS*/
     inline void strictElim() {
       strictUpdate();
       strict.doElim();
