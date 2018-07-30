@@ -37,10 +37,9 @@ $(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
 
 lib: tarski.a
 
-tarski.a:
-	$(CXX) $(CPPFLAGS)  -c $< -o $(filter-out */shell.cpp.o, $(OBJS))
-	$(AR) r $@ $(OBJS)
-	mv tarski.a lib/tarski.a
+tarski.a: $(AOBJ)
+	$(AR) r $@ $(AOBJ)
+	mv tarski.a ../lib/tarski.a
 
 
 # assembly

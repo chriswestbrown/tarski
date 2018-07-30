@@ -42,3 +42,7 @@ interpreter/src/algparse/grammar.output
 interpreter/src/algparse/frewrite
 interpreter/bin/tarski
 interpreter/src/poly/go
+*minisat
+*.od
+*.or
+*depend.mk
