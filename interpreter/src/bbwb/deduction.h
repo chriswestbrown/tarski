@@ -50,26 +50,9 @@ namespace tarski {
         cout << endl;
       }
     }
-    void write() {
-      if (unsat) cout << "UNSAT";
-      else {
-        cout << name <<  ": ";
-        if (!unsat) deduction->write();
-      }
-      if (given) cout << endl;
-      else {
-        std::cout << " from  [ ";
-        for (unsigned int i = 0; i < deps.size(); i++) {
-          if (deps[i]->getRelop() != ALOP) {
-            deps[i]->write();
-            if (i != deps.size()-1) std::cout << " /\\ ";
-          }
-        }
-        cout << " ]\n";
-
-      }
-    }
+    
   public:
+    void write();
     inline bool isGiven() {return given;}
     inline std::string getName() { return name;}
     inline bool isUnsat() const { return unsat; }
@@ -101,9 +84,9 @@ namespace tarski {
     
   };
 
-  class MnWtDed : public Deduction {
+  class MinWtDed : public Deduction {
   public:
-  MnWtDed(TAtomRef t, const std::vector<TAtomRef>& atoms)
+  MinWtDed(TAtomRef t, const std::vector<TAtomRef>& atoms)
     : Deduction(t, atoms, "minwt ded") { }
   };
 

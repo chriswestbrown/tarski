@@ -21,6 +21,10 @@ namespace tarski {
       else if (A->size() == 0) {
         throw TarskiException("ERROR - EMTPY CONJUNCTION");
       }
+      for (TAndObj::conjunct_iterator itr = A->conjuncts.begin(); itr != A->conjuncts.end(); ++itr) {
+        TAtomRef tf = asa<TAtomObj>(*itr);
+        if (tf.is_null()) throw TarskiException("ERROR - bbwb requires strict conjunction");
+      }
       o.loadOptions(args);
       return A;
     }

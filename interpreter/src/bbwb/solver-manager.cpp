@@ -3,8 +3,13 @@
 namespace tarski {
 
   SolverManager::SolverManager(const vector<QuickSolver *>& v, TAndRef tand) : solvers(v), lastDeds(v.size(), 0), hasRan(false) {
-    dedM = new DedManager(tand);
-    t = tand;
+    t = new TAndObj();
+    for (TAndObj::conjunct_iterator itr = tand->conjuncts.begin();
+         itr != tand->conjuncts.end(); ++itr) {
+      TAtomRef tf = asa<TAtomObj>(*itr);
+      t->AND(tf); 
+    }
+    dedM = new DedManager(t);
     for (int i = 0; i < solvers.size(); i++) {
       solvers[i]->setDedM(dedM);
     }
@@ -20,12 +25,12 @@ namespace tarski {
       if (isUnsat()) l->push_back(new SymObj("UNSAT"));
       else l->push_back(new SymObj("SAT"));
       vector<TAtomRef>& vec = r.atoms;
-      TAndRef t = new TAndObj();
+      TAndRef res = new TAndObj();
       for (vector<TAtomRef>::iterator itr = vec.begin();
            itr != vec.end(); ++itr) {
-        t->AND(*itr);
+        res->AND(*itr);
       }
-      l->push_back(new TarObj(t));
+      l->push_back(new TarObj(res));
       return l;
     }
 

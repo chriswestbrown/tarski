@@ -8,6 +8,27 @@ namespace tarski {
 #define C_ITR const_iterator
 #define ITR iterator
 
+  void Deduction::write() {
+    if (unsat) cout << "UNSAT";
+    else {
+      cout << name <<  ": ";
+      if (!unsat) deduction->write();
+    }
+    if (given) cout << endl;
+    else {
+      std::cout << " from  [ ";
+      for (unsigned int i = 0; i < deps.size(); i++) {
+        if (deps[i]->getRelop() != ALOP) {
+          deps[i]->write();
+          if (i != deps.size()-1) std::cout << " /\\ ";
+        }
+      }
+      cout << " ]\n";
+
+      
+  }
+  }
+
   DedManager::DedManager(TAndRef a) : unsat(false), varSigns(ALOP) {
     PM = a->getPolyManagerPtr();
     for (TAndObj::conjunct_iterator itr = a->begin(), end = a->end(); itr != end; ++itr) {

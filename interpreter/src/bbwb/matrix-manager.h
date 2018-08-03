@@ -42,6 +42,7 @@ namespace tarski {
     inline int getNumStrictCols() {return strict.getNumCols(); }
   public:
     MatrixManager(TAndRef);
+    MatrixManager(const MatrixManager&, const vector<int>&);
     void addAtom(TAtomRef t);
     void write() const;
 
@@ -62,7 +63,8 @@ namespace tarski {
     inline const DMatrix& getStrict() const { return strict; }
     inline const DMatrix& getAll() const { return all; }
     static inline bool isStrictRelop(TAtomRef t)  {
-      return (t->getRelop() == LTOP || t->getRelop() == GTOP || t->getRelop() == NEOP);
+      return (t->getRelop() == LTOP || t->getRelop() == GTOP
+              || t->getRelop() == NEOP);
     }
 
     inline void strictElim() {
@@ -71,6 +73,18 @@ namespace tarski {
     }
     inline void allElim(){
       all.doElim();
+    }
+
+    //Returns a list of the indices of
+    //all the rows in the all matrix
+    //which are in both matrix
+    inline vector<int> dualRows() {
+      vector<int> res;
+      for (std::vector<int>::iterator itr = tB.begin();
+           itr != tB.end(); ++itr) {
+        res.push_back(*itr);
+      }
+      return res;
     }
 
 

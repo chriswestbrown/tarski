@@ -50,6 +50,9 @@ namespace tarski{
     Deduction * deduce(TAndRef t);
     inline void notify() {}
     void update(std::vector<Deduction *>::const_iterator begin, std::vector<Deduction *>::const_iterator end);
+
+    //Searches for a row of the form 1 0 0 0 0 0 ... 0
+    static int findRow(const DMatrix& d);
   };
 
 
@@ -77,13 +80,54 @@ namespace tarski{
   private:
     MatrixManager * M;
     PolyManager * PM;
-    //Pure Strict
+    /*===========STRICT=========*/
     void strictDeds(std::vector<Deduction *>& deds);
     int getNonZero(const std::vector<char>&);
 
+
+    /*==========NONSTRICT=======*/
+    //Nonstrict Types
+    struct AtomRow {
+      const vector<char> * vc;
+      TAtomRef atom;
+      inline AtomRow(const vector<char>& v, TAtomRef a) : vc(&v), atom(a) { }
+      inline AtomRow(const AtomRow& a) : vc(a.vc), atom(a.atom) { }
+    };
+
+    struct weightCompare {
+      weightCompare(int i) : cutoff(i) {}
+      int cutoff;
+      inline bool operator() (const AtomRow& l, const AtomRow& r) {
+        return BBDeducer::weight(l.vc, cutoff) <
+          BBDeducer::weight(r.vc, cutoff);
+      }
+    };
+    
+
     //NonStrict Methods
     void minWtExplain(std::vector<Deduction *>& deds);
+    vector<AtomRow> mkB(); 
+    static bool isStrictRow(int cutOff, const std::vector<char>& vc);
+    static int weight(const std::vector<char>* vc, int);
+    static int support(const std::vector<char>*,const std::vector<char>*,int);
+    static void fillMatrices(vector<AtomRow>&, vector<AtomRow>&,
+                             const vector<AtomRow>&,
+                             const AtomRow&, int);
+    static DMatrix mkMatrix(const vector<AtomRow>&);
+    static bool reduceRow(AtomRow&, vector<char>&,
+                          vector<TAtomRef>&, const DMatrix&,
+                          const vector<AtomRow>&);
+    Deduction * mkMinWtDed(const vector<char>*,const vector<TAtomRef>&,bool&);
+    Deduction * mkMinWtDed(AtomRow&, bool&);
+    vector<Deduction *> minWtMain();
 
+
+    //Joint Methods
+    void jointDeds(std::vector<Deduction *>& deds);
+    Deduction * mkJointDed(std::vector<char>&, std::vector<int>&);
+
+    //Debugging only
+    void writeChar(const std::vector<char>& vc, int cutOff); 
   public:
     vector<Deduction *> getDeductions();
     inline BBDeducer(MatrixManager * m, PolyManager * pm) {

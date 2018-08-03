@@ -18,7 +18,7 @@ namespace tarski {
   /*
     A constructor which copies another DMatrix object by copying m
   */
-  DMatrix::DMatrix(const DMatrix &M): m(M.m) { }
+  DMatrix::DMatrix(const DMatrix &M): m(M.m), comp(M.comp) { }
 
   void DMatrix::write() const {
     for (int i = 0; i < m.size(); i++) {
@@ -36,7 +36,7 @@ namespace tarski {
 
   void DMatrix::gaussElimExplain() {
     std::vector<int> pivotRows;
-    std::vector<int> pivotCols;
+    pivotCols.clear();
     int r = getNumRows();
     if (r == 0) return;
     int c = getNumCols();
@@ -45,7 +45,7 @@ namespace tarski {
       // Find next pivot row
       int wmin = INT_MAX, kmin, tmp=0;
       for(int k = i; k < r; ++k)
-        if ((tmp = rowWeight(k, m,  true)) < wmin && tmp != 0) { wmin = tmp; kmin = k; }
+        if ((tmp = rowWeight(m[k],  true)) < wmin && tmp != 0) { wmin = tmp; kmin = k; }
       if (wmin == INT_MAX) { return; }
       swap(i, kmin, m); //do the original swap,
       swap(i, kmin, comp); //then swap for the comp matrix,
@@ -65,8 +65,8 @@ namespace tarski {
 
   void DMatrix::redGaussElimExp()
   {
+    pivotCols.clear();
     std::vector<int> pivotRows;
-    std::vector<int> pivotCols;
     int r = getNumRows();
     if (r == 0) return;
     int c = getNumCols();
@@ -76,7 +76,7 @@ namespace tarski {
       // Find next pivot row
       int wmin = INT_MAX, kmin, tmp = 0;
       for(int k = i; k < r; ++k) {
-        if ((tmp = rowWeight(k, m, true)) < wmin && tmp != 0) { wmin = tmp; kmin = k; }
+        if ((tmp = rowWeight(m[k], true)) < wmin && tmp != 0) { wmin = tmp; kmin = k; }
       }
       if (wmin == INT_MAX) { break; }
       swap(i, kmin, m); //do the original swap,
@@ -115,6 +115,16 @@ namespace tarski {
     }
   }
 
+  void DMatrix::reduceRow (std::vector<char>& vc,
+                  std::vector<int>& rows) const  {
+    for (size_t i = 0; i < pivotCols.size(); i++) {
+      if (vc[pivotCols[i]]) {
+        sumRows(vc, m[i]);
+        rows.push_back(i);
+      }
+    }
+  }
+
   bool DMatrix::checkUnsat() {
     if (m[0][0] == false) return false;
     for (int i = 1; i < m[i].size(); i++) {
@@ -133,11 +143,13 @@ namespace tarski {
   }
 
 
-  void DMatrix::addRow(std::vector<char> vc) {
+  void DMatrix::addRow(const std::vector<char>& vb) {
+    std::vector<char> vc(vb); 
     if (m.size() > 0)
       vc.resize(m[0].size(), 0);
     m.push_back(vc);
-    for (int i = 0; i <  comp.size(); i++) {
+    #pragma omp prallel for
+    for (size_t i = 0; i < comp.size(); i++) {
       comp[i].push_back(false);
     }
     std::vector<bool> b(m.size(), false);
