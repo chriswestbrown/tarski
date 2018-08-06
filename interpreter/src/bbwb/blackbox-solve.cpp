@@ -486,16 +486,17 @@ namespace tarski {
   }
 
 
-  Deduction * BBDeducer::mkJointDed(vector<char>& row, vector<int>& sources) {
+  Deduction * BBDeducer::mkJointDed(vector<char>& row, vector<int>& sources, TAtomRef orig) {
 
     FactRef F = new FactObj(PM);
     for (size_t i = 1; i < row.size(); i++) {
       if (row[i]) F->addFactor(M->getPoly(i), row[i]);
     }
     vector<TAtomRef> proof;
+    proof.push_back(orig);
     for (std::vector<int>::iterator itr = sources.begin();
          itr != sources.end(); ++itr) {
-      proof.push_back(M->getAtom(*itr, false));
+      proof.push_back(M->getAtom(*itr, true));
     }
     TAtomRef t = new TAtomObj(F, (row[0]) ? LEOP : GEOP);
     BBDed * b = new BBDed(t, proof);
@@ -515,7 +516,8 @@ namespace tarski {
       vector<int> source;
       vector<char> toRed(ns.getRow(i));
       s.reduceRow(toRed, source);
-      deds.push_back(mkJointDed(toRed, source));
+      TAtomRef orig = M->getAtom(i, false);
+      deds.push_back(mkJointDed(toRed, source, orig));
     }
   }
 

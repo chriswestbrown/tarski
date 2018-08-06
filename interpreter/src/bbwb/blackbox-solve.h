@@ -124,7 +124,7 @@ namespace tarski{
 
     //Joint Methods
     void jointDeds(std::vector<Deduction *>& deds);
-    Deduction * mkJointDed(std::vector<char>&, std::vector<int>&);
+    Deduction * mkJointDed(std::vector<char>&, std::vector<int>&, TAtomRef);
 
     //Debugging only
     void writeChar(const std::vector<char>& vc, int cutOff); 

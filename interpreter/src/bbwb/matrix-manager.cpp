@@ -26,7 +26,6 @@ namespace tarski {
   }
 
   MatrixManager::MatrixManager(TAndRef t) : strict(), needUpdate(false), cIdxToPoly(1) {
-    std::cerr << "Formula:\n"; t->write(); std::cerr << std::endl;
     PM = t->getPolyManagerPtr();
     std::set<IntPolyRef> strongPolys;
     std::set<IntPolyRef> weakPolys;
