@@ -3,8 +3,13 @@
 namespace tarski {
 
   SolverManager::SolverManager(const vector<QuickSolver *>& v, TAndRef tand) : solvers(v), lastDeds(v.size(), 0), hasRan(false) {
-    dedM = new DedManager(tand);
-    t = tand;
+    t = new TAndObj();
+    for (TAndObj::conjunct_iterator itr = tand->conjuncts.begin();
+         itr != tand->conjuncts.end(); ++itr) {
+      TAtomRef tf = asa<TAtomObj>(*itr);
+      t->AND(tf); 
+    }
+    dedM = new DedManager(t);
     for (int i = 0; i < solvers.size(); i++) {
       solvers[i]->setDedM(dedM);
     }
@@ -20,12 +25,12 @@ namespace tarski {
       if (isUnsat()) l->push_back(new SymObj("UNSAT"));
       else l->push_back(new SymObj("SAT"));
       vector<TAtomRef>& vec = r.atoms;
-      TAndRef t = new TAndObj();
+      TAndRef res = new TAndObj();
       for (vector<TAtomRef>::iterator itr = vec.begin();
            itr != vec.end(); ++itr) {
-        t->AND(*itr);
+        res->AND(*itr);
       }
-      l->push_back(new TarObj(t));
+      l->push_back(new TarObj(res));
       return l;
     }
 
@@ -42,8 +47,8 @@ namespace tarski {
   Result SolverManager::deduceAll() {
     if (hasRan) return finResult;
     hasRan = true;
-    for (int i = 0; i < lastDeds.size(); i++) lastDeds[i] = dedM->size();
     if (dedM->isUnsat()) { finResult = dedM->traceBack(); return finResult; }
+    for (int i = 0; i < lastDeds.size(); i++) lastDeds[i] = dedM->size();
     int i = 0, lastChange = -1;
     while (true) {
       //case where solvers can't deduce UNSAT and all deductions exhausted
@@ -74,6 +79,22 @@ namespace tarski {
     solvers[i]->update(itr, end);
   }
 
+  /*
+    
+   */
+  void SolverManager::updateSolver(const vector<TAtomRef>& v) {
+
+    if (dedM->isUnsat()) { return; }
+    hasRan = false;
+    int oldLast = dedM->size();
+    for (std::vector<TAtomRef>::const_iterator itr = v.begin();
+           itr != v.end(); ++itr) {
+      dedM->addGiven(*itr);
+    }
+    for (int i  = 0; i < solvers.size(); i++) {
+      updateSolver(i);
+    }
+  }
   /*
     return 0 to indicate the solver learned nothing
     return 1 to indicate a solver learned something

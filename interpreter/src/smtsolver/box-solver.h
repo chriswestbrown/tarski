@@ -77,6 +77,7 @@ namespace tarski {
     }
     
   protected:
+    SolverManager * SM;
     Minisat::Solver * S;
     MHSGenerator * M;
     IdxManager * IM;
@@ -89,6 +90,9 @@ namespace tarski {
     //Returns the CNF translation of a formula
     std::vector<std::vector<Minisat::Lit> > makeFormula(tarski::TFormRef formula);
 
+    std::vector<Minisat::Lit> lastVec;
+    bool compareVecs(Minisat::vec<Minisat::Lit>&);
+
     vector<vector<Minisat::Lit> > form;
     tarski::PolyManager * pm;
     //If [idx] maps to an atom with sign GTOP, [idx+1] maps to the opposite LEOP. The >= sign always goes before < and != signs
@@ -100,7 +104,7 @@ namespace tarski {
     //Called when a conflict is discovered to translate the reason,
     //which is in tarski formula objects,
     //back into the respective minisat literals
-    void constructClauses(Minisat::vec<Minisat::Lit>&, SolverManager&, int numDeds);
+    void constructClauses(Minisat::vec<Minisat::Lit>&, Result&);
     void getClauseMain(Minisat::vec<Minisat::Lit>& lits, bool& conf);
     //Makes a clause from a single Result object taken from BB/WB Boxer object
     stack<Minisat::Lit> mkClause(tarski::Result r);
@@ -108,7 +112,7 @@ namespace tarski {
     //Adds a clause of x literals to the learned clauses
     void addToLearned(Minisat::Lit a, Minisat::Lit b);
     void addToLearned(Minisat::Lit a, Minisat::Lit b, Minisat::Lit c);
-
+    bool atomFromLit(Minisat::Lit p, TAtomRef& t);
     bool directSolve();
 
 

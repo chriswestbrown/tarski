@@ -258,14 +258,14 @@ int FernPolyIter::compareTo(FernPolyIter F){
   if (null && F.isNull()) return 0;
   else if (null) return 1;
   else if (F.isNull()) return -1;
-  vector<Variable> vars1 = currVars;
-  vector<Variable> vars2 = F.getVars();
-  vector<short> exp1 = exponents;
-  vector<short> exp2 = F.getExponents();
+  vector<Variable>& vars1 = currVars;
+  const vector<Variable>& vars2 = F.getVars();
+  vector<short>& exp1 = exponents;
+  const vector<short>& exp2 = F.getExponents();
   vector<Variable>::iterator vIter1 = vars1.begin();
-  vector<Variable>::iterator vIter2 = vars2.begin();
+  vector<Variable>::const_iterator vIter2 = vars2.begin();
   vector<short>::iterator sIter1 = exp1.begin();
-  vector<short>::iterator sIter2 = exp2.begin();
+  vector<short>::const_iterator sIter2 = exp2.begin();
 
   while (vIter1 != vars1.end() && vIter2 != vars2.end()) {
     if (*vIter1 < *vIter2) {
@@ -276,11 +276,11 @@ int FernPolyIter::compareTo(FernPolyIter F){
       //cerr << "FPI: 1\n";
       return -1;
     }
-    else if (*sIter1 < *sIter2) {
+    else if (*sIter1 > *sIter2) {
       //cerr << "FPI: 2\n";
       return -1;
     }
-    else if (*sIter2 < *sIter1) {
+    else if (*sIter2 > *sIter1) {
       //cerr << "FPI: 3\n";
       return 1;
     }

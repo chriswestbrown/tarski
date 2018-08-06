@@ -55,29 +55,37 @@ namespace tarski {
     }
   }
 
+  //returns the index of the UNSAT row
+  //returns -1 if no such row exists
 
-
-
-
-  bool BBChecker::checkSat() {
-    M->strictElim();
-    const DMatrix& d = M->getStrict();
+  int BBSolver::findRow(const DMatrix& d) {
     const std::vector<std::vector<char> >& matrix = d.getMatrix();
-    for (int i = 0; i < matrix.size(); i++ ) {
+    for (size_t i = 0; i < matrix.size(); i++ ) {
       const std::vector<char>& row = matrix.at(i);
       if (row.at(0) == false) continue;
       bool isSat = false;
-      for (int j = 1; j < row.size(); j++) 
+      for (size_t j = 1; j < row.size(); j++) 
         if (row.at(j) == true ) { isSat = true; break; }
-      if (!isSat) { unsatRow = i; return isSat; }
+      if (!isSat) { return i; }
     }
-    return true;
+    return -1;
+  }
+
+
+  //returns false if unsat
+  bool BBChecker::checkSat() {
+    M->strictElim();
+    const DMatrix& d = M->getStrict();
+    unsatRow = BBSolver::findRow(d);
+    return (unsatRow == -1) ? true : false;
   }
 
   /*
     If bbsat finds UNSAT, this returns the explanation in the form of a vector of BBDeds with a single BBDed which is the explanation
   */
   std::vector<Deduction *> BBChecker::explainUnsat() {
+    //std::cerr << "Unsat row is " << unsatRow << std::endl;
+    //M->write();
     std::vector<TAtomRef> conflict = getConflict();
     std::set<IntPolyRef> weakFacts = findWeak(conflict);
     std::set<TAtomRef> additions = strengthenWeak(weakFacts);
@@ -222,18 +230,296 @@ namespace tarski {
   std::vector<Deduction *> BBDeducer::getDeductions() {
 
     std::vector<Deduction  *> deds;
-    //Size check - a formula of size one won't let BB Deduce anything
+    //Size check - a formula of size one won't let BB strict deduce anything
     short m = M->getStrict().getMatrix().size();
     if (m < 2) {
+      minWtExplain(deds);
       return deds;
     }
     strictDeds(deds);
-    //TODO: get MinWtBasis working properly
-    //vector<Deduction * > deds2 = minWtBasisDeds(MIR, pureStrict);
-    //deds.insert(deds.end(), deds2.begin(), deds2.end());
+    minWtExplain(deds);
+    jointDeds(deds);
     return deds;
   }
 
+
+  void BBDeducer::minWtExplain(std::vector<Deduction *>& deds) {
+    vector<Deduction *> minWt = minWtMain();
+    deds.insert(deds.end(), minWt.begin(), minWt.end());
+  }
+
+  bool BBDeducer::isStrictRow(int cutoff, const std::vector<char>& vc) {
+    for (size_t i = cutoff; i < vc.size(); i++) {
+      if (vc[i] != 0) return false;
+    }
+    return true;
+  }
+
+  int BBDeducer::weight(const std::vector<char>* vc, int cutoff) {
+    int wt = 0;
+    for (std::vector<char>::const_iterator itr = vc->begin()+cutoff;
+         itr != vc->end(); ++itr) {
+      if (*itr != 0) ++wt;
+    }
+    return wt;
+  }
+
+  void BBDeducer::writeChar(const std::vector<char>& vc, int cutOff = 0) {
+    for (size_t i = cutOff; i < vc.size(); i++)
+      std::cerr << (int) vc[i] << " ";
+    std::cerr << std::endl;
+  } 
+
+  //Checks if the support of v1 is in the support of v2
+  //-1 indicates no
+  //0 indicates v1 is a subspace of v2
+  //1 indicates equal support
+  int BBDeducer::support(const std::vector<char> * v1,
+                         const std::vector<char> * v2, int cutoff) {
+    bool eq = true;
+    for (size_t i = cutoff; i < v1->size(); i++) {
+      if ((bool) v1->at(i) == (bool) v2->at(i)) continue;
+      else if ((bool) !v1->at(i) && (bool) v2->at(i)) eq = false;
+      else return -1;
+    }
+    if (eq) return 1;
+    else return 0;
+  }
+
+  void BBDeducer::fillMatrices(vector<AtomRow>& Blt, vector<AtomRow>& Beq,
+                               const vector<AtomRow>& container,
+                               const AtomRow& a, int cutoff) {
+    for (size_t i = 0; i < container.size(); i++) {
+      int res = support(container[i].vc, a.vc, cutoff);
+      if (res == -1) continue;
+      else if (res == 0) Blt.push_back(container[i]);
+      else if (res == 1) Beq.push_back(container[i]); 
+    }
+  }
+
+  vector<BBDeducer::AtomRow> BBDeducer::mkB() {
+    vector<AtomRow> B;
+    for (size_t i = 0; i < M->getAll().getNumRows(); i++) {
+      TAtomRef t = M->getAtom(i, false);
+      const vector<char>& vc = M->getAll().getRow(i);
+      AtomRow a(vc, t);
+      B.push_back(a); 
+    }
+
+    return B;
+  }
+
+  DMatrix BBDeducer::mkMatrix(const vector<AtomRow>& rows) {
+    DMatrix d;
+    for (vector<AtomRow>::const_iterator itr = rows.begin();
+         itr != rows.end(); ++itr) {
+      d.addRow(*(itr->vc));
+    }
+    return d;
+  }
+
+
+  /*
+    Returns true if once reduction occurs with wp, we have a row of the form
+    1 0 0 ... 0 0
+   */
+  bool BBDeducer::reduceRow(AtomRow& wp, vector<char>& vc,
+                            vector<TAtomRef>& sources,
+                            const DMatrix& beq, const vector<AtomRow>& va) {
+    //Doing the reduction
+    vector<char> vtmp(*(wp.vc));
+    vc = vtmp;
+    DMatrix reducer(beq);
+    reducer.addRow(vc);
+    reducer.doElim();
+    if (BBSolver::findRow(reducer) == -1) return false;
+    //Now adding the sources
+    sources.push_back(wp.atom);
+    const vector<bool>& idxs = reducer.getComp().back();
+    for (size_t i = 0; i < idxs.size()-1; i++) {
+      if (idxs[i]) sources.push_back(va[i].atom);
+    }
+    return true;
+  }
+
+  Deduction * BBDeducer::mkMinWtDed(const vector<char> * vc,
+                                    const vector<TAtomRef>& sources,
+                                    bool& success) {
+    
+    success = true;
+
+    short relop = (vc->at(0) == 0) ? GEOP : LEOP;
+    FactRef F = new FactObj(PM);
+    bool allTwo = true;
+    for (size_t i = 1; i < vc->size(); i++) {
+      if (vc->at(i) == 1) allTwo = false;
+      if (vc->at(i) != 0) F->addFactor(M->getPoly(i), vc->at(i)); 
+    }
+    if (allTwo && relop == GEOP) {
+      success = false; return NULL;
+    }
+    TAtomRef t;
+    if (relop == LEOP && allTwo) {
+      for (map<IntPolyRef,int>::iterator itr = F->MultiplicityMap.begin();
+           itr != F->MultiplicityMap.end(); ++itr)
+        itr->second = 1;
+      t =new TAtomObj(F, EQOP);
+    }
+    else t = new TAtomObj(F, relop);
+    Deduction * d = new MinWtDed(t, sources);
+    return d;
+    //return new MinWtDed(t, sources);
+  }
+
+  Deduction * BBDeducer::mkMinWtDed(AtomRow& a, bool& success) {
+    return mkMinWtDed(a.vc, {a.atom}, success); 
+  }
+
+  
+
+  /*
+    Consult the algorithm MinWtBasis in the paper
+    "Fast Simplifications for Tarski Formulas
+    based on Monomial Inequalities" for the formal
+    description of this algorithm. Note that it has been modified
+    in order to provide explanations!
+  */
+  vector<Deduction * > BBDeducer::minWtMain() {
+    vector<Deduction *> deds;
+    int ns = M->getStrict().getNumCols();
+    vector<AtomRow> B = mkB();
+    sort(B.begin(), B.end(), weightCompare(ns));
+    while (B.size() != 0) {
+      /* STEP 2-3 */
+      //Note: Comparator sorts it so that biggest element is at back!
+      AtomRow w = B.back();
+      B.pop_back();
+      if (weight(w.vc, ns) == 0)  {
+        bool b = true;
+        Deduction * d = mkMinWtDed(w, b);
+        if (b) deds.push_back(d); 
+        for (AtomRow& a : B) {
+          b = true;
+          d = mkMinWtDed(a, b);
+          if (b) deds.push_back(d);
+        }
+        return deds;
+      }
+
+      /* STEP 4-5 */
+      vector<AtomRow> lt, eq;
+      fillMatrices(lt, eq, B, w, ns);
+
+      /* STEP 6 */
+      DMatrix blt = mkMatrix(lt);
+      blt.doElim();
+      if (BBSolver::findRow(blt) != -1)  {
+        continue;
+      }
+
+      /* STEP 7 */
+      eq.insert(eq.end(), lt.begin(), lt.end()); 
+      DMatrix beq = mkMatrix(eq);
+      beq.toMod2();
+
+      /* STEP 8 */
+      beq.doElim();
+      /* STEP 9 */
+
+      vector<char> vc(*(w.vc));
+      for (char& c : vc) {
+        c %= 2;
+      }
+      /* STEP 10 */
+      AtomRow wp(vc, w.atom);
+      vector<char> wpReduced;
+      vector<TAtomRef> sources;
+
+      if (reduceRow(wp, wpReduced, sources, beq, eq)) {
+        /* STEP 11 */
+        vector<char> resRow(*(w.vc));
+        resRow[0] = 1;
+        for (int i = 1; i < ns; i++) {
+          resRow[i] = 0;
+        }
+        for (size_t i = ns; i < resRow.size(); i++) {
+          if (resRow[i] == 1) resRow[i] = 2;
+        }
+        bool b = true;
+        Deduction * d = mkMinWtDed(&resRow, sources, b);
+        if (b) deds.push_back(d);
+
+        /* STEP 12 */
+        int numPopped = 0;
+        for (int i = B.size()-1; i >= 0; i--) {
+          if (weight(B[i].vc, ns) < weight(w.vc, ns)) break;
+          if (support(B[i].vc, w.vc, ns) == 1) {
+            size_t backIdx = B.size() - (1 + numPopped);
+            if (i != backIdx) {
+              AtomRow tmp = B[i];
+              B[i] = B[backIdx];
+              B[backIdx] = tmp;
+            }
+            numPopped++;
+            i++;
+          }
+        }
+        B.erase(B.end()-numPopped, B.end()); 
+        continue;
+      }
+
+      /* STEP 13 */
+      bool isNull = true;
+      std::vector<char>::iterator itr = wpReduced.begin();
+      while (itr != wpReduced.end() && isNull) {
+        isNull = !*itr;
+        ++itr;
+      }
+      if (!isNull) {
+        bool b = true;
+        Deduction * d = mkMinWtDed(w.vc, sources, b);
+        if (b) deds.push_back(d); 
+        continue;
+      }
+    }
+    return deds;
+  }
+
+
+  Deduction * BBDeducer::mkJointDed(vector<char>& row, vector<int>& sources, TAtomRef orig) {
+
+    FactRef F = new FactObj(PM);
+    for (size_t i = 1; i < row.size(); i++) {
+      if (row[i]) F->addFactor(M->getPoly(i), row[i]);
+    }
+    vector<TAtomRef> proof;
+    proof.push_back(orig);
+    for (std::vector<int>::iterator itr = sources.begin();
+         itr != sources.end(); ++itr) {
+      proof.push_back(M->getAtom(*itr, true));
+    }
+    TAtomRef t = new TAtomObj(F, (row[0]) ? LEOP : GEOP);
+    BBDed * b = new BBDed(t, proof);
+    return b;
+  }
+
+  void BBDeducer::jointDeds(vector<Deduction *>& deds) {
+    const DMatrix& ns = M->getAll();
+    const DMatrix& s = M->getStrict();
+    vector<int> dualRows = M->dualRows();
+    size_t j = 0;
+    for (size_t i = 0; i < ns.getNumRows(); i++) {
+      if ((size_t) dualRows[j] == i) {
+        j++;
+        continue;
+      }
+      vector<int> source;
+      vector<char> toRed(ns.getRow(i));
+      s.reduceRow(toRed, source);
+      TAtomRef orig = M->getAtom(i, false);
+      deds.push_back(mkJointDed(toRed, source, orig));
+    }
+  }
 
 
   /*

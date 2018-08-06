@@ -17,10 +17,12 @@ namespace tarski {
     DMatrix(const DMatrix &M);
     ~DMatrix();
 
-    inline int getNumRows() const { return m.size();}
-    inline int getNumCols() const { return (m.size() > 0) ? m[0].size() :  0; }
+    inline size_t getNumRows() const { return m.size(); }
+    inline size_t getNumCols() const { return (m.size() > 0)
+        ? m[0].size() :  0; }
+    inline const std::vector<char>& getRow(int i) const { return m[i]; }
     void write() const; //Exactly what it says on the tin
-    inline void set(int i, int j, bool val) { m[i][j] = val; }//Set the value of some element in the total matrix
+    inline void set(int i, int j, char val) { m[i][j] = val; }//Set the value of some element in the total matrix
     inline const std::vector<std::vector<bool> >& getComp() const  { return comp; }
     inline const std::vector<std::vector<char> >& getMatrix() const { return m; }
 
@@ -42,18 +44,31 @@ namespace tarski {
       }
     }
 
+    inline void toMod2() {
+      for (std::vector<std::vector<char> >::iterator bigItr = m.begin();
+           bigItr !=  m.end(); ++bigItr) {
+        for (std::vector<char>::iterator itr = bigItr->begin();
+             itr != bigItr->end(); ++itr ) {
+          *itr = *itr % 2;
+        }
+      }
+    }
 
 
-    void addRow(std::vector<char> vb);
+
+
+    void addRow(const std::vector<char>& vb);
     void doElim(); //FOR TESTING PURPOSES ONLY
 
+    void reduceRow (std::vector<char>& vc,
+                    std::vector<int>& rows) const;
 
 
 
   private:
     std::vector< std::vector<char > > m; //the strict matrix
     std::vector < std::vector<bool > >comp; //the strict companion matrix
-
+    std::vector<int> pivotCols;
     inline void swapVal(bool&  val1, bool& val2){
       if (val1 == val2) return;
       else 
@@ -70,16 +85,31 @@ namespace tarski {
     bool checkUnsat();
 
 
-    template <class T> int rowWeight(int i, std::vector<std::vector<T> >& v, bool ignoreFirstColumn) {
+    template <class T>  int rowWeight(const std::vector<T>& v, bool ignoreFirstColumn) {
       int sum = 0;
       int j = 0;
       if (ignoreFirstColumn) j = 1;
-      while (j < v[i].size()) {
-        if (v[i][j]) sum++;
+      while (j < v.size()) {
+        if (v[j]) sum++;
         j++;
       }
       return sum;
     }
+
+    template <class T> void sumRows(std::vector<T>& v,
+                                    const std::vector<T>& toAdd) const {
+      typename std::vector<T>::iterator itr = v.begin();
+      typename std::vector<T>::const_iterator itr2 = toAdd.begin();
+      while (itr !=v.end() && itr2 != toAdd.end() ) {
+        if (*itr && *itr2)
+          *itr = false;
+        else if (*itr2)
+          *itr = true;
+        ++itr;
+        ++itr2;
+      }
+    }
+
 
     template <class T> void sumRows(int i, int j, std::vector<std::vector<T> >& v) {
       typename std::vector<T>::iterator itr = v[i].begin();
@@ -105,6 +135,8 @@ namespace tarski {
       v[i] = v[j];
       v[j] = tmp;
     }
+
+
   };
 
 

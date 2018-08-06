@@ -2,6 +2,29 @@
 #include <assert.h>
 namespace tarski {
 
+
+  //This constructor is intended to be able to create a MatrixManager as
+  //a subset of the rows of another
+  //the vector rows indicates which rows we desire in the new matrix manager
+  MatrixManager::MatrixManager(const MatrixManager& m, const vector<int>& rows) : cIdxToPoly(m.cIdxToPoly) {
+    size_t j = 0;
+    int tbRow;
+    if (m.tB.size() > j) tbRow = m.tB[j];
+    else tbRow = -1; 
+    for (size_t i = 0; i < rows.size(); i++) {
+      int row = rows[i];
+      rIdxToAtom.push_back(m.rIdxToAtom[row]);
+      all.addRow(m.getAll().getRow(row));
+      if (tbRow == row) {
+        strict.addRow(m.getStrict().getRow(j));
+        tB.push_back(i);
+        j++;
+        if (m.tB.size() <= j) tbRow = -1;
+        else tbRow = m.tB[j]; 
+      }
+    }
+  }
+
   MatrixManager::MatrixManager(TAndRef t) : strict(), needUpdate(false), cIdxToPoly(1) {
     PM = t->getPolyManagerPtr();
     std::set<IntPolyRef> strongPolys;
@@ -9,8 +32,9 @@ namespace tarski {
     //The first loop determines which polynomials are strong, and makes a vector of all atoms
     for (TAndObj::conjunct_iterator itr = t->conjuncts.begin(); itr != t->conjuncts.end(); ++itr) {
       TAtomRef tf = asa<TAtomObj>(*itr);
-      if (tf->getRelop() != NEOP && tf->getRelop() != EQOP)
+      if (tf->getRelop() != NEOP)
         rIdxToAtom.push_back(tf);
+
       if (isStrictRelop(tf)) {
         for (map<IntPolyRef, int>::iterator fitr = tf->factorsBegin(); fitr != tf->factorsEnd(); ++fitr) {
           strongPolys.insert(fitr->first);
@@ -39,32 +63,31 @@ namespace tarski {
 
     //This loop gives each Atom in the formula a row, and populates that row
     DMatrix d(rIdxToAtom.size(), cIdxToPoly.size());
-    for (int i = 0; i < rIdxToAtom.size(); i++) {
+    for (size_t i = 0; i < rIdxToAtom.size(); i++) {
       TAtomRef tf = rIdxToAtom[i];
-      std::vector<char> strictRow(strongPolys.size()+1);
-      if (tf->getRelop() == LTOP || tf->getRelop() == LEOP) {
+      if (tf->getRelop() == LTOP || tf->getRelop() == LEOP ||
+          tf->getRelop() == EQOP) {
         d.set(i, 0, true);
-        strictRow[0] = true;
       }
+      bool eqMod = (tf->getRelop() == EQOP) ? true : false;
       bool noStrict = false;
       for (map<IntPolyRef, int>::iterator fitr = tf->factorsBegin();
            fitr != tf->factorsEnd(); ++fitr) {
         assert(allPolys.find(fitr->first) != allPolys.end());
-
-        if (tf->getRelop() == GTOP || tf->getRelop() == LTOP || tf->getRelop() == GEOP || tf->getRelop() == LEOP) {
-          int j = allPolys[fitr->first];
-          if (fitr->second % 2 == 0 && fitr->second > 0
-              && j >= strongPolys.size()) d.set(i, j, 2);
-          else if (fitr->second % 2 == 1) d.set(i, j, 1);
-          if (j >= strongPolys.size()+1)  {
-            noStrict = true;
-            
-          }
-          if (!noStrict) strictRow[j] = fitr->second % 2;
+        size_t j = allPolys[fitr->first];
+        if (fitr->second % 2 == 0 && fitr->second > 0
+            && j > strongPolys.size()) d.set(i, j, 2);
+        else if (fitr->second % 2 == 1 && j > strongPolys.size()
+                 && eqMod) d.set(i, j, 2);
+        else if (fitr->second % 2 == 1 && !eqMod) d.set(i, j, 1);
+        if (j >= strongPolys.size()+1)  {
+          noStrict = true; 
         }
       }
       if (!noStrict) {
         tB.push_back(i);
+        vector<char> strictRow(d.getRow(i).begin(),
+                               d.getRow(i).begin()+strongPolys.size()+1);
         strict.addRow(strictRow);
       }
     }

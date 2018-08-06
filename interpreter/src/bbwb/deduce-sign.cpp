@@ -163,7 +163,7 @@ namespace tarski {
   */
   std::vector<Interval> Interval::equalsCase(FernPolyIter& F1, FernPolyIter& F2) {
     std::vector<Interval> l;
-
+    //std::cerr << "equals case\n";
     //std::cerr << "BETA IS " << BETA << std::endl;
     Word bi = F2.getCoefficient();
     Word ai = F1.getCoefficient();
@@ -183,6 +183,7 @@ namespace tarski {
     //std::cout << "i2 = "; i2.write(); std::cout << std::endl;
     Interval i3(RNNEG(RNRED(ai, bi)), EXCLUSIVE, RNNEG(RNRED(1, 1)), INFTY,  T_prod[sr][ms]);
     //std::cout << "i3 = "; i3.write(); std::cout << std::endl << std::endl;
+
     l.push_back(i1);
     l.push_back(i2);
     l.push_back(i3);
@@ -196,6 +197,7 @@ namespace tarski {
   */
   std::vector<Interval> Interval::qOnlyCase(FernPolyIter& F) {
     std::vector<Interval> l;
+    //std::cerr << "qonly case\n";
     //std::cerr << "F2 is "; F.write(); std::cerr << std::endl << std::endl;
     int bi = ISIGNF(F.getCoefficient());
     int ai = 0;
@@ -472,9 +474,9 @@ namespace tarski {
 
     bool first = true;
     //std:cerr << "------------------------------------------------------------------------------------------------------\n";
-    //std::cerr << "F1 is"; F1.write();
-    //std::cerr << "F2 is"; F2.write();
     while (!F1.isNull() && !F2.isNull()){
+      //std::cerr << "F1 is"; F1.write();
+      //std::cerr << "F2 is"; F2.write();
       std::vector<Interval> l;
       int res = F1.compareTo(F2);
       //If res is 0, then both p and q have Mi
