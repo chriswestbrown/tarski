@@ -138,15 +138,17 @@ namespace tarski {
       cerr<<endl;
       }
     */
-    VarKeyedMap<int> res;
+    
     //if (sign == NOOP) res = dedM->getVars(); If this case occurs, theres a bug!
-    if (sign == ALOP || (sign & dedM->getSign(p)) == dedM->getSign(p)) return doPolySigns();
+    VarKeyedMap<int> res;
+    if (sign == ALOP) return doPolySigns();
     else {
+      
       FernPolyIter F(p, dedM->getVars());
       bool success = true;
       res = select(dedM->getVars(), F, sign, success);
       if (!success) {
-	throw new TarskiException("Unable to prove a sign in PolySign in WBSATMANAGER");
+        throw new TarskiException("Unable to prove a sign in PolySign in WBSATMANAGER");
       }
     }
     return toDed(res, p->getVars(), p, sign);
@@ -166,7 +168,7 @@ namespace tarski {
     lastUsed = p.first;
     tuple<VarKeyedMap<int>, VarSet, short> res;
     res = Interval::deduceSign2(dedM->getVars(), PM, p.first, p.second, dedM->getSign(p.first), dedM->getSign(p.second));
-    if (get<2>(res) == ALOP || (get<2>(res) & dedM->getSign(p.first)) == dedM->getSign(p.first)) return doMultiDeduce();
+    if (get<2>(res) == ALOP) return doMultiDeduce();
     return toDed(get<0>(res), get<1>(res), p.first, p.second, get<2>(res), dedM->getSign(p.second));
   }
   

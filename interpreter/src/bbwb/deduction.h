@@ -38,6 +38,8 @@ namespace tarski {
 
     TAtomRef deduction; //Exists if this is a learned sign on some factref
     std::vector<TAtomRef> deps; //The atoms we needed to make a deduction
+    std::vector<std::vector<int> > alt;
+    //An alternate explanation for a deduction
     bool unsat; //true if this is just the general deduction that some atoms are incompatible
     bool given; //given or not
     std::string name;
@@ -58,6 +60,8 @@ namespace tarski {
     inline bool isUnsat() const { return unsat; }
     const std::vector<TAtomRef>& getDeps() const {return deps;}
     TAtomRef getDed() const { return deduction; }
+    inline void addCycle(const vector<int>& v)
+    { alt.emplace_back(v.begin(), v.end()); }
     virtual ~Deduction() {}
   Deduction(TAtomRef t, const std::vector<TAtomRef>& atoms, std::string s) : deps(atoms), unsat(false),  given(false), name(s)   {
       deduction = t;
@@ -138,32 +142,23 @@ namespace tarski {
 
   };
 
-  struct managerComp {
-    bool operator()(const TAtomRef &A, const TAtomRef &B) {
-      if (A->getFactors()->numFactors() < B->getFactors()->numFactors()) return true;
-      if (A->getFactors()->numFactors() > B->getFactors()->numFactors()) return false;
-      int t = OCOMP(A->getFactors()->getContent(),B->getFactors()->getContent());
-      if (t != 0) {
-	if (t < 0) return -1;
-        return 1;
-      }
-      FactObj::factorIterator itrA= A->getFactors()->factorBegin();
-      FactObj::factorIterator itrB= B->getFactors()->factorBegin();
-      while(itrA != A->getFactors()->factorEnd())
-        {
-          if (itrA->second < itrB->second) return true;
-          if (itrA->second > itrB->second) return false;
-          if (itrA->first < itrB->first) return true;
-          if (itrB->first < itrA->first) return false;
-          ++itrA;
-          ++itrB;
-        }
-      return false;
-    }
-  };
+  
 
   class DedManager{
   private:
+
+    struct ManagerComp {
+      bool operator()(const TAtomRef &A, const TAtomRef &B);
+    };
+    struct DedScore {
+      int score;
+      const Deduction * d;
+      DedScore(Deduction * d) : score(0) {this->d = d; scoreDed();}
+      void scoreDed();
+    };
+    struct SimpleComp {
+      bool operator()(const DedScore& a, const DedScore& b);
+    };
 
     PolyManager * PM;
     bool unsat;
@@ -171,89 +166,50 @@ namespace tarski {
     std::vector<std::vector<int> > depIdxs; //The indexes of all the atoms a deduction is dependent on
     VarKeyedMap<int> varSigns; //A fast mapping for variables, which is needed for WB algorithms
     //The index of the last deduction on an atom
-    std::map<TAtomRef, int, managerComp> atomToDed; 
-    inline short getSgn(TAtomRef t) {
-      return (atomToDed.find(t) == atomToDed.end())
-        ? ALOP : deds[atomToDed[t]]->getDed()->relop;
-    }
+    std::map<TAtomRef, int, ManagerComp> atomToDed;
+    int givenSize; //The size of the part of the deds vector which is all given
+    short getSgn(TAtomRef t);
     void writeDeps(Deduction *);
-
-    inline void updateVarSigns(TAtomRef t) {
-      if (t->F->numFactors() == 1 && t->factorsBegin()->first->isVariable().any() &&
-          t->getRelop() != ALOP) {
-        VarSet v = t->getVars();
-        varSigns[v] = varSigns[v] & t->getRelop();
-      }
-
-    }
-    void updateVarSigns(Deduction * d) {
-      updateVarSigns(d->getDed());
-    }
+    void updateVarSigns(TAtomRef t);
+    inline void updateVarSigns(Deduction * d) { updateVarSigns(d->getDed()); }
 
     //CONSTRUCTOR METHODS
-    
     void addGCombo(TAtomRef t);
     void processGiven(TAtomRef t);
     //END CONSTRUCTOR
     vector<int> getDepIdxs(Deduction * d);
     void addDed(Deduction * d);
+    void addCycle(Deduction * d);
     void addCombo(Deduction * d);
 
-    short processFirstBB(BBDed *, IntPolyRef, short);
 
+    TAndRef simplify();
+    vector<int> expSimplify();
 
   public:
 
     void addGiven(TAtomRef t);
-    inline short getSign(IntPolyRef p) {
-      FactRef F = new FactObj(PM);
-      F->addFactor(p, 1);
-      TAtomRef t = new TAtomObj(F, ALOP);
-      return getSgn(t);
-    }
-    inline bool isUnsat() {return unsat;}
+    short getSign(IntPolyRef p);
+    inline bool isUnsat() { return unsat; }
     bool processDeduction(Deduction * d);
     short processDeductions(vector<Deduction *> v);
-    inline Deduction * getLast() {return deds.back();}
-    VarKeyedMap<int>& getVars() {return varSigns;}
-    Result traceBack();
+    inline Deduction * getLast() { return deds.back(); }
+    inline VarKeyedMap<int>& getVars() { return varSigns; }
+    inline Result traceBack() { return traceBack(deds.size()-1); }
     Result traceBack(int idx);
-    void writeProof();
-    void writeProof(int idx);
+    void writeProof(int i);
+    inline void writeProof() { writeProof(deds.size()-1); }
     void writeAll();
     inline int size() {return deds.size();}
-    inline void getItrs(int idx, vector<Deduction *>::const_iterator& itr, vector<Deduction *>::const_iterator& end) {
-      itr = deds.begin()+idx;
-      end = deds.end();
-    }
+    typedef vector<Deduction *>::const_iterator dedItr;
+    inline void getItrs(int idx, dedItr& itr, dedItr& end)
+    { itr = deds.begin()+idx; end = deds.end(); }
     DedManager(const std::vector<TAtomRef>&);
     DedManager(TAndRef t);
     ~DedManager();
-    int searchMap(TAtomRef A) {
-      int ret = -1;
-      for (map<TAtomRef, int, managerComp>::iterator itr = atomToDed.begin(); itr != atomToDed.end(); ++itr) {
-	if (isEquiv(A, itr->first)) {
-	  ret = itr->second;
-	  break;
-	}
-      }
-      return ret;
-    }
-    bool isEquiv(TAtomRef A, TAtomRef B) {
-      if (A->getFactors()->numFactors() != B->getFactors()->numFactors()) return false;
-      int t = OCOMP(A->getFactors()->getContent(),B->getFactors()->getContent());
-      if (t != 0) { return false; }
-      FactObj::factorIterator itrA= A->getFactors()->factorBegin();
-      FactObj::factorIterator itrB= B->getFactors()->factorBegin();
-      while(itrA != A->getFactors()->factorEnd())
-	{
-	  if (itrA->second != itrB->second) return false;
-	  if (itrA->first < itrB->first || itrB->first < itrA->first) return false;
-	  ++itrA;
-	  ++itrB;
-	}
-      return true;
-    }
+    int searchMap(TAtomRef A);
+    bool isEquiv(TAtomRef A, TAtomRef B);
+    TAndRef getSimplifiedFormula();
   };
 
 

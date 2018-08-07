@@ -481,6 +481,10 @@ namespace tarski {
         if (b) deds.push_back(d); 
         continue;
       }
+      else {
+        Deduction * d = new MinWtDed(w.atom, sources);
+        deds.push_back(d);
+      }
     }
     return deds;
   }

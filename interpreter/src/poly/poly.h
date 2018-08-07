@@ -36,6 +36,7 @@ public:
   IntPolyObj(Word r, Word A, VarSet S) { compactify(r,A,S); }
   bool isConstant() const { return svars == 0; }
   VarSet isVariable() const { return slevel == 1 && EQUAL(sP,LIST2(1,1)) ? svars : 0; }
+  bool isVar() const { return slevel == 1 && EQUAL(sP, LIST2(1,1)) ? true : false; }
   int signIfConstant() const { return isConstant() ? ISIGNF(sP) : 0; }
   bool isZero() const { return sP == 0; }
   const VarSet& getVars() const { return svars; }

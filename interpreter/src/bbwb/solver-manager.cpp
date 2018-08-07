@@ -23,7 +23,10 @@ namespace tarski {
       Result r = deduceAll();
       LisRef l = new LisObj();
       if (isUnsat()) l->push_back(new SymObj("UNSAT"));
-      else l->push_back(new SymObj("SAT"));
+      else  {
+        l->push_back(new SymObj("SAT"));
+        dedM->getSimplifiedFormula();
+      }
       vector<TAtomRef>& vec = r.atoms;
       TAndRef res = new TAndObj();
       for (vector<TAtomRef>::iterator itr = vec.begin();

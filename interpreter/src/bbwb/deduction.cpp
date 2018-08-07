@@ -35,6 +35,7 @@ namespace tarski {
       processGiven(*itr);
       if (unsat) return;
     }
+    givenSize = deds.size();
   }
 
   //This requires at least one member of a
@@ -44,9 +45,74 @@ namespace tarski {
       if (unsat) return;
     }
     PM = a[0]->getPolyManagerPtr();
-
+    givenSize = deds.size();
   }
 
+  bool DedManager::ManagerComp::operator()(const TAtomRef& A, const TAtomRef& B) {
+    if (A->getFactors()->numFactors() < B->getFactors()->numFactors()) return true;
+    if (A->getFactors()->numFactors() > B->getFactors()->numFactors()) return false;
+    int t = OCOMP(A->getFactors()->getContent(),B->getFactors()->getContent());
+    if (t != 0) {
+      if (t < 0) return -1;
+      return 1;
+    }
+    FactObj::factorIterator itrA= A->getFactors()->factorBegin();
+    FactObj::factorIterator itrB= B->getFactors()->factorBegin();
+    while(itrA != A->getFactors()->factorEnd())
+      {
+        if (itrA->second < itrB->second) return true;
+        if (itrA->second > itrB->second) return false;
+        if (itrA->first < itrB->first) return true;
+        if (itrB->first < itrA->first) return false;
+        ++itrA;
+        ++itrB;
+      }
+    return false;
+  }
+
+  /*
+    Heuristic for simplest is
+    Score 0 for best possible case, sign on variable
+    Add 25 for every term in a polynomial
+    Add 5 for every variable in a term
+    Add 100 for every factor
+   */
+  void DedManager::DedScore::scoreDed() {
+    TAtomRef a = d->getDed();
+    FactRef f = a->getFactors();
+    score += 100 * (f->numFactors() - 1);
+    for (FactObj::factorIterator itr = f->factorBegin();
+         itr != f->factorEnd(); ++itr) {
+      IntPolyRef poly = itr->first;
+      if (poly->isVar()) continue;
+      VarKeyedMap<int> M;
+      FernPolyIter F(poly, M);
+      while (!F.isNull()) {
+        score += 25 + F.getVars().size()*5;
+      }
+    }
+  }
+
+
+  bool DedManager::SimpleComp::operator()(const DedScore& A,
+                                          const DedScore& B) {
+    return A.score < B.score;
+  }
+
+
+
+
+  short DedManager::getSgn(TAtomRef t) {
+    return (atomToDed.find(t) == atomToDed.end())
+      ? ALOP : deds[atomToDed[t]]->getDed()->relop;
+  }
+
+  void DedManager::updateVarSigns(TAtomRef t) {
+    if (t->F->numFactors() == 1 && t->factorsBegin()->first->isVariable().any() && t->getRelop() != ALOP) {
+      VarSet v = t->getVars();
+      varSigns[v] = varSigns[v] & t->getRelop();
+    }
+  }
 
   //Return 0 for UNSAT
   //Return 1 for learned, but SAT
@@ -121,11 +187,11 @@ namespace tarski {
       int idx = -1;
       if ((*itr)->relop == ALOP) continue;
       if (atomToDed.find(*itr) == atomToDed.end()) {
-	idx = searchMap(*itr);
-	if (idx == -1) {
-	  (*itr)->write(); cerr << " is the offender \n";
-	  throw TarskiException("No index for dependency!");
-	}
+        idx = searchMap(*itr);
+        if (idx == -1) {
+          (*itr)->write(); cerr << " is the offender \n";
+          throw TarskiException("No index for dependency!");
+        }
       } 
       if (idx == -1) idx = (atomToDed.find(*itr))->second;
       if (idx == -1) throw TarskiException("Unknown Dependency!");
@@ -134,6 +200,10 @@ namespace tarski {
     return deps;
   }
 
+
+  void DedManager::addCycle(Deduction * d) {
+    deds[atomToDed[d->getDed()]]->addCycle(getDepIdxs(d));
+  }
 
   void DedManager::addDed(Deduction * d){
     depIdxs.push_back(getDepIdxs(d));
@@ -172,21 +242,25 @@ namespace tarski {
       unsat = true;
       return true;
     }
-    updateVarSigns(d);
+
     short combo = d->getDed()->getRelop() & getSgn(d->getDed());
-    if (combo == getSgn(d->getDed()))  {delete d; return false; }
-    else if (atomToDed.find(d->getDed()) == atomToDed.end()) { addDed(d); if (combo == NOOP) unsat = true; return true;}
+    if (d->getDed()->getRelop() == getSgn(d->getDed()))  {
+      addCycle(d); 
+      return false;
+    }
+    if (combo == getSgn(d->getDed())) {
+      delete d;
+      return false;
+    }
+    updateVarSigns(d);
+    if (atomToDed.find(d->getDed()) == atomToDed.end()) {
+      addDed(d);
+      if (combo == NOOP) unsat = true; \
+      return true;
+    }
     else {addCombo(d); return true; }
   }
 
-
-  /*
-    Given the last deduction d made in this deduction manager, determine all the deductions that were needed to deduce d.
-    This function works by effectively doing a graph traversal with a priority queue through the std::vector of deductions. Since each deduction contains the list of all of its dependencies, we have to check each dependency. If a dependency is a given, then we stop searching there.
-  */
-  Result DedManager::traceBack() {
-    return traceBack(deds.size()-1);
-  }
 
   /*
     Given the last deduction d made in this deduction manager, determine all the deductions that were needed to deduce d.
@@ -231,12 +305,41 @@ namespace tarski {
     return r;
   }
 
+  short DedManager::getSign(IntPolyRef p) {
+    FactRef F = new FactObj(PM);
+    F->addFactor(p, 1);
+    TAtomRef t = new TAtomObj(F, ALOP);
+    return getSgn(t);
 
-
-  void DedManager::writeProof() {
-    writeProof(deds.size()-1);
   }
 
+
+  int DedManager::searchMap(TAtomRef A) {
+    int ret = -1;
+    for (map<TAtomRef, int, ManagerComp>::iterator itr = atomToDed.begin(); itr != atomToDed.end(); ++itr) {
+      if (isEquiv(A, itr->first)) {
+        ret = itr->second;
+        break;
+      }
+    }
+    return ret;
+  }
+
+  bool DedManager::isEquiv(TAtomRef A, TAtomRef B) {
+    if (A->getFactors()->numFactors() != B->getFactors()->numFactors()) return false;
+    int t = OCOMP(A->getFactors()->getContent(),B->getFactors()->getContent());
+    if (t != 0) { return false; }
+    FactObj::factorIterator itrA= A->getFactors()->factorBegin();
+    FactObj::factorIterator itrB= B->getFactors()->factorBegin();
+    while(itrA != A->getFactors()->factorEnd())
+      {
+        if (itrA->second != itrB->second) return false;
+        if (itrA->first < itrB->first || itrB->first < itrA->first) return false;
+        ++itrA;
+        ++itrB;
+      }
+    return true;
+  }
 
   void DedManager::writeProof(int idx) {
     std::vector<bool> seen(idx+1, false);
@@ -293,6 +396,22 @@ namespace tarski {
     }
   }
 
+
+  TAndRef DedManager::getSimplifiedFormula() {
+    TAndRef t;
+    vector<DedScore> vd;
+    for (std::vector<Deduction *>::iterator itr = deds.begin();
+         itr != deds.end(); ++itr) {
+      vd.emplace_back(*itr);
+    }
+    std::sort(vd.begin(), vd.end(), SimpleComp());
+    for (std::vector<DedScore>::iterator itr = vd.begin();
+         itr != vd.end(); ++itr) {
+      itr->d->getDed()->write(); std::cerr << " ";
+    }
+    std::cerr << std::endl;
+    return t;
+  }
 
   DedManager::~DedManager() {
     for (std::vector<Deduction *>::iterator it = deds.begin(); it != deds.end(); ++it) {
