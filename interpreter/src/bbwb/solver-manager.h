@@ -60,7 +60,12 @@ namespace tarski {
 
   public:
     SolverManager(const vector<QuickSolver *>& v, TAndRef tand);
+    SolverManager(int codes, TAndRef tand);
     ~SolverManager();
+
+    static const int BB = 1;
+    static const int WB = 2;
+
     //Adds a quicksolver
     inline void addNew(QuickSolver * q) { solvers.push_back(q); solvers.back()->setDedM(dedM); }
 

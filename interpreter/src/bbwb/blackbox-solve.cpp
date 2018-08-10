@@ -13,16 +13,23 @@
 namespace tarski {
 
   Deduction * BBSolver::deduce(TAndRef t) {
-    if (deductions.size() == 0) {
-      if (!once)  { once = true; return NULL; }
+    PM = t->getPolyManagerPtr();
+    if (itr == end) {
+      if (!once)  {
+        once = true;
+        deductions.clear();
+        return NULL;
+      }
       else {
         deductions = bbsat(t);
+        itr = deductions.begin(); end = deductions.end();
         if (deductions.size() == 0) return NULL;
         else once = false;
       }
     }
-    Deduction * d = deductions.back();
-    deductions.pop_back();
+
+    Deduction * d = *itr;
+    ++itr;
     return d;
   }
 
@@ -44,13 +51,13 @@ namespace tarski {
   */
   std::vector<Deduction *> BBSolver::bbsat(TAndRef t) {
     // Process the formula
-    BBChecker bc(&M, t->getPolyManagerPtr());
+    BBChecker bc(&M, PM);
     if (!bc.checkSat()) {
       return bc.explainUnsat();
     }
 
     else {
-      BBDeducer bd(&M, t->getPolyManagerPtr());
+      BBDeducer bd(&M, PM);
       return bd.getDeductions();
     }
   }
@@ -216,7 +223,6 @@ namespace tarski {
       if (strengthen == false)  {
         atoms.push_back(M->strengthenPoly(dedP));
       }
-
       deds.push_back(new BBDed(dedAtom, atoms));
     }
   }
@@ -266,8 +272,8 @@ namespace tarski {
 
   void BBDeducer::writeChar(const std::vector<char>& vc, int cutOff = 0) {
     for (size_t i = cutOff; i < vc.size(); i++)
-      std::cerr << (int) vc[i] << " ";
-    std::cerr << std::endl;
+      std::cout << (int) vc[i] << " ";
+    std::cout << std::endl;
   } 
 
   //Checks if the support of v1 is in the support of v2
@@ -337,42 +343,47 @@ namespace tarski {
     sources.push_back(wp.atom);
     const vector<bool>& idxs = reducer.getComp().back();
     for (size_t i = 0; i < idxs.size()-1; i++) {
-      if (idxs[i]) sources.push_back(va[i].atom);
+      if (idxs[i]) {
+        sources.push_back(va[i].atom);
+      }
+
     }
     return true;
   }
 
-  Deduction * BBDeducer::mkMinWtDed(const vector<char> * vc,
-                                    const vector<TAtomRef>& sources,
-                                    bool& success) {
-    
-    success = true;
+  void BBDeducer::mkMinWtDed(AtomRow& a,
+                             const vector<TAtomRef>& sources,
+                             vector<Deduction*>& deds) {
 
-    short relop = (vc->at(0) == 0) ? GEOP : LEOP;
+    short relop = (a.vc->at(0) == 0) ? GEOP : LEOP;
     FactRef F = new FactObj(PM);
     bool allTwo = true;
-    for (size_t i = 1; i < vc->size(); i++) {
-      if (vc->at(i) == 1) allTwo = false;
-      if (vc->at(i) != 0) F->addFactor(M->getPoly(i), vc->at(i)); 
+    for (size_t i = 1; i < a.vc->size(); i++) {
+      if (a.vc->at(i) == 1) allTwo = false;
+      if (a.vc->at(i) != 0) F->addFactor(M->getPoly(i), a.vc->at(i)); 
     }
-    if (allTwo && relop == GEOP) {
-      success = false; return NULL;
-    }
+    if (allTwo && relop == GEOP) { return; }
     TAtomRef t;
     if (relop == LEOP && allTwo) {
       for (map<IntPolyRef,int>::iterator itr = F->MultiplicityMap.begin();
            itr != F->MultiplicityMap.end(); ++itr)
         itr->second = 1;
-      t =new TAtomObj(F, EQOP);
+      t = new TAtomObj(F, EQOP);
     }
     else t = new TAtomObj(F, relop);
     Deduction * d = new MinWtDed(t, sources);
-    return d;
-    //return new MinWtDed(t, sources);
+    deds.push_back(d);
+    //Equivalence case - we need to identify that
+    //x = 0 implies y*x <= 0 explicitly
+    //NOTE: Maybe this should be done by the DedM?
+    if (relop == LEOP && allTwo) {
+      Deduction * equiv = new MinWtDed(a.atom, {t});
+      deds.push_back(equiv);
+    }
   }
 
-  Deduction * BBDeducer::mkMinWtDed(AtomRow& a, bool& success) {
-    return mkMinWtDed(a.vc, {a.atom}, success); 
+  void BBDeducer::mkMinWtDed(AtomRow& a, vector<Deduction*>& deds) {
+    mkMinWtDed(a, {a.atom}, deds);
   }
 
   
@@ -396,12 +407,10 @@ namespace tarski {
       B.pop_back();
       if (weight(w.vc, ns) == 0)  {
         bool b = true;
-        Deduction * d = mkMinWtDed(w, b);
-        if (b) deds.push_back(d); 
+        mkMinWtDed(w, deds);
         for (AtomRow& a : B) {
           b = true;
-          d = mkMinWtDed(a, b);
-          if (b) deds.push_back(d);
+          mkMinWtDed(a, deds);
         }
         return deds;
       }
@@ -445,9 +454,8 @@ namespace tarski {
         for (size_t i = ns; i < resRow.size(); i++) {
           if (resRow[i] == 1) resRow[i] = 2;
         }
-        bool b = true;
-        Deduction * d = mkMinWtDed(&resRow, sources, b);
-        if (b) deds.push_back(d);
+        AtomRow res(resRow, w.atom);
+        mkMinWtDed(res, sources, deds);
 
         /* STEP 12 */
         int numPopped = 0;
@@ -468,23 +476,13 @@ namespace tarski {
         continue;
       }
 
-      /* STEP 13 */
-      bool isNull = true;
-      std::vector<char>::iterator itr = wpReduced.begin();
-      while (itr != wpReduced.end() && isNull) {
-        isNull = !*itr;
-        ++itr;
-      }
-      if (!isNull) {
-        bool b = true;
-        Deduction * d = mkMinWtDed(w.vc, sources, b);
-        if (b) deds.push_back(d); 
-        continue;
-      }
-      else {
-        Deduction * d = new MinWtDed(w.atom, sources);
-        deds.push_back(d);
-      }
+      /* STEP 13-14 */
+      //We combine the null step and the non null case here
+      //Because we want to deduce the null row and say that
+      //Some atom can be deduced by other atoms
+      mkMinWtDed(w, sources, deds);
+      continue;
+
     }
     return deds;
   }

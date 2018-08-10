@@ -1,18 +1,31 @@
 #include "solver-manager.h"
+#include "blackbox-solve.h"
+#include "whitebox-solve.h"
 
 namespace tarski {
 
+  /*
+    NOTE: Deprecated
+   */
   SolverManager::SolverManager(const vector<QuickSolver *>& v, TAndRef tand) : solvers(v), lastDeds(v.size(), 0), hasRan(false) {
-    t = new TAndObj();
-    for (TAndObj::conjunct_iterator itr = tand->conjuncts.begin();
-         itr != tand->conjuncts.end(); ++itr) {
-      TAtomRef tf = asa<TAtomObj>(*itr);
-      t->AND(tf); 
-    }
-    dedM = new DedManager(t);
+    throw TarskiException("Deprecated Constructor!");
+    t = tand;
+    dedM = new DedManager(tand);
     for (int i = 0; i < solvers.size(); i++) {
       solvers[i]->setDedM(dedM);
     }
+  }
+
+  SolverManager::SolverManager(int codes, TAndRef tand) : hasRan(false) {
+    dedM = new DedManager(tand);
+    t = dedM->getInitConjunct();
+    std::cerr << "Formula from dedM: "; t->write(); std::cerr << std::endl;
+    if (codes && BB == BB) solvers.push_back(new BBSolver(t));
+    if (codes && WB == WB) solvers.push_back(new WBSolver(t));
+    for (int i = 0; i < solvers.size(); i++) {
+      solvers[i]->setDedM(dedM);
+    }
+    lastDeds.resize(solvers.size(), 0);
   }
 
 

@@ -2,6 +2,7 @@
 #define DEDUCTION_H
 
 #include <set>
+#include <unordered_set>
 #include <utility>
 #include <forward_list>
 #include <list>
@@ -38,7 +39,6 @@ namespace tarski {
 
     TAtomRef deduction; //Exists if this is a learned sign on some factref
     std::vector<TAtomRef> deps; //The atoms we needed to make a deduction
-    std::vector<std::vector<int> > alt;
     //An alternate explanation for a deduction
     bool unsat; //true if this is just the general deduction that some atoms are incompatible
     bool given; //given or not
@@ -60,8 +60,6 @@ namespace tarski {
     inline bool isUnsat() const { return unsat; }
     const std::vector<TAtomRef>& getDeps() const {return deps;}
     TAtomRef getDed() const { return deduction; }
-    inline void addCycle(const vector<int>& v)
-    { alt.emplace_back(v.begin(), v.end()); }
     virtual ~Deduction() {}
   Deduction(TAtomRef t, const std::vector<TAtomRef>& atoms, std::string s) : deps(atoms), unsat(false),  given(false), name(s)   {
       deduction = t;
@@ -146,7 +144,7 @@ namespace tarski {
 
   class DedManager{
   private:
-
+    
     struct ManagerComp {
       bool operator()(const TAtomRef &A, const TAtomRef &B);
     };
@@ -154,16 +152,23 @@ namespace tarski {
       int score;
       const Deduction * d;
       DedScore(Deduction * d) : score(0) {this->d = d; scoreDed();}
+      DedScore() : score(0) {}
       void scoreDed();
     };
-    struct SimpleComp {
-      bool operator()(const DedScore& a, const DedScore& b);
+    struct VectorHash {
+      //https://stackoverflow.com/questions/29855908/c-unordered-set-of-vectors
+      std::size_t operator()(const std::vector<int>& v) const;
     };
-
+    vector<DedScore *> countSort(vector<DedScore *>&, vector<int>&);
+    void swap(vector<DedScore>& vd, int i, int j);
+    struct SimpleComp {
+      bool operator()(const pair<DedScore*, int>& a, const pair<DedScore*, int>& b);
+    };
     PolyManager * PM;
     bool unsat;
     std::vector<Deduction *> deds; //The deductions themselves
-    std::vector<std::vector<int> > depIdxs; //The indexes of all the atoms a deduction is dependent on
+    std::vector<std::unordered_set<std::vector<int>, VectorHash > > depIdxs; //The indexes of all the atoms a deduction is dependent on
+    std::vector<std::vector<int> > origDep; //The indices of the first time a deduction was made. This is necessary because cycles can ruin tracebacks, but std::set doesn't give us a way to retrieve the first way a deduction was made
     VarKeyedMap<int> varSigns; //A fast mapping for variables, which is needed for WB algorithms
     //The index of the last deduction on an atom
     std::map<TAtomRef, int, ManagerComp> atomToDed;
@@ -187,7 +192,10 @@ namespace tarski {
     vector<int> expSimplify();
 
   public:
-
+    DedManager(const std::vector<TAtomRef>&);
+    DedManager(TAndRef t);
+    ~DedManager();
+    TAndRef getInitConjunct();
     void addGiven(TAtomRef t);
     short getSign(IntPolyRef p);
     inline bool isUnsat() { return unsat; }
@@ -204,9 +212,6 @@ namespace tarski {
     typedef vector<Deduction *>::const_iterator dedItr;
     inline void getItrs(int idx, dedItr& itr, dedItr& end)
     { itr = deds.begin()+idx; end = deds.end(); }
-    DedManager(const std::vector<TAtomRef>&);
-    DedManager(TAndRef t);
-    ~DedManager();
     int searchMap(TAtomRef A);
     bool isEquiv(TAtomRef A, TAtomRef B);
     TAndRef getSimplifiedFormula();

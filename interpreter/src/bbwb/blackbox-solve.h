@@ -41,7 +41,7 @@ namespace tarski{
     std::vector<Deduction *> deductions;
     bool once;
     MatrixManager M;
-
+    std::vector<Deduction *>::iterator itr, end;
   public:
     inline BBSolver(TAndRef tf)  : deductions(0), once(true), M(tf) {
       this->PM = tf->getPolyManagerPtr();
@@ -117,8 +117,9 @@ namespace tarski{
     static bool reduceRow(AtomRow&, vector<char>&,
                           vector<TAtomRef>&, const DMatrix&,
                           const vector<AtomRow>&);
-    Deduction * mkMinWtDed(const vector<char>*,const vector<TAtomRef>&,bool&);
-    Deduction * mkMinWtDed(AtomRow&, bool&);
+    void mkMinWtDed(AtomRow&,const vector<TAtomRef>&,
+                    vector<Deduction*>&);
+    void mkMinWtDed(AtomRow&, vector<Deduction*>&);
     vector<Deduction *> minWtMain();
 
 
