@@ -105,16 +105,16 @@ namespace tarski {
     If we exhaust all possible single-to-multi variable deduceSign2 instances, then 
     attempt polynomialSign
    */
-  Deduction * WBSolver::doSingleDeduce() {
-    if (singleVarsDed.empty()) return doPolySigns();
+  DedExp WBSolver::doSingleDeduce(bool& success) {
+    if (singleVarsDed.empty()) return doMultiDeduce(success);
     std::set<pair<IntPolyRef, IntPolyRef>>::iterator it = singleVarsDed.begin();
     pair<IntPolyRef, IntPolyRef> p = *it;
     lastUsed = p.first;
 
     tuple<VarKeyedMap<int>, VarSet, short> res = Interval::deduceSign2(dedM->getVars(), PM, p.first, p.second, dedM->getSign(p.first), dedM->getSign(p.second));
     singleVarsDed.erase(it);
-    if (get<2>(res) == ALOP) return doSingleDeduce();
-    return toDed(get<0>(res), get<1>(res), p.first, p.second, get<2>(res), dedM->getSign(p.second));
+    if (get<2>(res) == ALOP) return doSingleDeduce(success);
+    return toDed(get<0>(res), get<1>(res), p.first, p.second, get<2>(res), dedM->getSign(p.second), Deduction::DEDUC);
   }
 
   /*
@@ -123,37 +123,25 @@ namespace tarski {
     If we exhaust all polynomials and learn nothing, 
     attempt deduceSign2 from multivariable factor to another multi variable factor
    */
-  Deduction * WBSolver::doPolySigns() {
-    if (polySigns.empty()) return doMultiDeduce();
+  DedExp WBSolver::doPolySigns(bool& success) {
+    if (polySigns.empty()) return doSingleDeduce(success);
     std::set<IntPolyRef>::iterator it = polySigns.begin();
     IntPolyRef p = *it;
     polySigns.erase(it);
     lastUsed = p;
     short sign = p->signDeduce(dedM->getVars());
-
-    /*
-      VarSet testVars = p->getVars();
-      cerr << "Poly: "; p->write(*PM); cerr << endl;
-      for (VarSet::iterator itr = testVars.begin(), end = testVars.end(); itr != end; ++itr){
-      IntPolyRef p = new IntPolyObj(*itr);
-      //p->write(*PM);cerr << " sign is " << numToRelop(dedM->getVars()[*itr]) << " " << dedM->getVars()[*itr];
-      cerr<<endl;
-      }
-    */
-    
-    //if (sign == NOOP) res = dedM->getVars(); If this case occurs, theres a bug!
+    assert(sign != NOOP);
     VarKeyedMap<int> res;
-    if (sign == ALOP) return doPolySigns();
+    if (sign == ALOP) return doPolySigns(success);
     else {
-      
       FernPolyIter F(p, dedM->getVars());
       bool success = true;
       res = select(dedM->getVars(), F, sign, success);
       if (!success) {
-        throw new TarskiException("Unable to prove a sign in PolySign in WBSATMANAGER");
+        throw TarskiException("Unable to prove a sign in PolySign in WBSATMANAGER");
       }
     }
-    return toDed(res, p->getVars(), p, sign);
+    return toDed(res, p->getVars(), p, sign, Deduction::POLYS);
   }
 
 
@@ -162,16 +150,20 @@ namespace tarski {
     If we learn nothing from a first attempt, try again
     If there is nothing left, return null
    */
-  Deduction * WBSolver::doMultiDeduce() {
-    if (multiVarsDed.empty()) return NULL;
+  DedExp WBSolver::doMultiDeduce(bool& success) {
+    if (multiVarsDed.empty()) {
+      DedExp d;
+      success = false;
+      return d;
+    }
     std::set<pair<IntPolyRef, IntPolyRef>>::iterator it = multiVarsDed.begin();
     pair<IntPolyRef, IntPolyRef> p = *it;
     multiVarsDed.erase(it);
     lastUsed = p.first;
     tuple<VarKeyedMap<int>, VarSet, short> res;
     res = Interval::deduceSign2(dedM->getVars(), PM, p.first, p.second, dedM->getSign(p.first), dedM->getSign(p.second));
-    if (get<2>(res) == ALOP) return doMultiDeduce();
-    return toDed(get<0>(res), get<1>(res), p.first, p.second, get<2>(res), dedM->getSign(p.second));
+    if (get<2>(res) == ALOP) return doMultiDeduce(success);
+    return toDed(get<0>(res), get<1>(res), p.first, p.second, get<2>(res), dedM->getSign(p.second), Deduction::DEDUC);
   }
 
   /*
@@ -182,17 +174,19 @@ namespace tarski {
     DeduceSign2 from multi to multi variable factor
     If nothing can be learned, then this method is guaranteed to return NULL
    */
-  Deduction * WBSolver::deduce(TAndRef t) {
-    if (!singleVarsDed.empty()) return doSingleDeduce();
-    else if (!polySigns.empty()) return doPolySigns();
-    else if (!multiVarsDed.empty()) return doMultiDeduce();
-    else return NULL;
+  DedExp WBSolver::deduce(TAndRef t, bool& res) {
+    if (!polySigns.empty()) return doPolySigns(res);
+    else if (!singleVarsDed.empty()) return doSingleDeduce(res);
+    else if (!multiVarsDed.empty()) return doMultiDeduce(res);
+    res = false;
+    DedExp d;
+    return d;
   }
 
 
-  void WBSolver::update(std::vector<Deduction *>::const_iterator begin, std::vector<Deduction *>::const_iterator end) {
+  void WBSolver::update(std::vector<Deduction>::const_iterator begin, std::vector<Deduction>::const_iterator end) {
     while (begin != end) {
-      TAtomRef t = (*begin)->getDed();
+      TAtomRef t = begin->getDed();
       if (t->F->numFactors() == 1) {
         lastUsed = t->F->factorBegin()->first;
         notify();
@@ -200,30 +194,31 @@ namespace tarski {
       ++begin;
     }
   };
-  
-  
+
+
   /*
     If it's a single variable, then I need to recalculate for every polynomical which includes that variable,  and then every multiVar which contains it to every other multiVar that contains it)
     If its a multi variable, then I need to recalculate for every variable that is in it that variable to this multi. I also neeed to recalculate from this multi to every other multi which has a variable in common
   */
   void WBSolver::notify() {
     //Single variable case
-    VarSet vars = lastUsed->getVars();
-    for (VarSet::iterator iter = vars.begin(); iter != vars.end(); ++iter) {
-      VarSet var = *iter;
-      if (lastUsed->isVar()) {
+    if (!lastUsed->isVar()) {
+      VarSet vars = lastUsed->getVars();
+      for (VarSet::iterator iter = vars.begin(); iter != vars.end(); ++iter) {
+        VarSet var = *iter;
         forward_list<IntPolyRef> depPolys = varToIneq[var];
         for (forward_list<IntPolyRef>::iterator flitr = depPolys.begin(); flitr != depPolys.end(); ++flitr) {
           saveAllVarsDed(*flitr); //Every polynomial which contains this var
           saveAllPolysDed(*flitr); //Every polynomial which contains this var to all other polys
-          saveAllPolySigns(*flitr);
         }
       }
-      else {
-        saveAllVarsDed(lastUsed); //Every variable in this polynomial
-        saveAllPolysDed(lastUsed); //Every polynomial with a variable in common with this var
-      }
     }
+    else {
+      saveAllVarsDed(lastUsed); //Every variable in this polynomial
+      saveAllPolysDed(lastUsed); //Every polynomial with a variable in common with this var
+      saveAllPolySigns(lastUsed);
+    }
+
   }
 
     /*
@@ -248,7 +243,7 @@ namespace tarski {
     save p as a future poly-sign calculation
   */
   void WBSolver::saveAllPolySigns(IntPolyRef mono) {
-    if (!(mono->isVariable().any())) return;
+    if (!(mono->isVar())) return;
     VarSet v = mono->getVars();
     for (std::set<IntPolyRef>::iterator iter = multiVars.begin(); iter != multiVars.end(); ++iter) {
       IntPolyRef p = *iter;
@@ -264,7 +259,6 @@ namespace tarski {
     generate a pair between p and poly and save it as a future deduceSigns pair
   */
   void WBSolver::saveAllPolysDed(IntPolyRef poly) {
-    polySigns.insert(poly);
     for (std::set<IntPolyRef>::iterator iter = multiVars.begin(); iter != multiVars.end(); ++iter) {
       IntPolyRef poly2 = *iter;
       if (((poly2->getVars() & poly->getVars()).any())  &&
@@ -293,8 +287,8 @@ namespace tarski {
   /*
     Turn some learned sign information about a polynomial into the object Deduction format
    */
-  WBDed * WBSolver::toDed(VarKeyedMap<int> signs, VarSet v, IntPolyRef pMain, short sgn) {
-    vector<TAtomRef> deps;
+  DedExp WBSolver::toDed(VarKeyedMap<int>& signs, const VarSet& v, IntPolyRef pMain, short sgn, int type) {
+    forward_list<TAtomRef> deps;
     if (!pMain->isVar()) {
       for (VarSet::iterator itr = v.begin(), end = v.end(); itr != end; ++itr){
         if (signs[*itr] == ALOP) continue;
@@ -302,54 +296,40 @@ namespace tarski {
         FactRef F = new FactObj(PM);
         F->addFactor(p, 1);
         TAtomRef t = new TAtomObj(F, signs[*itr]);
-        deps.push_back(t);
+        deps.push_front(t);
       }
     }
     FactRef F = new FactObj(PM);
     F->addFactor(pMain, 1);
     TAtomRef t = new TAtomObj(F, sgn);
-    return new WBDed(t, deps, PSGN);
+    DedExp d(t, type, deps);
+    return d;
   }
   
     /*
     Turn some learned sign information about a polynomial into the object Deduction format
    */
-  WBDed * WBSolver::toDed(VarKeyedMap<int> signs, VarSet v, IntPolyRef pMain, IntPolyRef p2, short lsgn, short sgn2) {
-    vector<TAtomRef> deps;
-    VarSet scanned;
-    if (!p2->isVar()) {
-      for (VarSet::iterator itr = v.begin(), end = v.end(); itr != end; ++itr){
-        if (signs[*itr] == ALOP) continue;
-        scanned = scanned + *itr;
-        IntPolyRef p = new IntPolyObj(*itr);
-        FactRef F = new FactObj(PM);
-        F->addFactor(p, 1);
-        TAtomRef t = new TAtomObj(F, signs[*itr]);
-        deps.push_back(t);
-      }
+  DedExp WBSolver::toDed(VarKeyedMap<int>& signs, const VarSet& v, IntPolyRef pMain, IntPolyRef p2, short lsgn, short sgn2, int type) {
+    forward_list<TAtomRef> deps;
+    for (VarSet::iterator itr = v.begin(); itr != v.end(); ++itr) {
+      if (signs[*itr] == ALOP) continue;
+      IntPolyRef p = new IntPolyObj(*itr);
+      FactRef F = new FactObj(PM);
+      F->addFactor(p, 1);
+      TAtomRef t = new TAtomObj(F, signs[*itr]);
+      deps.push_front(t);
     }
-    else scanned = scanned + p2->getVars();
-    if (!pMain->isVar()) {
-      for (VarSet::iterator itr = v.begin(), end = v.end(); itr != end; ++itr){
-        if (signs[*itr] == ALOP) continue;
-        if (scanned == scanned + *itr) continue;
-        IntPolyRef p = new IntPolyObj(*itr);
-        FactRef F = new FactObj(PM);
-        F->addFactor(p, 1);
-        TAtomRef t = new TAtomObj(F, signs[*itr]);
-        deps.push_back(t);
-      }
+    if (sgn2 != ALOP) {
+      FactRef F = new FactObj(PM);
+      F->addFactor(p2, 1);
+      TAtomRef t = new TAtomObj(F, sgn2);
+      deps.push_front(t);
     }
     FactRef F = new FactObj(PM);
     F->addFactor(pMain, 1);
     TAtomRef t = new TAtomObj(F, lsgn);
-    if (sgn2 != ALOP) {
-      FactRef F2 = new FactObj(PM);
-      F2->addFactor(p2, 1);
-      TAtomRef t2 = new TAtomObj(F2, sgn2);
-      deps.push_back(t2);
-    }
-    return new WBDed(t, deps, DEDSGN);
+    DedExp d(t, type, deps);
+    return d;
   }
 
 } //end namespace

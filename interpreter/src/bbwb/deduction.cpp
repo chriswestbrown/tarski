@@ -1,8 +1,7 @@
 #include "deduction.h"
 #include <unordered_set>
 #include <algorithm>
-//TODO: Let BB strict make all possible deductions! Should probably be done via some clear method called after all new deductions are exhausted, s.t. BB only tries to deduce given atoms
-
+//TODO:Refactor writeproof and traceBack!
 
 namespace tarski {
 
@@ -10,32 +9,32 @@ namespace tarski {
 #define C_ITR const_iterator
 #define ITR iterator
 
-  void Deduction::write() {
-    if (unsat) cout << "UNSAT";
+  const string Deduction::names[7] = {"given",  "combo", "bbstrict",
+                                       "minwt", "bbcombo", "polysign",
+                                      "deducesign"};
+
+  const int Deduction::GIVEN = 0;
+  const int Deduction::COMBO = 1;
+  const int Deduction::BBSTR = 2;
+  const int Deduction::MINWT = 3;
+  const int Deduction::BBCOM = 4;
+  const int Deduction::POLYS = 5;
+  const int Deduction::DEDUC = 6;
+
+  void Deduction::write() const {
+    if (unsat) cerr << "UNSAT";
     else {
-      cout << name <<  ": ";
+      cerr << *name <<  ": ";
       if (!unsat) deduction->write();
     }
-    if (given) cout << endl;
-    else {
-      std::cout << " from  [ ";
-      for (unsigned int i = 0; i < deps.size(); i++) {
-        if (deps[i]->getRelop() != ALOP) {
-          deps[i]->write();
-          if (i != deps.size()-1) std::cout << " /\\ ";
-        }
-      }
-      cout << " ]\n";
-
-      
-  }
+    cout << endl;
   }
 
   DedManager::DedManager(TAndRef a) : unsat(false), varSigns(ALOP) {
     PM = a->getPolyManagerPtr();
     for (TAndObj::conjunct_iterator itr = a->begin(), end = a->end(); itr != end; ++itr) {
       processGiven(*itr);
-      if (unsat) return;
+      if (unsat)  { return; }
     }
     givenSize = deds.size();
   }
@@ -56,9 +55,11 @@ namespace tarski {
   //the simplified formula has x = 0
   TAndRef DedManager::getInitConjunct() {
     TAndRef tand = new TAndObj();
-    for (int i = 0; i < givenSize; i++) {
-      if (deds[i]->isGiven() && depIdxs[i].size() != 0) continue;
-      else tand->AND(deds[i]->getDed());
+    for (int i = 0; i < deds.size(); i++) {
+      if (!isGiven[i]) continue;
+      else {
+        tand->AND(deds[i].getDed());
+      }
     }
     return tand;
   }
@@ -85,14 +86,6 @@ namespace tarski {
     return false;
   }
 
-  size_t DedManager::VectorHash::operator()(const vector<int>& v) const {
-      std::hash<int> hasher;
-      size_t seed = 0;
-      for (int i : v) {
-        seed ^= hasher(i) + 0x9e3779b9 + (seed<<6) + (seed>>2);
-      }
-      return seed;
-  }
 
   /*
     Heuristic for simplest is
@@ -101,10 +94,10 @@ namespace tarski {
     Add 6 for every additional term in a polynomial
     Add 2 for every variable in a term
     Add 12 for every factor
-    NOTE: This method assumes score has been initialized!
    */
-  void DedManager::DedScore::scoreDed() {
-    TAtomRef a = d->getDed();
+  int DedManager::scoreDed(const Deduction& d) {
+    int score = 0;
+    TAtomRef a = d.getDed();
     FactRef f = a->getFactors();
     if (a->getRelop() == LEOP || a->getRelop() == GEOP ||
         a->getRelop() == NEOP) {
@@ -123,20 +116,12 @@ namespace tarski {
         if (!F.isNull()) score += 6;
       }
     }
+    return score;
   }
-
-
-  bool DedManager::SimpleComp::operator()(const pair<DedScore*, int>& A,
-                                          const pair<DedScore*, int>& B) {
-    return A.first->score < B.first->score;
-  }
-
-
-
 
   short DedManager::getSgn(TAtomRef t) {
     return (atomToDed.find(t) == atomToDed.end())
-      ? ALOP : deds[atomToDed[t]]->getDed()->relop;
+      ? ALOP : deds[atomToDed[t]].getDed()->relop;
   }
 
   void DedManager::updateVarSigns(TAtomRef t) {
@@ -146,43 +131,24 @@ namespace tarski {
     }
   }
 
-  //Return 0 for UNSAT
-  //Return 1 for learned, but SAT
-  //Return 2 for Nothing done
-  short DedManager::processDeductions(vector<Deduction *> v) {
-    short finRes;
-    vector<Deduction *>::ITR itr, end;
-    for (itr = v.begin(), end = v.end(); itr != end; ++itr) {
-      bool res = processDeduction(*itr);
-      if (unsat)  {++itr; break; }
-      else if (res == true) finRes = 1;
-    }
-    if (unsat) {
-      while (itr != end) {
-        delete *itr;
-        ++itr;
-      }
-      return 0;
-    }
-    return finRes;
-  }
-
-
 
   void DedManager::addGiven(TAtomRef t) {
     depIdxs.emplace_back();
     origDep.emplace_back();
     atomToDed[t] = deds.size();
-    deds.push_back(new Given(t));
+    Deduction d(t, Deduction::GIVEN);
+    deds.push_back(d);
+    isGiven.push_back(true);
   }
 
   void DedManager::addGCombo(TAtomRef t) {
     depIdxs.emplace_back();
     origDep.emplace_back();
 
-    deds.push_back(new Given(t));
+    deds.emplace_back(t, Deduction::GIVEN);
+    isGiven.push_back(true);
     int oldIdx = atomToDed[t];
-    TAtomRef t1 = deds[oldIdx]->getDed();
+    TAtomRef t1 = deds[oldIdx].getDed();
     vector<TAtomRef> atomDeps(2);
     atomDeps[0] = t;
     atomDeps[1] = t1;
@@ -190,24 +156,25 @@ namespace tarski {
 
     //Add a cycle from the two originals to the sign combo
     //that we will make
-    depIdxs.back().insert ({ (int) depIdxs.size() });
-    depIdxs[oldIdx].insert({ (int) depIdxs.size() });
+    depIdxs.back().push_back ({ (int) depIdxs.size() });
+    depIdxs[oldIdx].push_back({ (int) depIdxs.size() });
 
 
     //Adds the old deduction and the new deduction as dependencies
     //Makes a new atom which represents the sign combination of the two
-    vector<int> deps(2);
-    deps[0] = deds.size()-1;
-    deps[1] = oldIdx;
+    set<int> deps;
+    deps.insert(deds.size()-1);
+    deps.insert(oldIdx);
     depIdxs.emplace_back();
-    depIdxs.back().insert(deps);
+    depIdxs.back().push_back(deps);
     origDep.push_back(deps);
 
 
     TAtomRef t2 = new TAtomObj(t->F, t->relop & getSgn(t));
     atomToDed[t] = deds.size();
     if (t2->relop == NOOP) unsat = true;
-    deds.push_back(new SignCombo(t2, atomDeps));
+    deds.emplace_back(t2, Deduction::COMBO);
+    isGiven.push_back(false);
   }
 
    /*
@@ -226,12 +193,11 @@ namespace tarski {
     updateVarSigns(t);
   }
 
-  vector<int> DedManager::getDepIdxs(Deduction * d) {
-    vector<int> deps;
-    const vector<TAtomRef>& dA = d->getDeps();
-    for (vector<TAtomRef>::C_ITR itr = dA.begin(), end = dA.end(); itr != end; ++itr) {
+  std::set<int> DedManager::getDepIdxs(const dedList& d) {
+    set<int> deps;
+    for (dedList::C_ITR itr = d.begin(), end = d.end(); itr != end; ++itr) {
       int idx = -1;
-      if ((*itr)->relop == ALOP) continue;
+      if ((*itr)->getRelop() == ALOP) continue;
       if (atomToDed.find(*itr) == atomToDed.end()) {
         idx = searchMap(*itr);
         if (idx == -1) {
@@ -241,56 +207,72 @@ namespace tarski {
       } 
       if (idx == -1) idx = (atomToDed.find(*itr))->second;
       if (idx == -1) throw TarskiException("Unknown Dependency!");
-      deps.push_back(idx);
+      deps.insert(idx);
     }
     return deps;
   }
 
 
 
-  void DedManager::addCycle(Deduction * d) {
-    vector<int> idxs = getDepIdxs(d);
+  void DedManager::addCycle(const Deduction& d, const dedList& dl) {
+    set<int> idxs = getDepIdxs(dl);
     //We want to reject self deductions ie x = 0 is used to deduce x = 0
-    if (idxs.empty() || find(idxs.begin(), idxs.end(), atomToDed[d->getDed()]) != idxs.end())
+    if (idxs.empty() || idxs.find(atomToDed[d.getDed()]) != idxs.end()){
       return;
-#ifndef NDEBUG
-    unordered_set<int> us;
-    for (int i = 0; i < idxs.size(); i++) {
-      if (us.find(idxs[i]) != us.end()) {
-        std::cerr << "DUPLICATES IN: "; d->write();
-        break;
-      }
-      us.insert(idxs[i]);
     }
-#endif
-    depIdxs[atomToDed[d->getDed()]].insert(getDepIdxs(d));
+    int idx = atomToDed[d.getDed()];
+    checkAdd(idxs, idx);
   }
 
-  void DedManager::addDed(Deduction * d){
+  /*
+    Assumes that d is stronger than the previous deduction on the atom,
+    if one exists
+   */
+  void DedManager::addDed(const Deduction& d, const dedList& dl){
+    if (searchMap(d.getDed()) != -1)
+      depIdxs[searchMap(d.getDed())].push_back( { (int) deds.size()} );
     depIdxs.emplace_back();
-    depIdxs.back().insert(getDepIdxs(d));
-    origDep.push_back(getDepIdxs(d));
-    atomToDed[d->getDed()] = deds.size();
+    depIdxs.back().push_back(getDepIdxs(dl));
+    origDep.push_back(getDepIdxs(dl));
+    atomToDed[d.getDed()] = deds.size();
     deds.push_back(d);
+    isGiven.push_back(false);
+
   }
 
 
   /*
-    Note that this method modifies d by changing the learned sign
-    of d->deduction and adding a dependency!
-    If this method is called, the last member of d->deps is atom
-    which contains the previously known sign on d!
+
    */
-  void DedManager::addCombo(Deduction * d) {
-    Deduction * earlier = deds[atomToDed[d->getDed()]];
-    d->deps.push_back(earlier->getDed());
-    d->deduction->relop = d->deduction->relop & earlier->getDed()->relop;
-    if (d->deduction->relop == NOOP) unsat = true;
+  void DedManager::addCombo(const Deduction& d, const dedList& dl) {
+
+    int earlierIdx = atomToDed[d.getDed()];
+    TAtomRef earlier = deds[earlierIdx].getDed();
+    int comboSign = d.deduction->relop & earlier->relop;
+    //Adding d
     depIdxs.emplace_back();
-    depIdxs.back().insert(getDepIdxs(d));
-    origDep.push_back(getDepIdxs(d));
-    atomToDed[d->getDed()] = deds.size();
+    depIdxs.back().push_back(getDepIdxs(dl));
+    origDep.push_back(getDepIdxs(dl));
     deds.push_back(d);
+    isGiven.push_back(false);
+
+    //Add a dependency on d and the previous version of d
+    //to the sign combination
+    depIdxs[earlierIdx].push_back( {(int) deds.size()} );
+    depIdxs.back().push_back( {(int) deds.size()});
+
+    //Adding the combo itself
+    if (comboSign == NOOP) unsat = true;
+    TAtomRef t = new TAtomObj(d.getDed()->getFactors(), comboSign);
+    Deduction nuDed(t, Deduction::COMBO);
+    atomToDed[t] = deds.size();
+    deds.emplace_back(nuDed);
+    updateVarSigns(nuDed);
+    isGiven.push_back(false);
+    origDep.push_back({earlierIdx, (int) deds.size()-2});
+    depIdxs.emplace_back();
+    depIdxs.back().push_back({earlierIdx, (int) deds.size()-2});
+
   }
 
   /*
@@ -298,36 +280,86 @@ namespace tarski {
     If it doesn't, then don't add the deduction and terminate prematurely. return false
     do nothing if formula is already unsat
   */
-  bool DedManager::processDeduction(Deduction * d) {
+  bool DedManager::processDeduction(const Deduction& d, const dedList& dl) {
     //Initial processing of the deduction, check if it teaches anything useful
     //If it teaches us nothing useful, return
-    if (d->isUnsat()) {
+    d.write(); cout << "from ";
+    for (dedList::const_iterator itr = dl.begin(); itr != dl.end(); ++itr) {
+      (*itr)->write(); cout << " ";
+    }
+    cout << endl;
+    if (d.isUnsat() || d.getDed()->getRelop() == NOOP) {
       depIdxs.emplace_back();
-      depIdxs.back().insert(getDepIdxs(d));
-      origDep.push_back(getDepIdxs(d));
+      depIdxs.back().push_back(getDepIdxs(dl));
+      origDep.push_back(getDepIdxs(dl));
       deds.push_back(d);
+      isGiven.push_back(false);
       unsat = true;
       return true;
     }
 
-    short combo = d->getDed()->getRelop() & getSgn(d->getDed());
-    if (d->getDed()->getRelop() == getSgn(d->getDed()))  {
-      addCycle(d); 
-      return false;
-    }
-    if (combo == getSgn(d->getDed())) {
-      delete d;
-      return false;
-    }
-    updateVarSigns(d);
-    if (atomToDed.find(d->getDed()) == atomToDed.end()) {
-      addDed(d);
-      if (combo == NOOP) unsat = true; \
+    if (atomToDed.find(d.getDed()) == atomToDed.end()) {
+      updateVarSigns(d);
+      addDed(d, dl);
+      cout << "NEW ATOM\n";
       return true;
     }
-    else {addCombo(d); return true; }
+
+    else if (d.getDed()->getRelop() == getSgn(d.getDed()))  {
+      cout << "ADDING CYCLE\n";
+      addCycle(d, dl);
+      return false;
+    }
+    short combo = d.getDed()->getRelop() & getSgn(d.getDed());
+    //the new ded is weaker
+    cout << "combo is " << numToRelop(combo) << endl;
+    cout << "old is " << numToRelop(getSgn(d.getDed())) << endl;
+    if (combo == getSgn(d.getDed())) {
+      cout << "WEAKER ATOM\n";
+      return false;
+    }
+    //the new ded is stronger
+    else if (combo == d.getDed()->getRelop()) {
+      cout << "STRONGER ATOM\n";
+      updateVarSigns(d);
+      addDed(d, dl);
+    }
+    //the new ded and the old ded combined is stronger
+    else {
+      cout << "COMBO ATOM\n";
+      addCombo(d, dl);
+      if (combo == NOOP) unsat = true;
+    }
+    return true;
   }
 
+  /*
+    Checks if this set is subsumed by a set in depIdxs
+    Or if it subsumes another set
+
+    If it is subsumed, then reject the add and return
+    If it subsumes, replace the set which is subsumed with this set
+    If neither, add the set
+
+    This code assumes there will be at most 2 or 3 rules for each deduction
+   */
+  void DedManager::checkAdd(std::set<int>& idxs, int pos) {
+    assert(pos <= depIdxs.size());
+    for (list<set<int>>::iterator itr = depIdxs[pos].begin();
+         itr != depIdxs[pos].end(); ++itr) {
+      if (includes(idxs.begin(), idxs.end(), itr->begin(), itr->end())) {
+        return;
+      }
+      else if (includes(itr->begin(), itr->end(), idxs.begin(), idxs.end())) {
+        depIdxs[pos].erase(itr);
+        depIdxs[pos].push_back(idxs);
+        break;
+      }
+    }
+    depIdxs[pos].push_back(idxs);
+
+
+  }
 
   /*
     Given the last deduction d made in this deduction manager, determine all the deductions that were needed to deduce d.
@@ -338,16 +370,16 @@ namespace tarski {
     queue<int> dedQ;
     std::vector<TAtomRef> atoms;
 
-    Deduction * d = (deds[idx]);
-    if (d->getDeps().size() == 0) {
-      TAtomRef t = d->getDed();
+    Deduction& d = (deds[idx]);
+    if (depIdxs[idx].size() == 0) {
+      TAtomRef t = d.getDed();
       atoms.push_back(t);
       Result r(atoms);
       return r;
     }
 
-    const std::vector<int>& lDeps = *(depIdxs.back().begin());
-    for (std::vector<int>::const_iterator it = lDeps.begin(); it != lDeps.end(); ++it) {
+    const std::set<int>& lDeps = *(depIdxs[idx].begin());
+    for (std::set<int>::const_iterator it = lDeps.begin(); it != lDeps.end(); ++it) {
       dedQ.push(*it);
       seen[*it] = true;
     }
@@ -357,14 +389,14 @@ namespace tarski {
       int idx = dedQ.front();
       dedQ.pop();
       seen[idx] = true;
-      Deduction * d = (deds[idx]);
-      if (d->isGiven()) {
-        atoms.push_back(d->getDed());
+      Deduction& d = (deds[idx]);
+      if (isGiven[idx]) {
+        atoms.push_back(d.getDed());
       }
       else {
-        for (int i = 0; i < origDep[idx].size(); i++) {
-          int x = origDep[idx][i];
-          if (!seen[x]) dedQ.push(x);
+        for (set<int>::iterator itr = origDep[idx].begin();
+             itr != origDep[idx].end(); ++itr) {
+          if (!seen[*itr]) dedQ.push(*itr);
         }
       }
     }
@@ -412,19 +444,20 @@ namespace tarski {
     std::vector<bool> seen(idx+1, false);
     priority_queue<int> dedQ;
     std::vector<TAtomRef> atoms;
-    vector<Deduction *> dedList;
-    Deduction * d = (deds[idx]);
-    if (d->getDeps().size() == 0) {
+    vector<Deduction> dedList;
+    Deduction& d = (deds[idx]);
+    if (depIdxs[idx].size() == 0) {
       cout << "Trivial deduction - Given!\n";
       return;
     }
     else {
-      cout << "Prove "; d->writeActual(); cout << endl;
+      cout << "Prove "; d.writeActual(); cout << endl;
     }
     dedList.push_back(d);
 
-    const std::vector<int>& lDeps = *(depIdxs.back().begin());
-    for (std::vector<int>::const_iterator it = lDeps.begin(); it != lDeps.end(); ++it) {
+    const std::set<int>& lDeps = *(depIdxs.back().begin());
+    for (std::set<int>::const_iterator it = lDeps.begin();
+         it != lDeps.end(); ++it) {
       dedQ.push(*it);
       seen[*it] = true;
     }
@@ -433,79 +466,219 @@ namespace tarski {
       int idx = dedQ.top();
       dedQ.pop();
       seen[idx] = true;
-      Deduction * d = (deds[idx]);
+      Deduction& d = (deds[idx]);
       dedList.push_back(d);
-      if (d->getDeps().size() == 0) {
-        atoms.push_back(d->getDed());
+      if (isGiven[idx]) {
+        atoms.push_back(d.getDed());
       }
       else {
-        for (int i = 0; i < origDep[idx].size(); i++) {
-          int x = origDep[idx][i];
-          if (!seen[x]) dedQ.push(x);
+        for (set<int>::iterator itr = origDep[idx].begin();
+             itr != origDep[idx].end(); ++itr) {
+          if (!seen[*itr]) dedQ.push(*itr);
         }
       }
     }
     for (int i = dedList.size()-1, j = 0; i >= 0; i--, j++) {
-      cout << "(" << j << ") "; dedList[i]->write();
+      cout << "(" << j << ") "; dedList[i].write();
     }
   }
-
-
+  
+  
   void DedManager::writeAll() {
     int b = 0;
     for (int i = 0; i < deds.size(); i++) {
 
-      Deduction * d = deds[i];
-      cout << "(" << i << ") "; d->write();
+      Deduction& d = deds[i];
+      cout << "(" << i << ") "; d.write();
     }
   }
 
+  //returns an empty list if t cannot be found
+  //else returns an explanation for some atom
+  //deduced by the dedM
+  Result DedManager::explainAtom(TAtomRef t) {
+    cout << "tttt\n\n\n";
+    int idx = searchMap(t);
+    if (idx != -1) {
+      if (isGiven[idx]) {
+        cout << "t has no explanation as it is given! " + toString(t) << endl;
+        Result r( {t} );
+        return r;
+      }
+      cout << "t has an explanation - not given! " + toString(t) << endl;
+      return traceBack(idx);
+    }
+    Result r;
+    return r;
+  }
+
+
+  //SIMPLIFICATION CODE ------------------------------------------------------
 
   TAndRef DedManager::getSimplifiedFormula() {
-    TAndRef t;
-    vector<pair<DedScore *, int> > vd;
+    TAndRef t = new TAndObj();
+    vector< int > vScores(deds.size(), 0);
     for (size_t i = 0; i < deds.size(); i++) {
-      vd.emplace_back(new DedScore(deds[i]), i);
+      vScores[i] = scoreDed(deds[i]);
     }
-
-    std::sort(vd.begin(), vd.end(), SimpleComp());
-    vector<int> newToOld(vd.size()), oldToNew(vd.size()); 
-    for (size_t i = 0; i < vd.size(); i++) {
-      newToOld[i] = vd[i].second;
+    vector<size_t> indices = sort_indices(vScores);
+    vector<size_t> revIndices(indices.size());
+    for (size_t i = 0; i < revIndices.size(); i++) {
+      revIndices[indices[i]] = i; 
     }
-    for (size_t i = 0; i < vd.size(); i++) {
-      oldToNew[vd[i].second] = i;
+    writeIntermediate(indices, revIndices);
+    set<int> skips;
+    listVec asSat = genSatProblem(t, skips, indices);
+    //writeSatProblem(asSat);
+    solveSAT(asSat, t, skips, indices);
+    return t;
+  }
+
+  void DedManager::solveSAT(listVec& asSat, TAndRef& t, set<int>& skips, vector<size_t>& indices) {
+    vector<char> elim(deds.size(), false);
+    int numElim = 0;
+    for (int i = indices.size()-1; i >= 0; i--) {
+      int toRemove = indices[i];
+      if (skips.find(toRemove) != skips.end()) continue;
+      Minisat::vec<Minisat::Lit> s(deds.size()-numElim);
+      int j = 0;
+      for (int i = 0; i < deds.size(); i++) {
+        if (elim[i])  continue;
+        else if (i == toRemove) s[j] = Minisat::mkLit(i+1, true);
+        else s[j] = Minisat::mkLit(i+1);
+        j++;
+      }
+      Minisat::Solver S;
+      //cout << "\nSAT CHECK: " << toString(deds[toRemove]->getDed()) << endl;
+      //writeSatProblem(asSat);
+      //for (int i = 0; i < s.size(); i++) {
+      // write(s[i]); cout << " ";
+      //}
+      S.mkProblem(asSat.begin(), asSat.end());
+      Minisat::lbool ret = S.solveLimited(s);
+      if (ret == Minisat::toLbool(1)) {
+        //cout << "\nSAT\n";
+        for (int i = 0; i < depIdxs[toRemove].size(); i++)
+        asSat.pop_front();
+        elim[toRemove] = true;
+        numElim++;
+      }
+      else {
+        for (int i = 0; i < depIdxs[toRemove].size(); i++) {
+          //cout << "\nUNSAT\n";
+          vecPtr vv = std::move(asSat.front());
+          asSat.pop_front();
+          asSat.push_back(std::move(vv));
+          t->AND(deds[toRemove].getDed());
+          simpIdx.push_back(toRemove);
+        }
+      }
     }
+  }
 
-
-    for (size_t i = 0; i < vd.size(); i++) {
-      std::cerr << i << ": ";
-      vd[i].first->d->getDed()->write();
-      if (depIdxs[newToOld[i]].size() == 0)  {
-        std::cerr << " has no dependencies\n";
+  void DedManager::writeIntermediate(vector<size_t>& indices, vector<size_t>& rev) {
+    cout << "ORIGINAL:\n";
+    for (size_t i = 0; i < deds.size(); i++) {
+      std::cout << i << ": ";
+      deds[i].getDed()->write();
+      if (depIdxs[i].size() == 0) {
+        std::cout << " has no dependencies\n";
         continue;
       }
-      std::cerr << " depends on ";
-      for (std::unordered_set<vector<int>, VectorHash >::iterator itr =
-             depIdxs[newToOld[i]].begin();
-           itr != depIdxs[newToOld[i]].end(); ++itr) {
-        for (std::vector<int>::const_iterator vItr = itr->begin();
+      std::cout << " depends on ";
+      for (list<set<int>>::iterator itr = depIdxs[i].begin();
+           itr != depIdxs[i].end(); ++itr) {
+        for (std::set<int>::iterator vItr = itr->begin();
              vItr != itr->end(); ++vItr) {
-          std::cout << oldToNew[*vItr];
-          if (vItr+1 != itr->end()) cout << ",";
+          if (vItr != itr->begin()) std::cout << ",";
+          std::cout << *vItr;
+        }
+        std:: cout << "/";
+      }
+      std::cout << std::endl;
+    }
+    std::cout << std::endl;
+
+
+    cout << "SORTED:\n";
+    for (size_t i = 0; i < deds.size(); i++) {
+      std::cout << i << ": ";
+      deds[indices[i]].getDed()->write();
+      if (depIdxs[indices[i]].size() == 0)  {
+        std::cout << " has no dependencies\n";
+        continue;
+      }
+      std::cout << " depends on ";
+      for (list<set<int>>::iterator itr =
+             depIdxs[indices[i]].begin();
+           itr != depIdxs[indices[i]].end(); ++itr) {
+        for (std::set<int>::const_iterator vItr = itr->begin();
+             vItr != itr->end(); ++vItr) {
+          if (vItr != itr->begin()) std::cout << ",";
+          std::cout << rev[*vItr];
         }
         std::cout << "/";
       }
       std::cout << std::endl;
     }
-    std::cerr << std::endl;
-    return t;
+    std::cout << std::endl;
   }
 
-  DedManager::~DedManager() {
-    for (std::vector<Deduction *>::iterator it = deds.begin(); it != deds.end(); ++it) {
-      delete *it;
+  DedManager::listVec DedManager::genSatProblem(TAndRef& t, set<int>& skips,
+                                                vector<size_t>& order) {
+    listVec lv;
+    for (size_t i = 0; i < order.size(); i++) {
+      int idx = order[i];
+      if (depIdxs[idx].size() == 0) {
+        t->AND(deds[idx].getDed());
+        vecPtr v (new Minisat::vec<Minisat::Lit>(1));
+        Minisat::vec<Minisat::Lit>& vv = *v.get();
+        vv[0] = Minisat::mkLit(idx+1);
+        lv.push_back(std::move(v));
+        skips.insert(idx);
+        simpIdx.push_back(idx);
+        continue;
+      }
+      //the CNF of a or b implies c
+      //is (~a or c) /\ (~b or c)
+      //and if a ded atom has multiple soures, we can write it
+      //as as rule1 or rule2 or... rulex implies c
+      //each rule is the negation of all deps
+      //plus the atom implied, set to true
+      for (list<set<int>>::iterator itr = depIdxs[idx].begin();
+           itr != depIdxs[idx].end(); ++itr) {
+        int s = itr->size()+1;
+        vecPtr v(new Minisat::vec<Minisat::Lit>(s));
+        Minisat::vec<Minisat::Lit>& vv = *v.get();
+        int j = 0;
+        for (set<int>::iterator sItr = itr->begin();
+             sItr != itr->end(); ++sItr) {
+          Minisat::Lit p = Minisat::mkLit(*sItr+1, true);
+          vv[j] = p;
+          j++;
+        }
+        vv[j] = Minisat::mkLit(idx+1);
+        lv.push_front(std::move(v));
+      }
+    }
+    return lv;
+  }
+
+
+
+
+  void DedManager::writeSatProblem(listVec& lv) {
+    cout << "SAT PROBLEM:\n";
+    for (listVec::iterator itr = lv.begin(); itr != lv.end(); ++itr) {
+      Minisat::vec<Minisat::Lit>& vv = *(*itr).get();
+      for (int i = 0; i < vv.size(); i++) {
+        write(vv[i]); cout << " ";
+      }
+      cout << endl;
     }
   }
+
+
+  DedManager::~DedManager() {}
 
 }

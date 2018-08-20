@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <vector>
 #include <string>
+#include <fstream>
 
 //So it turns out that the "using namespace" command is additive
 using namespace Minisat;
@@ -15,10 +16,12 @@ using namespace tarski;
 using namespace std;
 
 
+//TODO: Refactor SMTSolver to do more efficient SAT problem generation by using new function call
+
 
 inline bool intSort (int i, int j) { return (i < j);}
 
-BoxSolver::BoxSolver(TFormRef formula) :  isPureConj(true),  numAtoms(-1), limit(5), count(0), lastVec(0) {
+BoxSolver::BoxSolver(TFormRef formula) :  isPureConj(true),  numAtoms(-1), limit(5), count(0), lastVec(0), ranOnce(false) {
   this->formula = formula;
   IM = new IdxManager();
   pm = formula->getPolyManagerPtr();
@@ -35,6 +38,8 @@ BoxSolver::~BoxSolver() {
     delete S;
     if (numAtoms > 5) delete M;
   }
+  if (ranOnce)
+    delete SM;
 }
 
 vector<vector<Lit> > BoxSolver::makeFormula(TFormRef formula) {
@@ -88,15 +93,17 @@ bool BoxSolver::directSolve() {
   //std::cerr << "Direct solving formula\n";
 
   TAndRef t = asa<TAndObj>(formula);
+  TAndRef t2;
   if (t->constValue() == true) return true;
-  SolverManager b({ new BBSolver(t) , new WBSolver(t) }, t);
+  cout << "Formula: " + toString(t) << endl;
+  SolverManager b( SolverManager::BB | SolverManager::WB, t);
   b.deduceAll();
   if (b.isUnsat()) return false;
-  TAndRef t2 = asa<TAndObj>(formula);
+  else t2 = b.simplify();
+  //writeSimpToFile(t, t2);
   TFormRef res;
   try  {
     QepcadConnection q;
-    t2->write();
     res = q.basicQepcadCall(exclose(t2), true);
   }
   catch (TarskiException& e) {
@@ -159,58 +166,89 @@ void BoxSolver::getFinalClause(vec<Lit>& lits, bool& conf) {
   if (conf == false) {
 
     QepcadConnection q;
-    //cout << "LastSatisfying() is " << x << ", qhead is " << getQhead() << endl;
-    TAndRef tand = (M != NULL) ? genMHS() : genTAnd(getQhead());
-    //cout << "getqhead is " << getQhead() << endl;
-    //cout << "Final Result: "; tand->write(); cout << endl;
-    if (tand->constValue() == 1) return;
 
+
+    //TAndRef told = (M != NULL) ? genMHS() : genTAnd(getQhead());
+    TAndRef tand = SM->simplify();
+    //cout << "Old formula: " << toString(told) << "\nSimplified formula: " << toString(tand) << endl;
+    //writeSimpToFile(told, tand);
+    if (tand->constValue() == 1) return;
     TFormRef res;
     try {
-
       res = q.basicQepcadCall(exclose(tand), true);
-      //cerr << "Call Done!\n";
     }
     catch (TarskiException& e) {
       throw TarskiException("QEPCAD timed out");
-    } 
+    }
+    std::set<TAtomRef> allAtoms;
     if (res->constValue() == 0) {
+
+      
+
       conf = true;
       vector<int> core = q.getUnsatCore();
       //NOTE: Core is not guaranteed to come out in sorted order!!!
+      //cout << "CORE: ";
       sort(core.begin(), core.end());
-      /*
-      cout << "CORE: ";
-      for (int i = 0; i < core.size(); i++) {
-        cout << core[i] << " ";
+      int currAtom = 0, curr = 0;
+      for (set<TFormRef, ConjunctOrder>::iterator
+             begin = tand->begin(), end = tand->end();
+           begin != end; ++begin) {
+        if (core[curr] == currAtom) {
+          curr++;
+          TAtomRef A = asa<TAtomObj>(*begin);
+          Result r = SM->explainAtom(A);
+          for (std::vector<TAtomRef>::iterator atom = r.atoms.begin();
+               atom != r.atoms.end(); ++atom) {
+            if (allAtoms.find(*atom) == allAtoms.end()) {
+              allAtoms.insert(*atom);
+              int varNum = IM->getIdx(*atom);
+              Lit l = litFromInt(varNum, true);
+              lits.push(l);
+            }
+          }
+          if (curr >= core.size()) break;
+        }
+        currAtom++;
       }
-      cout << endl;
+      /*
+        QepcadConnection q2;
+        cout << "COREOLD: ";
+        res = q2.basicQepcadCall(exclose(told), true);
+        vector<int> core2 = q.getUnsatCore();
+        sort(core2.begin(), core2.end());
+        getQEPUnsatCore(lits, core2, told);
       */
-      getQEPUnsatCore(lits, core, tand);
-      //cerr << "CORE FORMULA:"; tand->write(); cerr << endl;
     }
   }
 }
 
+
 void BoxSolver::getQEPUnsatCore(vec<Lit>& lits, vector<int> indices, TAndRef tand) {
   int curr = 0;
   unsigned int currVec = 0;
-  //TAndRef t = new TAndObj();
+  TAndRef t = new TAndObj();
   for (set<TFormRef, ConjunctOrder>::iterator begin = tand->begin(), end = tand->end();
        begin != end; ++begin) {
     if (indices[currVec] == curr) {
       TAtomRef a = asa<TAtomObj>(*begin);
       if (a.is_null()) throw TarskiException("Unexpected non-atom in getQEPUnsatCore");
-      //t->AND(a);
+      t->AND(a);
       int varNum = IM->getIdx(a);
-      Lit l = litFromInt(varNum, true);
-      lits.push(l);
+      //Lit l = litFromInt(varNum, true);
+      //lits.push(l);
       currVec++;
       if (currVec >= indices.size()) break;
     }
     curr++;
   }
-  //cerr << "UNSAT CORE IS: "; t->write(); cerr << endl;
+  cerr << "UNSAT CORE IS: "; t->write(); cerr << endl;
+}
+
+void BoxSolver::writeSimpToFile(TAndRef orig, TAndRef simp) {
+  fstream file("simp.txt", fstream::app | fstream::out);
+  file << "Original: " + toString(orig) +
+    " Simplified: " + toString(simp) << "\n";
 }
 
 TAndRef BoxSolver::genMHS() {
@@ -294,14 +332,10 @@ bool BoxSolver::compareVecs(vec<Lit>& nuVec) {
 
 void BoxSolver::getClauseMain(vec<Lit>& lits, bool& conf) {
   lits.clear();
-  //Step 1: Add to tand
-  //Step 1a: For each lit in trail
-  //Step 1a.1: Map to the corresponding TAtomRef
-  //Step 1a.2: AND it with tand
   int i = lastVec.size();
   if (compareVecs(lits)) {
     vector<TAtomRef > nuAtoms;
-    for (; i < lastVec.size(); i++) {
+    for (; i < lits.size(); i++) {
       TAtomRef t;
       if (atomFromLit(lits[i], t)) {
         nuAtoms.push_back(t);
@@ -313,14 +347,16 @@ void BoxSolver::getClauseMain(vec<Lit>& lits, bool& conf) {
 
   else {
     TAndRef tand = genTAnd(getQhead());
-    //cout << "PROBLEM: "; tand->write(); cout << endl;
+    cout << "PROBLEM: "; tand->write(); cout << endl;
     if (tand->constValue() == TRUE) {
       conf = false;
       return;
     }
     //Step 2: Construct a BB/WB Solver bbwb with tand and solve
-    delete SM;
-    SM = new SolverManager({ new BBSolver(tand) , new WBSolver(tand) }, tand);
+    if (ranOnce)
+      delete SM;
+    else ranOnce = true;
+    SM = new SolverManager( SolverManager::BB | SolverManager::WB, tand);
   }
   Result res = SM->deduceAll();
   if (SM->isUnsat()) {
@@ -350,7 +386,7 @@ void BoxSolver::getAddition(vec<Lit>& lits, bool& conf) {
     if (toAdd.size() == 0) {conf = false; return;}
     learned.pop();
     while (toAdd.size() > 0) {
-      Lit l = toAdd.top();
+      Lit l = toAdd.top;
       toAdd.pop();
       lits.push(l);
     }

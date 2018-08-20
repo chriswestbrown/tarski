@@ -253,6 +253,7 @@ namespace tarski {
 
     for (std::vector<Interval>::const_iterator iter = old.begin(); iter != old.end(); ++iter) {
       for (std::vector<Interval>::const_iterator iter2 = nu.begin(); iter2 != nu.end(); ++iter2) {
+        //std::cerr << "Trying Q: "; iter->write(); std::cerr << " L: "; iter2->write(); std::cerr << std::endl;
 
         Word newLeft = RNRED(1, 1);
         Word newRight = RNRED(1, 1);
@@ -449,7 +450,7 @@ namespace tarski {
         //Construct a new interval
         Interval i(newLeft, leftType, newRight, rightType, finSign);
         out.push_back(i);
-
+        //std::cerr << "Interval out: "; i.write(); std::cerr << std::endl;
 
       }
     }
@@ -525,19 +526,44 @@ namespace tarski {
 
 
   tuple<VarKeyedMap<int>, VarSet, short>  Interval::deduceSign2(const VarKeyedMap<int> &varMap, PolyManager * PM, const IntPolyRef &formOne, const IntPolyRef &formTwo, short formOneSign, short formTwoSign) {
-
-    FernPolyIter F1(formOne->getSaclibPoly(), formOne->getVars(), varMap);
-    FernPolyIter F2(formTwo->getSaclibPoly(), formTwo->getVars(), varMap);
+    FernPolyIter F1;
+    FernPolyIter F2;
+    bool v1 = false;
+    VarKeyedMap<int> varMap2(varMap);
+    if (formOne->isVar() && varMap.get(formOne->isVariable()) != ALOP) {
+      varMap2[formOne->isVariable()] = ALOP;
+      formTwoSign = formTwo->signDeduce(varMap2);
+      F1 = FernPolyIter(formOne->getSaclibPoly(), formOne->getVars(), varMap2);
+      F2 = FernPolyIter(formTwo->getSaclibPoly(), formTwo->getVars(), varMap2);
+      v1 = true;
+    }
+    else  {
+      F1 = FernPolyIter(formOne->getSaclibPoly(), formOne->getVars(), varMap);
+      F2 = FernPolyIter(formTwo->getSaclibPoly(), formTwo->getVars(), varMap);
+    }
     //Find the intervals of the interators
-
-    //std::cout << "\n------------------------DeduceSign2 for "; formOne->write(*PM); cout << " and "; formTwo->write(*PM); cout << "--------------------------------------\n";
-
+    /*
+    FactRef F = new FactObj(PM);
+    F->addFactor(formOne, 1);
+    TAtomRef t = new TAtomObj(F, formOneSign);
+    FactRef f2 = new FactObj(PM);
+    f2->addFactor(formTwo, 1);
+    TAtomRef t2 = new TAtomObj(f2, formTwoSign);
+    bool target = false;
+    if (toString(t).find("skoX < 0") != string::npos && toString(t2).find("skoY skoX skoZ - skoZ") != string::npos) {
+      target = true;
+      std::cout << "\n------------------------DeduceSign2 for ";
+      formOne->write(*PM); cout << " and "; formTwo->write(*PM);
+      cout << "--------------------------------------\n";
+    }
+    */
     std::vector<Interval> intervals = findIntervals2(F1, F2);
 
 
     VarKeyedMap<int> bestExplain;
     int minScore = -1;
     short bestSign = ALOP;
+    short bestOut = ALOP;
     VarSet allVars;
     bool success = true;
 
@@ -628,12 +654,19 @@ namespace tarski {
         RNWRITE(t);
         std::cerr << "RNSIGN(t) is " << RNSIGN(t) << std::endl;
       }
-
+      
 
 
 
       if (tSign == 0) continue;
       else if (tSign == -1) tSign = 0;
+      if (T_interval[tSign][formTwoSign][sign] == ALOP) continue;
+      if (T_interval[tSign][formTwoSign][sign] == LEOP &&
+          (formOneSign == LTOP || formOneSign == EQOP)) continue;
+      if (T_interval[tSign][formTwoSign][sign] == GEOP &&
+          (formOneSign == GTOP || formOneSign == EQOP)) continue;
+      if (T_interval[tSign][formTwoSign][sign] == NEOP &&
+          (formOneSign == LTOP || formOneSign == GTOP)) continue;
       short currSign = T_interval[tSign][formTwoSign][sign] & formOneSign;
       if (T_restrict[currSign] > T_restrict[bestSign])
         continue;
@@ -648,12 +681,15 @@ namespace tarski {
         std::cerr << "fin: "; fin->write(*PM); std::cerr << std::endl;
         std::cerr << "Want to prove "  << numToRelop(sign) << std::endl;
       }
+      FernPolyIter F;
 
-      FernPolyIter F(fin->getSaclibPoly(), fin->getVars(), varMap);
+      F = (v1) ? FernPolyIter(fin->getSaclibPoly(), fin->getVars(), varMap2)
+        : FernPolyIter(fin->getSaclibPoly(), fin->getVars(), varMap);
 
       bool success = true;
       //Note: In case of breakage, change currSign to sign
-      VarKeyedMap<int> explain = select(varMap, F, sign, success);
+      VarKeyedMap<int> explain = (v1) ? select(varMap2, F, sign, success)
+        : select(varMap, F, sign, success);
       if (verbose) std::cout << " ";
       if (!success) {
         std::cerr << "\nThere is an issue - I wasn't able to prove the sign " + FernPolyIter::numToRelop(sign) << " on tn * p + td * q\n";
@@ -673,8 +709,10 @@ namespace tarski {
           bestExplain = explain;
           allVars = fin->getVars();
           bestSign = currSign;
+          bestOut = T_interval[tSign][formTwoSign][sign];
           //std::cerr << "DS2: now " << numToRelop(bestSign) << " is the best sign to return\n";
         }
+
         i++;
 
       }
@@ -685,7 +723,7 @@ namespace tarski {
     //}
     //std::cerr << std::endl;
     //std::cerr << "DS2 FIN: " << numToRelop(bestSign) << " is the best sign to return\n";
-    tuple<VarKeyedMap<int>, VarSet, short> toReturn(bestExplain, allVars, bestSign);
+    tuple<VarKeyedMap<int>, VarSet, short> toReturn(bestExplain, allVars, bestOut);
     return toReturn;
   }
 }//end namespace

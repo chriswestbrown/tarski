@@ -12,32 +12,36 @@
 
 namespace tarski {
 
-  Deduction * BBSolver::deduce(TAndRef t) {
+  DedExp BBSolver::deduce(TAndRef t, bool& res) {
     PM = t->getPolyManagerPtr();
-    if (itr == end) {
+    if (deductions.empty()) {
       if (!once)  {
         once = true;
         deductions.clear();
-        return NULL;
+        res = false;
+        DedExp d;
+        return d;
       }
       else {
         deductions = bbsat(t);
-        itr = deductions.begin(); end = deductions.end();
-        if (deductions.size() == 0) return NULL;
+        if (deductions.empty())  {
+          res = false;
+          DedExp d;
+          return d;
+        }
         else once = false;
       }
     }
 
-    Deduction * d = *itr;
-    ++itr;
+    DedExp d = deductions.front();
+    deductions.pop_front();
     return d;
   }
 
-  void BBSolver::update(std::vector<Deduction *>::const_iterator begin, std::vector<Deduction *>::const_iterator end) {
+  void BBSolver::update(std::vector<Deduction>::const_iterator begin, std::vector<Deduction>::const_iterator end) {
     while (begin != end) {
-      M.addAtom((*begin)->getDed());
+      M.addAtom(begin->getDed());
       ++begin;
-
     }
   }
 
@@ -49,7 +53,7 @@ namespace tarski {
     Otherwise, the function attempts to make deductions on the formula
     with the Blackbox algorithm
   */
-  std::vector<Deduction *> BBSolver::bbsat(TAndRef t) {
+  bblist BBSolver::bbsat(TAndRef t) {
     // Process the formula
     BBChecker bc(&M, PM);
     if (!bc.checkSat()) {
@@ -78,6 +82,11 @@ namespace tarski {
     return -1;
   }
 
+  list<DedExp> BBSolver::deduceTarget(std::vector<Deduction>::const_iterator begin, std::vector<Deduction>::const_iterator end) {
+    BBDeducer B(&M, PM);
+    return B.attemptDeduce(begin, end);
+  }
+
 
   //returns false if unsat
   bool BBChecker::checkSat() {
@@ -90,14 +99,15 @@ namespace tarski {
   /*
     If bbsat finds UNSAT, this returns the explanation in the form of a vector of BBDeds with a single BBDed which is the explanation
   */
-  std::vector<Deduction *> BBChecker::explainUnsat() {
+  bblist BBChecker::explainUnsat() {
     //std::cerr << "Unsat row is " << unsatRow << std::endl;
     //M->write();
-    std::vector<TAtomRef> conflict = getConflict();
+    std::forward_list<TAtomRef> conflict = getConflict();
     std::set<IntPolyRef> weakFacts = findWeak(conflict);
     std::set<TAtomRef> additions = strengthenWeak(weakFacts);
-    conflict.insert(conflict.end(), additions.begin(), additions.end());
-    return { new BBDed(conflict) };
+    conflict.insert_after(conflict.begin(), additions.begin(), additions.end());
+    DedExp d(Deduction::BBSTR, conflict);
+    return {d};
   }
 
   /*
@@ -105,12 +115,12 @@ namespace tarski {
     and traceRow (which maps the new rows to original rows) to find the corresponding atom
     in the MonoIneqRep
   */
-  std::vector<TAtomRef> BBChecker::getConflict() {
-    std::vector<TAtomRef> conflict;
+  std::forward_list<TAtomRef> BBChecker::getConflict() {
+    std::forward_list<TAtomRef> conflict;
     const std::vector<bool>& exp = M->getStrict().getComp().at(unsatRow);
     for (int i = 0; i < exp.size(); i++) {
       if (exp.at(i) == true) {
-        conflict.push_back(M->getAtom(i, true));
+        conflict.push_front(M->getAtom(i, true));
       }
     }
     return conflict;
@@ -123,10 +133,10 @@ namespace tarski {
      strongFacts contains all the strong factors in the formula
      conflict contains all the atoms which are in the conflict.
   */
-  std::set<IntPolyRef> BBChecker::findWeak(std::vector<TAtomRef>& conflict ) {
+  std::set<IntPolyRef> BBChecker::findWeak(std::forward_list<TAtomRef>& conflict ) {
     std::set<IntPolyRef> strongFacts;
     std::set<IntPolyRef> weakFacts; 
-    for (std::vector<TAtomRef>::const_iterator itr = conflict.begin(), end = conflict.end();
+    for (std::forward_list<TAtomRef>::const_iterator itr = conflict.begin(), end = conflict.end();
          itr != end; ++itr ) {
       TAtomRef A = *itr;
       if (A->getRelop() == LTOP || A->getRelop() == GTOP || A->getRelop() == NEOP) {
@@ -183,76 +193,71 @@ namespace tarski {
   /*
     This function actually makes the deductions returned by getDeductions for the strict part of the matrix
   */
-  void BBDeducer::strictDeds(std::vector<Deduction *>& deds) {
+  void BBDeducer::strictDeds(bblist& deds) {
     //Here, we iterate through everything that we learned by doing gaussian elimination (AKA, all rows which were of the form X, 0, 0, ..., 1, 0, ..., 0 which were not of that form before gaussian elimination)
     const std::vector<std::vector<char> >& matrix = M->getStrict().getMatrix();
     const std::vector<std::vector<bool> >& comp = M->getStrict().getComp();
     for (int i = 0; i < matrix.size(); i++) {
       short idx = getNonZero(matrix.at(i));
       if (idx == -1) continue;
-      std::vector<TAtomRef> atoms;
-
+      std::forward_list<TAtomRef> atoms;
       IntPolyRef dedP = M->getPoly(idx);
       short dedSign = (matrix.at(i).at(0) == 0 ? GTOP : LTOP);
       FactRef F = new FactObj(PM);
       F->addFactor(dedP, 1);
       TAtomRef dedAtom = new TAtomObj(F, dedSign);
-
       const std::vector<bool>& deps = comp.at(i);
       bool strengthen = false;
-      //Iterating through the dependencies of this deduction, which are identified by a "1" in deps
+      //Iterating through dependencies
       for (int a = 0; a < deps.size(); a++) {
-        if (deps.at(a) == 0) continue; //Indicates the row is unused for this deduction
+        if (deps[a] == 0) continue; 
         TAtomRef A = M->getAtom(a, true);
-        atoms.push_back(A);
-        //In this block, we see if one of the already existing dependencies of the deduction strengthens it
-        if (!strengthen && deps.at(a) != 0) { //If it contains the polynomial which we are trying to strengthen
-          if (A->relop == LEOP || A->relop == GEOP || A->relop == EQOP) continue;
-          FactRef F = A->F;
-          for (std::map<IntPolyRef, int>::iterator itr = F->factorBegin(), end = F->factorEnd(); itr != end; ++itr) {
-            if (dedP->equal(itr->first)) {
-              strengthen = true;
-              break;
-            }
+        atoms.push_front(A);
+        //check if an existing dependency strengthens
+        if (strengthen) continue;
+        if (A->relop == LEOP || A->relop == GEOP || A->relop == EQOP) continue;
+        FactRef F = A->F;
+        for (std::map<IntPolyRef, int>::iterator itr = F->factorBegin(), end = F->factorEnd(); itr != end; ++itr) {
+          if (dedP->equal(itr->first)) {
+            strengthen = true;
+            break;
           }
         }
-
-
-
       }
-      if (strengthen == false)  {
-        atoms.push_back(M->strengthenPoly(dedP));
+      if (!strengthen)  {
+        atoms.push_front(M->strengthenPoly(dedP));
       }
-      deds.push_back(new BBDed(dedAtom, atoms));
+      if (!(equals(dedAtom, atoms.front())))  {
+        deds.emplace_back(dedAtom, Deduction::BBSTR, atoms);
+      }
+      else {
+        cout << "rejecting deduction " << toString(dedAtom) << endl;
+      }
     }
   }
-
 
   /*
     If bbsat finds BBSAT, this returns all deductions which can be made in the form of a vector of BBDeds
     Note that MinWtBasis is not yet implemented, so no deductions on the nonstrict part of the function
     NOTE: Assumes that theh matrix manager has already reduced the strict matrix
+    NOTE: Ordering matters. strictDeds should always be called first, and its
+    deductions should always be returned first
   */
-  std::vector<Deduction *> BBDeducer::getDeductions() {
+  bblist BBDeducer::getDeductions() {
 
-    std::vector<Deduction  *> deds;
+    bblist deds;
     //Size check - a formula of size one won't let BB strict deduce anything
     short m = M->getStrict().getMatrix().size();
     if (m < 2) {
-      minWtExplain(deds);
+      minWtMain(deds);
       return deds;
     }
     strictDeds(deds);
-    minWtExplain(deds);
+    minWtMain(deds);
     jointDeds(deds);
     return deds;
   }
 
-
-  void BBDeducer::minWtExplain(std::vector<Deduction *>& deds) {
-    vector<Deduction *> minWt = minWtMain();
-    deds.insert(deds.end(), minWt.begin(), minWt.end());
-  }
 
   bool BBDeducer::isStrictRow(int cutoff, const std::vector<char>& vc) {
     for (size_t i = cutoff; i < vc.size(); i++) {
@@ -330,7 +335,7 @@ namespace tarski {
     1 0 0 ... 0 0
    */
   bool BBDeducer::reduceRow(AtomRow& wp, vector<char>& vc,
-                            vector<TAtomRef>& sources,
+                            forward_list<TAtomRef>& sources,
                             const DMatrix& beq, const vector<AtomRow>& va) {
     //Doing the reduction
     vector<char> vtmp(*(wp.vc));
@@ -340,51 +345,50 @@ namespace tarski {
     reducer.doElim();
     if (BBSolver::findRow(reducer) == -1) return false;
     //Now adding the sources
-    sources.push_back(wp.atom);
+    sources.push_front(wp.atom);
     const vector<bool>& idxs = reducer.getComp().back();
     for (size_t i = 0; i < idxs.size()-1; i++) {
       if (idxs[i]) {
-        sources.push_back(va[i].atom);
+        sources.push_front(va[i].atom);
       }
 
     }
     return true;
   }
 
+  bool checkValid(TAtomRef t,
+                  const forward_list<TAtomRef>& sources) {
+    if (t->getFactors()->cmp(sources.front()->getFactors()) == 0) {
+      if ((t->getRelop() & sources.front()->getRelop()) == sources.front()->getRelop()){
+        return false;
+      }
+    }
+    return true;
+
+  }
+
   void BBDeducer::mkMinWtDed(AtomRow& a,
-                             const vector<TAtomRef>& sources,
-                             vector<Deduction*>& deds) {
+                             const forward_list<TAtomRef>& sources,
+                             bblist& deds) {
 
-    short relop = (a.vc->at(0) == 0) ? GEOP : LEOP;
-    FactRef F = new FactObj(PM);
-    bool allTwo = true;
-    for (size_t i = 1; i < a.vc->size(); i++) {
-      if (a.vc->at(i) == 1) allTwo = false;
-      if (a.vc->at(i) != 0) F->addFactor(M->getPoly(i), a.vc->at(i)); 
-    }
-    if (allTwo && relop == GEOP) { return; }
-    TAtomRef t;
-    if (relop == LEOP && allTwo) {
-      for (map<IntPolyRef,int>::iterator itr = F->MultiplicityMap.begin();
-           itr != F->MultiplicityMap.end(); ++itr)
-        itr->second = 1;
-      t = new TAtomObj(F, EQOP);
-    }
-    else t = new TAtomObj(F, relop);
-    Deduction * d = new MinWtDed(t, sources);
-    deds.push_back(d);
-    //Equivalence case - we need to identify that
-    //x = 0 implies y*x <= 0 explicitly
-    //NOTE: Maybe this should be done by the DedM?
-    if (relop == LEOP && allTwo) {
-      Deduction * equiv = new MinWtDed(a.atom, {t});
-      deds.push_back(equiv);
+    bool res;
+    if (sources.empty()) return;
+    TAtomRef t = M->mkNonStrictAtom(*(a.vc), res);
+    if (res) {
+
+      if (checkValid(t, sources)) {
+        deds.emplace_back(t, Deduction::MINWT, sources);
+        //Equivalence case - we need to identify that
+        //x = 0 implies y*x <= 0 explicitly
+        if (t->getRelop() == EQOP) {
+          forward_list<TAtomRef> fl({t});
+          deds.emplace_back(a.atom, Deduction::MINWT, fl);
+        }
+      }
     }
   }
 
-  void BBDeducer::mkMinWtDed(AtomRow& a, vector<Deduction*>& deds) {
-    mkMinWtDed(a, {a.atom}, deds);
-  }
+  
 
   
 
@@ -395,8 +399,7 @@ namespace tarski {
     description of this algorithm. Note that it has been modified
     in order to provide explanations!
   */
-  vector<Deduction * > BBDeducer::minWtMain() {
-    vector<Deduction *> deds;
+  void BBDeducer::minWtMain(bblist& deds) {
     int ns = M->getStrict().getNumCols();
     vector<AtomRow> B = mkB();
     sort(B.begin(), B.end(), weightCompare(ns));
@@ -412,7 +415,7 @@ namespace tarski {
           b = true;
           mkMinWtDed(a, deds);
         }
-        return deds;
+        return;
       }
 
       /* STEP 4-5 */
@@ -442,7 +445,7 @@ namespace tarski {
       /* STEP 10 */
       AtomRow wp(vc, w.atom);
       vector<char> wpReduced;
-      vector<TAtomRef> sources;
+      forward_list<TAtomRef> sources;
 
       if (reduceRow(wp, wpReduced, sources, beq, eq)) {
         /* STEP 11 */
@@ -484,34 +487,35 @@ namespace tarski {
       continue;
 
     }
-    return deds;
+    return;
   }
 
 
-  Deduction * BBDeducer::mkJointDed(vector<char>& row, vector<int>& sources, TAtomRef orig) {
-
-    FactRef F = new FactObj(PM);
-    for (size_t i = 1; i < row.size(); i++) {
-      if (row[i]) F->addFactor(M->getPoly(i), row[i]);
+  void BBDeducer::mkJointDed(vector<char>& row, vector<int>& sources, TAtomRef orig, bblist& deds) {
+    bool res;
+    TAtomRef t = M->mkNonStrictAtom(row, res);
+    if (!res) return;
+    forward_list<TAtomRef> proof;
+    proof.push_front(orig);
+    for (size_t i = 0; i < sources.size(); i++) {
+      //NOTE: This line may be dangerous
+      //Because the guarantee that each atom has been deduced
+      //Is because each atom is a pivot row in a succesful
+      //Deduction...
+      proof.push_front(M->getMeaning(sources[i]));
     }
-    vector<TAtomRef> proof;
-    proof.push_back(orig);
-    for (std::vector<int>::iterator itr = sources.begin();
-         itr != sources.end(); ++itr) {
-      proof.push_back(M->getAtom(*itr, true));
-    }
-    TAtomRef t = new TAtomObj(F, (row[0]) ? LEOP : GEOP);
-    BBDed * b = new BBDed(t, proof);
-    return b;
+    if (!equals(t, proof.front()))
+      deds.emplace_back(t, Deduction::BBCOM, proof);
   }
 
-  void BBDeducer::jointDeds(vector<Deduction *>& deds) {
+
+  void BBDeducer::jointDeds(bblist& deds) {
     const DMatrix& ns = M->getAll();
     const DMatrix& s = M->getStrict();
-    vector<int> dualRows = M->dualRows();
     size_t j = 0;
+    const vector<size_t>& dualRows = M->dualRows();
     for (size_t i = 0; i < ns.getNumRows(); i++) {
-      if ((size_t) dualRows[j] == i) {
+      if (j < dualRows.size() && dualRows[j] == i) {
         j++;
         continue;
       }
@@ -519,10 +523,68 @@ namespace tarski {
       vector<char> toRed(ns.getRow(i));
       s.reduceRow(toRed, source);
       TAtomRef orig = M->getAtom(i, false);
-      deds.push_back(mkJointDed(toRed, source, orig));
+      mkJointDed(toRed, source, orig, deds);
     }
   }
 
+  //only attempts to deduce the strict atoms
+  list<DedExp> BBDeducer::attemptDeduce(std::vector<Deduction>::const_iterator begin, std::vector<Deduction>::const_iterator end) {
+    list<DedExp> deds;
+    const DMatrix& s = M->getStrict();
+    if (s.getNumCols() == 0) return deds;
+    while (begin != end) {
+      //Making sure that this atom is strict
+      TAtomRef t = begin->getDed();
+
+
+      //Reconstructing the original row
+      FactRef f = t->getFactors();
+      bool fail = false;
+      std::vector<char> row(s.getNumCols());
+      row[0] = (t->getRelop() == GTOP || t->getRelop() == GEOP)
+        ? 1 : 0;
+      for (FactObj::factorIterator itr = f->factorBegin();
+           itr != f->factorEnd(); ++itr) {
+        int col = M->getIdx(itr->first);
+        if (col == -1 || (size_t) col >= s.getNumCols()) {
+          fail = true; break;
+        }
+        row[col] = 1;
+      }
+      if (fail) {
+        ++begin;
+        continue;
+      }
+
+      //Reducing the original row. If its null, we can deduce the
+      //corresponding atom!
+      vector<int> source;
+      s.reduceRow(row, source);
+      for (std::vector<char>::iterator itr = row.begin()+1; itr != row.end(); ++itr) {
+        if (*itr) {
+          ++begin;
+          fail = true;
+          break;
+        }
+      }
+      if (fail) continue;
+
+      //Constructing the deduction
+      std::forward_list<TAtomRef> atoms;
+      for (size_t i = 0; i < source.size(); i++) {
+        TAtomRef nu = M->getMeaning(source[i]);
+        forward_list<TAtomRef> expNu = M->explainMeaning(source[i]);
+        deds.emplace_back(nu, Deduction::BBSTR, expNu);
+        atoms.push_front(nu);
+      }
+      if (!(source.size() == 1 && equals(t, atoms.front())))  {
+        deds.emplace_back(t, Deduction::BBSTR, atoms);
+      }
+
+      ++begin;
+    }
+    return deds;
+  }
 
   /*
     scoreFun2 strengthens a single intpolyref from LEOP or GEOP to LTOP or GTOP, respectively.

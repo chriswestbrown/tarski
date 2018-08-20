@@ -4,25 +4,13 @@
 
 namespace tarski {
 
-  /*
-    NOTE: Deprecated
-   */
-  SolverManager::SolverManager(const vector<QuickSolver *>& v, TAndRef tand) : solvers(v), lastDeds(v.size(), 0), hasRan(false) {
-    throw TarskiException("Deprecated Constructor!");
-    t = tand;
+  SolverManager::SolverManager(int codes, TAndRef tand) : hasRan(false), hasSimplified(false) {
     dedM = new DedManager(tand);
-    for (int i = 0; i < solvers.size(); i++) {
-      solvers[i]->setDedM(dedM);
-    }
-  }
-
-  SolverManager::SolverManager(int codes, TAndRef tand) : hasRan(false) {
-    dedM = new DedManager(tand);
+    if (dedM->isUnsat()) return;
     t = dedM->getInitConjunct();
-    std::cerr << "Formula from dedM: "; t->write(); std::cerr << std::endl;
-    if (codes && BB == BB) solvers.push_back(new BBSolver(t));
-    if (codes && WB == WB) solvers.push_back(new WBSolver(t));
-    for (int i = 0; i < solvers.size(); i++) {
+    if ((codes & BB) == BB) solvers.push_back(new BBSolver(t));
+    if ((codes & WB) == WB) solvers.push_back(new WBSolver(t));
+    for (size_t i = 0; i < solvers.size(); i++) {
       solvers[i]->setDedM(dedM);
     }
     lastDeds.resize(solvers.size(), 0);
@@ -35,20 +23,38 @@ namespace tarski {
   LisRef SolverManager::genLisResult() {
       Result r = deduceAll();
       LisRef l = new LisObj();
-      if (isUnsat()) l->push_back(new SymObj("UNSAT"));
+      if (isUnsat()) {
+        l->push_back(new SymObj("UNSAT"));
+        vector<TAtomRef>& vec = r.atoms;
+        TAndRef res = new TAndObj();
+        for (vector<TAtomRef>::iterator itr = vec.begin();
+             itr != vec.end(); ++itr) {
+          res->AND(*itr);
+        }
+        l->push_back(new TarObj(res));
+      }
       else  {
         l->push_back(new SymObj("SAT"));
-        dedM->getSimplifiedFormula();
+        TAndRef t = simplify();
+        l->push_back(new TarObj(t));
       }
-      vector<TAtomRef>& vec = r.atoms;
-      TAndRef res = new TAndObj();
-      for (vector<TAtomRef>::iterator itr = vec.begin();
-           itr != vec.end(); ++itr) {
-        res->AND(*itr);
-      }
-      l->push_back(new TarObj(res));
       return l;
     }
+
+  /*
+    Assumes deduceAll has already been called
+   */
+  TAndRef SolverManager::simplify() {
+    if (!hasSimplified) {
+      deduceOrig();
+      simp = dedM->getSimplifiedFormula();
+      hasSimplified = true;
+      return simp;
+    }
+    return simp;
+  }
+
+
 
 
   /*
@@ -90,7 +96,7 @@ namespace tarski {
     from the last new index of the solver to the end of all known deductions
    */
   void SolverManager::updateSolver(int i) {
-    vector<Deduction *>::const_iterator itr, end;
+    vector<Deduction>::const_iterator itr, end;
     dedM->getItrs(lastDeds[i], itr, end);
     solvers[i]->update(itr, end);
   }
@@ -120,19 +126,31 @@ namespace tarski {
     short retCode = 0;
     QuickSolver * q = solvers[i];
     updateSolver(i);
-    Deduction * d = q->deduce(t);
-    while (d != NULL && !dedM->isUnsat()) {
-      if (dedM->processDeduction(d)) {
+    bool res = true;
+    DedExp d = q->deduce(t, res);
+    while (res && !dedM->isUnsat()) {
+      if (dedM->processDeduction(d.d, d.exp)) {
         if (dedM->isUnsat()) return 2;
         retCode = 1;
-        t->AND(d->getDed());
+        t->AND(d.d.getDed());
+        cout << "NOTIFYING\n";
         q->notify();
       }
-      d = q->deduce(t);
+      d = q->deduce(t, res);
     }
     if (dedM->isUnsat()) return 2;
     lastDeds[i] = dedM->size();
     return retCode;
+  }
+
+  void SolverManager::deduceOrig() {
+    DedManager::dedItr beg, end;
+    dedM->getOItrs(beg, end);
+    for (auto& s : solvers) {
+      DedManager::dedItr itr = beg;
+      list<DedExp> v = s->deduceTarget(itr, end);
+      for (auto& d : v) dedM->processDeduction(d.d, d.exp);
+    }
   }
 
   /*
@@ -154,14 +172,37 @@ namespace tarski {
       dedM->writeAll();
     }
     else {
-      std::cout << "UNKNOWN\n";
-      std::cout << std::endl;
+      TAndRef t = simplify();
+      std::cout << "UNKNOWN\nSimplified Formula: " + toString(t) + "\n";
+      prettyPrintSimplify(t);
+
       std::cout << "All Deductions: \n";
       dedM->writeAll();
     }
     std::cout << "##################################################" << std::endl;  
   }
 
+  /*
+    Assumes simplification has already been done
+   */
+  void SolverManager::prettyPrintSimplify(TAndRef a) {
+    for (TAndObj::conjunct_iterator itr = a->begin(), end = a->end(); itr != end; ++itr) {
+      TAtomRef t = asa<TAtomObj>(*itr);
+      Result r = explainAtom(t);
+      if (r.atoms.begin() == r.atoms.end()) {
+        cout << toString(t) << ": ERROR\n";
+      }
+      else {
+        cout << toString(t) << ": ";
+        for (std::vector<TAtomRef>::iterator itr = r.atoms.begin();
+             itr != r.atoms.end(); ++itr) {
+          cout << toString(*itr); if (itr+1 != r.atoms.end()) cout << " /\\ ";
+        }
+        cout << endl;
+      }
+    }
+  }
+ 
   SolverManager::~SolverManager() {
     for (std::vector<QuickSolver * >::iterator itr = solvers.begin();
          itr != solvers.end(); ++itr) {

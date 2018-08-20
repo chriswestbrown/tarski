@@ -94,6 +94,54 @@ namespace tarski {
     all = d;
   }
 
+  //ASSUMES STRICT
+  TAtomRef MatrixManager::getMeaning(int row) {
+    const vector<char>& vc = strict.getRow(row);
+    FactRef F = new FactObj(PM);
+
+    for (int i = 1; i < vc.size(); i++) {
+      if (vc[i]) F->addFactor(getPoly(i), 1);
+    }
+    int relop;
+    if (vc[0]) relop = LTOP;
+    else relop = GTOP;
+    TAtomRef t = new TAtomObj(F, relop);
+    return t;
+  }
+
+  //ASSUMES STRICT
+  forward_list<TAtomRef> MatrixManager::explainMeaning(int row) {
+    forward_list<TAtomRef> fl;
+    const vector<bool>& vb =  strict.getComp()[row];
+    for (int i = 0; i < vb.size(); i++) {
+      if (vb[i]) fl.push_front(getStrictAtom(i));
+    }
+    return fl;
+  }
+
+
+  TAtomRef MatrixManager::mkNonStrictAtom(const vector<char>& row, bool& res) {
+    TAtomRef t;
+    short relop = (row[0] == 0) ? GEOP : LEOP;
+    FactRef F = new FactObj(PM);
+    bool allTwo = true;
+    for (size_t i = 1; i < row.size(); i++) {
+      if (row[i] == 1) allTwo = false;
+      if (row[i] != 0) F->addFactor(getPoly(i), row[i]); 
+    }
+    if (allTwo && relop == GEOP) { res = false; return t; }
+    if (relop == LEOP && allTwo) {
+      for (map<IntPolyRef,int>::iterator itr = F->MultiplicityMap.begin();
+           itr != F->MultiplicityMap.end(); ++itr)
+        itr->second = 1;
+      t = new TAtomObj(F, EQOP);
+    }
+    else t = new TAtomObj(F, relop);
+    res = true;
+    return t;
+  }
+
+
   void MatrixManager::addAtom(TAtomRef tf) {
     bool isRow = true;
     if (tf->getRelop() == NEOP || tf->getRelop() == EQOP) {
@@ -247,7 +295,7 @@ namespace tarski {
   void MatrixManager::strictUpdate() {
     if (!needUpdate) return;
     vector<bool> isStrict(rIdxToAtom.size(), false);
-    for (std::vector<int>::iterator it = tB.begin(); it != tB.end(); ++it) {
+    for (std::vector<size_t>::iterator it = tB.begin(); it != tB.end(); ++it) {
       isStrict[*it] = true;
     }
     for (int i = 0; i < rIdxToAtom.size(); i++) {
@@ -256,7 +304,7 @@ namespace tarski {
       if (isStrictAtom(tf))  {
         strict.addRow(all.getMatrix().at(i));
         tB.push_back(i);
-        }
+      }
     }
     needUpdate = false;
   }

@@ -44,6 +44,7 @@ namespace tarski {
     FernPolyIter(Word A, const VarSet &S, const VarKeyedMap<int> &varSign);
     FernPolyIter(IntPolyRef ref, const VarKeyedMap<int> &varSign);
     FernPolyIter(const FernPolyIter& F);
+    FernPolyIter() {}
     Word next();
     bool isNull();
     int end() { return 0; }

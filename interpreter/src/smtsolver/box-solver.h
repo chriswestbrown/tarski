@@ -77,6 +77,7 @@ namespace tarski {
     }
     
   protected:
+    bool ranOnce;
     SolverManager * SM;
     Minisat::Solver * S;
     MHSGenerator * M;
@@ -116,7 +117,7 @@ namespace tarski {
     bool directSolve();
 
 
-
+    void writeSimpToFile(TAndRef orig, TAndRef simp);
 
     //Generates a lit from an integer index
     inline Minisat::Lit litFromInt(int var, bool val);

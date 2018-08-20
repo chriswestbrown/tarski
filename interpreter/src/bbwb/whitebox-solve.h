@@ -40,22 +40,22 @@ namespace tarski {
     void saveAllPolySigns(IntPolyRef poly);
 
     //Turns somehting thats being processed by whitebox into a deduction
-    WBDed * toDed(VarKeyedMap<int> signs, VarSet v, IntPolyRef pMain, short sgn);
-    WBDed * toDed(VarKeyedMap<int> signs, VarSet v, IntPolyRef pMain, IntPolyRef p2, short lsgn, short sgn2);
-
+    DedExp toDed(VarKeyedMap<int>& signs, const VarSet& v, IntPolyRef pMain, short sgn, int type);
+    DedExp toDed(VarKeyedMap<int>& signs, const VarSet& v, IntPolyRef pMain, IntPolyRef p2, short lsgn, short sgn2, int type);
 
     IntPolyRef lastUsed;
-    Deduction * doSingleDeduce();
-    Deduction * doPolySigns();
-    Deduction * doMultiDeduce();
+    DedExp doSingleDeduce(bool&);
+    DedExp doPolySigns(bool&);
+    DedExp doMultiDeduce(bool&);
     
   public:
   
     //Fills in the sets singleVars, multiVars, polysigns, and varToIneq
     WBSolver(TAndRef tf);
-    Deduction * deduce(TAndRef t);
+    DedExp deduce(TAndRef t, bool& res);
     void notify();
-    void update(std::vector<Deduction *>::const_iterator begin, std::vector<Deduction *>::const_iterator end);
+
+    void update(std::vector<Deduction>::const_iterator begin, std::vector<Deduction>::const_iterator end);
 
   
   };

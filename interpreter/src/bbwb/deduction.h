@@ -10,12 +10,26 @@
 #include <vector>
 #include <algorithm>
 #include <string>
+#include <numeric>
+#include "Solver.h"
+#include "SolverTypes.h"
 #include "../tarski.h"
 #include "../poly/poly.h"
 #include "../formrepconventions.h"
 #include "fern-poly-iter.h"
 
 
+//TODO: Change Deducitons so that they use forward_lists of deductions
+//      rather than vectors
+//TODO:Redesign deductions s.t.
+//1. A deduction is just a string and an atom
+//2. The explanation is a separate data structure
+//3. Givens are identified by Deduction Manager rather
+//than by deductions themselves
+//4. The DedM deductions vector members are on the
+//stack rather than on the heap
+//TODO: Simplification, and the data structures which support it,
+//should be moved to a friend class of dedM
 namespace tarski {
 
   const int PSGN =  0;
@@ -35,14 +49,12 @@ namespace tarski {
 
   class Deduction {
     friend class DedManager;
-  protected:
+  private:
 
+    const static string names[7];
     TAtomRef deduction; //Exists if this is a learned sign on some factref
-    std::vector<TAtomRef> deps; //The atoms we needed to make a deduction
-    //An alternate explanation for a deduction
     bool unsat; //true if this is just the general deduction that some atoms are incompatible
-    bool given; //given or not
-    std::string name;
+    const std::string * name;
     //A safe write method for the deduction itself
     //will just write UNSAT if the deduction pointer is null
     void writeActual() {
@@ -52,71 +64,46 @@ namespace tarski {
         cout << endl;
       }
     }
-    
+
   public:
-    void write();
-    inline bool isGiven() {return given;}
-    inline std::string getName() { return name;}
+    const static int GIVEN;
+    const static int COMBO;
+    const static int BBSTR;
+    const static int MINWT;
+    const static int BBCOM;
+    const static int POLYS;
+    const static int DEDUC;
+    void write() const;
+    inline const std::string& getName() { return *name; }
     inline bool isUnsat() const { return unsat; }
-    const std::vector<TAtomRef>& getDeps() const {return deps;}
-    TAtomRef getDed() const { return deduction; }
+    inline TAtomRef getDed() const { return deduction; }
     virtual ~Deduction() {}
-  Deduction(TAtomRef t, const std::vector<TAtomRef>& atoms, std::string s) : deps(atoms), unsat(false),  given(false), name(s)   {
+    Deduction(TAtomRef t, short code) : unsat(false) {
+      name = &names[code];
       deduction = t;
     }
-  Deduction(TAtomRef t, std::string s) : unsat(false), given(true), name(s) {
-      deduction = t;
+    Deduction(short code) : unsat(true) {
+      name = &names[code];
     }
-  Deduction(const std::vector<TAtomRef>& atoms, std::string s) : deps(atoms), unsat(true), given(false), name(s) {}
+    Deduction(const Deduction& d) : unsat(d.unsat), name(d.name) {
+      deduction = d.deduction;
+    }
     Deduction() {}
   };
 
 
-  class Simplification : public Deduction {
-  public:
-  Simplification(TAtomRef t, const std::vector<TAtomRef>& atoms)
-    : Deduction(t, atoms, "simplification") { } 
+
+  struct DedExp {
+    Deduction d;
+    forward_list<TAtomRef> exp;
+    DedExp(const Deduction& D, const forward_list<TAtomRef>& EXP)
+      : d(D), exp(EXP) {};
+    DedExp(TAtomRef t, int code, const forward_list<TAtomRef>& EXP)
+      : d(t, code), exp(EXP) {}
+    DedExp(int code, const forward_list<TAtomRef>& EXP)
+      : d(code), exp(EXP) {}
+    DedExp() {};
   };
-
-  class BBDed : public Deduction {
-  public:
-  BBDed(TAtomRef t, const std::vector<TAtomRef>& atoms)
-    : Deduction(t, atoms, "bb ded") { }
-  BBDed(const std::vector<TAtomRef>& atoms) : Deduction(atoms, "bb unsat") { }
-    
-  };
-
-  class MinWtDed : public Deduction {
-  public:
-  MinWtDed(TAtomRef t, const std::vector<TAtomRef>& atoms)
-    : Deduction(t, atoms, "minwt ded") { }
-  };
-
-  class WBDed: public Deduction {
-
-  public:
-  WBDed(TAtomRef t, const std::vector<TAtomRef>& atoms, int code)
-    : Deduction(t, atoms, "") {
-      if (code == PSGN) name = "poly sign";
-      else if (code == DEDSGN) name = "deduce sign";
-      else throw TarskiException("UNKNOWN CODE FOR WBDED!");
-    }
-
-  };
-
-  class Given : public Deduction {
-  private:
-  public:
-    Given(TAtomRef t)
-      : Deduction(t, "given") { }
-  };
-
-  class SignCombo : public Deduction {
-  public:
-    SignCombo(TAtomRef t, const std::vector<TAtomRef>& atoms)
-      : Deduction(t, atoms, "sign combo") { }
-  };
-
 
   struct Result {
   public:
@@ -127,6 +114,7 @@ namespace tarski {
     inline int count() { return atoms.size(); }
     inline Result(const vector<TAtomRef>& a) : atoms(a) {}
     inline Result() : atoms(0) {}
+
 
     inline void write() {
       bool notFirst = false;
@@ -143,65 +131,77 @@ namespace tarski {
   
 
   class DedManager{
+
+  public:
+    typedef forward_list<TAtomRef> dedList;
   private:
     
     struct ManagerComp {
       bool operator()(const TAtomRef &A, const TAtomRef &B);
     };
-    struct DedScore {
-      int score;
-      const Deduction * d;
-      DedScore(Deduction * d) : score(0) {this->d = d; scoreDed();}
-      DedScore() : score(0) {}
-      void scoreDed();
-    };
-    struct VectorHash {
-      //https://stackoverflow.com/questions/29855908/c-unordered-set-of-vectors
-      std::size_t operator()(const std::vector<int>& v) const;
-    };
-    vector<DedScore *> countSort(vector<DedScore *>&, vector<int>&);
-    void swap(vector<DedScore>& vd, int i, int j);
-    struct SimpleComp {
-      bool operator()(const pair<DedScore*, int>& a, const pair<DedScore*, int>& b);
-    };
     PolyManager * PM;
     bool unsat;
-    std::vector<Deduction *> deds; //The deductions themselves
-    std::vector<std::unordered_set<std::vector<int>, VectorHash > > depIdxs; //The indexes of all the atoms a deduction is dependent on
-    std::vector<std::vector<int> > origDep; //The indices of the first time a deduction was made. This is necessary because cycles can ruin tracebacks, but std::set doesn't give us a way to retrieve the first way a deduction was made
+    std::vector<Deduction> deds; //The deductions themselves
+    typedef
+    std::vector<std::list<std::set<int> > > vecDep;
+    vector<char> isGiven;
+    vecDep depIdxs; //The indexes of all the atoms a deduction is dependent on
+    std::vector<std::set<int> > origDep; //The indices of the first time a deduction was made. This is necessary because cycles can ruin tracebacks, but std::set doesn't give us a way to retrieve the first way a deduction was made
     VarKeyedMap<int> varSigns; //A fast mapping for variables, which is needed for WB algorithms
     //The index of the last deduction on an atom
     std::map<TAtomRef, int, ManagerComp> atomToDed;
     int givenSize; //The size of the part of the deds vector which is all given
     short getSgn(TAtomRef t);
-    void writeDeps(Deduction *);
+    void writeDeps(Deduction&);
     void updateVarSigns(TAtomRef t);
-    inline void updateVarSigns(Deduction * d) { updateVarSigns(d->getDed()); }
+    inline void updateVarSigns(const Deduction& d) { updateVarSigns(d.getDed()); }
 
     //CONSTRUCTOR METHODS
     void addGCombo(TAtomRef t);
     void processGiven(TAtomRef t);
     //END CONSTRUCTOR
-    vector<int> getDepIdxs(Deduction * d);
-    void addDed(Deduction * d);
-    void addCycle(Deduction * d);
-    void addCombo(Deduction * d);
 
 
+    std::set<int> getDepIdxs(const dedList&);
+    void addDed(const Deduction& d, const dedList&);
+    void addCycle(const Deduction& d, const dedList&);
+    void addCombo(const Deduction& d, const dedList&);
+    void checkAdd(std::set<int>&, int idx);
+
+
+    //SIMPLFICATION METHODS
     TAndRef simplify();
-    vector<int> expSimplify();
+    int scoreDed(const Deduction& d);
+    void writeIntermediate(vector<size_t>&, vector<size_t>&);
+    template <typename T> vector<size_t> sort_indices(const vector<T>& v) {
+      vector<size_t> idx(v.size());
+      iota(idx.begin(),idx.end(), 0);
+      sort(idx.begin(), idx.end(), [&v](size_t i1, size_t i2) {
+          return v[i1] < v[i2];
+        });
+      return idx;
+    }
+    typedef std::unique_ptr<Minisat::vec<Minisat::Lit>> vecPtr;
+    typedef std::list<vecPtr> listVec;
+    listVec genSatProblem(TAndRef& t, set<int>& skips, vector<size_t>&);
+    void writeSatProblem(listVec& lv);
+    void solveSAT(listVec& lv, TAndRef& t, set<int>& skips,
+                  vector<size_t>& indices);
+    //the indices of all the elements in the simplified formula
+    vector<int> simpIdx;
 
+    //END SIMPLIFICATION METHODS
   public:
     DedManager(const std::vector<TAtomRef>&);
     DedManager(TAndRef t);
     ~DedManager();
+
     TAndRef getInitConjunct();
     void addGiven(TAtomRef t);
     short getSign(IntPolyRef p);
     inline bool isUnsat() { return unsat; }
-    bool processDeduction(Deduction * d);
-    short processDeductions(vector<Deduction *> v);
-    inline Deduction * getLast() { return deds.back(); }
+    bool processDeduction(const Deduction& d, const dedList&);
+    inline const Deduction& getLast() { return deds.back(); }
     inline VarKeyedMap<int>& getVars() { return varSigns; }
     inline Result traceBack() { return traceBack(deds.size()-1); }
     Result traceBack(int idx);
@@ -209,12 +209,22 @@ namespace tarski {
     inline void writeProof() { writeProof(deds.size()-1); }
     void writeAll();
     inline int size() {return deds.size();}
-    typedef vector<Deduction *>::const_iterator dedItr;
+    typedef vector<Deduction>::const_iterator dedItr;
     inline void getItrs(int idx, dedItr& itr, dedItr& end)
     { itr = deds.begin()+idx; end = deds.end(); }
+    inline void getOItrs(dedItr& itr, dedItr& end)
+    { itr = deds.begin(); end = deds.begin()+givenSize;}
     int searchMap(TAtomRef A);
     bool isEquiv(TAtomRef A, TAtomRef B);
     TAndRef getSimplifiedFormula();
+    Result explainAtom(TAtomRef t);
+    //Explain the atoms required to produce an atom in the simplified formula
+    //At idx i.
+    //If there are no dependencies, the result consists of the atom itself
+    inline Result explainSimp(size_t i) {
+      return (!isGiven[i])
+        ? traceBack(simpIdx[i]) : Result({deds[simpIdx[i]].getDed()});
+    }
   };
 
 

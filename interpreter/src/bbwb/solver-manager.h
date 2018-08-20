@@ -6,6 +6,7 @@
 #include "../formula/formula.h"
 #include "../shell/einterpreter.h"
 #include <vector>
+#include <forward_list>
 
 namespace tarski {
   //A class which defines a solver procedure via the deduce method
@@ -16,10 +17,9 @@ namespace tarski {
     
   public:
     //use this method to have the solve rmake a single deduction
-    //returns NULL when no deduction can be made!
+    //res set to false when no deduction can be made
     virtual ~QuickSolver() {};
-    virtual Deduction * deduce(TAndRef t) = 0;
-    
+    virtual DedExp deduce(TAndRef t, bool& res) = 0;
     //use to notify the solver if the last deduction taught something new
     //notify is called by solvermanager when the deduction manager
     //processes the Deduction * returned by deduce, and returns true
@@ -30,8 +30,13 @@ namespace tarski {
     inline void setDedM(DedManager * d) {
       this->dedM = d;
     }
-    virtual void update(std::vector<Deduction *>::const_iterator
-			begin, std::vector<Deduction *>::const_iterator end) = 0;
+    virtual void update(std::vector<Deduction>::const_iterator
+			begin, std::vector<Deduction>::const_iterator end) = 0;
+    virtual list<DedExp> deduceTarget(std::vector<Deduction>::const_iterator begin, std::vector<Deduction>::const_iterator end) {
+      std::list<DedExp> v;
+      return v;
+    }
+
   };
 
 
@@ -55,11 +60,12 @@ namespace tarski {
     std::vector<short> lastDeds; //The index of the last deduction made by each solver
     TAndRef t; //The conjunction to solve, which WILL BE MODIFIED
     bool hasRan; //Indicates whether or not deduceAll has already been called
+    bool hasSimplified;
+    TAndRef simp;
     Result finResult; //The final result of the program
     DedManager * dedM; //The deduction manager which stores the results of each deduce()
 
   public:
-    SolverManager(const vector<QuickSolver *>& v, TAndRef tand);
     SolverManager(int codes, TAndRef tand);
     ~SolverManager();
 
@@ -75,15 +81,18 @@ namespace tarski {
     //The "main" method which loops through all the QuickSolver objects
     Result deduceAll();
 
+    TAndRef simplify(); 
+    inline Result explainAtom(TAtomRef t) { return dedM->explainAtom(t);}
+    inline Result explainSimp(size_t i) { return dedM->explainSimp(i); }
+
     //nice, human readable format with a proof and a list of all deductions
     void prettyPrintResult();
+    void prettyPrintSimplify(TAndRef t);
 
     //returns a tarksi object containing the results of deduceAll
     LisRef genLisResult();
 
     void update();
-
-
     void updateSolver(const std::vector<TAtomRef>&);
   private:
     //return 0 if nothing has changed
@@ -93,6 +102,12 @@ namespace tarski {
 
     //Updates a solver by getting iterators from the deduction manager
     void updateSolver(int i);
+
+
+    //Assumed to be called after the SolverManager returns SAT
+    //deduceOrig is used to alert each solver that they should try to deduce
+    //the given atoms for purposes of simplification
+    void deduceOrig();
   };
   
   

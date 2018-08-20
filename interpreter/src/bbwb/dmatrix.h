@@ -53,7 +53,9 @@ namespace tarski {
         }
       }
     }
-
+    inline bool isPivotCol(int i) {
+      return pivotCols[i];
+    }
 
 
 
@@ -63,7 +65,7 @@ namespace tarski {
     void reduceRow (std::vector<char>& vc,
                     std::vector<int>& rows) const;
 
-
+    
 
   private:
     std::vector< std::vector<char > > m; //the strict matrix
@@ -132,6 +134,12 @@ namespace tarski {
     }
     inline void swap(int i, int j, std::vector< std::vector<bool> >& v) {
       std::vector<bool>  tmp(v[i]);
+      v[i] = v[j];
+      v[j] = tmp;
+    }
+    inline void swap(int i, int j, std::vector<int >& v) {
+      if (i == j) return;
+      int tmp(i);
       v[i] = v[j];
       v[j] = tmp;
     }

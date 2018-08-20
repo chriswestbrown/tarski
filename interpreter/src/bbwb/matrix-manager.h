@@ -4,6 +4,7 @@
 #include <iostream>
 #include <map>
 #include <list>
+#include <forward_list>
 #include "dmatrix.h"
 #include "formula.h"
 #include "poly.h"
@@ -25,7 +26,7 @@ namespace tarski {
     bool needUpdate;
     std::vector<IntPolyRef> cIdxToPoly;
     std::vector<TAtomRef> rIdxToAtom;
-    std::vector<int> tB;
+    std::vector<size_t> tB;
     //tB = traceBack. Not all rows in strict have 1:1 correspondences
     //with rows in all, because strict doesn't store rows which correspond
     //to nonStrict atoms. tB[rowIndex] lets us use the rIdxToAtom vector
@@ -44,13 +45,19 @@ namespace tarski {
     MatrixManager(TAndRef);
     MatrixManager(const MatrixManager&, const vector<int>&);
     void addAtom(TAtomRef t);
+    TAtomRef getMeaning(int row);
+    forward_list<TAtomRef> explainMeaning(int row);
     void write() const;
+    TAtomRef mkNonStrictAtom(const vector<char>& row, bool& res);
 
     /* INLINE  METHODS */
     inline IntPolyRef getPoly(int idx) const {
       return cIdxToPoly[idx];
     }
-
+    inline int getIdx(IntPolyRef p) const {
+      return (allPolys.find(p) != allPolys.end()) ? allPolys.find(p)->second
+        : -1;
+    }
     inline TAtomRef getAtom(int idx, bool strict) const {
       return (strict) ? rIdxToAtom[tB[idx]] : rIdxToAtom[idx];
     }
@@ -78,13 +85,8 @@ namespace tarski {
     //Returns a list of the indices of
     //all the rows in the all matrix
     //which are in both matrix
-    inline vector<int> dualRows() {
-      vector<int> res;
-      for (std::vector<int>::iterator itr = tB.begin();
-           itr != tB.end(); ++itr) {
-        res.push_back(*itr);
-      }
-      return res;
+    inline const vector<size_t>& dualRows() {
+      return tB;
     }
 
 

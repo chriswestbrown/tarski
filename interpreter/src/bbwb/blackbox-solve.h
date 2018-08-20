@@ -12,6 +12,7 @@
 #include <set>
 #include <queue>
 #include <map>
+#include <list>
 namespace tarski{
 
 
@@ -35,22 +36,25 @@ namespace tarski{
     deduce, a new conjunction t is assumed, and BBSolver 
     performs BlackBox on t.
   */
+  typedef std::list<DedExp> bblist;
   class BBSolver : public QuickSolver {
+
+  public:
   private:
     PolyManager* PM;
-    std::vector<Deduction *> deductions;
+    bblist deductions;
     bool once;
     MatrixManager M;
-    std::vector<Deduction *>::iterator itr, end;
   public:
+
     inline BBSolver(TAndRef tf)  : deductions(0), once(true), M(tf) {
       this->PM = tf->getPolyManagerPtr();
     }
-    std::vector<Deduction *> bbsat(TAndRef t);
-    Deduction * deduce(TAndRef t);
+    bblist bbsat(TAndRef t);
+    DedExp deduce(TAndRef t, bool& res);
     inline void notify() {}
-    void update(std::vector<Deduction *>::const_iterator begin, std::vector<Deduction *>::const_iterator end);
-
+    void update(std::vector<Deduction>::const_iterator begin, std::vector<Deduction>::const_iterator end);
+    list<DedExp> deduceTarget(std::vector<Deduction>::const_iterator begin, std::vector<Deduction>::const_iterator end);
     //Searches for a row of the form 1 0 0 0 0 0 ... 0
     static int findRow(const DMatrix& d);
   };
@@ -62,14 +66,15 @@ namespace tarski{
     MatrixManager * M;
     PolyManager * PM;
     int unsatRow;
-    std::set<IntPolyRef> findWeak(std::vector<TAtomRef>& conflict);
+    std::set<IntPolyRef> findWeak(std::forward_list<TAtomRef>& conflict);
     std::set<TAtomRef> strengthenWeak(const std::set<IntPolyRef>& weakFacts);
-    std::vector<TAtomRef> getConflict();
+    std::forward_list <TAtomRef> getConflict();
     void printBeforeGauss();
     void printAfterGauss();
   public:
     bool checkSat();
-    vector<Deduction *> explainUnsat();
+    bblist explainUnsat();
+
     inline BBChecker(MatrixManager * m, PolyManager * pm) {
       M = m;
       PM = pm;
@@ -81,8 +86,10 @@ namespace tarski{
     MatrixManager * M;
     PolyManager * PM;
     /*===========STRICT=========*/
-    void strictDeds(std::vector<Deduction *>& deds);
+    void strictDeds(bblist& deds);
     int getNonZero(const std::vector<char>&);
+
+    
 
 
     /*==========NONSTRICT=======*/
@@ -105,7 +112,6 @@ namespace tarski{
     
 
     //NonStrict Methods
-    void minWtExplain(std::vector<Deduction *>& deds);
     vector<AtomRow> mkB(); 
     static bool isStrictRow(int cutOff, const std::vector<char>& vc);
     static int weight(const std::vector<char>* vc, int);
@@ -115,27 +121,30 @@ namespace tarski{
                              const AtomRow&, int);
     static DMatrix mkMatrix(const vector<AtomRow>&);
     static bool reduceRow(AtomRow&, vector<char>&,
-                          vector<TAtomRef>&, const DMatrix&,
+                          forward_list<TAtomRef>&, const DMatrix&,
                           const vector<AtomRow>&);
-    void mkMinWtDed(AtomRow&,const vector<TAtomRef>&,
-                    vector<Deduction*>&);
-    void mkMinWtDed(AtomRow&, vector<Deduction*>&);
-    vector<Deduction *> minWtMain();
+    void mkMinWtDed(AtomRow&,const forward_list<TAtomRef>&,
+                    bblist&);
+    inline void mkMinWtDed(AtomRow& a, bblist& deds)
+    { mkMinWtDed(a, {a.atom}, deds); }
+    void minWtMain(bblist&);
+    
 
 
     //Joint Methods
-    void jointDeds(std::vector<Deduction *>& deds);
-    Deduction * mkJointDed(std::vector<char>&, std::vector<int>&, TAtomRef);
+    void jointDeds(bblist& deds);
+    void mkJointDed(std::vector<char>&, std::vector<int>&,
+                    TAtomRef, bblist&);
 
     //Debugging only
     void writeChar(const std::vector<char>& vc, int cutOff); 
   public:
-    vector<Deduction *> getDeductions();
+    bblist getDeductions();
     inline BBDeducer(MatrixManager * m, PolyManager * pm) {
       M = m;
       PM = pm;
-
     }
+    list<DedExp> attemptDeduce(std::vector<Deduction>::const_iterator begin, std::vector<Deduction>::const_iterator end);
   };
 
 } //end namespace

@@ -2,6 +2,8 @@
 #include "dmatrix.h"
 #include <assert.h>
 
+using namespace std;
+
 namespace tarski {
   /*
     A simple constructor which does nothing
@@ -69,7 +71,6 @@ namespace tarski {
     std::vector<int> pivotRows;
     int r = getNumRows();
     if (r == 0) return;
-    int c = getNumCols();
 
     for(int i = 0; i < r; ++i)   {
 
@@ -84,7 +85,7 @@ namespace tarski {
       pivotRows.push_back(kmin); //then log the original position
       // Find next pivot column & reduce other rows by pivot rows that aren't in pivot row list
       int j = 1;
-      while(m[i][j] == 0) {++j; }
+      while(m[i][j] == 0) { ++j; }
       pivotCols.push_back(j);
       for(int k = i + 1; k < r; ++k){
         if (m[k][j]) {
@@ -96,31 +97,38 @@ namespace tarski {
 
     //END REG GAUSSIAN ELIMINATION, BEGIN REDUCING
 
-    for(int r = pivotCols.size() - 1; r > 0; --r)
-      {
-        int p = pivotCols[r];
-        for(int k = r-1; k >= 0; -- k) {
+    for(int r = pivotCols.size() - 1; r > 0; --r) {
+      int p = pivotCols[r];
+      for(int k = r-1; k >= 0; -- k) {
 
-          if (m[k][p])
-            {
-              sumRows(k, r, m);
-              sumRows(k, r, comp);
-            }
-        }
+        if (m[k][p])
+          {
+            sumRows(k, r, m);
+            sumRows(k, r, comp);
+          }
       }
+    }
     //Now time to use pivotRows to undo all of our swaps
     for (int i = pivotRows.size()-1; i >= 0; i--) {
       swap(i, pivotRows[i], m);
       swap(i, pivotRows[i], comp);
     }
+    pivotCols.clear();
+    pivotCols.resize(getNumCols(), -1);
+    for (int i = 0; i < m.size(); i++) {
+      for (int j = 1; j < m[i].size(); j++) {
+        if (m[i][j]) { pivotCols[j] = i; break; }
+      }
+    }
   }
 
   void DMatrix::reduceRow (std::vector<char>& vc,
-                  std::vector<int>& rows) const  {
-    for (size_t i = 0; i < pivotCols.size(); i++) {
-      if (vc[pivotCols[i]]) {
-        sumRows(vc, m[i]);
-        rows.push_back(i);
+                           std::vector<int>& rows) const  {
+    for (size_t i = 1; i < getNumCols(); i++) {
+      if (vc[i]) {
+        if (pivotCols[i] == -1) break;
+        sumRows(vc, m[pivotCols[i]]);
+        rows.push_back(pivotCols[i]);
       }
     }
   }

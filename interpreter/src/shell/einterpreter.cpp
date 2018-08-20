@@ -15,7 +15,7 @@
 //#include "../fernando/sample-comm.h"
 //#include "../fernando/type-comm.h"
 //#include "../fernando/sactester.h"
-#include "../bbwb/BBSat.h"
+#include "../bbwb/bbsat-comm.h"
 #include "../bbwb/wbsat-comm.h"
 #include "../bbwb/bbwb.h"
 #include "../smtsolver/box-solver-comm.h"
