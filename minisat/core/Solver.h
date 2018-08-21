@@ -30,6 +30,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include <string>
 #include <vector>
 #include <map>
+#include <memory>
 
 namespace Minisat {
 
@@ -44,6 +45,8 @@ namespace Minisat {
     //Fernando
     void printDataToFile(std::string);
     void mkProblem(const std::vector<std::vector<Lit> >& problem);
+    template<class iterator_type> void mkProblem(iterator_type begin,
+                                                 iterator_type end);
     //End Fernando
     
     // Constructor/Destructor:
@@ -60,7 +63,7 @@ namespace Minisat {
     bool    addClause (Lit p);                                  // Add a unit clause to the solver. 
     bool    addClause (Lit p, Lit q);                           // Add a binary clause to the solver. 
     bool    addClause (Lit p, Lit q, Lit r);                    // Add a ternary clause to the solver. 
-    bool    addClause_(      vec<Lit>& ps);                     // Add a clause to the solver without making superflous internal copy. Will
+    bool    addClause_(vec<Lit>& ps);                     // Add a clause to the solver without making superflous internal copy. Will
                                                                 // change the passed vector 'ps'.
 
     // Solving:
@@ -294,6 +297,24 @@ namespace Minisat {
     inline bool isConflict(const vec<Lit>& lits);
     //END FERNANDO MODS
   };
+
+  //Fernando Code
+
+  template<class iterator_type> void Solver::mkProblem(iterator_type itr,
+                                               iterator_type end) {
+    while (itr != end) {
+      Minisat::vec<Minisat::Lit>& vp = *(*itr).get();
+      for (int i = 0; i < (*itr)->size(); i++) {
+        Var v = var(vp[i]);
+        while (v >= nVars()) newVar();
+      }
+      addClause_(vp);
+      ++itr;
+    }
+  }
+
+
+  //End Fernando Code
 
 
   //=================================================================================================
