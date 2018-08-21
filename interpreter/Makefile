@@ -8,7 +8,7 @@ MROOT=-I../minisat
 extIncludesSACLIB:=-I${saclib}/include
 extLibSACLIB:=${saclib}/lib/saclibo.a
 extLibMINISAT:=../minisat/core/lib.a
-extIncludeMINISAT:=-I${MROOT}/core
+extIncludeMINISAT:=-I${TMROOT}/core
 extIncludesMD5:=
 extLibMD5:=-lssl  -lcrypto
 
@@ -26,9 +26,10 @@ DEPS := $(OBJS:.o=.d)
 LDFLAGS := -lssl -lcrypto -lreadline $(extLibSACLIB) $(extLibMINISAT) 
 
 INC_DIRS := $(shell find $(SRC_DIRS) -type d)
-INC_FLAGS := $(addprefix -I,$(INC_DIRS)) $(extIncludesSACLIB) 
+INC_FLAGS := $(addprefix -I,$(INC_DIRS)) $(extIncludesSACLIB) $(extIncludeMINISAT)
 
-CPPFLAGS ?= $(INC_FLAGS) -MMD -MP -g --std=c++11
+CPPFLAGS ?= $(INC_FLAGS) -MMD -MP -g --std=c++11 -O3
+
 
 $(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
 	$(CC) $(OBJS) -o $@ $(LDFLAGS)
