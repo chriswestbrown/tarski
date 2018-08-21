@@ -133,7 +133,6 @@ namespace tarski {
         if (dedM->isUnsat()) return 2;
         retCode = 1;
         t->AND(d.d.getDed());
-        cout << "NOTIFYING\n";
         q->notify();
       }
       d = q->deduce(t, res);

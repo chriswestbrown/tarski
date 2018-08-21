@@ -53,6 +53,7 @@ namespace tarski {
     void getAddition(Minisat::vec<Minisat::Lit>& lits, bool& conf);
 
     BoxSolver(tarski::TFormRef formula);
+    BoxSolver() : isPureConj(true),  numAtoms(-1), limit(5), count(0), lastVec(0), ranOnce(false), unsat(false) {};
     virtual ~BoxSolver();
 
     bool solve(string&);
@@ -77,6 +78,7 @@ namespace tarski {
     }
     
   protected:
+    bool unsat;
     bool ranOnce;
     SolverManager * SM;
     Minisat::Solver * S;
@@ -114,7 +116,7 @@ namespace tarski {
     void addToLearned(Minisat::Lit a, Minisat::Lit b);
     void addToLearned(Minisat::Lit a, Minisat::Lit b, Minisat::Lit c);
     bool atomFromLit(Minisat::Lit p, TAtomRef& t);
-    bool directSolve();
+    virtual bool directSolve();
 
 
     void writeSimpToFile(TAndRef orig, TAndRef simp);
@@ -126,7 +128,7 @@ namespace tarski {
     //given a maximum index in trail, takes all the assignments
     //in trail from the minisat solver and turns it into a
     //TAndRef by maping back to atoms
-    inline tarski::TAndRef genTAnd(int maxIdx);
+    tarski::TAndRef genTAnd(int maxIdx);
 
     //Given a vector of integers indices presumably taken from a QepcadConnection
     //And a TFormRef tand also presumably given to that QepcadConnection

@@ -9,7 +9,8 @@ namespace tarski {
   class IdxManager {
   private:
     std::vector< tarski::TAtomRef> mapping;
-    std::map<tarski::TAtomRef, int, tarski::TAtomObj::OrderComp> revMapping;
+    //Removed tarski::TAtomObj::OrderComp
+    std::map<tarski::TAtomRef, int> revMapping;
     int s;
   public:
     inline IdxManager() : s(0) {}

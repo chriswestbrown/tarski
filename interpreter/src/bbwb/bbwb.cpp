@@ -2,6 +2,8 @@
 #include "solver-manager.h"
 #include "whitebox-solve.h"
 #include "blackbox-solve.h"
+#include "normalize.h"
+
 
 namespace tarski {
 
@@ -39,6 +41,7 @@ namespace tarski {
     catch (TarskiException t) {
       return new ErrObj(t.what());
     }
+    A = level1(A);
     SolverManager s( SolverManager::BB | SolverManager::WB,  A);
     LisRef l = s.genLisResult();
     if (o.getOpt(0)) s.prettyPrintResult();

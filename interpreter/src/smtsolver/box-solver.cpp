@@ -4,6 +4,7 @@
 #include "formula-maker.h"
 #include "../formula/formmanip.h"
 #include "idx-manager.h"
+#include "normalize.h"
 #include "../shell/qepcad-inter/qepcad-session.h"
 #include <algorithm>
 #include <vector>
@@ -21,14 +22,20 @@ using namespace std;
 
 inline bool intSort (int i, int j) { return (i < j);}
 
-BoxSolver::BoxSolver(TFormRef formula) :  isPureConj(true),  numAtoms(-1), limit(5), count(0), lastVec(0), ranOnce(false) {
-  this->formula = formula;
+BoxSolver::BoxSolver(TFormRef formula) :  isPureConj(true),  numAtoms(-1), limit(5), count(0), lastVec(0), ranOnce(false), unsat(false) {
+  Normalizer* p = new Level1();
+  RawNormalizer R(*p);
+  R(formula);
+  delete p;
+  this->formula = R.getRes();
+
   IM = new IdxManager();
   pm = formula->getPolyManagerPtr();
-  processAtoms(formula);
+  processAtoms(this->formula);
+  if (unsat) return;
   if (!isPureConj){
     S = new Solver(this);
-    S->mkProblem(makeFormula(formula));
+    S->mkProblem(makeFormula(this->formula));
     M = (numAtoms > 5) ? new MHSGenerator(form, numAtoms) : NULL;
   }
 }
@@ -72,6 +79,7 @@ bool BoxSolver::solve(string& err) {
 //1 = true
 //2 = err
 short BoxSolver::solve() {
+  if (unsat) return 0;
   if (isPureConj)
     try {return directSolve();}
     catch (TarskiException& e) {
@@ -86,16 +94,15 @@ short BoxSolver::solve() {
   catch (TarskiException& e){
     return 2;
   }
-  return (ret == l_True) ? 1 : 0;
+  return (ret == l_True) ? true : false;
 }
 
 bool BoxSolver::directSolve() {
   //std::cerr << "Direct solving formula\n";
-
+  if (unsat) return false;
   TAndRef t = asa<TAndObj>(formula);
   TAndRef t2;
   if (t->constValue() == true) return true;
-  cout << "Formula: " + toString(t) << endl;
   SolverManager b( SolverManager::BB | SolverManager::WB, t);
   b.deduceAll();
   if (b.isUnsat()) return false;
@@ -110,7 +117,7 @@ bool BoxSolver::directSolve() {
     throw TarskiException("QEPCAD timed out");
 
   }
-  if (res->constValue() ==0) return false;
+  if (res->constValue() == 0) return false;
   else return true;
 }
 
@@ -131,7 +138,11 @@ void BoxSolver::processAtoms(TFormRef formula) {
     throw TarskiException("Unexpected TF_EXTATOM in processAtoms!");
     break;
   }
-  case TF_CONST:  break;
+  case TF_CONST:   {
+    TConstRef C = asa<TConstObj>(formula);
+    if (C->constValue() == FALSE) unsat = true;
+    break;
+  }
   case TF_AND: {
     //recursively access each element here of the AND block
     TAndRef C = asa<TAndObj>(formula);
@@ -152,6 +163,10 @@ void BoxSolver::processAtoms(TFormRef formula) {
     isPureConj = false;
     break;
   }
+  default:
+    cout << "DEFAULT CASE!!\n";
+    unsat = true;
+    return;
   }
 }
 
@@ -164,10 +179,7 @@ void BoxSolver::getFinalClause(vec<Lit>& lits, bool& conf) {
   getClauseMain(lits, conf);
   //Only if BB/WB cannot detect unsat do we need to call QEPCAD"
   if (conf == false) {
-
     QepcadConnection q;
-
-
     //TAndRef told = (M != NULL) ? genMHS() : genTAnd(getQhead());
     TAndRef tand = SM->simplify();
     //cout << "Old formula: " << toString(told) << "\nSimplified formula: " << toString(tand) << endl;
@@ -182,9 +194,6 @@ void BoxSolver::getFinalClause(vec<Lit>& lits, bool& conf) {
     }
     std::set<TAtomRef> allAtoms;
     if (res->constValue() == 0) {
-
-      
-
       conf = true;
       vector<int> core = q.getUnsatCore();
       //NOTE: Core is not guaranteed to come out in sorted order!!!
@@ -227,22 +236,19 @@ void BoxSolver::getFinalClause(vec<Lit>& lits, bool& conf) {
 void BoxSolver::getQEPUnsatCore(vec<Lit>& lits, vector<int> indices, TAndRef tand) {
   int curr = 0;
   unsigned int currVec = 0;
-  TAndRef t = new TAndObj();
   for (set<TFormRef, ConjunctOrder>::iterator begin = tand->begin(), end = tand->end();
        begin != end; ++begin) {
     if (indices[currVec] == curr) {
       TAtomRef a = asa<TAtomObj>(*begin);
       if (a.is_null()) throw TarskiException("Unexpected non-atom in getQEPUnsatCore");
-      t->AND(a);
       int varNum = IM->getIdx(a);
-      //Lit l = litFromInt(varNum, true);
-      //lits.push(l);
+      Lit l = litFromInt(varNum, true);
+      lits.push(l);
       currVec++;
       if (currVec >= indices.size()) break;
     }
     curr++;
   }
-  cerr << "UNSAT CORE IS: "; t->write(); cerr << endl;
 }
 
 void BoxSolver::writeSimpToFile(TAndRef orig, TAndRef simp) {
@@ -347,7 +353,6 @@ void BoxSolver::getClauseMain(vec<Lit>& lits, bool& conf) {
 
   else {
     TAndRef tand = genTAnd(getQhead());
-    cout << "PROBLEM: "; tand->write(); cout << endl;
     if (tand->constValue() == TRUE) {
       conf = false;
       return;

@@ -283,11 +283,6 @@ namespace tarski {
   bool DedManager::processDeduction(const Deduction& d, const dedList& dl) {
     //Initial processing of the deduction, check if it teaches anything useful
     //If it teaches us nothing useful, return
-    d.write(); cout << "from ";
-    for (dedList::const_iterator itr = dl.begin(); itr != dl.end(); ++itr) {
-      (*itr)->write(); cout << " ";
-    }
-    cout << endl;
     if (d.isUnsat() || d.getDed()->getRelop() == NOOP) {
       depIdxs.emplace_back();
       depIdxs.back().push_back(getDepIdxs(dl));
@@ -301,32 +296,25 @@ namespace tarski {
     if (atomToDed.find(d.getDed()) == atomToDed.end()) {
       updateVarSigns(d);
       addDed(d, dl);
-      cout << "NEW ATOM\n";
       return true;
     }
 
     else if (d.getDed()->getRelop() == getSgn(d.getDed()))  {
-      cout << "ADDING CYCLE\n";
       addCycle(d, dl);
       return false;
     }
     short combo = d.getDed()->getRelop() & getSgn(d.getDed());
     //the new ded is weaker
-    cout << "combo is " << numToRelop(combo) << endl;
-    cout << "old is " << numToRelop(getSgn(d.getDed())) << endl;
     if (combo == getSgn(d.getDed())) {
-      cout << "WEAKER ATOM\n";
       return false;
     }
     //the new ded is stronger
     else if (combo == d.getDed()->getRelop()) {
-      cout << "STRONGER ATOM\n";
       updateVarSigns(d);
       addDed(d, dl);
     }
     //the new ded and the old ded combined is stronger
     else {
-      cout << "COMBO ATOM\n";
       addCombo(d, dl);
       if (combo == NOOP) unsat = true;
     }
@@ -526,7 +514,7 @@ namespace tarski {
     for (size_t i = 0; i < revIndices.size(); i++) {
       revIndices[indices[i]] = i; 
     }
-    writeIntermediate(indices, revIndices);
+    //    writeIntermediate(indices, revIndices);
     set<int> skips;
     listVec asSat = genSatProblem(t, skips, indices);
     //writeSatProblem(asSat);

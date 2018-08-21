@@ -230,9 +230,6 @@ namespace tarski {
       if (!(equals(dedAtom, atoms.front())))  {
         deds.emplace_back(dedAtom, Deduction::BBSTR, atoms);
       }
-      else {
-        cout << "rejecting deduction " << toString(dedAtom) << endl;
-      }
     }
   }
 
