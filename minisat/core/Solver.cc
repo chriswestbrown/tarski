@@ -23,7 +23,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "Solver.h"
 #include "CallBack.h"
 #include <map>
-
+#include <forward_list>
 using namespace Minisat;
 
 //=================================================================================================
@@ -97,7 +97,13 @@ Solver::Solver(TSolver * tsolver) :
   , conflict_budget    (-1)
   , propagation_budget (-1)
   , asynch_interrupt   (false)
-{ts = tsolver; ts->setSolver(this);}
+{
+  if(tsolver != NULL) {
+    ts = tsolver;
+    ts->setSolver(this);
+  }
+  else ts = NULL; 
+}
 
 
 Solver::~Solver() {}
@@ -979,7 +985,8 @@ lbool Solver::search(int nof_conflicts)
     
 
     //THIS CODE LETS YOU ADD A NEW CLAUSE EVERY X ITERATIONS - FERNANDO'S CODE
-    if (confl == CRef_Undef && ts != NULL) {
+    if (confl == CRef_Undef &&
+        ts != NULL) {
       lbool lb = addTheoryClause(false);
       //printData();
       if (lb == l_False){ ok = false; return lb; }
@@ -1062,10 +1069,12 @@ lbool Solver::search(int nof_conflicts)
 
         if (next == lit_Undef){
           // Model found: But we have to do a check with the theory solver
-          lbool lb = addTheoryClause(true);
-          //printData();
-          if (lb == l_False){ ok = false; return lb; }
-          else if (lb == l_True) continue;
+          if (ts != NULL) {
+            lbool lb = addTheoryClause(true);
+            //printData();
+            if (lb == l_False){ ok = false; return lb; }
+            else if (lb == l_True) continue;
+          }
           return l_True;
         }
       }
