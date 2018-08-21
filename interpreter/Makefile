@@ -5,6 +5,7 @@
 CXX=g++
 CC=g++ 
 MROOT=-I../minisat
+TMROOT=../minisat
 extIncludesSACLIB:=-I${saclib}/include
 extLibSACLIB:=${saclib}/lib/saclibo.a
 extLibMINISAT:=../minisat/core/lib.a
