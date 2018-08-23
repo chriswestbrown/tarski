@@ -41,8 +41,20 @@ namespace tarski {
     catch (TarskiException t) {
       return new ErrObj(t.what());
     }
-    A = level1(A);
-    SolverManager s( SolverManager::BB | SolverManager::WB,  A);
+
+    //L1 Normalization
+    Normalizer * p = new Level1();
+    RawNormalizer R(*p);
+    R(A);
+    delete p;
+    if (R.getRes()->getTFType() == TF_CONST) {
+      if (R.getRes()->constValue() == FALSE)
+        return new SymObj("UNSAT BY L1 NORMALIZATION");
+      else
+        return new SymObj("SAT BY L1 NORMALIZATION");
+    }
+
+    SolverManager s( SolverManager::BB | SolverManager::WB,  R.getRes());
     LisRef l = s.genLisResult();
     if (o.getOpt(0)) s.prettyPrintResult();
     return l;

@@ -36,6 +36,7 @@ namespace tarski {
 
     //override not to use partial solver
     bool directSolve() {
+      if (unsat) return false;
       TFormRef res;
       try  {
         QepcadConnection q;
@@ -49,18 +50,8 @@ namespace tarski {
       else return true;
     }
 
-
-    QEPSolver(tarski::TFormRef formula) {
-      this->formula = formula;
-      IM = new IdxManager();
-      pm = formula->getPolyManagerPtr();
-      processAtoms(this->formula);
-      if (!isPureConj){
-        S = new Minisat::Solver(this);
-        S->mkProblem(makeFormula(this->formula));
-        M = (numAtoms > 5) ? new MHSGenerator(form, numAtoms) : NULL;
-      }
-    } //Otherwise the exact same
+    //Otherwise the exact same
+    QEPSolver(tarski::TFormRef formula) : BoxSolver(formula) { }
     ~QEPSolver() {};
   };
 

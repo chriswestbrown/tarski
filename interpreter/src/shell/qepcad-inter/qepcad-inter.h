@@ -6,6 +6,7 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <signal.h>
+#include <chrono>
 #include "../../poly/caserver/unnamedpipe.h"
 #include "../../tarskisysdep.h"
 #include "../../formula/writeForQE.h"
@@ -52,58 +53,99 @@ public:
   CommQepcadSat(NewEInterpreter* ptr) : EICommand(ptr) { }
   SRef execute(SRef input, vector<SRef> &args) 
   {
+    using namespace std::chrono;
+    bool time = false;
     SRef output = new ErrObj("Failure in qepcad-sat!");
-      
-    TFormRef F = args[0]->tar()->val;
+    int N = args.size();
+    TFormRef F = args[N-1]->tar()->val;
+    if (N == 2) {
+      SymRef opt = args[0]->sym();
+      if (opt.is_null()) return new ErrObj("Not a symbol for arg");
+      if (opt->val == "time") {
+        time = true;
+      }
+      else return new ErrObj("Symbol not understood");
+    }
     // TODO!! check that F is quantifier free
     TAndRef Fp = new TAndObj();
     Fp->AND(F);
     bool conjunctionCase = isConjunctionOfAtoms(Fp);
     if (conjunctionCase)
-    {
-      TFormRef res;
-      QepcadConnection qconn;
-      try {
-	res = qconn.basicQepcadCall(exclose(F),true);
-	if (res->constValue() == TRUE) {
-	  std::string w = qconn.samplePointPrettyPrint(getPolyManagerPtr());
-	  output = new LisObj(new SymObj("SAT"),new StrObj(w));
-	}
-	else if (res->constValue() == FALSE) {
-	  std::vector<TFormRef> M;
-	  for(TAndObj::conjunct_iterator i = Fp->begin(); i != Fp->end(); ++i)
-	    M.push_back(*i);
-	  TAndRef core = new TAndObj();
-	  vector<int> T = qconn.getUnsatCore();
-	  for(int i = 0; i < T.size(); i++)
-	    core->AND(M[T[i]]);	  
-	  output = new LisObj(new SymObj("UNSAT"),new TarObj(core));
-	}
-	else { throw TarskiException("Expected either TRUE or FALSE returned from QepcadB!"); }
-      } catch(TarskiException &e) { return new ErrObj(e.what()); }
-    }
+      {
+        TFormRef res;
+        QepcadConnection qconn;
+        try {
+          high_resolution_clock::time_point t1 = high_resolution_clock::now();
+          Normalizer* p = new Level1();
+          RawNormalizer R(*p);
+          R(F);
+          TFormRef F2 = R.getRes();
+          if (F2->getTFType() != TF_CONST)
+            res = qconn.basicQepcadCall(exclose(F2),true);
+          high_resolution_clock::time_point t2 = high_resolution_clock::now();
+          if (time) {
+            duration<double> time_span = duration_cast<duration<double>>(t2 - t1);
+            std::ostringstream strs;
+            strs << std::fixed << std::setprecision(16) << time_span.count();
+            std::string str = strs.str();
+            return new StrObj(str);
+          }
+          if (F2->getTFType() == TF_CONST) {
+            return (F2->constValue() == TRUE)
+              ? new SymObj("SAT BY L1 NORMALIZATION")
+              : new SymObj("UNSAT BY L1 NORMALIZATION");
+          }
+          else if (res->constValue() == TRUE) {
+            std::string w = qconn.samplePointPrettyPrint(getPolyManagerPtr());
+            output = new LisObj(new SymObj("SAT"),new StrObj(w));
+          }
+          else if (res->constValue() == FALSE) {
+            std::vector<TFormRef> M;
+            for(TAndObj::conjunct_iterator i = Fp->begin(); i != Fp->end(); ++i)
+              M.push_back(*i);
+            TAndRef core = new TAndObj();
+            vector<int> T = qconn.getUnsatCore();
+            for(int i = 0; i < T.size(); i++)
+              core->AND(M[T[i]]);	  
+            output = new LisObj(new SymObj("UNSAT"),new TarObj(core));
+          }
+          else { throw TarskiException("Expected either TRUE or FALSE returned from QepcadB!"); }
+        } catch(TarskiException &e) {
+          return new ErrObj(e.what());
+        }
+      }
     else // not a conjunction!
-    {
-      TFormRef res;
-      QepcadConnection qconn;
-      try {
-	res = qconn.basicQepcadCall(exclose(F),false);
-	if (res->constValue() == TRUE) {
-	  std::string w = qconn.samplePointPrettyPrint(getPolyManagerPtr());
-	  output = new LisObj(new SymObj("SAT"),new StrObj(w));
-	}
-	else if (res->constValue() == FALSE) {
-	  output = new LisObj(new SymObj("UNSAT"), new LisObj());
-	}
-	else { throw TarskiException("Expected either TRUE or FALSE returned from QepcadB!"); }
-      } catch(TarskiException &e) { return new ErrObj(e.what()); }
-    }
+      {
+        TFormRef res;
+        QepcadConnection qconn;
+        try {
+          high_resolution_clock::time_point t1 = high_resolution_clock::now();
+          res = qconn.basicQepcadCall(exclose(F),false);
+          high_resolution_clock::time_point t2 = high_resolution_clock::now();
+          if (time) {
+            duration<double> time_span = duration_cast<duration<double>>(t2 - t1);
+            std::ostringstream strs;
+            strs << std::fixed << std::setprecision(16) << time_span.count();
+            std::string str = strs.str();
+            return new StrObj(str);
+          }
+          if (res->constValue() == TRUE) {
+            std::string w = qconn.samplePointPrettyPrint(getPolyManagerPtr());
+            output = new LisObj(new SymObj("SAT"),new StrObj(w));
+          }
+          else if (res->constValue() == FALSE) {
+            output = new LisObj(new SymObj("UNSAT"), new LisObj());
+          }
+          else { throw TarskiException("Expected either TRUE or FALSE returned from QepcadB!"); }
+        } catch(TarskiException &e) { return new ErrObj(e.what()); }
+      }
     return output;
   }
 
   string testArgs(vector<SRef> &args)
   {
-    return require(args,_tar);
+    //return require(args,_tar);
+    return "";
   }
   string doc() 
   {
