@@ -390,6 +390,8 @@ IntPolyRef IntPolyObj::evalAtRationalPointMakePrim(VarKeyedMap<GCWord> &value, G
   return new IntPolyObj(sleveleval,Cb,Vremain);
 }
 
+
+
 IntPolyRef IntPolyObj::evalAtRationalMakePrim(VarSet x, Word z)
 {
   Word i = svars.positionInOrder(x);
@@ -402,6 +404,8 @@ IntPolyRef IntPolyObj::evalAtRationalMakePrim(VarSet x, Word z)
   if (RNSIGN(c) < 0) { Cb = IPNEG(slevel-1,Cb); }
   return Cb == 0 ? new IntPolyObj() : new IntPolyObj(slevel-1,Cb,svars ^ x);
 }
+
+
 
 IntPolyRef IntPolyObj::derivative(VarSet x)
 {

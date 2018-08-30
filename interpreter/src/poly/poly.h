@@ -7,8 +7,12 @@
 #include "sacpolyutils.h"
 #include <set>
 #include <vector>
+#include <list>
+#include <forward_list>
+
 
 namespace tarski {
+
 /********************************************************************************
  * An IntPolyObj represents a polynomial as
  * - svars: the (ordered) set of variables in which the polynomial has positive degree.
@@ -90,6 +94,8 @@ public:
   // Evaluate p at x=z and return the primitive similar integral polynomial with positive content
   IntPolyRef evalAtRationalMakePrim(VarSet x, Word z);
 
+
+
   /** Evaluate at rational point, return the positive primitive similar integral polynomial
    * values is a map mapping to each variable either a rational number or NIL
    * if "this" is f(x1,...,xn), where x1,...,xn is in the order given by getVars()
@@ -99,6 +105,7 @@ public:
    * values is equal to c*B, where c is a Saclib rational number, and B is a integer polynomial.
    */
   IntPolyRef evalAtRationalPointMakePrim(VarKeyedMap<GCWord> &values, GCWord &content);
+
 
   IntPolyRef derivative(VarSet x);
 

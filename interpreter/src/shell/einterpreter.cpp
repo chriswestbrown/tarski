@@ -1031,6 +1031,7 @@ void NewEInterpreter::init()
   add(new CommRenameVariables(this));
   add(new CommQFR(this));
   add(new ClearAssignmentsComm(this));
+  add(new ClearExpComm(this));
 
   add(new CommFactor(this));
   add(new CommUFactor(this));

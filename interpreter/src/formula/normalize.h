@@ -12,6 +12,7 @@ extern TFormRef testmi(TFormRef F); // temp to test!
 // a conjunction.
 
 // Straight-up functions ... probably won't use except internally
+  bool level1_atom(TAtomRef A, TAndRef C);
 TFormRef level1(TFormRef F);
 TFormRef level2(TFormRef F);
 TFormRef level3(TFormRef F, int l3flags, int l4flags);

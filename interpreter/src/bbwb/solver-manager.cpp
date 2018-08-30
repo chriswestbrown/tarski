@@ -1,6 +1,7 @@
 #include "solver-manager.h"
 #include "blackbox-solve.h"
 #include "whitebox-solve.h"
+#include "clearAssignments.h"
 
 namespace tarski {
 
@@ -10,6 +11,7 @@ namespace tarski {
     t = dedM->getInitConjunct();
     if ((codes & BB) == BB) solvers.push_back(new BBSolver(t));
     if ((codes & WB) == WB) solvers.push_back(new WBSolver(t));
+    if ((codes & SS) == SS) solvers.push_back(new Substituter(t));
     for (size_t i = 0; i < solvers.size(); i++) {
       solvers[i]->setDedM(dedM);
     }

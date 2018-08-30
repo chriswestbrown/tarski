@@ -9,9 +9,9 @@ namespace tarski {
 #define C_ITR const_iterator
 #define ITR iterator
 
-  const string Deduction::names[7] = {"given",  "combo", "bbstrict",
+  const string Deduction::names[8] = {"given",  "combo", "bbstrict",
                                        "minwt", "bbcombo", "polysign",
-                                      "deducesign"};
+                                      "deducesign", "substitution"};
 
   const int Deduction::GIVEN = 0;
   const int Deduction::COMBO = 1;
@@ -20,6 +20,7 @@ namespace tarski {
   const int Deduction::BBCOM = 4;
   const int Deduction::POLYS = 5;
   const int Deduction::DEDUC = 6;
+  const int Deduction::SUBST = 7;
 
   void Deduction::write() const {
     if (unsat) cerr << "UNSAT";
@@ -28,6 +29,17 @@ namespace tarski {
       if (!unsat) deduction->write();
     }
     cout << endl;
+  }
+
+  string DedExp::toString() {
+    string s;
+    s += d.getName() + " = " + tarski::toString(d.getDed()) + "  : ";
+    for (forward_list<TAtomRef>::iterator itr = exp.begin();
+         itr != exp.end(); ++itr) {
+      s += tarski::toString(*itr) + ", ";
+    }
+    s.resize(s.size()-2);
+    return s;
   }
 
   DedManager::DedManager(TAndRef a) : unsat(false), varSigns(ALOP) {
@@ -514,7 +526,7 @@ namespace tarski {
     for (size_t i = 0; i < revIndices.size(); i++) {
       revIndices[indices[i]] = i; 
     }
-    //    writeIntermediate(indices, revIndices);
+    writeIntermediate(indices, revIndices);
     set<int> skips;
     listVec asSat = genSatProblem(t, skips, indices);
     //writeSatProblem(asSat);
@@ -557,7 +569,8 @@ namespace tarski {
           vecPtr vv = std::move(asSat.front());
           asSat.pop_front();
           asSat.push_back(std::move(vv));
-          t->AND(deds[toRemove].getDed());
+          if (!deds[toRemove].getDed()->getFactors()->isConstant())
+            t->AND(deds[toRemove].getDed());
           simpIdx.push_back(toRemove);
         }
       }

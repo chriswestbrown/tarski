@@ -2,6 +2,9 @@
 #define __CLEAR__ASSIGN_H
 
 #include "../formula/formula.h"
+#include "deduction.h"
+#include "solver-manager.h"
+#include <list>
 
 /*
   The idea behind "clear-assignments" is that formulas often come with
@@ -34,6 +37,7 @@ namespace tarski {
     std::vector< std::vector<int> > Nbrs, ShadowNbrs;
     std::map<int,GCWord> value;
     std::map< pair<int,int> , GCWord> edgeWeight;
+
   public:
 
     Graph();
@@ -61,6 +65,19 @@ namespace tarski {
     std::vector<int> vertexList();
   };
 
+  class ExpGraph : public Graph {
+  private:
+    vector<TAtomRef> shadowAtoms;
+    std::map< pair<int, int>, TAtomRef> edgeAtoms;
+  public:
+    ExpGraph(TAndRef F);
+    void addEdge(VarSet x, Word a, Word b, TAtomRef t);
+    void addEdge(VarSet x, VarSet y, Word a, Word b, TAtomRef t);
+    inline TAtomRef getEdgeAtom(int i, int j) {
+      pair<int, int> p(i, j);
+      return edgeAtoms[p];
+    }
+  };
 
   class MarkLog
   {
@@ -76,6 +93,58 @@ namespace tarski {
     inline int getMark(int i) { return i < 0 ? neg[-i] : pos[i]; }
   };
 
+  class MarkLogExp : public MarkLog {
+  private:
+    std::vector<std::list<TAtomRef> > atoms;
+    void writeList(std::list<TAtomRef>& t) {
+      std::cout << "list: ";
+      for (std::list<TAtomRef>::iterator itr = t.begin(); itr != t.end();
+           ++itr) {
+        (*itr)->write(); std::cout << " ";
+      }
+      std::cout << " end";
+    }
+  public:
+    MarkLogExp(ExpGraph& E);
+    inline int setMark(int i, int val, list<TAtomRef> t) {
+      atoms[i] = t;
+      return MarkLog::setMark(i, val);
+    }
+    inline list<TAtomRef>& getSource(int i) { return atoms[i]; }
+  };
+
+  class SubExp {
+  private:
+    static const pair<GCWord, VarSet> nada;
+    static const list<TAtomRef> empty;
+    VarKeyedMap<GCWord> constants;
+    VarKeyedMap<pair<GCWord, VarSet> > multiples;
+    VarKeyedMap<list<TAtomRef> > exp;
+    PolyManager * PM;
+
+    IntPolyRef evalAtRat(IntPolyRef p, VarKeyedMap<GCWord> &value, GCWord &content, VarKeyedMap<list<TAtomRef> >& sources, forward_list<TAtomRef>& exp);
+
+  public:
+    SubExp(ExpGraph& E, MarkLogExp& M, PolyManager * PM);
+    forward_list<DedExp> makeDeductions(TAndRef t);
+  };
+
+  class Substituter : public QuickSolver {
+  private:
+    bool once;
+    std::forward_list<DedExp> deductions;
+    void makeDeductions(TAndRef t);
+  public:
+    Substituter(TAndRef& t) : once(true) {}
+    void update(std::vector<Deduction>::const_iterator begin,
+                std::vector<Deduction>::const_iterator end) { }
+    void notify() {}
+    DedExp deduce(TAndRef t, bool& res);
+
+
+  };
+
+
   class MakeAssignments : public TFPolyFun
   {
   private:
@@ -84,6 +153,7 @@ namespace tarski {
     VarKeyedMap<GCWord> *constants;
     const pair<GCWord,VarSet> *nada;
     VarKeyedMap< pair<GCWord,VarSet> > *multiples;
+
   public:
     inline MakeAssignments(VarKeyedMap<GCWord> &constants, 
                            const pair<GCWord,VarSet> &nada, 

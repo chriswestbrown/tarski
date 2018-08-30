@@ -54,7 +54,9 @@ namespace tarski {
         return new SymObj("SAT BY L1 NORMALIZATION");
     }
 
-    SolverManager s( SolverManager::BB | SolverManager::WB,  R.getRes());
+    SolverManager s( SolverManager::BB |
+                     SolverManager::WB |
+                     SolverManager::SS,  R.getRes());
     LisRef l = s.genLisResult();
     if (o.getOpt(0)) s.prettyPrintResult();
     return l;

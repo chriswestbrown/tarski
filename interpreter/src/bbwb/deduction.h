@@ -51,7 +51,7 @@ namespace tarski {
     friend class DedManager;
   private:
 
-    const static string names[7];
+    const static string names[8];
     TAtomRef deduction; //Exists if this is a learned sign on some factref
     bool unsat; //true if this is just the general deduction that some atoms are incompatible
     const std::string * name;
@@ -73,6 +73,7 @@ namespace tarski {
     const static int BBCOM;
     const static int POLYS;
     const static int DEDUC;
+    const static int SUBST; 
     void write() const;
     inline const std::string& getName() { return *name; }
     inline bool isUnsat() const { return unsat; }
@@ -103,6 +104,9 @@ namespace tarski {
     DedExp(int code, const forward_list<TAtomRef>& EXP)
       : d(code), exp(EXP) {}
     DedExp() {};
+
+    string toString();
+    inline void write() { cout << toString(); }
   };
 
   struct Result {

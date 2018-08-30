@@ -103,7 +103,9 @@ bool BoxSolver::directSolve() {
   TAndRef t = asa<TAndObj>(formula);
   TAndRef t2;
   if (t->constValue() == true) return true;
-  SolverManager b( SolverManager::BB | SolverManager::WB, t);
+  SolverManager b( SolverManager::BB |
+                   SolverManager::WB |
+                   SolverManager::SS, t);
   b.deduceAll();
   if (b.isUnsat()) return false;
   else t2 = b.simplify();
@@ -114,7 +116,7 @@ bool BoxSolver::directSolve() {
     res = q.basicQepcadCall(exclose(t2), true);
   }
   catch (TarskiException& e) {
-    throw TarskiException("QEPCAD timed out");
+    throw TarskiException("QEPCAD timed out" + toString(t2));
 
   }
   if (res->constValue() == 0) return false;
@@ -190,7 +192,7 @@ void BoxSolver::getFinalClause(vec<Lit>& lits, bool& conf) {
       res = q.basicQepcadCall(exclose(tand), true);
     }
     catch (TarskiException& e) {
-      throw TarskiException("QEPCAD timed out");
+      throw TarskiException("QEPCAD timed out" + toString(tand));
     }
     std::set<TAtomRef> allAtoms;
     if (res->constValue() == 0) {
@@ -361,7 +363,9 @@ void BoxSolver::getClauseMain(vec<Lit>& lits, bool& conf) {
     if (ranOnce)
       delete SM;
     else ranOnce = true;
-    SM = new SolverManager( SolverManager::BB | SolverManager::WB, tand);
+    SM = new SolverManager( SolverManager::BB |
+                            SolverManager::WB |
+                            SolverManager::SS, tand);
   }
   Result res = SM->deduceAll();
   if (SM->isUnsat()) {

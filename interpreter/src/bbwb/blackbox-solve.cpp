@@ -40,7 +40,12 @@ namespace tarski {
 
   void BBSolver::update(std::vector<Deduction>::const_iterator begin, std::vector<Deduction>::const_iterator end) {
     while (begin != end) {
-      M.addAtom(begin->getDed());
+      //ignore constants!
+      if (begin->getDed()->getFactors()->numFactors() != 0)
+        if (begin->getDed()->getFactors()->numFactors() != 1 ||
+            !begin->getDed()->getFactors()->factorBegin()->first->isConstant()) {
+          M.addAtom(begin->getDed());
+        }
       ++begin;
     }
   }
@@ -355,7 +360,7 @@ namespace tarski {
 
   bool checkValid(TAtomRef t,
                   const forward_list<TAtomRef>& sources) {
-    if (t->getFactors()->cmp(sources.front()->getFactors()) == 0) {
+    if (t->getFactors()->canonCompare(sources.front()->getFactors()) == 0) {
       if ((t->getRelop() & sources.front()->getRelop()) == sources.front()->getRelop()){
         return false;
       }

@@ -71,7 +71,7 @@ namespace tarski {
 
     static const int BB = 1;
     static const int WB = 2;
-
+    static const int SS = 4;
     //Adds a quicksolver
     inline void addNew(QuickSolver * q) { solvers.push_back(q); solvers.back()->setDedM(dedM); }
 
