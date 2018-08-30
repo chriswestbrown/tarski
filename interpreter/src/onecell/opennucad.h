@@ -7,6 +7,7 @@
 
 #include "builder.h"
 #include <sstream>
+#include "../formula/writeForQE.h"
 
 namespace tarski {
 
@@ -309,6 +310,78 @@ class ONuCADObj : public GC_Obj
   std::string toString() { return toString(m_acells); }
   std::string toString(int mask);
 
+};
+
+class OpenNuCADSATSolverObj; typedef GC_Hand<OpenNuCADSATSolverObj> OpenNuCADSATSolverRef;
+class OpenNuCADSATSolverObj : public GC_Obj
+{
+private:
+  VarOrderRef V;
+  GCWord A;
+  TAndRef C;
+  EarlyTerminateSearchQueueObjRef nodeQueue;
+  ONuCADRef nucad;
+  bool SATFound;
+  
+public:
+
+  //-- Must call this with F that is a conjunction of atoms or an atom
+  OpenNuCADSATSolverObj(TFormRef F)
+  {
+    // Create VarOrder for this problem
+    std::vector<VarSet> X = getBrownVariableOrder(F);
+    V = new VarOrderObj(F->getPolyManagerPtr());
+    for(int i = 0; i < X.size(); ++i)
+      V->push_back(X[i]);
+
+    // choose the origin for "point alpha"
+    A = NIL;
+    for(int i = 0; i < X.size(); ++i)
+      A = COMP(0,A);
+    
+    // Try making F a conjunction
+    C = asa<TAndObj>(F);
+    if (C.is_null())
+    {
+      TAtomRef a = asa<TAtomObj>(F);
+      TExtAtomRef b = asa<TExtAtomObj>(F);
+      if (a.is_null() && b.is_null()) 
+	throw TarskiException("OpenNuCADSATSolver requires a conjunction or atomic formula.");      
+      C = new TAndObj();
+      C->AND(F);
+    }
+
+    // Build the OpenNuCAD up until a SAT point is found (or NuCAD is complete)
+    nodeQueue = new PriorityAEarlyTerminateSearchQueueObj(V,C);
+    nucad = new ONuCADObj(V,C,V->size(),A,nodeQueue);
+    nucad->mkNuCADConjunction(V,C,V->size(),A);
+    SATFound = nodeQueue->SATAlphaFound();
+  }
+
+  bool isSATFound() const { return SATFound; }
+
+  //-- returns VarKeyedMap M such that M[x] is the SACLIB rational number representing the
+  //-- value of variable x in the satisfying assignment.  All non-assigned variables are given
+  //-- the value zero (as a SACLIB rational number)
+  VarKeyedMap<GCWord> getSatisfyingAssignment()
+  {
+    if (!isSATFound()) { throw TarskiException("getSatisfyingAssignment called on UNSAT OpenNuCAD"); }
+
+    VarKeyedMap<GCWord> res(0);
+    Word alpha = nodeQueue->getSATAlpha();
+    for(Word P = alpha, level = 1; P != NIL; P = RED(P), ++level)
+      res[V->get(level)] = FIRST(P);
+
+    return res;
+  }
+
+  //-- returns the UNSAT core as a conjunction of atoms, all from the original input F, that is
+  //-- UNSAT.  TODO:  For now this just returns the original formula as the core.  I will work on
+  //-- doing better. 
+  TAndRef getUNSATCore()
+  {
+    return C;
+  }
 };
 
 }//end namespace tarski
