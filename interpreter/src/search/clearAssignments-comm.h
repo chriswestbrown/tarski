@@ -52,6 +52,21 @@ namespace tarski {
     std::string name() { return "clear-assignments"; }
   };
 
+  class ClearExpComm : public EICommand {
+  public:
+    ClearExpComm(NewEInterpreter* ptr) : EICommand(ptr) { }
+    SRef execute(SRef input, std::vector<SRef>& args);
+    std::string testArgs(std::vector<SRef>& args) { return "";}
+    std::string doc() {
+      return "A test for clear-assignments-exp";
+    }
+    std::string usage() {
+      return "(clear-exp <tar>)"; 
+    }
+    std::string name() {
+      return "clear-exp";
+    }
+  };
 
 
 

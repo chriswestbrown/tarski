@@ -126,13 +126,13 @@ namespace tarski {
 
   public:
     SubExp(ExpGraph& E, MarkLogExp& M, PolyManager * PM);
-    forward_list<DedExp> makeDeductions(TAndRef t);
+    list<DedExp> makeDeductions(TAndRef t);
   };
 
   class Substituter : public QuickSolver {
   private:
     bool once;
-    std::forward_list<DedExp> deductions;
+    std::list<DedExp> deductions;
     void makeDeductions(TAndRef t);
   public:
     Substituter(TAndRef& t) : once(true) {}

@@ -109,7 +109,6 @@ namespace tarski{
   }
 
 
-
   vector<vector<Lit> > FormulaMaker::mkFormula(){
     vector<vector<Lit> > toRet;
     mkFormulaHelper(toRet);

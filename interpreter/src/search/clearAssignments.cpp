@@ -357,8 +357,8 @@ namespace tarski {
     }
   }
 
-  forward_list<DedExp> SubExp::makeDeductions(TAndRef t) {
-    forward_list<DedExp> res;
+  list<DedExp> SubExp::makeDeductions(TAndRef t) {
+    list<DedExp> res;
     for (TAndObj::conjunct_iterator itr = t->begin(); itr != t->end(); ++itr) {
       forward_list<TAtomRef> source;
       TAtomRef atom = *itr;
@@ -396,7 +396,7 @@ namespace tarski {
       TAndRef normalized = new TAndObj();
       bool isSat = level1_atom(substituted, normalized);
       if (!isSat) {
-        forward_list<DedExp> newRes;
+        list<DedExp> newRes;
         newRes.emplace_front(Deduction::SUBST, source);
         return newRes;
       }
@@ -405,16 +405,22 @@ namespace tarski {
         if (normalized->begin() == normalized->end()) {
           forward_list<TAtomRef> tmp;
           tmp.emplace_front(substituted);
-          res.emplace_front(atom, Deduction::SUBST, tmp);
           res.emplace_front(substituted, Deduction::SUBST, source);
+          res.emplace_front(atom, Deduction::SUBST, tmp);
+
+
         }
         for (TAndObj::conjunct_iterator itr = normalized->begin();
              itr != normalized->end(); ++itr) {
           TAtomRef out = asa<TAtomObj>(*itr);
           forward_list<TAtomRef> tmp;
           tmp.emplace_front(out);
-          res.emplace_front(atom, Deduction::SUBST, tmp);
           res.emplace_front(out, Deduction::SUBST, source);
+          res.emplace_front(atom, Deduction::SUBST, tmp);
+
+
+
+
         }
       }
 
@@ -495,8 +501,8 @@ namespace tarski {
 
       }
     }
-    DedExp d = deductions.front();
-    deductions.pop_front();
+    DedExp d = deductions.back();
+    deductions.pop_back();
     return d;
   }
 

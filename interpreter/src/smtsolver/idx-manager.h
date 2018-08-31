@@ -1,6 +1,7 @@
 #ifndef IDX_MAN_H
 #define IDX_MAN_H
 #include <vector>
+#include <unordered_map>
 #include "../formula/formula.h"
 #include "../../../minisat/core/SolverTypes.h"
 
@@ -15,7 +16,7 @@ namespace tarski {
   public:
     inline IdxManager() : s(0) {}
     inline int getIdx(tarski::TAtomRef t) const {
-      map<tarski::TAtomRef, int, tarski::TAtomObj::OrderComp>::const_iterator itr = revMapping.find(t);
+      map<tarski::TAtomRef, int>::const_iterator itr = revMapping.find(t);
       if (itr == revMapping.end()) {
         return -1;
       }
@@ -44,7 +45,7 @@ namespace tarski {
         ++itr;
         i++;
       }
-      std::map<tarski::TAtomRef, int, tarski::TAtomObj::OrderComp>::const_iterator itr2 = revMapping.begin(), end2 = revMapping.end();
+      std::map<tarski::TAtomRef, int>::const_iterator itr2 = revMapping.begin(), end2 = revMapping.end();
       while (itr2 != end2) {
         (itr2->first)->write(); cout << " maps to " << itr2->second << endl;
         ++itr2;

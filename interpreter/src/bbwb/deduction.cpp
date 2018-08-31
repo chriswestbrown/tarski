@@ -77,25 +77,7 @@ namespace tarski {
   }
 
   bool DedManager::ManagerComp::operator()(const TAtomRef& A, const TAtomRef& B) {
-    if (A->getFactors()->numFactors() < B->getFactors()->numFactors()) return true;
-    if (A->getFactors()->numFactors() > B->getFactors()->numFactors()) return false;
-    int t = OCOMP(A->getFactors()->getContent(),B->getFactors()->getContent());
-    if (t != 0) {
-      if (t < 0) return -1;
-      return 1;
-    }
-    FactObj::factorIterator itrA= A->getFactors()->factorBegin();
-    FactObj::factorIterator itrB= B->getFactors()->factorBegin();
-    while(itrA != A->getFactors()->factorEnd())
-      {
-        if (itrA->second < itrB->second) return true;
-        if (itrA->second > itrB->second) return false;
-        if (itrA->first < itrB->first) return true;
-        if (itrB->first < itrA->first) return false;
-        ++itrA;
-        ++itrB;
-      }
-    return false;
+    return A->F->cmp(B->F) < 0;
   }
 
 
@@ -213,8 +195,8 @@ namespace tarski {
       if (atomToDed.find(*itr) == atomToDed.end()) {
         idx = searchMap(*itr);
         if (idx == -1) {
-          (*itr)->write(); cerr << " is the offender \n";
-          throw TarskiException("No index for dependency!");
+          throw TarskiException("No index for dependency " + \
+                                toString(*itr) +  "!");
         }
       } 
       if (idx == -1) idx = (atomToDed.find(*itr))->second;
@@ -497,7 +479,6 @@ namespace tarski {
   //else returns an explanation for some atom
   //deduced by the dedM
   Result DedManager::explainAtom(TAtomRef t) {
-    cout << "tttt\n\n\n";
     int idx = searchMap(t);
     if (idx != -1) {
       if (isGiven[idx]) {
@@ -526,7 +507,7 @@ namespace tarski {
     for (size_t i = 0; i < revIndices.size(); i++) {
       revIndices[indices[i]] = i; 
     }
-    writeIntermediate(indices, revIndices);
+    //writeIntermediate(indices, revIndices);
     set<int> skips;
     listVec asSat = genSatProblem(t, skips, indices);
     //writeSatProblem(asSat);

@@ -102,8 +102,9 @@ namespace tarski {
     stack<stack< Minisat::Lit > > learned; //to be returned with getAddition
     //this is all the necessary implication clauses as well as whats learned by BB/WB that's not the conflict
     void writeLearnedClause(Minisat::vec<Minisat::Lit>& lits);
+
     //Processes a formula and assigns indices to all the atoms
-    void processAtoms(tarski::TFormRef formula);
+    void processAtoms(tarski::TFormRef formula, tarski::TFormRef out);
     //Called when a conflict is discovered to translate the reason,
     //which is in tarski formula objects,
     //back into the respective minisat literals

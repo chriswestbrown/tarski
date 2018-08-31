@@ -27,11 +27,13 @@ BoxSolver::BoxSolver(TFormRef formula) :  isPureConj(true),  numAtoms(-1), limit
   RawNormalizer R(*p);
   R(formula);
   delete p;
-  this->formula = R.getRes();
+  TFormRef l1norm = R.getRes();
 
   IM = new IdxManager();
   pm = formula->getPolyManagerPtr();
-  processAtoms(this->formula);
+  TAndRef splitT = new TAndObj();
+  processAtoms(l1norm, splitT);
+  this->formula = splitT;
   if (unsat) return;
   if (!isPureConj){
     S = new Solver(this);
@@ -123,15 +125,73 @@ bool BoxSolver::directSolve() {
   else return true;
 }
 
+
+vector<TAtomRef> splitAtom(TAtomRef t) {
+  vector<TAtomRef> res;
+  //cout << "Examining " + toString(t) + "\n";
+  if (t->getFactors()->numFactors() != 1) {
+    res.push_back(t); return res;
+  }
+  if (!(t->getRelop() == LEOP || t->getRelop() == GEOP)) {
+    res.push_back(t); return res;
+  }
+  IntPolyRef p = t->factorsBegin()->first;
+  if (p->numVars() > 2) {
+    res.push_back(t); return res;
+  }
+  TAtomRef t1 = new TAtomObj(t->getFactors(), EQOP);
+  TAtomRef t2 = new TAtomObj(t->getFactors(), t->getRelop() ^ EQOP);
+  res.resize(2);
+  res[0] = t1; res[1] = t2;
+  //cout << "Split " + toString(t) + " into " + toString(t1) +  \
+    " or + " + toString(t2) + "\n";
+  return res;
+}
+
 //Accesses each atom recursively
 //Assigns an idx to each atomref
-void BoxSolver::processAtoms(TFormRef formula) {
+void BoxSolver::processAtoms(TFormRef formula, TFormRef out) {
   switch (formula->getTFType()) {
   case TF_ATOM: {
     TAtomRef a = asa<TAtomObj>(formula);
-    if (IM->getIdx(a) == -1) {
-      IM->mkIdx(a);
-      numAtoms++;
+    vector<TAtomRef> res = splitAtom(a);
+    if (res.size() == 1) {
+      if (IM->getIdx(a) == -1) {
+        IM->mkIdx(a);
+        numAtoms++;
+      }
+      if (out->getTFType() == TF_AND){
+        TAndRef out2 = asa<TAndObj>(out);
+        out2->AND(a);
+      }
+      else {
+        TOrRef out2 = asa<TOrObj>(out);
+        out2->OR(a);
+      }
+    }
+    else if (res.size() == 2) {
+      if (IM->getIdx(res[0]) == -1) {
+        IM->mkIdx(res[0]);
+        numAtoms++;
+      }
+      if (IM->getIdx(res[1]) == -1) {
+        IM->mkIdx(res[1]);
+        numAtoms++;
+      }
+      if (out->getTFType() == TF_AND) {
+        TAndRef out2 = asa<TAndObj>(out);
+        TOrRef split = new TOrObj();
+        out2->AND(split);
+        split->OR(res[0]);
+        split->OR(res[1]);
+
+      }
+      else {
+        TOrRef out2 = asa<TOrObj>(out);
+        out2->OR(res[0]);
+        out2->OR(res[1]);
+      }
+      isPureConj = false;
     }
     break;
   }
@@ -147,9 +207,38 @@ void BoxSolver::processAtoms(TFormRef formula) {
   }
   case TF_AND: {
     //recursively access each element here of the AND block
+    TAndRef res = new TAndObj();
     TAndRef C = asa<TAndObj>(formula);
     for(set<TFormRef, ConjunctOrder>::iterator it = C->begin(); it != C->end(); ++it ) {
-      processAtoms(*it);
+      if ((*it)->getTFType() == TF_OR) {
+        TOrRef tmp = asa<TOrObj>(*it);
+        if (tmp->size() == 1) {
+          processAtoms(*(tmp->begin()), res);
+        }
+        else {
+          processAtoms(*it, res);
+        }
+      }
+      else if ((*it)->getTFType() == TF_AND) {
+        TAndRef tmp = asa<TAndObj>(*it);
+        if (tmp->size() == 1) {
+          processAtoms(*(tmp->begin()), res);
+        }
+        else {
+          processAtoms(*it, res);
+        }
+      }
+      else
+        processAtoms(*it, res);
+
+    }
+    if (out->getTFType() == TF_AND){
+      TAndRef out2 = asa<TAndObj>(out);
+      out2->AND(res);
+    }
+    else {
+      TOrRef out2 = asa<TOrObj>(out);
+      out2->OR(res);
     }
     break;
   }
@@ -159,15 +248,42 @@ void BoxSolver::processAtoms(TFormRef formula) {
   case TF_OR: {
     //recursively access each element here of the OR block
     TOrRef C = asa<TOrObj>(formula);
+    TOrRef res = new TOrObj();
     for (set<TFormRef, ConjunctOrder>::iterator it = C->begin(); it != C->end(); ++it ) {
-      processAtoms(*it);
+      if ((*it)->getTFType() == TF_OR) {
+        TOrRef tmp = asa<TOrObj>(*it);
+        if (tmp->size() == 1) {
+          processAtoms(*(tmp->begin()), res);
+        }
+        else {
+          processAtoms(*it, res);
+        }
+      }
+      else if ((*it)->getTFType() == TF_AND) {
+        TAndRef tmp = asa<TAndObj>(*it);
+        if (tmp->size() == 1) {
+          processAtoms(*(tmp->begin()), res);
+        }
+        else {
+          processAtoms(*it, res);
+        }
+      }
+      else
+        processAtoms(*it, res);
+    }
+    if (out->getTFType() == TF_AND){
+      TAndRef out2 = asa<TAndObj>(out);
+      out2->AND(res);
+    }
+    else {
+      TOrRef out2 = asa<TOrObj>(out);
+      out2->OR(res);
     }
     isPureConj = false;
     break;
   }
   default:
-    cout << "DEFAULT CASE!!\n";
-    unsat = true;
+    throw TarskiException("Unexpected case in processAtoms!");
     return;
   }
 }

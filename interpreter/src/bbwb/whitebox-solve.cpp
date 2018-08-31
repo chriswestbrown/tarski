@@ -110,7 +110,6 @@ namespace tarski {
     std::set<pair<IntPolyRef, IntPolyRef>>::iterator it = singleVarsDed.begin();
     pair<IntPolyRef, IntPolyRef> p = *it;
     lastUsed = p.first;
-
     tuple<VarKeyedMap<int>, VarSet, short> res = Interval::deduceSign2(dedM->getVars(), PM, p.first, p.second, dedM->getSign(p.first), dedM->getSign(p.second));
     singleVarsDed.erase(it);
     if (get<2>(res) == ALOP) return doSingleDeduce(success);
@@ -187,7 +186,7 @@ namespace tarski {
   void WBSolver::update(std::vector<Deduction>::const_iterator begin, std::vector<Deduction>::const_iterator end) {
     while (begin != end) {
       TAtomRef t = begin->getDed();
-      if (t->F->numFactors() == 1) {
+      if (t->F->numFactors() == 1 && !t->F->factorBegin()->first->isConstant()) {
         lastUsed = t->F->factorBegin()->first;
         notify();
       }

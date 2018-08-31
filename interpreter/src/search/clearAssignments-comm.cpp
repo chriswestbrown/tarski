@@ -83,7 +83,8 @@ namespace tarski {
        **         multiple of the component's root vertex.
        *************************************************************/
     
-      MarkLog rootFor(G.maxVertexIndex(),0); // rootFor[i] = j means that vertex j was the root 
+      MarkLog rootFor(G.maxVertexIndex(),0);
+      // rootFor[i] = j means that vertex j was the root
       // of the search for vertex i's connected component.
       // rootFor[i] = 0 means vertex i has not been found.
 
@@ -142,8 +143,8 @@ namespace tarski {
         }
 
       /*************************************************************
-       ** Step 3: Actually make the assignements.  This means prep-
-       **         the structures that allow makeAssignements to be
+       ** Step 3: Actually make the assignments.  This means prep-
+       **         the structures that allow makeAssignments to be
        **         called.
        *************************************************************/
       VarKeyedMap<GCWord> constants(NIL);
@@ -175,6 +176,18 @@ namespace tarski {
     
       return new TarObj(Fnew);
     }
+
+  SRef ClearExpComm::execute(SRef input, std::vector<SRef>& args) {
+    TarRef T = args[0]->tar();
+    TFormRef TF = T->val;
+    TAndRef F = asa<TAndObj>(TF);
+    if (F.is_null()) {
+      return new ErrObj("Requires pure conjunct");
+    }
+    SolverManager s( SolverManager::SS, F);
+    LisRef l = s.genLisResult();
+    return l;
+  }
 
 
 }//end namespace tarski
