@@ -6,8 +6,8 @@
 #include "../../../minisat/mtl/Vec.h"
 #include "../formula/formula.h"
 #include "../bbwb/solver-manager.h"
-#include "mhs-gen.h"
 #include "formula-maker.h"
+#include "fernutils.h"
 #include <algorithm>
 #include <climits>
 #include <cmath>
@@ -15,18 +15,7 @@
 #include <vector>
 
 
-//TODO: Add a minisat solver as a class member of this class in the constructor
-//TODO: Eliminate the need to call solve from Minisat, instead call it from here
-//TODO: Add the ability to detect pure conjuncts
-//TODO: Add the MHS Code!
-
 namespace tarski {
-
-
-  const short ATOM = 0;
-  const short NEG = 1;
-  const short AND = 2;
-  const short OR  = 3;
 
   class FormulaMaker;
   class BoxSolver;
@@ -53,7 +42,7 @@ namespace tarski {
     void getAddition(Minisat::vec<Minisat::Lit>& lits, bool& conf);
 
     BoxSolver(tarski::TFormRef formula);
-    BoxSolver() : isPureConj(true),  numAtoms(-1), limit(5), count(0), lastVec(0), ranOnce(false), unsat(false) {};
+    
     virtual ~BoxSolver();
 
     bool solve(string&);
@@ -62,41 +51,28 @@ namespace tarski {
     //Intended for debugging usage
     void printMapping() {IM->printMapping(); /*IM.printRevMapping();*/}
 
-
-
-    //Creates and prints the CNF translation of a formula
-    //Intended for debugging usage
-    //Call this only after calling mkFormula;
-    inline void printCNF(tarski::TFormRef formula) {
-      
-      for (unsigned int i = 0; i < form.size(); i++) {
-        for (unsigned int j = 0; j < form[i].size(); j++) {
-          write(form[i][j]); std::cout << " ";
-        }
-        std::cout << std::endl;
-      }
-    }
     
   protected:
     bool unsat;
     bool ranOnce;
     SolverManager * SM;
     Minisat::Solver * S;
-    MHSGenerator * M;
     IdxManager * IM;
     bool isPureConj;
     int numAtoms;
     int limit;
     int count;
-    tarski::TAndRef genMHS();
-    tarski::TFormRef formula;
+    TFormRef formula;
+    BoxSolver() : unsat(false), ranOnce(false), isPureConj(true), numAtoms(-1), limit(5), count(0)  {};
     //Returns the CNF translation of a formula
-    std::vector<std::vector<Minisat::Lit> > makeFormula(tarski::TFormRef formula);
+    listVec makeFormula(tarski::TFormRef formula);
+
+    int classifyConj(TAndRef T);
+
 
     std::vector<Minisat::Lit> lastVec;
     bool compareVecs(Minisat::vec<Minisat::Lit>&);
 
-    vector<vector<Minisat::Lit> > form;
     tarski::PolyManager * pm;
     //If [idx] maps to an atom with sign GTOP, [idx+1] maps to the opposite LEOP. The >= sign always goes before < and != signs
     stack<stack< Minisat::Lit > > learned; //to be returned with getAddition

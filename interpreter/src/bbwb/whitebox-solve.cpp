@@ -2,9 +2,6 @@
 #include "deduce-sign.h"
 #include "poly-explain.h"
 
-
-//TODO: REFACTOR "TODED" Code
-//TODO: REFACTOR DEDUCE-SIGN DATA STRUCTURES
 namespace tarski {
 
 
@@ -22,30 +19,28 @@ namespace tarski {
   //Preprocesses variables, populates polysigns, multivars, and varToIneq
   void WBSolver::loadVars(TAndRef taf) {
     for (TAndObj::conjunct_iterator itr = taf->conjuncts.begin();
-	 itr != taf->conjuncts.end(); ++itr) {
+         itr != taf->conjuncts.end(); ++itr) {
       TAtomRef tf = asa<TAtomObj>(*itr);
       if (tf.is_null()) {
         throw TarskiException("in WBMANAGER - unexpected non-atom!");
       }
 
-      for (map<IntPolyRef, int>::iterator fitr = tf->factorsBegin();
-	   fitr != tf->factorsEnd(); ++fitr) {
+      for (auto fitr = tf->factorsBegin(); fitr != tf->factorsEnd(); ++fitr) {
         //If its a factor for a single atom, continue since we will process single variables later
-        if (fitr->first->isVariable().any() && tf->F->MultiplicityMap.size() == 1) continue;
+        if (fitr->first->isVariable().any() &&
+            tf->F->MultiplicityMap.size() == 1) continue;
 
-	IntPolyRef p = fitr->first;
+        IntPolyRef p = fitr->first;
 
         //Log that we will need to run polySigns on this
         polySigns.insert(p);
-        //std::cerr << "added "; p->write(*PM); std::cerr << " to multiVars\n";
-
         //Add this intpolyref to the std::set of all multivariable factors
         multiVars.insert(p);
 
         //Populate varToineq
         VarSet vars = p->getVars();
         for (VarSet::iterator itr = vars.begin(); itr != vars.end(); ++itr) {
-	  varToIneq[*itr].emplace_front(p);
+          varToIneq[*itr].emplace_front(p);
         }
       }
     }
@@ -66,7 +61,6 @@ namespace tarski {
         IntPolyRef p1 = *sItr;
         IntPolyRef p2 = *mItr;
         if ((p1->getVars() & p2->getVars()).any()) {
-          //std::cerr << "adding first: "; p1->write(*PM); std::cerr << " second: ";  p2->write(*PM); std::cerr << " done0" << std::endl;
           pair<IntPolyRef, IntPolyRef> p((p1), (p2));
           singleVarsDed.insert(p);
         }
@@ -77,7 +71,7 @@ namespace tarski {
   //populate multiVarsDed. Every multivariable factor gets a deduction chance on all multivariable factors
   void WBSolver::populateMultiVars() {
     for (set<IntPolyRef>::iterator mItr1 =
-	   multiVars.begin(); mItr1 != multiVars.end(); ++mItr1){
+           multiVars.begin(); mItr1 != multiVars.end(); ++mItr1){
       IntPolyRef p1 = *mItr1;
       for (set<IntPolyRef>::iterator mItr2 = multiVars.begin(); mItr2 != multiVars.end(); ++mItr2){
         IntPolyRef p2 = *mItr2;
@@ -88,7 +82,7 @@ namespace tarski {
       }
       
       for (set<IntPolyRef>::iterator sItr = singleVars.begin();
-	   sItr != singleVars.end(); ++sItr) {
+           sItr != singleVars.end(); ++sItr) {
         IntPolyRef p2 = *sItr;
         if ((p1->getVars() & p2->getVars()).any()) {
           pair<IntPolyRef, IntPolyRef> p((p1), (p2));
@@ -104,7 +98,7 @@ namespace tarski {
     If the returned deduction teaches us nothing new, then do a different call
     If we exhaust all possible single-to-multi variable deduceSign2 instances, then 
     attempt polynomialSign
-   */
+  */
   DedExp WBSolver::doSingleDeduce(bool& success) {
     if (singleVarsDed.empty()) return doMultiDeduce(success);
     std::set<pair<IntPolyRef, IntPolyRef>>::iterator it = singleVarsDed.begin();
@@ -113,7 +107,8 @@ namespace tarski {
     tuple<VarKeyedMap<int>, VarSet, short> res = Interval::deduceSign2(dedM->getVars(), PM, p.first, p.second, dedM->getSign(p.first), dedM->getSign(p.second));
     singleVarsDed.erase(it);
     if (get<2>(res) == ALOP) return doSingleDeduce(success);
-    return toDed(get<0>(res), get<1>(res), p.first, p.second, get<2>(res), dedM->getSign(p.second), Deduction::DEDUC);
+    return toDed(get<0>(res), get<1>(res), p.first, p.second,
+                 get<2>(res), dedM->getSign(p.second), Deduction::DEDUC);
   }
 
   /*
@@ -121,7 +116,7 @@ namespace tarski {
     If the returned deduction teaches us nothing new, then do a different call
     If we exhaust all polynomials and learn nothing, 
     attempt deduceSign2 from multivariable factor to another multi variable factor
-   */
+  */
   DedExp WBSolver::doPolySigns(bool& success) {
     if (polySigns.empty()) return doSingleDeduce(success);
     std::set<IntPolyRef>::iterator it = polySigns.begin();
@@ -148,7 +143,7 @@ namespace tarski {
     Attempt to do deducesign2 with two multi variable factors
     If we learn nothing from a first attempt, try again
     If there is nothing left, return null
-   */
+  */
   DedExp WBSolver::doMultiDeduce(bool& success) {
     if (multiVarsDed.empty()) {
       DedExp d;
@@ -172,7 +167,7 @@ namespace tarski {
     PolynomialSign on a multi variable factor
     DeduceSign2 from multi to multi variable factor
     If nothing can be learned, then this method is guaranteed to return NULL
-   */
+  */
   DedExp WBSolver::deduce(TAndRef t, bool& res) {
     if (!polySigns.empty()) return doPolySigns(res);
     else if (!singleVarsDed.empty()) return doSingleDeduce(res);
@@ -220,7 +215,7 @@ namespace tarski {
 
   }
 
-    /*
+  /*
     Given a polynomial poly, for all variables in poly,
     generate a pair between that variable and poly and save it as a future deduceSigns pair
   */
@@ -285,7 +280,7 @@ namespace tarski {
   
   /*
     Turn some learned sign information about a polynomial into the object Deduction format
-   */
+  */
   DedExp WBSolver::toDed(VarKeyedMap<int>& signs, const VarSet& v, IntPolyRef pMain, short sgn, int type) {
     forward_list<TAtomRef> deps;
     if (!pMain->isVar()) {
@@ -305,9 +300,9 @@ namespace tarski {
     return d;
   }
   
-    /*
+  /*
     Turn some learned sign information about a polynomial into the object Deduction format
-   */
+  */
   DedExp WBSolver::toDed(VarKeyedMap<int>& signs, const VarSet& v, IntPolyRef pMain, IntPolyRef p2, short lsgn, short sgn2, int type) {
     forward_list<TAtomRef> deps;
     for (VarSet::iterator itr = v.begin(); itr != v.end(); ++itr) {

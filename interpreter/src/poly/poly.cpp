@@ -332,10 +332,12 @@ Word IntPolyObj::expand(Word r, Word A, VarSet oldV, VarSet newV) const // oldV 
   }  
 
   int IntPolyObj::ipcompare(IntPolyRef a, IntPolyRef b) 
-  { 
+  {
     if (a.vpval() == b.vpval()) return 0;
-    if (a->svars.to_ulong() !=  b->svars.to_ulong()) 
-      return ISIGNF(a->svars.to_ulong() -  b->svars.to_ulong());
+    if (a->svars.to_ulong() !=  b->svars.to_ulong()) {
+      if (a->svars.to_ulong() > b->svars.to_ulong()) return 1;
+      else return -1;
+    }
     return cmp(a->slevel, a->sP, b->sP);
   }  
   

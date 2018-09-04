@@ -36,26 +36,26 @@ namespace tarski {
         rIdxToAtom.push_back(tf);
 
       if (isStrictRelop(tf)) {
-        for (map<IntPolyRef, int>::iterator fitr = tf->factorsBegin(); fitr != tf->factorsEnd(); ++fitr) {
+        for (auto fitr = tf->factorsBegin(); fitr != tf->factorsEnd(); ++fitr) {
           strongPolys.insert(fitr->first);
           strongMap[fitr->first] = tf;
         }
       }
       else {
-        for (map<IntPolyRef, int>::iterator fitr = tf->factorsBegin(); fitr != tf->factorsEnd(); ++fitr) {
+        for (auto fitr = tf->factorsBegin(); fitr != tf->factorsEnd(); ++fitr) {
           weakPolys.insert(fitr->first);
         }
       }
     }
 
     //These two loops give each polynomial its index
-    for (std::set<IntPolyRef>::iterator itr = strongPolys.begin(), end = strongPolys.end(); itr != end; ++itr) {
+    for (auto itr = strongPolys.begin(), end = strongPolys.end(); itr != end; ++itr) {
       IntPolyRef p = *itr;
       allPolys[p] = cIdxToPoly.size();
       cIdxToPoly.push_back(p);
       weakPolys.erase(p);
     }
-    for (std::set<IntPolyRef>::iterator itr = weakPolys.begin(), end = weakPolys.end(); itr != end; ++itr) {
+    for (auto itr = weakPolys.begin(), end = weakPolys.end(); itr != end; ++itr) {
       IntPolyRef p = *itr;
       allPolys[p] = cIdxToPoly.size();
       cIdxToPoly.push_back(p);
@@ -71,7 +71,7 @@ namespace tarski {
       }
       bool eqMod = (tf->getRelop() == EQOP) ? true : false;
       bool noStrict = false;
-      for (map<IntPolyRef, int>::iterator fitr = tf->factorsBegin();
+      for (auto fitr = tf->factorsBegin();
            fitr != tf->factorsEnd(); ++fitr) {
         assert(allPolys.find(fitr->first) != allPolys.end());
         size_t j = allPolys[fitr->first];
@@ -156,11 +156,10 @@ namespace tarski {
       if (tf->getRelop() == LTOP) {
         newRowVec[0] = 1;
       }
-      for (map<IntPolyRef, int>::iterator fitr = tf->factorsBegin();
-           fitr != tf->factorsEnd(); ++fitr) {
+      for (auto fitr = tf->factorsBegin(); fitr != tf->factorsEnd(); ++fitr) {
         IntPolyRef p = fitr->first;
         short val = fitr->second % 2;
-        std::map<IntPolyRef, int>::iterator pItr = allPolys.find(p);
+        auto pItr = allPolys.find(p);
         //unknown and learned strict
         if (pItr == allPolys.end()) {
           addNewStrict(p);
@@ -192,8 +191,7 @@ namespace tarski {
     else {
       bool isStrict = true;
       vector<char> newRowVec(allPolys.size());
-      for (map<IntPolyRef, int>::iterator fitr = tf->factorsBegin();
-           fitr != tf->factorsEnd(); ++fitr) {
+      for (auto fitr = tf->factorsBegin(); fitr != tf->factorsEnd(); ++fitr) {
         IntPolyRef p = fitr->first;
         if (allPolys.find(p) == allPolys.end() ) {
           //unknown and learned not strict
@@ -295,7 +293,7 @@ namespace tarski {
   void MatrixManager::strictUpdate() {
     if (!needUpdate) return;
     vector<bool> isStrict(rIdxToAtom.size(), false);
-    for (std::vector<size_t>::iterator it = tB.begin(); it != tB.end(); ++it) {
+    for (auto it = tB.begin(); it != tB.end(); ++it) {
       isStrict[*it] = true;
     }
     for (int i = 0; i < rIdxToAtom.size(); i++) {
@@ -311,7 +309,7 @@ namespace tarski {
 
   bool MatrixManager::isStrictAtom(TAtomRef t) {
     FactRef F = t->getFactors();
-    std::map<IntPolyRef, int>::iterator itr = F->MultiplicityMap.begin(), end = F->MultiplicityMap.end();
+    auto itr = F->MultiplicityMap.begin(), end = F->MultiplicityMap.end();
     for (; itr != end; ++itr ) {
       IntPolyRef p = itr->first;
       if (strongMap.find(p) == strongMap.end())

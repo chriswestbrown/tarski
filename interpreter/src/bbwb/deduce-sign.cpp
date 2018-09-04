@@ -542,21 +542,6 @@ namespace tarski {
       F2 = FernPolyIter(formTwo->getSaclibPoly(), formTwo->getVars(), varMap);
     }
     //Find the intervals of the interators
-    /*
-    FactRef F = new FactObj(PM);
-    F->addFactor(formOne, 1);
-    TAtomRef t = new TAtomObj(F, formOneSign);
-    FactRef f2 = new FactObj(PM);
-    f2->addFactor(formTwo, 1);
-    TAtomRef t2 = new TAtomObj(f2, formTwoSign);
-    bool target = false;
-    if (toString(t).find("skoX < 0") != string::npos && toString(t2).find("skoY skoX skoZ - skoZ") != string::npos) {
-      target = true;
-      std::cout << "\n------------------------DeduceSign2 for ";
-      formOne->write(*PM); cout << " and "; formTwo->write(*PM);
-      cout << "--------------------------------------\n";
-    }
-    */
     std::vector<Interval> intervals = findIntervals2(F1, F2);
 
 
@@ -617,7 +602,7 @@ namespace tarski {
         //My stupid yet easy solution:
         //Both sides are infinity - set t to 0
         //Left side is infinity - set t the right side minus one
-        //Right side is infinity - set to to the left side plus one
+        //Right side is infinity - set to the left side plus one
         if (inter.getLeftType() == INFTY && inter.getRightType() == INFTY) {
           t = RNINT(0);
           tn = RNINT(0);
@@ -710,19 +695,10 @@ namespace tarski {
           allVars = fin->getVars();
           bestSign = currSign;
           bestOut = T_interval[tSign][formTwoSign][sign];
-          //std::cerr << "DS2: now " << numToRelop(bestSign) << " is the best sign to return\n";
         }
-
         i++;
-
       }
     }
-    //std::cerr << "DS2: ";
-    //for (VarSet::iterator it = allVars.begin(); it != allVars.end(); ++it) {
-    //std::cerr << "DS2: Sign on " << PM.getName(*it) << ": " << numToRelop(bestExplain[*it]) << " ";
-    //}
-    //std::cerr << std::endl;
-    //std::cerr << "DS2 FIN: " << numToRelop(bestSign) << " is the best sign to return\n";
     tuple<VarKeyedMap<int>, VarSet, short> toReturn(bestExplain, allVars, bestOut);
     return toReturn;
   }

@@ -5,7 +5,9 @@
 #include "../formula/formula.h"
 #include "idx-manager.h"
 #include "box-solver.h"
+#include "fernutils.h"
 #include <vector>
+#include <forward_list>
 #include <set>
 namespace tarski {
   
@@ -26,8 +28,8 @@ namespace tarski {
                  int& size);
   public:
     FormulaMaker(tarski::TFormRef formula, IdxManager * IM);
-    std::vector<std::vector<Minisat::Lit> > mkFormula();
-    void mkFormulaHelper(std::vector<std::vector<Minisat::Lit> >& formula);
+    listVec mkFormula();
+    void mkFormulaHelper(listVec& formula);
   };
 
 }

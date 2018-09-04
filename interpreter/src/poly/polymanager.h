@@ -7,8 +7,7 @@
 #include <vector>
 
 namespace tarski {
-class FactObj; typedef GC_Hand<FactObj> FactRef;
-
+  class FactObj; typedef GC_Hand<FactObj> FactRef;
 class PolyManagerStatsObj : public GC_Obj
 {
  public:

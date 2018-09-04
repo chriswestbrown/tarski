@@ -135,6 +135,10 @@ namespace tarski {
     isGiven.push_back(true);
   }
 
+  /*
+    Combines two givens, yielding two new deductions - the one that is given,
+    plus the combination
+   */
   void DedManager::addGCombo(TAtomRef t) {
     depIdxs.emplace_back();
     origDep.emplace_back();
@@ -187,6 +191,9 @@ namespace tarski {
     updateVarSigns(t);
   }
 
+  /*
+    Gets the set of indices which correspond to the explanation of a deduction
+   */
   std::set<int> DedManager::getDepIdxs(const dedList& d) {
     set<int> deps;
     for (dedList::C_ITR itr = d.begin(), end = d.end(); itr != end; ++itr) {
@@ -207,7 +214,11 @@ namespace tarski {
   }
 
 
-
+  /*
+    Process a deduction which adds no new information, but does allow us
+    to "re-learn" some information
+    Allows for potential substitutions
+   */
   void DedManager::addCycle(const Deduction& d, const dedList& dl) {
     set<int> idxs = getDepIdxs(dl);
     //We want to reject self deductions ie x = 0 is used to deduce x = 0
@@ -236,7 +247,10 @@ namespace tarski {
 
 
   /*
-
+    Called when we find a deduction which teaches us unique sign information
+    which when combined with knonw information, yields an even stronger
+    deduction.
+    Adds two deductions - the one we made, and then the combination
    */
   void DedManager::addCombo(const Deduction& d, const dedList& dl) {
 
@@ -461,17 +475,24 @@ namespace tarski {
       }
     }
     for (int i = dedList.size()-1, j = 0; i >= 0; i--, j++) {
-      cout << "(" << j << ") "; dedList[i].write();
+      cout << "(" << j << ") "; writeDedExplain(idx);
     }
   }
   
-  
+  void DedManager::writeDedExplain(int idx) {
+    cout << deds[idx].toString();
+    if (deds[idx].getName() != "given") {
+      cout << ": ";
+      for (auto itr = origDep[idx].begin(); itr != origDep[idx].end(); ++itr) {
+        if (itr != origDep[idx].begin()) cout << ", ";
+        cout << toString(deds[*itr].getDed());
+      }
+    }
+    cout << endl;
+  }
   void DedManager::writeAll() {
-    int b = 0;
-    for (int i = 0; i < deds.size(); i++) {
-
-      Deduction& d = deds[i];
-      cout << "(" << i << ") "; d.write();
+    for (size_t i = 0; i < deds.size(); i++) {
+      writeDedExplain(i);
     }
   }
 
@@ -515,6 +536,13 @@ namespace tarski {
     return t;
   }
 
+
+  /*
+    Solves the sat problems which represent our simplifications, from
+    "ugliest" deduction to "prettiest" deduction
+    Everytime a problem is determined to be UNSAT, we remove the relevant
+    clauses from our problem set, that deduction having been simplified out
+   */
   void DedManager::solveSAT(listVec& asSat, TAndRef& t, set<int>& skips, vector<size_t>& indices) {
     vector<char> elim(deds.size(), false);
     int numElim = 0;
@@ -523,7 +551,7 @@ namespace tarski {
       if (skips.find(toRemove) != skips.end()) continue;
       Minisat::vec<Minisat::Lit> s(deds.size()-numElim);
       int j = 0;
-      for (int i = 0; i < deds.size(); i++) {
+      for (size_t i = 0; i < deds.size(); i++) {
         if (elim[i])  continue;
         else if (i == toRemove) s[j] = Minisat::mkLit(i+1, true);
         else s[j] = Minisat::mkLit(i+1);
@@ -539,13 +567,13 @@ namespace tarski {
       Minisat::lbool ret = S.solveLimited(s);
       if (ret == Minisat::toLbool(1)) {
         //cout << "\nSAT\n";
-        for (int i = 0; i < depIdxs[toRemove].size(); i++)
+        for (size_t i = 0; i < depIdxs[toRemove].size(); i++)
         asSat.pop_front();
         elim[toRemove] = true;
         numElim++;
       }
       else {
-        for (int i = 0; i < depIdxs[toRemove].size(); i++) {
+        for (size_t i = 0; i < depIdxs[toRemove].size(); i++) {
           //cout << "\nUNSAT\n";
           vecPtr vv = std::move(asSat.front());
           asSat.pop_front();
@@ -606,6 +634,13 @@ namespace tarski {
     std::cout << std::endl;
   }
 
+
+  /*
+    Generates the sat problem which represents our choice of simplifications
+    The problem is constructed s.t. if a deduction can be simplified out,
+    the relevant SAT problem (which is constructed by setting that deduction's
+    index to false) solves to false.
+   */
   DedManager::listVec DedManager::genSatProblem(TAndRef& t, set<int>& skips,
                                                 vector<size_t>& order) {
     listVec lv;

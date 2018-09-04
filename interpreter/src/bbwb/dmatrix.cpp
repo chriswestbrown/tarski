@@ -13,7 +13,7 @@ namespace tarski {
     A simple constructor which initializes the size of the std::vector
   */
   DMatrix::DMatrix(int rows, int cols): m(rows, std::vector<char>(cols)), comp(rows, std::vector<bool>(rows)) {
-    for (int i = 0; i < comp.size(); i++) {
+    for (size_t i = 0; i < comp.size(); i++) {
       comp[i][i] = true;
     }
   }
@@ -23,8 +23,8 @@ namespace tarski {
   DMatrix::DMatrix(const DMatrix &M): m(M.m), comp(M.comp) { }
 
   void DMatrix::write() const {
-    for (int i = 0; i < m.size(); i++) {
-      for (int j = 0; j < m[i].size(); j++) {
+    for (size_t i = 0; i < m.size(); i++) {
+      for (size_t j = 0; j < m[i].size(); j++) {
         std::cerr << (int) m[i][j] << " ";
       }
       std::cout << std::endl;

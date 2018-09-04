@@ -55,14 +55,6 @@ public:
   int cmp(const FactRef F) const;
 
 
-  //for some reason this isnt being used
-  inline bool operator< (const FactRef f) {
-    std::cout << "cmp(f) is " << cmp(f);
-    if (cmp(f) != -1) return false;
-    else return true;
-  }
-
-
   class lt {
   public:
     bool operator()(const tarski::FactRef &a, const tarski::FactRef &b) { return a->cmp(b) < 0; }

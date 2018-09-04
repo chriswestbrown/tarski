@@ -6,6 +6,7 @@
 #include "idx-manager.h"
 #include "normalize.h"
 #include "../shell/qepcad-inter/qepcad-session.h"
+#include "opennucad.h"
 #include <algorithm>
 #include <vector>
 #include <string>
@@ -17,12 +18,15 @@ using namespace tarski;
 using namespace std;
 
 
-//TODO: Refactor SMTSolver to do more efficient SAT problem generation by using new function call
+/*
+  L1 Normalizes the formula
+  Then does splitting on all nonstrict atoms with which
+  substitution can be applied
 
-
-inline bool intSort (int i, int j) { return (i < j);}
-
-BoxSolver::BoxSolver(TFormRef formula) :  isPureConj(true),  numAtoms(-1), limit(5), count(0), lastVec(0), ranOnce(false), unsat(false) {
+  Initializes the index manager on the split L1 normalized formula
+  Constructs a Minisat Solver if the formula is NOT a pure conjuction
+ */
+BoxSolver::BoxSolver(TFormRef formula) : unsat(false), ranOnce(false), isPureConj(true), numAtoms(-1), limit(5), count(0) {
   Normalizer* p = new Level1();
   RawNormalizer R(*p);
   R(formula);
@@ -32,29 +36,30 @@ BoxSolver::BoxSolver(TFormRef formula) :  isPureConj(true),  numAtoms(-1), limit
   IM = new IdxManager();
   pm = formula->getPolyManagerPtr();
   TAndRef splitT = new TAndObj();
-  processAtoms(l1norm, splitT);
   this->formula = splitT;
+  processAtoms(l1norm, splitT);
   if (unsat) return;
   if (!isPureConj){
     S = new Solver(this);
-    S->mkProblem(makeFormula(this->formula));
-    M = (numAtoms > 5) ? new MHSGenerator(form, numAtoms) : NULL;
+    listVec l = makeFormula(splitT);
+    S->mkProblem(l.begin(), l.end());
   }
 }
+
 BoxSolver::~BoxSolver() {
   delete IM;
   if (!isPureConj) {
     delete S;
-    if (numAtoms > 5) delete M;
   }
   if (ranOnce)
     delete SM;
 }
 
-vector<vector<Lit> > BoxSolver::makeFormula(TFormRef formula) {
+
+listVec BoxSolver::makeFormula(TFormRef formula) {
   FormulaMaker  f(formula, IM);
-  form = f.mkFormula();
-  return form;
+  listVec l = f.mkFormula();
+  return l;
 }
 
 bool BoxSolver::solve(string& err) {
@@ -111,6 +116,12 @@ bool BoxSolver::directSolve() {
   b.deduceAll();
   if (b.isUnsat()) return false;
   else t2 = b.simplify();
+  if (t2->constValue() == 1) return true;
+  if (classifyConj(t2) == 0) {
+    OpenNuCADSATSolverRef nuCadSolver = new OpenNuCADSATSolverObj(t2);
+    if (nuCadSolver->isSATFound())
+      return true;
+  }
   //writeSimpToFile(t, t2);
   TFormRef res;
   try  {
@@ -118,8 +129,8 @@ bool BoxSolver::directSolve() {
     res = q.basicQepcadCall(exclose(t2), true);
   }
   catch (TarskiException& e) {
-    throw TarskiException("QEPCAD timed out" + toString(t2));
-
+    throw TarskiException("QEPCAD failure on "  + toString(t2) +  \
+                          ".\nErr: " + e.what());
   }
   if (res->constValue() == 0) return false;
   else return true;
@@ -128,7 +139,6 @@ bool BoxSolver::directSolve() {
 
 vector<TAtomRef> splitAtom(TAtomRef t) {
   vector<TAtomRef> res;
-  //cout << "Examining " + toString(t) + "\n";
   if (t->getFactors()->numFactors() != 1) {
     res.push_back(t); return res;
   }
@@ -143,8 +153,6 @@ vector<TAtomRef> splitAtom(TAtomRef t) {
   TAtomRef t2 = new TAtomObj(t->getFactors(), t->getRelop() ^ EQOP);
   res.resize(2);
   res[0] = t1; res[1] = t2;
-  //cout << "Split " + toString(t) + " into " + toString(t1) +  \
-    " or + " + toString(t2) + "\n";
   return res;
 }
 
@@ -288,39 +296,54 @@ void BoxSolver::processAtoms(TFormRef formula, TFormRef out) {
   }
 }
 
+//Assumes pure conjunction!
+//0 - OpenNUCAD is a perfect solver
+//1 - OpenNUCAD can determine SAT but not UNSAT
+int BoxSolver::classifyConj(TAndRef T) {
+  for (auto itr = T->begin(); itr != T->end(); ++itr) {
+    TAtomRef t = asa<TAtomObj>(*itr);
+    if ((t->getRelop() & EQOP) == EQOP) {
+      return 1;
+    }
+  }
+  return 0;
+}
 
-
-//This method is used to verify the complete solution with QEPCAD
-//TODO: Generate learned clauses from QEPCAD Unsat Core
+//This method is used to verify the complete solution with CAD
 void BoxSolver::getFinalClause(vec<Lit>& lits, bool& conf) {
-  //cout << "Called getFinalClause\n";
   getClauseMain(lits, conf);
   //Only if BB/WB cannot detect unsat do we need to call QEPCAD"
   if (conf == false) {
     QepcadConnection q;
-    //TAndRef told = (M != NULL) ? genMHS() : genTAnd(getQhead());
     TAndRef tand = SM->simplify();
-    //cout << "Old formula: " << toString(told) << "\nSimplified formula: " << toString(tand) << endl;
-    //writeSimpToFile(told, tand);
     if (tand->constValue() == 1) return;
+
+    //NUCAD
+    //Only for pure strict conjunctions
+    //Does nothing if Nucad discovers UNSAT, as it doesn't produce UNSAT Cores
+    //yet
+    if (classifyConj(tand) == 0) {
+      OpenNuCADSATSolverRef nuCadSolver = new OpenNuCADSATSolverObj(tand);
+      if (nuCadSolver->isSATFound())
+        return;
+    }
+    //END NUCAD, START QEPCAD
+
     TFormRef res;
     try {
       res = q.basicQepcadCall(exclose(tand), true);
     }
     catch (TarskiException& e) {
-      throw TarskiException("QEPCAD timed out" + toString(tand));
+      throw TarskiException("QEPCAD failure on "  + toString(tand) +  \
+                            ".\nErr: " + e.what());
     }
     std::set<TAtomRef> allAtoms;
     if (res->constValue() == 0) {
       conf = true;
       vector<int> core = q.getUnsatCore();
-      //NOTE: Core is not guaranteed to come out in sorted order!!!
-      //cout << "CORE: ";
       sort(core.begin(), core.end());
       int currAtom = 0, curr = 0;
-      for (set<TFormRef, ConjunctOrder>::iterator
-             begin = tand->begin(), end = tand->end();
-           begin != end; ++begin) {
+      for (auto begin = tand->begin(); begin != tand->end(); ++begin) {
         if (core[curr] == currAtom) {
           curr++;
           TAtomRef A = asa<TAtomObj>(*begin);
@@ -338,14 +361,6 @@ void BoxSolver::getFinalClause(vec<Lit>& lits, bool& conf) {
         }
         currAtom++;
       }
-      /*
-        QepcadConnection q2;
-        cout << "COREOLD: ";
-        res = q2.basicQepcadCall(exclose(told), true);
-        vector<int> core2 = q.getUnsatCore();
-        sort(core2.begin(), core2.end());
-        getQEPUnsatCore(lits, core2, told);
-      */
     }
   }
 }
@@ -374,24 +389,6 @@ void BoxSolver::writeSimpToFile(TAndRef orig, TAndRef simp) {
   file << "Original: " + toString(orig) +
     " Simplified: " + toString(simp) << "\n";
 }
-
-TAndRef BoxSolver::genMHS() {
-  TAndRef tand = new TAndObj();
-  vector<Lit> res = M->genMHS(getTrail());
-  for (vector<Lit>::iterator itr = res.begin(); itr != res.end(); ++itr) {
-    Lit p = *itr;
-    if (sign(p) == true) continue;
-    int v = var(p);
-    TAtomRef tatom;
-    bool res = IM->getAtom(v, tatom);
-    if (res) {
-      tand->AND(tatom);
-    }
-  }
-  return tand;
- 
-}
-
 
 bool BoxSolver::atomFromLit(Lit p, TAtomRef& t) {
   if (sign(p) == true) {

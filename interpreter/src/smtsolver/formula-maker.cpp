@@ -1,4 +1,5 @@
 #include "formula-maker.h"
+
 namespace tarski{
 
   using namespace Minisat;
@@ -57,8 +58,8 @@ namespace tarski{
     f.topLevel = false;
     f.varNum = IM->size();
     IM->incSize();
-    if (formula->getTFType() == TF_AND) f.type = 0;
-    else f.type = 1;
+    if (formula->getTFType() == TF_AND) f.type = TF_AND;
+    else f.type = TF_OR;
     set<TFormRef, ConjunctOrder>::iterator begin;
     int size; int num = 0;
     getItrs(formula, begin, size);
@@ -85,8 +86,8 @@ namespace tarski{
   FormulaMaker::FormulaMaker(TFormRef formula, IdxManager * IM) {
     topLevel = true;
     varNum = -1;
-    if (formula->getTFType() == TF_AND) type = 0;
-    else type = 1;
+    if (formula->getTFType() == TF_AND) type = TF_AND;
+    else type = TF_OR;
     set<TFormRef, ConjunctOrder>::iterator begin;
     int size; int num = 0;
     getItrs(formula, begin, size);
@@ -109,67 +110,82 @@ namespace tarski{
   }
 
 
-  vector<vector<Lit> > FormulaMaker::mkFormula(){
-    vector<vector<Lit> > toRet;
+  listVec FormulaMaker::mkFormula(){
+    listVec toRet;
     mkFormulaHelper(toRet);
     return toRet;
   }
 
 
-  void FormulaMaker::mkFormulaHelper(vector<vector<Lit> >& formula) {
-    if (type == 0 && topLevel) {
+  void FormulaMaker::mkFormulaHelper(listVec& l) {
+    if (type == TF_AND && topLevel) {
       //This pushes the atoms directly, so that they are on decision level 0 of a DPLL Stack
       for (vector<int>::iterator itr = atoms.begin(), end = atoms.end(); itr != end; ++itr) {
-        vector<Lit> a(1);
-        a[0] = mkLit(*itr, false);
-
-        formula.push_back(a);
+        vecPtr v(new vec<Lit>(1));
+        vec<Lit>& vv = *v.get();
+        Lit p = mkLit(*itr, false);
+        vv[0] = p;
+        l.push_front(std::move(v));
       }
       for (vector<FormulaMaker>::iterator itr = oppNodes.begin(), end = oppNodes.end(); itr != end; ++itr) {
-        vector<Lit> a(1);
-        a[0] = mkLit(itr->varNum, false);
-        formula.push_back(a);
+        vecPtr v(new vec<Lit>(1));
+        vec<Lit>& vv = *v.get();
+        Lit p = mkLit(itr->varNum, false);
+        vv[0] = p;
+        l.push_front(std::move(v));
       }
     }
-    else if (type == 0) {
+    else if (type == TF_AND) {
       //This makes a size 2 clause for every atom, so that they are all true or the node itself is false
       for (vector<int>::iterator itr = atoms.begin(), end = atoms.end(); itr != end; ++itr) {
-        vector<Lit> a(2);
-        a[0] = mkLit(*itr, false);
-        a[1] = mkLit(varNum, true);
-        formula.push_back(a);
+        vecPtr v(new vec<Lit>(2));
+        vec<Lit>& vv = *v.get();
+        Lit p = mkLit(*itr, false);
+        Lit q = mkLit(varNum, true);
+        vv[0] = p;
+        vv[1] = q;
+        l.push_front(std::move(v));
       }
       for (vector<FormulaMaker>::iterator itr = oppNodes.begin(), end = oppNodes.end(); itr != end; ++itr) {
-        vector<Lit> a(2);
-        a[0] = mkLit(itr->varNum, false);
-        a[1] = mkLit(varNum, true);
-        formula.push_back(a);
+        vecPtr v(new vec<Lit>(2));
+        vec<Lit>& vv = *v.get();
+        Lit p = mkLit(itr->varNum, false);
+        Lit q = mkLit(varNum, true);
+        vv[0] = p;
+        vv[1] = q;
+        l.push_front(std::move(v));
       }
     }
-    else if (type == 1 && topLevel) {
+    else if (type == TF_OR && topLevel) {
       //This makes one big disjunct for all the topLevel atoms
-      vector<Lit> a(atoms.size());
+      vecPtr v(new vec<Lit>(atoms.size()));
+      vec<Lit>& vv = *v.get();
       for (unsigned int i = 0; i < atoms.size(); i++) {
-        a[i] = mkLit(atoms[i], false);
+        Lit p = mkLit(atoms[i], false);
+        vv[i] = p;
       }
-      formula.push_back(a);
+      l.push_back(std::move(v));
     }
-    else if (type == 1) {
+    else if (type == TF_OR) {
       //Again, we make one big disjunct, but this time include the varNum of the node itself
-      vector<Lit> a(atoms.size()+oppNodes.size()+1);
+      vecPtr v(new vec<Lit>(atoms.size()+oppNodes.size()+1));
+      vec<Lit>& vv = *v.get();
       unsigned int i, j;
-      for ( i = 0; i < atoms.size(); i++) {
-        a[i] = mkLit(atoms[i], false);
+      for (i = 0; i < atoms.size(); i++) {
+        Lit p = mkLit(atoms[i], false);
+        vv[i] = p;
       }
       for (j = 0; j < oppNodes.size(); j++) {
-        a[i+j] = mkLit(oppNodes[j].varNum, false);
+        Lit p = mkLit(oppNodes[j].varNum, false);
+        vv[i+j] = p;
       }
-      a[i+j] = mkLit(varNum, true);
-      formula.push_back(a);
+      Lit p = mkLit(varNum, true);
+      vv[i+j] = p;
+      l.push_back(std::move(v));
     }
 
-    for (vector<FormulaMaker>::iterator itr = oppNodes.begin(), end = oppNodes.end(); itr != end; ++itr) {
-      itr->mkFormulaHelper(formula);
+    for (auto itr = oppNodes.begin(); itr != oppNodes.end(); ++itr) {
+      itr->mkFormulaHelper(l);
     }
   }
 

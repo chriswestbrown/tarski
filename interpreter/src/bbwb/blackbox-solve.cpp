@@ -123,7 +123,7 @@ namespace tarski {
   std::forward_list<TAtomRef> BBChecker::getConflict() {
     std::forward_list<TAtomRef> conflict;
     const std::vector<bool>& exp = M->getStrict().getComp().at(unsatRow);
-    for (int i = 0; i < exp.size(); i++) {
+    for (size_t i = 0; i < exp.size(); i++) {
       if (exp.at(i) == true) {
         conflict.push_front(M->getAtom(i, true));
       }
@@ -140,23 +140,22 @@ namespace tarski {
   */
   std::set<IntPolyRef> BBChecker::findWeak(std::forward_list<TAtomRef>& conflict ) {
     std::set<IntPolyRef> strongFacts;
-    std::set<IntPolyRef> weakFacts; 
-    for (std::forward_list<TAtomRef>::const_iterator itr = conflict.begin(), end = conflict.end();
-         itr != end; ++itr ) {
+    std::set<IntPolyRef> weakFacts;
+    for (auto itr = conflict.begin(); itr != conflict.end(); ++itr ) {
       TAtomRef A = *itr;
-      if (A->getRelop() == LTOP || A->getRelop() == GTOP || A->getRelop() == NEOP) {
-        for(std::map<IntPolyRef,int>::iterator fitr = A->factorsBegin(); fitr != A->factorsEnd(); ++fitr) {
+      if (A->getRelop() == LTOP || A->getRelop() == GTOP ||
+          A->getRelop() == NEOP) {
+        for(auto fitr = A->factorsBegin(); fitr != A->factorsEnd(); ++fitr) {
           strongFacts.insert(fitr->first);
         }
       }
-      
       else {
-        for(std::map<IntPolyRef,int>::iterator fitr = A->factorsBegin(); fitr != A->factorsEnd(); ++fitr) {
+        for(auto fitr = A->factorsBegin(); fitr != A->factorsEnd(); ++fitr) {
           weakFacts.insert(fitr->first);
         }
       }
     }
-    for (std::set<IntPolyRef>::iterator itr = strongFacts.begin(), end = strongFacts.end(); itr != end; ++itr) {
+    for (auto itr = strongFacts.begin(), end = strongFacts.end(); itr != end; ++itr) {
       weakFacts.erase(*itr);
     }
     return weakFacts;
@@ -168,7 +167,7 @@ namespace tarski {
   */
   std::set<TAtomRef> BBChecker::strengthenWeak(const std::set<IntPolyRef>& weakFacts) {
     set<TAtomRef> sAtoms;
-    for (std::set<IntPolyRef>::const_iterator itr = weakFacts.begin(), end = weakFacts.end(); itr != end; ++itr){
+    for (auto itr = weakFacts.begin(); itr != weakFacts.end(); ++itr){
       TAtomRef t = M->strengthenPoly(*itr);
       sAtoms.insert(t);
     }
@@ -187,7 +186,7 @@ namespace tarski {
   
   int BBDeducer::getNonZero(const std::vector<char>& row) {
     int unique = -1;
-    for (int i = 1; i < row.size(); i++)  {
+    for (size_t i = 1; i < row.size(); i++)  {
       if (row.at(i) && unique == -1) unique = i;
       else if (row.at(i)) return -1;
     }
@@ -202,7 +201,7 @@ namespace tarski {
     //Here, we iterate through everything that we learned by doing gaussian elimination (AKA, all rows which were of the form X, 0, 0, ..., 1, 0, ..., 0 which were not of that form before gaussian elimination)
     const std::vector<std::vector<char> >& matrix = M->getStrict().getMatrix();
     const std::vector<std::vector<bool> >& comp = M->getStrict().getComp();
-    for (int i = 0; i < matrix.size(); i++) {
+    for (size_t i = 0; i < matrix.size(); i++) {
       short idx = getNonZero(matrix.at(i));
       if (idx == -1) continue;
       std::forward_list<TAtomRef> atoms;
@@ -214,7 +213,7 @@ namespace tarski {
       const std::vector<bool>& deps = comp.at(i);
       bool strengthen = false;
       //Iterating through dependencies
-      for (int a = 0; a < deps.size(); a++) {
+      for (size_t a = 0; a < deps.size(); a++) {
         if (deps[a] == 0) continue; 
         TAtomRef A = M->getAtom(a, true);
         atoms.push_front(A);
@@ -222,7 +221,7 @@ namespace tarski {
         if (strengthen) continue;
         if (A->relop == LEOP || A->relop == GEOP || A->relop == EQOP) continue;
         FactRef F = A->F;
-        for (std::map<IntPolyRef, int>::iterator itr = F->factorBegin(), end = F->factorEnd(); itr != end; ++itr) {
+        for (auto itr = F->factorBegin(); itr != F->factorEnd(); ++itr) {
           if (dedP->equal(itr->first)) {
             strengthen = true;
             break;
@@ -270,8 +269,7 @@ namespace tarski {
 
   int BBDeducer::weight(const std::vector<char>* vc, int cutoff) {
     int wt = 0;
-    for (std::vector<char>::const_iterator itr = vc->begin()+cutoff;
-         itr != vc->end(); ++itr) {
+    for (auto itr = vc->begin()+cutoff; itr != vc->end(); ++itr) {
       if (*itr != 0) ++wt;
     }
     return wt;
@@ -281,7 +279,7 @@ namespace tarski {
     for (size_t i = cutOff; i < vc.size(); i++)
       std::cout << (int) vc[i] << " ";
     std::cout << std::endl;
-  } 
+  }
 
   //Checks if the support of v1 is in the support of v2
   //-1 indicates no
@@ -324,8 +322,7 @@ namespace tarski {
 
   DMatrix BBDeducer::mkMatrix(const vector<AtomRow>& rows) {
     DMatrix d;
-    for (vector<AtomRow>::const_iterator itr = rows.begin();
-         itr != rows.end(); ++itr) {
+    for (auto itr = rows.begin(); itr != rows.end(); ++itr) {
       d.addRow(*(itr->vc));
     }
     return d;
@@ -545,8 +542,7 @@ namespace tarski {
       std::vector<char> row(s.getNumCols());
       row[0] = (t->getRelop() == GTOP || t->getRelop() == GEOP)
         ? 1 : 0;
-      for (FactObj::factorIterator itr = f->factorBegin();
-           itr != f->factorEnd(); ++itr) {
+      for (auto itr = f->factorBegin(); itr != f->factorEnd(); ++itr) {
         int col = M->getIdx(itr->first);
         if (col == -1 || (size_t) col >= s.getNumCols()) {
           fail = true; break;
@@ -562,7 +558,7 @@ namespace tarski {
       //corresponding atom!
       vector<int> source;
       s.reduceRow(row, source);
-      for (std::vector<char>::iterator itr = row.begin()+1; itr != row.end(); ++itr) {
+      for (auto itr = row.begin()+1; itr != row.end(); ++itr) {
         if (*itr) {
           ++begin;
           fail = true;
@@ -575,8 +571,7 @@ namespace tarski {
       std::forward_list<TAtomRef> atoms;
       for (size_t i = 0; i < source.size(); i++) {
         TAtomRef nu = M->getMeaning(source[i]);
-        forward_list<TAtomRef> expNu = M->explainMeaning(source[i]);
-        deds.emplace_back(nu, Deduction::BBSTR, expNu);
+        deds.emplace_back(nu, Deduction::BBSTR, M->explainMeaning(source[i]));
         atoms.push_front(nu);
       }
       if (!(source.size() == 1 && equals(t, atoms.front())))  {

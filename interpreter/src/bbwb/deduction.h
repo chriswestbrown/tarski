@@ -19,17 +19,9 @@
 #include "fern-poly-iter.h"
 
 
-//TODO: Change Deducitons so that they use forward_lists of deductions
-//      rather than vectors
-//TODO:Redesign deductions s.t.
-//1. A deduction is just a string and an atom
-//2. The explanation is a separate data structure
-//3. Givens are identified by Deduction Manager rather
-//than by deductions themselves
-//4. The DedM deductions vector members are on the
-//stack rather than on the heap
 //TODO: Simplification, and the data structures which support it,
 //should be moved to a friend class of dedM
+
 namespace tarski {
 
   const int PSGN =  0;
@@ -78,6 +70,9 @@ namespace tarski {
     inline const std::string& getName() { return *name; }
     inline bool isUnsat() const { return unsat; }
     inline TAtomRef getDed() const { return deduction; }
+    inline string toString() {
+      cout << *name << ": " + tarski::toString(deduction);
+    }
     virtual ~Deduction() {}
     Deduction(TAtomRef t, short code) : unsat(false) {
       name = &names[code];
@@ -159,6 +154,7 @@ namespace tarski {
     void writeDeps(Deduction&);
     void updateVarSigns(TAtomRef t);
     inline void updateVarSigns(const Deduction& d) { updateVarSigns(d.getDed()); }
+    void writeDedExplain(int idx);
 
     //CONSTRUCTOR METHODS
     void addGCombo(TAtomRef t);
