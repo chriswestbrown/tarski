@@ -50,6 +50,7 @@ BoxSolver::BoxSolver(TFormRef formula) : unsat(false), ranOnce(false), isPureCon
   if (!isPureConj){
     S = new Solver(this);
     listVec l = makeFormula(this->formula);
+    if (numAtoms > 5) M = new MHSGenerator(l, numAtoms);
     S->mkProblem(l.begin(), l.end());
   }
 }
@@ -398,9 +399,42 @@ int BoxSolver::classifyConj(TAndRef T) {
   return 0;
 }
 
+
+TAndRef BoxSolver::genMHS() {
+  TAndRef tand = new TAndObj();
+  vector<Lit> res = M->genMHS(getTrail());
+  for (vector<Lit>::iterator itr = res.begin(); itr != res.end(); ++itr) {
+    Lit p = *itr;
+    if (sign(p) == true) continue;
+    int v = var(p);
+    TAtomRef tatom;
+    bool res = IM->getAtom(v, tatom);
+    if (res) {
+      tand->AND(tatom);
+    }
+  }
+  return tand;
+ 
+}
+
 //This method is used to verify the complete solution with CAD
 void BoxSolver::getFinalClause(vec<Lit>& lits, bool& conf) {
-  getClauseMain(lits, conf);
+
+  if (M != NULL) {
+    if (ranOnce) delete SM;
+    SM = new SolverManager(SolverManager::BB |
+                         SolverManager::WB |
+                         SolverManager::SS, genMHS());
+    Result res = SM->deduceAll();
+    if (SM->isUnsat()) {
+      constructClauses(lits, res);
+      conf = true;
+      return;
+    }
+  }
+  else {
+    getClauseMain(lits, conf);
+  }
   //Only if BB/WB cannot detect unsat do we need to call QEPCAD"
   if (conf == false) {
     QepcadConnection q;
@@ -558,7 +592,9 @@ void BoxSolver::getClauseMain(vec<Lit>& lits, bool& conf) {
   }
 
   else {
-    TAndRef tand = genTAnd(getQhead());    if (tand->constValue() == TRUE) {
+    TAndRef tand = genTAnd(getQhead());
+    //cout << "Formula: " << toString(tand) << endl;
+    if (tand->constValue() == TRUE) {
       conf = false;
       return;
     }

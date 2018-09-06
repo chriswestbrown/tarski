@@ -8,12 +8,12 @@
 #include "../bbwb/solver-manager.h"
 #include "formula-maker.h"
 #include "fernutils.h"
+#include "mhs-gen.h"
 #include <algorithm>
 #include <climits>
 #include <cmath>
 #include <stack>
 #include <vector>
-
 
 namespace tarski {
 
@@ -58,6 +58,7 @@ namespace tarski {
     SolverManager * SM;
     Minisat::Solver * S;
     IdxManager * IM;
+    MHSGenerator * M;
     bool isPureConj;
     int numAtoms;
     int limit;
@@ -82,6 +83,7 @@ namespace tarski {
 
     bool doSplit(TFormRef T, int& s);
     vector<TAtomRef> splitAtom(TAtomRef t);
+    TAndRef genMHS();
     //Processes a formula and assigns indices to all the atoms
     //the first version is non clause splitting
     //the second is

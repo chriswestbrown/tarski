@@ -119,9 +119,10 @@ namespace tarski {
   }
 
   void DedManager::updateVarSigns(TAtomRef t) {
-    if (t->F->numFactors() == 1 && t->factorsBegin()->first->isVariable().any() && t->getRelop() != ALOP) {
+    if (t->F->numFactors() == 1 && t->factorsBegin()->first->isVar() && t->getRelop() != ALOP && t->factorsBegin()->second == 1) {
       VarSet v = t->getVars();
       varSigns[v] = varSigns[v] & t->getRelop();
+      assert(varSigns[v] != NOOP || unsat);
     }
   }
 
@@ -302,6 +303,7 @@ namespace tarski {
     }
 
     if (atomToDed.find(d.getDed()) == atomToDed.end()) {
+
       updateVarSigns(d);
       addDed(d, dl);
       return true;
@@ -548,22 +550,22 @@ namespace tarski {
     int numElim = 0;
 
     for (int i = indices.size()-1; i >= 0; i--) {
+
+      int toRemove = indices[i];
+      if (skips.find(toRemove) != skips.end()) continue;
       set<int> appears;
       for (auto itr = asSat.begin(); itr != asSat.end(); ++itr) {
         for (int i = 0; i < itr->size(); i++) {
-          appears.insert(var((*itr)[i]));
+          appears.insert(var((*itr)[i])-1);
         }
       }
-      int toRemove = indices[i];
-      if (skips.find(toRemove) != skips.end()) continue;
-
-      Minisat::vec<Minisat::Lit> s(deds.size()-numElim);
+      Minisat::vec<Minisat::Lit> s;
       int j = 0;
       for (size_t i = 0; i < deds.size(); i++) {
         if (appears.find(i) == appears.end()) continue;
         if (elim[i])  continue;
-        else if (i == toRemove) s[j] = Minisat::mkLit(i+1, true);
-        else s[j] = Minisat::mkLit(i+1);
+        else if (i == toRemove) s.push(Minisat::mkLit(i+1, true));
+        else s.push(Minisat::mkLit(i+1));
         j++;
       }
       Minisat::Solver S;

@@ -496,15 +496,22 @@ namespace tarski {
     if (!res) return;
     forward_list<TAtomRef> proof;
     proof.push_front(orig);
+    forward_list<DedExp> backup;
     for (size_t i = 0; i < sources.size(); i++) {
       //NOTE: This line may be dangerous
       //Because the guarantee that each atom has been deduced
       //Is because each atom is a pivot row in a succesful
       //Deduction...
       proof.push_front(M->getMeaning(sources[i]));
+      backup.emplace_front(M->getMeaning(sources[i]),
+                           Deduction::BBSTR, M->explainMeaning(sources[i]));
     }
-    if (!equals(t, proof.front()))
+    if (!equals(t, proof.front())) {
+      for (auto itr = backup.begin(); itr != backup.end(); ++itr) {
+        deds.emplace_back(*itr);
+      }
       deds.emplace_back(t, Deduction::BBCOM, proof);
+    }
   }
 
 
