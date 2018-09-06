@@ -324,7 +324,6 @@ private:
   bool SATFound;
   
 public:
-
   //-- Must call this with F that is a conjunction of atoms or an atom
   OpenNuCADSATSolverObj(TFormRef F)
   {
@@ -378,10 +377,7 @@ public:
   //-- returns the UNSAT core as a conjunction of atoms, all from the original input F, that is
   //-- UNSAT.  TODO:  For now this just returns the original formula as the core.  I will work on
   //-- doing better. 
-  TAndRef getUNSATCore()
-  {
-    return C;
-  }
+  TAndRef getUNSATCore();
 };
 
 }//end namespace tarski
