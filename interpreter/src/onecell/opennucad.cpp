@@ -1,4 +1,5 @@
 #include "opennucad.h"
+#include "../smtsolver/minhitset/naive/hitset.h"
 
 //#define _OC_DEBUG_
 #ifdef _OC_DEBUG_
@@ -1707,5 +1708,100 @@ NodeRef NodeObj::lowerMostNodeWithSubtreeLevelExceedingK(int k)
 
 
 NodeRef ONuCADObj::getNode(const char* p) { string s(p); return getNode(s); }
+
+/******************** OpenNuCADSATSolver **************************/
+
+//-- Input : atom A and map knownRelop that maps poly p to the relop we know it satisfies in some given cell D
+//-- Output: TRUE, FALSE, or UNDET, the truth value A can be deduced to have in the cell based on knownRelop.
+int evalTruth(TAtomRef A, map<IntPolyObj*,int > &knownRelop)
+{
+  int targetRelop = A->getRelop();
+  int evalRelop = signToSigma(A->F->signOfContent());
+  for(map<IntPolyRef,int>::iterator itr = A->F->MultiplicityMap.begin(); itr != A->F->MultiplicityMap.end(); ++itr)
+  {
+    IntPolyObj* p = &(*(itr->first));
+    int relop_p = knownRelop[p];
+    evalRelop = T_prod[evalRelop][itr->second % 2 == 2 ? T_square[relop_p] : relop_p];
+  }
+  if (sameOrStronger(evalRelop,targetRelop))
+    return TRUE;
+  else if (sameOrStronger(evalRelop,negateRelop(targetRelop)))
+    return FALSE;
+  else
+    return UNDET;
+}
+
+
+TAndRef OpenNuCADSATSolverObj::getUNSATCore()
+{
+  const int n = C->size();  //-- C is the conjunction that came as orig input
+  std::vector<TFormRef> atoms(n);
+  {  int i = 0;
+    for(auto citr = C->begin(); citr != C->end(); ++citr)
+      atoms[i++] = *citr;
+  }
+  set<IntPolyObj*> S;
+  for(int i = 0; i < n; i++)
+  {
+    TAtomRef atom = asa<TAtomObj>(atoms[i]);
+    if (atom.is_null()) {
+      throw TarskiException("OpenNuCADSATSolverObj::getUNSATCore currently conjunction of atoms"); }
+    FactRef F = atom->getFactors();
+    for(auto fitr = F->factorBegin(); fitr != F->factorEnd(); ++fitr)
+      S.insert(&(*(fitr->first)));
+  }
+  
+  //-- set up hitting set problem
+  std::vector< std::vector<int> > hitSetIn;
+  auto litr = nucad->iterator(); //-- itrates of the leaves
+  for(int i = 0; litr.hasNext(); ++i)
+  {
+    //-- pull out D, the next cell to consider (and associated info)
+    NodeRef node = litr.next();
+    BuilderRef b = node->getData();
+    OpenCellRef D = b->getCell();
+    Word alpha = D->getAlpha();
+
+    //-- b->inPFSet(p), where p is an IntPolyRef, returns true iff p is known
+    //-- to be sign invariant in cell D.
+
+    //-- for IntPolyObj* p, knownRelop[p] is > if it is known positive throught cell D, < if
+    //-- it is known negative throught, = if it is known zero throughout, and ALOP otherwise.
+    map<IntPolyObj*,int > knownRelop;
+    for(auto pitr = S.begin(); pitr != S.end(); ++pitr)
+    {
+      if (b->inPFSet(*pitr))
+      {
+	IntPolyRef p = V->partialEval(*pitr,alpha,LENGTH(alpha));
+	if (!p->isConstant()) { throw TarskiException("Error!  Evaluation did not produce a constant!"); }
+	int sigma = signToSigma(p->signIfConstant());
+	knownRelop[*pitr] = sigma;
+      }
+      else
+	knownRelop[*pitr] = ALOP;
+    }
+
+    //-- add to hist set problem any atom known to be false throught cell D
+    hitSetIn.push_back(vector<int>());
+    vector<int> &nextset = hitSetIn.back();
+    for(int j = 0; j < n; j++)
+    {
+      if (evalTruth(atoms[j],knownRelop) == FALSE)
+	nextset.push_back(j+1);
+    }
+    nextset.push_back(0);
+  }
+  
+  //-- solve hitting set problem and translate into unsat core
+  HitProb HP;
+  HP.fill(n,hitSetIn.size(),hitSetIn);
+  vector<int> H;
+  naiveSolve(HP,H);
+  
+  TAndRef unsatCore = new TAndObj();
+  for(int k = 0; k < H.size(); ++k)
+    unsatCore->AND(atoms[H[k] - 1]);
+  return unsatCore;
+}
 
 }//end namespace tarski

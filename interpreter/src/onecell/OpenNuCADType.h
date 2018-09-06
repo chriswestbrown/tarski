@@ -510,6 +510,30 @@ public:
     if (args.size() != 3)
     {
       TFormRef F = args[0]->tar()->val;
+
+      /*//-- START: TEMP TEST
+      {
+	OpenNuCADSATSolverRef solver = new OpenNuCADSATSolverObj(F);
+	std::cout << "TEST SOLVER SAYS: " << (solver->isSATFound() ? "SAT" : "UNSAT") << std::endl;
+	if (solver->isSATFound())
+	{
+	  VarSet V = F->getVars();
+	  VarKeyedMap<GCWord> M = solver->getSatisfyingAssignment();
+	  for(auto itr = V.begin(); itr != V.end(); ++itr)
+	  {
+	    std::cout << F->getPolyManagerPtr()->getName(*itr) << " = ";
+	    RNWRITE(M[*itr]);
+	    std::cout << std::endl;
+	  }
+	}
+	else
+	{
+	  solver->getUNSATCore()->write();
+	  std::cout << std::endl;
+	}
+      }
+      //-- END  : TEMP TEST*/
+      
       // variable order
       std::vector<VarSet> X = getBrownVariableOrder(F);
       V = new VarOrderObj(interp->PM);
