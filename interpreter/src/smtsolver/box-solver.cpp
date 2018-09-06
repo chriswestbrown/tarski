@@ -35,13 +35,21 @@ BoxSolver::BoxSolver(TFormRef formula) : unsat(false), ranOnce(false), isPureCon
 
   IM = new IdxManager();
   pm = formula->getPolyManagerPtr();
-  TAndRef splitT = new TAndObj();
-  this->formula = splitT;
-  processAtoms(l1norm, splitT);
+  int s = 0;
+  bool res = doSplit(l1norm, s);
   if (unsat) return;
+  if (res) {
+    TAndRef splitT = new TAndObj();
+    processAtoms(l1norm, splitT);
+    this->formula = splitT;
+  }
+  else {
+    processAtoms(l1norm);
+    this->formula = l1norm;
+  }
   if (!isPureConj){
     S = new Solver(this);
-    listVec l = makeFormula(splitT);
+    listVec l = makeFormula(this->formula);
     S->mkProblem(l.begin(), l.end());
   }
 }
@@ -104,6 +112,8 @@ short BoxSolver::solve() {
   return (ret == l_True) ? true : false;
 }
 
+//Runs under the explicit assumtion that
+//the formula is a pure conjunction!
 bool BoxSolver::directSolve() {
   //std::cerr << "Direct solving formula\n";
   if (unsat) return false;
@@ -121,6 +131,7 @@ bool BoxSolver::directSolve() {
     OpenNuCADSATSolverRef nuCadSolver = new OpenNuCADSATSolverObj(t2);
     if (nuCadSolver->isSATFound())
       return true;
+    else return false;
   }
   //writeSimpToFile(t, t2);
   TFormRef res;
@@ -136,12 +147,58 @@ bool BoxSolver::directSolve() {
   else return true;
 }
 
+/*
+  True if we should do clause splitting
+  false otherwise
+  Returns false when the formula blow up is too large
+  For now, it is when the resulting formula would be > 50 atoms
+ */
+bool BoxSolver::doSplit(TFormRef t, int& s) {
+  switch (t->getTFType()) {
+  case TF_ATOM: {
+      TAtomRef a = asa<TAtomObj>(t);
+      if (a->getRelop() == LEOP || a->getRelop() == GEOP) {
+        s += 2;
+      }
+      if (s >= 50) return false;
+      break;
+  }
+  case TF_OR: {
+    TOrRef o = asa<TOrObj>(t);
+    for (auto itr = o->begin(); itr != o->end(); ++itr) { 
+      doSplit(*itr, s);
+      if (s >= 50) return false;
+    }
+    return true;
+  }
+  case TF_AND: {
+    TAndRef a = asa<TAndObj>(t);
+    for (auto itr = a->begin(); itr != a->end(); ++itr) {
+      doSplit(*itr, s);
+      if (s >= 50) return false;
+    }
+    return true;
+  }
+  case TF_CONST:   {
+    TConstRef C = asa<TConstObj>(formula);
+    if (C->constValue() == FALSE) unsat = true;
+    break;
+  }
+  default: {
+      throw TarskiException("Unexpected non-atom/non-and/non-or");
+    }
+  }
+  return (s >= 50) ? false : true;
+}
 
-vector<TAtomRef> splitAtom(TAtomRef t) {
+//if no splitting is done, the result is of size 1
+//else, the result is of size 2, containing the split atoms
+vector<TAtomRef> BoxSolver::splitAtom(TAtomRef t) {
   vector<TAtomRef> res;
   if (t->getFactors()->numFactors() != 1) {
     res.push_back(t); return res;
   }
+
   if (!(t->getRelop() == LEOP || t->getRelop() == GEOP)) {
     res.push_back(t); return res;
   }
@@ -154,6 +211,38 @@ vector<TAtomRef> splitAtom(TAtomRef t) {
   res.resize(2);
   res[0] = t1; res[1] = t2;
   return res;
+}
+
+void BoxSolver::processAtoms(TFormRef formula) {
+  switch (formula->getTFType()) {
+  case TF_ATOM: {
+    TAtomRef a = asa<TAtomObj>(formula);
+    if (IM->getIdx(a) == -1) {
+      IM->mkIdx(a);
+      numAtoms++;
+    }
+    break;
+  }
+  case TF_OR: {
+    TOrRef o = asa<TOrObj>(formula);
+    for (auto itr = o->begin(); itr != o->end(); ++itr) {
+      processAtoms(*itr);
+    }
+    break;
+  }
+  case TF_AND: {
+    TAndRef c = asa<TAndObj>(formula);
+    for (auto itr = c->begin(); itr != c->end(); ++itr) {
+      processAtoms(*itr);
+    }
+    break;
+  }
+  case TF_CONST:   {
+    TConstRef C = asa<TConstObj>(formula);
+    if (C->constValue() == FALSE) unsat = true;
+    break;
+  }
+  }
 }
 
 //Accesses each atom recursively
@@ -189,10 +278,9 @@ void BoxSolver::processAtoms(TFormRef formula, TFormRef out) {
       if (out->getTFType() == TF_AND) {
         TAndRef out2 = asa<TAndObj>(out);
         TOrRef split = new TOrObj();
-        out2->AND(split);
         split->OR(res[0]);
         split->OR(res[1]);
-
+        out2->AND(split);
       }
       else {
         TOrRef out2 = asa<TOrObj>(out);
@@ -217,9 +305,10 @@ void BoxSolver::processAtoms(TFormRef formula, TFormRef out) {
     //recursively access each element here of the AND block
     TAndRef res = new TAndObj();
     TAndRef C = asa<TAndObj>(formula);
-    for(set<TFormRef, ConjunctOrder>::iterator it = C->begin(); it != C->end(); ++it ) {
+    for(auto it = C->begin(); it != C->end(); ++it ) {
       if ((*it)->getTFType() == TF_OR) {
         TOrRef tmp = asa<TOrObj>(*it);
+        //to remove double brackets - jump to the inner level of brackets (AKA, when [[atom]] appears)
         if (tmp->size() == 1) {
           processAtoms(*(tmp->begin()), res);
         }
@@ -257,7 +346,7 @@ void BoxSolver::processAtoms(TFormRef formula, TFormRef out) {
     //recursively access each element here of the OR block
     TOrRef C = asa<TOrObj>(formula);
     TOrRef res = new TOrObj();
-    for (set<TFormRef, ConjunctOrder>::iterator it = C->begin(); it != C->end(); ++it ) {
+    for (auto it = C->begin(); it != C->end(); ++it ) {
       if ((*it)->getTFType() == TF_OR) {
         TOrRef tmp = asa<TOrObj>(*it);
         if (tmp->size() == 1) {
@@ -328,7 +417,6 @@ void BoxSolver::getFinalClause(vec<Lit>& lits, bool& conf) {
         return;
     }
     //END NUCAD, START QEPCAD
-
     TFormRef res;
     try {
       res = q.basicQepcadCall(exclose(tand), true);
@@ -366,6 +454,9 @@ void BoxSolver::getFinalClause(vec<Lit>& lits, bool& conf) {
 }
 
 
+/*
+  DEPRECATED
+*/
 void BoxSolver::getQEPUnsatCore(vec<Lit>& lits, vector<int> indices, TAndRef tand) {
   int curr = 0;
   unsigned int currVec = 0;
@@ -467,8 +558,7 @@ void BoxSolver::getClauseMain(vec<Lit>& lits, bool& conf) {
   }
 
   else {
-    TAndRef tand = genTAnd(getQhead());
-    if (tand->constValue() == TRUE) {
+    TAndRef tand = genTAnd(getQhead());    if (tand->constValue() == TRUE) {
       conf = false;
       return;
     }
@@ -517,6 +607,8 @@ void BoxSolver::getAddition(vec<Lit>& lits, bool& conf) {
 }
 
 //makes a proper minisat lit from an index
+//var - the index value of the atom
+//val - true, which is lFalse, or false, which is lTrue
 inline Lit BoxSolver::litFromInt(int var, bool val) {
   var = abs(var);
   Lit l = mkLit(var, val);
@@ -541,11 +633,10 @@ inline void BoxSolver::writeLearnedClause(vec<Lit>& lits) {
 void BoxSolver::constructClauses(vec<Lit>& lits, Result& r) {
   //Traceback the last result (AKA, the conflict)
   //Place it into lits
-  
-  /*
-  cout << "Conflict: "; r.write();
-  cout << "ASSIGNMENTS: "; printStack(); cout << endl;
   vector<TAtomRef> atoms = r.atoms;
+  /*
+  cout << "ASSIGNMENTS: "; printStack(); cout << endl;
+
   cout << "CONFLICT   : ";
   for (int i = 0; i < atoms.size(); i++) {
     if (atoms[i]->relop != ALOP) {
@@ -556,11 +647,12 @@ void BoxSolver::constructClauses(vec<Lit>& lits, Result& r) {
   }
   cout << endl;
   */
-
-  stack<Lit> litStack = mkClause(r);
-  while (litStack.size() > 0) {
-    lits.push(litStack.top());
-    litStack.pop();
+  for (auto itr = atoms.begin(); itr != atoms.end(); ++itr) {
+    TAtomRef t = *itr;
+    if (t->getRelop() == ALOP) continue;
+    int idx = IM->getIdx(t);
+    Lit l = litFromInt(idx, true);
+    lits.push(l);
   }
 
   /*
@@ -569,8 +661,8 @@ void BoxSolver::constructClauses(vec<Lit>& lits, Result& r) {
     write(lits[i]); cout << " ";
   }
   cout << endl;
+  writeLearnedClause(lits);
   */
-  //writeLearnedClause(lits);
   //Traceback all other learned items
   //Place them into stack "learned"
   /*

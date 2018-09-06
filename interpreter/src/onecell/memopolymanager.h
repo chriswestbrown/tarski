@@ -128,6 +128,12 @@ public:
     return D;
   }
 
+  void swap(IntPolyRef& p, IntPolyRef& q) {
+    IntPolyRef tmp = p;
+    p = q;
+    q = tmp;
+  }
+
   virtual FactRef resultantFactors(IntPolyRef p, IntPolyRef q, VarSet x)
   {
     FactRef R;

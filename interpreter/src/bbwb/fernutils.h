@@ -3,6 +3,6 @@
 #include <forward_list>
 #include <list>
 namespace tarski {
-  typedef std::unique_ptr<Minisat::vec<Minisat::Lit>> vecPtr;
-  typedef std::list<vecPtr> listVec;
+  typedef Minisat::vec<Minisat::Lit> mVec;
+  typedef std::list<mVec> listVec;
 }         

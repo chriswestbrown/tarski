@@ -121,67 +121,58 @@ namespace tarski{
     if (type == TF_AND && topLevel) {
       //This pushes the atoms directly, so that they are on decision level 0 of a DPLL Stack
       for (vector<int>::iterator itr = atoms.begin(), end = atoms.end(); itr != end; ++itr) {
-        vecPtr v(new vec<Lit>(1));
-        vec<Lit>& vv = *v.get();
         Lit p = mkLit(*itr, false);
-        vv[0] = p;
-        l.push_front(std::move(v));
+        l.emplace_front(1);
+        l.front()[0] = p;
       }
       for (vector<FormulaMaker>::iterator itr = oppNodes.begin(), end = oppNodes.end(); itr != end; ++itr) {
-        vecPtr v(new vec<Lit>(1));
-        vec<Lit>& vv = *v.get();
         Lit p = mkLit(itr->varNum, false);
-        vv[0] = p;
-        l.push_front(std::move(v));
+        l.emplace_front(1);
+        l.front()[0] = p;
       }
     }
     else if (type == TF_AND) {
       //This makes a size 2 clause for every atom, so that they are all true or the node itself is false
       for (vector<int>::iterator itr = atoms.begin(), end = atoms.end(); itr != end; ++itr) {
-        vecPtr v(new vec<Lit>(2));
-        vec<Lit>& vv = *v.get();
+
         Lit p = mkLit(*itr, false);
         Lit q = mkLit(varNum, true);
-        vv[0] = p;
-        vv[1] = q;
-        l.push_front(std::move(v));
+        l.emplace_front(2);
+        l.front()[0] = p;
+        l.front()[1] = q;
+
       }
       for (vector<FormulaMaker>::iterator itr = oppNodes.begin(), end = oppNodes.end(); itr != end; ++itr) {
-        vecPtr v(new vec<Lit>(2));
-        vec<Lit>& vv = *v.get();
+
         Lit p = mkLit(itr->varNum, false);
         Lit q = mkLit(varNum, true);
-        vv[0] = p;
-        vv[1] = q;
-        l.push_front(std::move(v));
+        l.emplace_front(2);
+        l.front()[0] = p;
+        l.front()[1] = q;
       }
     }
     else if (type == TF_OR && topLevel) {
       //This makes one big disjunct for all the topLevel atoms
-      vecPtr v(new vec<Lit>(atoms.size()));
-      vec<Lit>& vv = *v.get();
+      l.emplace_front(atoms.size());
       for (unsigned int i = 0; i < atoms.size(); i++) {
         Lit p = mkLit(atoms[i], false);
-        vv[i] = p;
+        l.front()[i] = p;
       }
-      l.push_back(std::move(v));
     }
     else if (type == TF_OR) {
       //Again, we make one big disjunct, but this time include the varNum of the node itself
-      vecPtr v(new vec<Lit>(atoms.size()+oppNodes.size()+1));
-      vec<Lit>& vv = *v.get();
+      l.emplace_front(atoms.size()+oppNodes.size()+1);
       unsigned int i, j;
       for (i = 0; i < atoms.size(); i++) {
         Lit p = mkLit(atoms[i], false);
-        vv[i] = p;
+        l.front()[i] = p;
       }
       for (j = 0; j < oppNodes.size(); j++) {
         Lit p = mkLit(oppNodes[j].varNum, false);
-        vv[i+j] = p;
+        l.front()[i+j] = p;
       }
       Lit p = mkLit(varNum, true);
-      vv[i+j] = p;
-      l.push_back(std::move(v));
+      l.front()[i+j] = p;
     }
 
     for (auto itr = oppNodes.begin(); itr != oppNodes.end(); ++itr) {

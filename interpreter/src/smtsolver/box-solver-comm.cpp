@@ -42,11 +42,14 @@ namespace tarski {
     high_resolution_clock::time_point t2 = high_resolution_clock::now();
     if (err.size() == 0) {
       if (time) {
+        LisRef l = new LisObj();
         duration<double> time_span = duration_cast<duration<double>>(t2 - t1);
         std::ostringstream strs;
         strs << std::fixed << std::setprecision(16) << time_span.count();
         std::string str = strs.str();
-        return new StrObj(str);
+        l->push_back(new StrObj((res == true) ? "SATISFIABLE" : "UNSAT"));
+        l->push_back(new StrObj(str));
+        return l;
       }
       return new StrObj((res == true) ? "SATISFIABLE" : "UNSAT");
     }

@@ -24,7 +24,8 @@ namespace tarski {
         res = q.basicQepcadCall(exclose(tand), true);
       }
       catch (TarskiException& e) {
-        throw TarskiException("QEPCAD timed out");
+        throw TarskiException("QEPCAD failure on "  + toString(tand) +  \
+                              ".\nErr: " + e.what());
       }
       if (res->constValue() == 0) {
         conf = true;
@@ -48,8 +49,8 @@ namespace tarski {
         res = q.basicQepcadCall(exclose(formula), true);
       }
       catch (TarskiException& e) {
-        throw TarskiException("QEPCAD timed out");
-
+        throw TarskiException("QEPCAD failure on "  + toString(formula) +  \
+                              ".\nErr: " + e.what());
       }
       if (res->constValue() == 0) return false;
       else return true;

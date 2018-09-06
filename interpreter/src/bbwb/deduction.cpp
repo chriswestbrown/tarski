@@ -5,7 +5,7 @@
 
 namespace tarski {
 
-
+  
 #define C_ITR const_iterator
 #define ITR iterator
 
@@ -503,11 +503,11 @@ namespace tarski {
     int idx = searchMap(t);
     if (idx != -1) {
       if (isGiven[idx]) {
-        cout << "t has no explanation as it is given! " + toString(t) << endl;
+        //cout << "t has no explanation as it is given! " + toString(t) << endl;
         Result r( {t} );
         return r;
       }
-      cout << "t has an explanation - not given! " + toString(t) << endl;
+      //cout << "t has an explanation - not given! " + toString(t) << endl;
       return traceBack(idx);
     }
     Result r;
@@ -546,23 +546,36 @@ namespace tarski {
   void DedManager::solveSAT(listVec& asSat, TAndRef& t, set<int>& skips, vector<size_t>& indices) {
     vector<char> elim(deds.size(), false);
     int numElim = 0;
+
     for (int i = indices.size()-1; i >= 0; i--) {
+      set<int> appears;
+      for (auto itr = asSat.begin(); itr != asSat.end(); ++itr) {
+        for (int i = 0; i < itr->size(); i++) {
+          appears.insert(var((*itr)[i]));
+        }
+      }
       int toRemove = indices[i];
       if (skips.find(toRemove) != skips.end()) continue;
+
       Minisat::vec<Minisat::Lit> s(deds.size()-numElim);
       int j = 0;
       for (size_t i = 0; i < deds.size(); i++) {
+        if (appears.find(i) == appears.end()) continue;
         if (elim[i])  continue;
         else if (i == toRemove) s[j] = Minisat::mkLit(i+1, true);
         else s[j] = Minisat::mkLit(i+1);
         j++;
       }
       Minisat::Solver S;
-      //cout << "\nSAT CHECK: " << toString(deds[toRemove]->getDed()) << endl;
-      //writeSatProblem(asSat);
-      //for (int i = 0; i < s.size(); i++) {
-      // write(s[i]); cout << " ";
-      //}
+      /*
+      //cout << "\nSAT CHECK: " << toString(deds[toRemove].getDed()) << endl;
+      writeSatProblem(asSat);
+      cout << "S: ";
+      for (int i = 0; i < s.size(); i++) {
+       write(s[i]); cout << " ";
+      }
+      cout << endl;
+      */
       S.mkProblem(asSat.begin(), asSat.end());
       Minisat::lbool ret = S.solveLimited(s);
       if (ret == Minisat::toLbool(1)) {
@@ -574,10 +587,13 @@ namespace tarski {
       }
       else {
         for (size_t i = 0; i < depIdxs[toRemove].size(); i++) {
-          //cout << "\nUNSAT\n";
-          vecPtr vv = std::move(asSat.front());
+          //a stupid way to get around minisats restriction on
+          //copy constructors and =
+          asSat.emplace_back(asSat.front().size());
+          for (int i = 0; i < asSat.front().size(); i++) {
+            asSat.back()[i] = asSat.front()[i];
+          }
           asSat.pop_front();
-          asSat.push_back(std::move(vv));
           if (!deds[toRemove].getDed()->getFactors()->isConstant())
             t->AND(deds[toRemove].getDed());
           simpIdx.push_back(toRemove);
@@ -641,17 +657,15 @@ namespace tarski {
     the relevant SAT problem (which is constructed by setting that deduction's
     index to false) solves to false.
    */
-  DedManager::listVec DedManager::genSatProblem(TAndRef& t, set<int>& skips,
+  listVec DedManager::genSatProblem(TAndRef& t, set<int>& skips,
                                                 vector<size_t>& order) {
     listVec lv;
     for (size_t i = 0; i < order.size(); i++) {
       int idx = order[i];
       if (depIdxs[idx].size() == 0) {
         t->AND(deds[idx].getDed());
-        vecPtr v (new Minisat::vec<Minisat::Lit>(1));
-        Minisat::vec<Minisat::Lit>& vv = *v.get();
-        vv[0] = Minisat::mkLit(idx+1);
-        lv.push_back(std::move(v));
+        lv.emplace_front(1);
+        lv.front()[0] = Minisat::mkLit(idx+1);
         skips.insert(idx);
         simpIdx.push_back(idx);
         continue;
@@ -665,17 +679,15 @@ namespace tarski {
       for (list<set<int>>::iterator itr = depIdxs[idx].begin();
            itr != depIdxs[idx].end(); ++itr) {
         int s = itr->size()+1;
-        vecPtr v(new Minisat::vec<Minisat::Lit>(s));
-        Minisat::vec<Minisat::Lit>& vv = *v.get();
+        lv.emplace_front(s);
         int j = 0;
         for (set<int>::iterator sItr = itr->begin();
              sItr != itr->end(); ++sItr) {
           Minisat::Lit p = Minisat::mkLit(*sItr+1, true);
-          vv[j] = p;
+          lv.front()[j] = p;
           j++;
         }
-        vv[j] = Minisat::mkLit(idx+1);
-        lv.push_front(std::move(v));
+        lv.front()[j] = Minisat::mkLit(idx+1);
       }
     }
     return lv;
@@ -686,8 +698,8 @@ namespace tarski {
 
   void DedManager::writeSatProblem(listVec& lv) {
     cout << "SAT PROBLEM:\n";
-    for (listVec::iterator itr = lv.begin(); itr != lv.end(); ++itr) {
-      Minisat::vec<Minisat::Lit>& vv = *(*itr).get();
+    for (auto itr = lv.begin(); itr != lv.end(); ++itr) {
+      Minisat::vec<Minisat::Lit>& vv = *itr;
       for (int i = 0; i < vv.size(); i++) {
         write(vv[i]); cout << " ";
       }

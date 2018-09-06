@@ -17,6 +17,7 @@
 #include "../poly/poly.h"
 #include "../formrepconventions.h"
 #include "fern-poly-iter.h"
+#include "fernutils.h"
 
 
 //TODO: Simplification, and the data structures which support it,
@@ -24,8 +25,7 @@
 
 namespace tarski {
 
-  const int PSGN =  0;
-  const int DEDSGN = 1;
+
   /*
     Using Rounds to determine UNSAT:
     Rounds store a list of dependencies and a VarSet
@@ -58,6 +58,8 @@ namespace tarski {
     }
 
   public:
+    //codes for each deduction type
+    //insantiated in deduction.cpp
     const static int GIVEN;
     const static int COMBO;
     const static int BBSTR;
@@ -71,7 +73,7 @@ namespace tarski {
     inline bool isUnsat() const { return unsat; }
     inline TAtomRef getDed() const { return deduction; }
     inline string toString() {
-      cout << *name << ": " + tarski::toString(deduction);
+      return *name + ": " + tarski::toString(deduction);
     }
     virtual ~Deduction() {}
     Deduction(TAtomRef t, short code) : unsat(false) {
@@ -92,10 +94,16 @@ namespace tarski {
   struct DedExp {
     Deduction d;
     forward_list<TAtomRef> exp;
+    //constructor with an existing deduction
     DedExp(const Deduction& D, const forward_list<TAtomRef>& EXP)
       : d(D), exp(EXP) {};
+    //build a deduction + explanation
+    //the deduction is represented by t
+    //the code is one of the above deduction codes
+    // the explantion is EXP
     DedExp(TAtomRef t, int code, const forward_list<TAtomRef>& EXP)
       : d(t, code), exp(EXP) {}
+    //build a deduction which is UNSAT, and an explanation
     DedExp(int code, const forward_list<TAtomRef>& EXP)
       : d(code), exp(EXP) {}
     DedExp() {};
@@ -181,8 +189,6 @@ namespace tarski {
         });
       return idx;
     }
-    typedef std::unique_ptr<Minisat::vec<Minisat::Lit>> vecPtr;
-    typedef std::list<vecPtr> listVec;
     listVec genSatProblem(TAndRef& t, set<int>& skips, vector<size_t>&);
     void writeSatProblem(listVec& lv);
     void solveSAT(listVec& lv, TAndRef& t, set<int>& skips,

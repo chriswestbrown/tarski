@@ -16,9 +16,10 @@ namespace tarski {
     DedManager * dedM;
     
   public:
+
+    virtual ~QuickSolver() {};
     //use this method to have the solve rmake a single deduction
     //res set to false when no deduction can be made
-    virtual ~QuickSolver() {};
     virtual DedExp deduce(TAndRef t, bool& res) = 0;
     //use to notify the solver if the last deduction taught something new
     //notify is called by solvermanager when the deduction manager

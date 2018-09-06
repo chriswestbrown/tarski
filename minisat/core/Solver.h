@@ -45,7 +45,12 @@ namespace Minisat {
     //Fernando
     void printDataToFile(std::string);
     void mkProblem(const std::vector<std::vector<Lit> >& problem);
+    //when you don't care about the data structure being modified
     template<class iterator_type> void mkProblem(iterator_type begin,
+                                                 iterator_type end);
+    //when you DO care about the data structure being modified
+    //makes copies, so less efficient!
+    template<class iterator_type> void mkProblemRepeat(iterator_type begin,
                                                  iterator_type end);
     //End Fernando
     
@@ -300,15 +305,32 @@ namespace Minisat {
 
   //Fernando Code
 
+  /*
+    Assumes the iterators are to a container of
+    unique_ptr<Minisat::vec<Lit> >
+   */
   template<class iterator_type> void Solver::mkProblem(iterator_type itr,
                                                iterator_type end) {
     while (itr != end) {
-      Minisat::vec<Minisat::Lit>& vp = *(*itr).get();
-      for (int i = 0; i < (*itr)->size(); i++) {
+      vec<Lit>& vp = *itr;
+      for (int i = 0; i < vp.size(); i++) {
         Var v = var(vp[i]);
         while (v >= nVars()) newVar();
       }
       addClause_(vp);
+      ++itr;
+    }
+  }
+
+  template<class iterator_type> void Solver::mkProblemRepeat(iterator_type itr,
+                                                       iterator_type end) {
+    while (itr != end) {
+      vec<Lit>& vp = *itr;
+      for (int i = 0; i < vp.size(); i++) {
+        Var v = var(vp[i]);
+        while (v >= nVars()) newVar();
+      }
+      addClause(vp);
       ++itr;
     }
   }

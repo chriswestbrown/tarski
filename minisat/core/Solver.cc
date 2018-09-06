@@ -744,6 +744,7 @@ int Solver::getLastSatisfying() {
   Prints the contents of the clause database
  */
 void Solver::printData() {
+  std::cout << "Stack: "; ts->printStack(); std::cout << "\n";
   std::cout << "\nClauses:\n";
 
   for (int i = 0; i < clauses.size(); i++) {
@@ -812,14 +813,12 @@ void Solver::printDataToFile(std::string fname) {
   //NOTE: Fernando Function
  */
 bool Solver::isConflict(const vec<Lit>& lits) {
-  bool val = true;
   for (int i = 0; i < lits.size(); i++) {
     //std::cout << "Checking " << var(lits[i]) << std::cout << std::endl;
     int v = var(lits[i]);
-    while (v >= nVars()) newVar();
-    if (value(lits[i]) != l_False) val = false;
+    if (value(lits[i]) == l_False) return true;
   }
-  return val;
+  return false;
 }
 
 /*
@@ -860,25 +859,24 @@ lbool Solver::addTheoryClause(bool fin) { //-- Fernando function
     //pop everything off the stack
     //then push the opposite sign onto the stack
     if (lits.size() == 1) {
-      if (decisionLevel() == 0 || isConflict(lits)){
+      if (decisionLevel() == 0 && isConflict(lits)){
         ok = false;
         return l_False;
       }
-
       cancelUntil(0); //cancel until root level
       uncheckedEnqueue(lits[0]);
       return l_True;
     }
 
     if (isConflict(lits) == false){
-      return l_True;
+      return l_Undef;
     }
 
     lbool res = learnTheoryClause(lits);
     if (res == l_False) return l_False;
     //lbool res2 = addAdditions();
-    //if (res2 == l_False) return l_False;
-    return l_True;
+      //if (res2 == l_False) return l_False;
+      return l_True;
   }
 
 }
@@ -1049,6 +1047,7 @@ lbool Solver::search(int nof_conflicts)
       next = lit_Undef;
       while (decisionLevel() < assumptions.size()){
         // Perform user provided assumption:
+
         Lit p = assumptions[decisionLevel()];
         if (value(p) == l_True){
           // Dummy decision level:

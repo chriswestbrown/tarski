@@ -70,6 +70,7 @@ namespace tarski {
     int classifyConj(TAndRef T);
 
 
+
     std::vector<Minisat::Lit> lastVec;
     bool compareVecs(Minisat::vec<Minisat::Lit>&);
 
@@ -79,7 +80,12 @@ namespace tarski {
     //this is all the necessary implication clauses as well as whats learned by BB/WB that's not the conflict
     void writeLearnedClause(Minisat::vec<Minisat::Lit>& lits);
 
+    bool doSplit(TFormRef T, int& s);
+    vector<TAtomRef> splitAtom(TAtomRef t);
     //Processes a formula and assigns indices to all the atoms
+    //the first version is non clause splitting
+    //the second is
+    void processAtoms(tarski::TFormRef formula);
     void processAtoms(tarski::TFormRef formula, tarski::TFormRef out);
     //Called when a conflict is discovered to translate the reason,
     //which is in tarski formula objects,
