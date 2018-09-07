@@ -134,16 +134,13 @@ namespace tarski{
     else if (type == TF_AND) {
       //This makes a size 2 clause for every atom, so that they are all true or the node itself is false
       for (vector<int>::iterator itr = atoms.begin(), end = atoms.end(); itr != end; ++itr) {
-
         Lit p = mkLit(*itr, false);
         Lit q = mkLit(varNum, true);
         l.emplace_front(2);
         l.front()[0] = p;
         l.front()[1] = q;
-
       }
       for (vector<FormulaMaker>::iterator itr = oppNodes.begin(), end = oppNodes.end(); itr != end; ++itr) {
-
         Lit p = mkLit(itr->varNum, false);
         Lit q = mkLit(varNum, true);
         l.emplace_front(2);
@@ -158,6 +155,7 @@ namespace tarski{
         Lit p = mkLit(atoms[i], false);
         l.front()[i] = p;
       }
+      cout << endl;
     }
     else if (type == TF_OR) {
       //Again, we make one big disjunct, but this time include the varNum of the node itself

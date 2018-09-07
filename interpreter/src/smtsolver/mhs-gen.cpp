@@ -165,7 +165,7 @@ namespace tarski {
 
 
 
-  MHSGenerator::MHSGenerator(listVec& form, int maxForm) : maxFormula(maxForm+1) {
+  MHSGenerator::MHSGenerator(listVec& form, int maxForm) : maxFormula(maxForm) {
     for (auto itr = form.begin(); itr != form.end(); ++itr) {
       //For clauses of size 1, that variable must always be true
       if (itr->size() == 1) {

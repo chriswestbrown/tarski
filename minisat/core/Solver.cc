@@ -849,21 +849,21 @@ lbool Solver::addTheoryClause(bool fin) { //-- Fernando function
       if (v >= nVars()) newVar();
     }
     /*
-    std::cout << "MINISAT RECEIVES: ";
+    std::cerr << "MINISAT RECEIVES: ";
     for (int i = 0; i < lits.size(); i++) {
       write(lits[i]); std::cout << " ";
     }
-    std::cout << std::endl;
+    std::cerr << std::endl;
     */
     //to add clause of size 1
     //pop everything off the stack
     //then push the opposite sign onto the stack
     if (lits.size() == 1) {
-      if (decisionLevel() == 0 && isConflict(lits)){
+      cancelUntil(0); //cancel until root level
+      if (isConflict(lits)){
         ok = false;
         return l_False;
       }
-      cancelUntil(0); //cancel until root level
       uncheckedEnqueue(lits[0]);
       return l_True;
     }
@@ -987,13 +987,22 @@ lbool Solver::search(int nof_conflicts)
         ts != NULL) {
       lbool lb = addTheoryClause(false);
       //printData();
-      if (lb == l_False){ ok = false; return lb; }
-      if (lb == l_True) continue;
+      if (lb == l_False){
+        ok = false;
+        //std::cerr << "TCONFLICT\n";
+        return lb;
+      }
+      if (lb == l_True)  {
+        continue;
+        //std::cerr << "NO TCONFLICT\n";
+      }
+      //std::cerr << "NOTHING DONE\n";
     }
 
 
     if (confl != CRef_Undef){
       // CONFLICT_MARK
+      //std::cerr << "CONFLICT!!!!\n";
       conflicts++; conflictC++;
       Clause& c = ca[confl];
       if (decisionLevel() == 0) return l_False;
@@ -1068,6 +1077,7 @@ lbool Solver::search(int nof_conflicts)
 
         if (next == lit_Undef){
           // Model found: But we have to do a check with the theory solver
+          //std::cerr << "MODEL FOUND\n";
           if (ts != NULL) {
             lbool lb = addTheoryClause(true);
             //printData();
@@ -1078,10 +1088,12 @@ lbool Solver::search(int nof_conflicts)
         }
       }
 
-      //cout << "Decided "; if (sign(next) != false) cout << "-"; cout << var(next)+1 << endl;
+      //std::cerr << "Decided "; write(next); std::cerr << std::endl;
       // Increase decision level and enqueue 'next'
+      //printData();
       newDecisionLevel();
       uncheckedEnqueue(next);
+      //std::cerr << "-----------------------------------\n";
     }
   }
 }

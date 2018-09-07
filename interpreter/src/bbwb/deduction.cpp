@@ -226,6 +226,7 @@ namespace tarski {
     if (idxs.empty() || idxs.find(atomToDed[d.getDed()]) != idxs.end()){
       return;
     }
+    DedExp e(d, dl);
     int idx = atomToDed[d.getDed()];
     checkAdd(idxs, idx);
   }

@@ -26,7 +26,7 @@ using namespace std;
   Initializes the index manager on the split L1 normalized formula
   Constructs a Minisat Solver if the formula is NOT a pure conjuction
  */
-BoxSolver::BoxSolver(TFormRef formula) : unsat(false), ranOnce(false), isPureConj(true), numAtoms(-1), limit(5), count(0) {
+BoxSolver::BoxSolver(TFormRef formula) : unsat(false), ranOnce(false), M(NULL), isPureConj(true), numAtoms(0), limit(5), count(0) {
   Normalizer* p = new Level1();
   RawNormalizer R(*p);
   R(formula);
@@ -36,6 +36,13 @@ BoxSolver::BoxSolver(TFormRef formula) : unsat(false), ranOnce(false), isPureCon
   IM = new IdxManager();
   pm = formula->getPolyManagerPtr();
   int s = 0;
+  if (l1norm->getTFType() == TF_CONST) {
+    TConstRef C = asa<TConstObj>(l1norm);
+    if (C->constValue() == FALSE) {
+      unsat = true;
+      return;
+    }
+  }
   bool res = doSplit(l1norm, s);
   if (unsat) return;
   if (res) {
@@ -47,10 +54,20 @@ BoxSolver::BoxSolver(TFormRef formula) : unsat(false), ranOnce(false), isPureCon
     processAtoms(l1norm);
     this->formula = l1norm;
   }
+  //cerr << "The orig formula is " << toString(l1norm) << endl;
+  //cerr << "Formula to solve is " << toString(this->formula) << endl;
   if (!isPureConj){
     S = new Solver(this);
     listVec l = makeFormula(this->formula);
-    if (numAtoms > 5) M = new MHSGenerator(l, numAtoms);
+    /*
+    for (auto itr = l.begin(); itr != l.end(); ++itr) {
+      for (int i = 0; i < itr->size(); i++) {
+        write((*itr)[i]); cerr << " ";
+      }
+      cerr << endl;
+    }
+    */
+    M = (numAtoms > 5) ? M = new MHSGenerator(l, numAtoms) : NULL;
     S->mkProblem(l.begin(), l.end());
   }
 }
@@ -62,6 +79,7 @@ BoxSolver::~BoxSolver() {
   }
   if (ranOnce)
     delete SM;
+  if (M != NULL) delete M;
 }
 
 
@@ -151,7 +169,7 @@ bool BoxSolver::directSolve() {
 /*
   True if we should do clause splitting
   false otherwise
-  Returns false when the formula blow up is too large
+ Returns false when the formula blow up is too large
   For now, it is when the resulting formula would be > 50 atoms
  */
 bool BoxSolver::doSplit(TFormRef t, int& s) {
@@ -403,7 +421,7 @@ int BoxSolver::classifyConj(TAndRef T) {
 TAndRef BoxSolver::genMHS() {
   TAndRef tand = new TAndObj();
   vector<Lit> res = M->genMHS(getTrail());
-  for (vector<Lit>::iterator itr = res.begin(); itr != res.end(); ++itr) {
+  for (auto itr = res.begin(); itr != res.end(); ++itr) {
     Lit p = *itr;
     if (sign(p) == true) continue;
     int v = var(p);
@@ -419,14 +437,17 @@ TAndRef BoxSolver::genMHS() {
 
 //This method is used to verify the complete solution with CAD
 void BoxSolver::getFinalClause(vec<Lit>& lits, bool& conf) {
-
+  conf = false;
   if (M != NULL) {
     if (ranOnce) delete SM;
+    TAndRef t = genMHS();
+    //cerr << "getFinalClause: " << toString(t) << endl;
     SM = new SolverManager(SolverManager::BB |
-                         SolverManager::WB |
-                         SolverManager::SS, genMHS());
+                           SolverManager::WB |
+                           SolverManager::SS, t);
     Result res = SM->deduceAll();
     if (SM->isUnsat()) {
+      //std::cerr << "UNSAT DETECTED\n";
       constructClauses(lits, res);
       conf = true;
       return;
@@ -439,6 +460,7 @@ void BoxSolver::getFinalClause(vec<Lit>& lits, bool& conf) {
   if (conf == false) {
     QepcadConnection q;
     TAndRef tand = SM->simplify();
+    //std::cerr << "SIMPLIFIED: " << toString(tand) << endl;
     if (tand->constValue() == 1) return;
 
     //NUCAD
@@ -449,6 +471,25 @@ void BoxSolver::getFinalClause(vec<Lit>& lits, bool& conf) {
       OpenNuCADSATSolverRef nuCadSolver = new OpenNuCADSATSolverObj(tand);
       if (nuCadSolver->isSATFound())
         return;
+      else {
+        conf = true;
+        //std::cerr << "NUCAD UNSAT DETECTED\n";
+        TAndRef t = nuCadSolver->getUNSATCore();
+        std::set<TAtomRef> allAtoms;
+        for (auto itr = t->begin(); itr != t->end(); ++itr) {
+          TAtomRef A = asa<TAtomObj>(*itr);
+          Result r = SM->explainAtom(A);
+          for (auto atom = r.atoms.begin(); atom != r.atoms.end(); ++atom) {
+            if (allAtoms.find(*atom) == allAtoms.end()) {
+              allAtoms.insert(*atom);
+              int varNum = IM->getIdx(*atom);
+              Lit l = litFromInt(varNum, true);
+              lits.push(l);
+            }
+          }
+        }
+        return;
+      }
     }
     //END NUCAD, START QEPCAD
     TFormRef res;
@@ -462,6 +503,7 @@ void BoxSolver::getFinalClause(vec<Lit>& lits, bool& conf) {
     std::set<TAtomRef> allAtoms;
     if (res->constValue() == 0) {
       conf = true;
+      //std::cerr << "QEPCAD UNSAT DETECTED\n";
       vector<int> core = q.getUnsatCore();
       sort(core.begin(), core.end());
       int currAtom = 0, curr = 0;
@@ -470,8 +512,7 @@ void BoxSolver::getFinalClause(vec<Lit>& lits, bool& conf) {
           curr++;
           TAtomRef A = asa<TAtomObj>(*begin);
           Result r = SM->explainAtom(A);
-          for (std::vector<TAtomRef>::iterator atom = r.atoms.begin();
-               atom != r.atoms.end(); ++atom) {
+          for (auto atom = r.atoms.begin(); atom != r.atoms.end(); ++atom) {
             if (allAtoms.find(*atom) == allAtoms.end()) {
               allAtoms.insert(*atom);
               int varNum = IM->getIdx(*atom);
@@ -673,15 +714,15 @@ void BoxSolver::constructClauses(vec<Lit>& lits, Result& r) {
   /*
   cout << "ASSIGNMENTS: "; printStack(); cout << endl;
 
-  cout << "CONFLICT   : ";
+  cerr << "CONFLICT   : ";
   for (int i = 0; i < atoms.size(); i++) {
     if (atoms[i]->relop != ALOP) {
       atoms[i]->write();
-      cout << "(" << IM->getIdx(atoms[i]) <<  ")";
-      if (i != atoms.size()-1) cout << " /\\ ";
+      cerr << "(" << IM->getIdx(atoms[i]) <<  ")";
+      if (i != atoms.size()-1) cerr << " /\\ ";
     }
   }
-  cout << endl;
+  cerr << endl;
   */
   for (auto itr = atoms.begin(); itr != atoms.end(); ++itr) {
     TAtomRef t = *itr;

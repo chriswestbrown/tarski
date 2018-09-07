@@ -88,11 +88,23 @@ public:
             std::ostringstream strs;
             strs << std::fixed << std::setprecision(16) << time_span.count();
             std::string str = strs.str();
-            return new StrObj(str);
+            LisRef l = new LisObj();
+            if (F2->getTFType() == TF_CONST) {
+              if (F2->constValue() == TRUE)
+                l->push_back(new StrObj("SATISFIABLE"));
+              else
+                l->push_back(new StrObj("UNSAT"));
+            }
+            else if (res->constValue() == TRUE)
+              l->push_back(new StrObj("SATISFIABLE"));
+            else
+              l->push_back(new StrObj("UNSAT"));
+            l->push_back(new StrObj(str));
+            return l;
           }
           if (F2->getTFType() == TF_CONST) {
             return (F2->constValue() == TRUE)
-              ? new SymObj("SAT BY L1 NORMALIZATION")
+              ? new SymObj("SATISFIABLE BY L1 NORMALIZATION")
               : new SymObj("UNSAT BY L1 NORMALIZATION");
           }
           else if (res->constValue() == TRUE) {
@@ -127,7 +139,13 @@ public:
             std::ostringstream strs;
             strs << std::fixed << std::setprecision(16) << time_span.count();
             std::string str = strs.str();
-            return new StrObj(str);
+            LisRef l = new LisObj();
+            if (res->constValue() == TRUE)
+              l->push_back(new StrObj("SATISFIABLE"));
+            else
+              l->push_back(new StrObj("UNSAT"));
+            l->push_back(new StrObj(str));
+            return l;
           }
           if (res->constValue() == TRUE) {
             std::string w = qconn.samplePointPrettyPrint(getPolyManagerPtr());
