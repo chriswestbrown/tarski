@@ -401,15 +401,16 @@ namespace tarski {
         return newRes;
       }
       else {
-        //We want to reject deductions of the form 0 = 0, becuase we dont need to remove constsants
+        //We want to reject deductions of the form 0 = 0, becuase we dont need to remove constants
         //std::cerr << "Is the form " << toString(substituted) << endl;
         if (substituted->getRelop() == EQOP && substituted->getFactors()->isConstant() == 1 && substituted->getFactors()->isZero()) {
           continue;
         }
 
+        //DR BROWN THINKS IM WRONG
         //This represents that something has been simplified out to a constant
         if (normalized->begin() == normalized->end()) {
-          forward_list<TAtomRef> tmp;
+          forward_list<TAtomRef> tmp(source);
           tmp.emplace_front(substituted);
           res.emplace_front(substituted, Deduction::SUBST, source);
           res.emplace_front(atom, Deduction::SUBST, tmp);
@@ -419,7 +420,7 @@ namespace tarski {
         for (TAndObj::conjunct_iterator itr = normalized->begin();
              itr != normalized->end(); ++itr) {
           TAtomRef out = asa<TAtomObj>(*itr);
-          forward_list<TAtomRef> tmp;
+          forward_list<TAtomRef> tmp(source);
           tmp.emplace_front(out);
           res.emplace_front(out, Deduction::SUBST, source);
           res.emplace_front(atom, Deduction::SUBST, tmp);

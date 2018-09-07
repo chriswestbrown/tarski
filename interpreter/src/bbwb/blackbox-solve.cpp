@@ -380,7 +380,9 @@ namespace tarski {
         //Equivalence case - we need to identify that
         //x = 0 implies y*x <= 0 explicitly
         if (t->getRelop() == EQOP) {
-          forward_list<TAtomRef> fl({t});
+          //DR BROWN THINKS IM WRONG
+          forward_list<TAtomRef> fl(sources);
+          fl.push_front(t);
           deds.emplace_back(a.atom, Deduction::MINWT, fl);
         }
       }
@@ -511,6 +513,11 @@ namespace tarski {
         deds.emplace_back(*itr);
       }
       deds.emplace_back(t, Deduction::BBCOM, proof);
+      //EQUIVALNCE
+      //DR BROWN THINKS IM WRONG
+      forward_list<TAtomRef> tmp(proof);
+      tmp.push_front(t);
+      deds.emplace_back(orig, Deduction::BBCOM, tmp);
     }
   }
 
