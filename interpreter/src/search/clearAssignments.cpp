@@ -401,6 +401,12 @@ namespace tarski {
         return newRes;
       }
       else {
+        //We want to reject deductions of the form 0 = 0, becuase we dont need to remove constsants
+        //std::cerr << "Is the form " << toString(substituted) << endl;
+        if (substituted->getRelop() == EQOP && substituted->getFactors()->isConstant() == 1 && substituted->getFactors()->isZero()) {
+          continue;
+        }
+
         //This represents that something has been simplified out to a constant
         if (normalized->begin() == normalized->end()) {
           forward_list<TAtomRef> tmp;
