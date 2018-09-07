@@ -410,7 +410,8 @@ namespace tarski {
         //DR BROWN THINKS IM WRONG
         //This represents that something has been simplified out to a constant
         if (normalized->begin() == normalized->end()) {
-          forward_list<TAtomRef> tmp(source);
+          auto itr = source.begin(); ++itr;
+          forward_list<TAtomRef> tmp(itr, source.end());
           tmp.emplace_front(substituted);
           res.emplace_front(substituted, Deduction::SUBST, source);
           res.emplace_front(atom, Deduction::SUBST, tmp);

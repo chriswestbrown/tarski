@@ -381,8 +381,7 @@ namespace tarski {
         //x = 0 implies y*x <= 0 explicitly
         if (t->getRelop() == EQOP) {
           //DR BROWN THINKS IM WRONG
-          forward_list<TAtomRef> fl(sources);
-          fl.push_front(t);
+          forward_list<TAtomRef> fl({t});
           deds.emplace_back(a.atom, Deduction::MINWT, fl);
         }
       }
@@ -497,7 +496,7 @@ namespace tarski {
     TAtomRef t = M->mkNonStrictAtom(row, res);
     if (!res) return;
     forward_list<TAtomRef> proof;
-    proof.push_front(orig);
+
     forward_list<DedExp> backup;
     for (size_t i = 0; i < sources.size(); i++) {
       //NOTE: This line may be dangerous
@@ -508,6 +507,7 @@ namespace tarski {
       backup.emplace_front(M->getMeaning(sources[i]),
                            Deduction::BBSTR, M->explainMeaning(sources[i]));
     }
+    proof.push_front(orig);
     if (!equals(t, proof.front())) {
       for (auto itr = backup.begin(); itr != backup.end(); ++itr) {
         deds.emplace_back(*itr);
@@ -515,7 +515,10 @@ namespace tarski {
       deds.emplace_back(t, Deduction::BBCOM, proof);
       //EQUIVALNCE
       //DR BROWN THINKS IM WRONG
-      forward_list<TAtomRef> tmp(proof);
+
+      //removing orig
+      auto begin = proof.begin(); ++begin;
+      forward_list<TAtomRef> tmp(begin, proof.end());
       tmp.push_front(t);
       deds.emplace_back(orig, Deduction::BBCOM, tmp);
     }
