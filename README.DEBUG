@@ -1,0 +1,28 @@
+Debugging SACLIB Applications
+
+A. BACKGROUND
+   SACLIB is a very old computer algebra system.  Its garbage
+   collection system is based, fundamentally, on a bit of a
+   hack.  The stack contents are scanned for any value that
+   *might* be a list handle, and all such values are assumed
+   to *be* list handles.  This has the unfortunate consequence
+   that, when the stack contains uninitialized values and there
+   is a garbage collection, uninitialized data gets read and
+   jumps based on those values are made.  It's OK, since the
+   only real effect is that the garbage collector is more
+   conservative than it needs to be.  However, if you use
+   Valgrind, you will see tons of spurrious errors that drown
+   out the ones you care about.
+
+B. SOLUTION
+   So to use Valgrind, you should make use of the saclib.supp
+   "suppression file", which will tell Valgrind to suppress the
+   messages associated with these errors.  If $TARSKI is the
+   root of your tarski installation, you would call Valgrind on
+   tarski like this:
+
+   valgrind --suppressions=$TARSKI/saclib.supp $TARSKI/bin/tarski 
+
+   This way, messages for errors of this kind are suppressed,
+   while messages for other errors are shown.
+   
