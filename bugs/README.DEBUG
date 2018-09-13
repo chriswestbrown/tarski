@@ -21,7 +21,7 @@ B. SOLUTION
    root of your tarski installation, you would call Valgrind on
    tarski like this:
 
-   valgrind --suppressions=$TARSKI/saclib.supp $TARSKI/bin/tarski 
+   valgrind --suppressions=$TARSKI/bugs/saclib.supp $TARSKI/bin/tarski 
 
    This way, messages for errors of this kind are suppressed,
    while messages for other errors are shown.
