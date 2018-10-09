@@ -365,7 +365,7 @@ bool equals(TAtomRef A, TAtomRef B)
     ++itrA;
     ++itrB;
   }
-  return false;
+  return true;
 
 }
 }//end namespace tarski
