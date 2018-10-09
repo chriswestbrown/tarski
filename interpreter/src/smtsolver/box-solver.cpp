@@ -35,7 +35,6 @@ BoxSolver::BoxSolver(TFormRef formula) : unsat(false), ranOnce(false), M(NULL), 
 
   IM = new IdxManager();
   pm = formula->getPolyManagerPtr();
-  int s = 0;
   if (l1norm->getTFType() == TF_CONST) {
     TConstRef C = asa<TConstObj>(l1norm);
     if (C->constValue() == FALSE) {
@@ -43,6 +42,7 @@ BoxSolver::BoxSolver(TFormRef formula) : unsat(false), ranOnce(false), M(NULL), 
       return;
     }
   }
+  int s = 0;
   bool res = doSplit(l1norm, s);
   if (unsat) return;
   if (res) {
@@ -54,8 +54,8 @@ BoxSolver::BoxSolver(TFormRef formula) : unsat(false), ranOnce(false), M(NULL), 
     processAtoms(l1norm);
     this->formula = l1norm;
   }
-  //cerr << "The orig formula is " << toString(l1norm) << endl;
-  //cerr << "Formula to solve is " << toString(this->formula) << endl;
+  cerr << "The orig formula is " << toString(l1norm) << endl;
+  cerr << "Formula to solve is " << toString(this->formula) << endl;
   if (!isPureConj){
     S = new Solver(this);
     listVec l = makeFormula(this->formula);
@@ -173,20 +173,21 @@ bool BoxSolver::directSolve() {
   For now, it is when the resulting formula would be > 50 atoms
  */
 bool BoxSolver::doSplit(TFormRef t, int& s) {
+  const int threshold = 50000000; //fernando set to 50
   switch (t->getTFType()) {
   case TF_ATOM: {
       TAtomRef a = asa<TAtomObj>(t);
       if (a->getRelop() == LEOP || a->getRelop() == GEOP) {
         s += 2;
       }
-      if (s >= 50) return false;
+      if (s >= threshold) return false;
       break;
   }
   case TF_OR: {
     TOrRef o = asa<TOrObj>(t);
     for (auto itr = o->begin(); itr != o->end(); ++itr) { 
       doSplit(*itr, s);
-      if (s >= 50) return false;
+      if (s >= threshold) return false;
     }
     return true;
   }
@@ -194,7 +195,7 @@ bool BoxSolver::doSplit(TFormRef t, int& s) {
     TAndRef a = asa<TAndObj>(t);
     for (auto itr = a->begin(); itr != a->end(); ++itr) {
       doSplit(*itr, s);
-      if (s >= 50) return false;
+      if (s >= threshold) return false;
     }
     return true;
   }
@@ -207,7 +208,7 @@ bool BoxSolver::doSplit(TFormRef t, int& s) {
       throw TarskiException("Unexpected non-atom/non-and/non-or");
     }
   }
-  return (s >= 50) ? false : true;
+  return (s >= threshold) ? false : true;
 }
 
 //if no splitting is done, the result is of size 1
