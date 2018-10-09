@@ -190,7 +190,8 @@ namespace tarski {
 
     else {
       bool isStrict = true;
-      vector<char> newRowVec(allPolys.size());
+      vector<char> newRowVec(allPolys.size() + 1,0);
+      newRowVec[0] = tf->getRelop() == GEOP ? 0 : 1; // Note: this choice means EQOP gets value 1 as well as LEOP
       for (auto fitr = tf->factorsBegin(); fitr != tf->factorsEnd(); ++fitr) {
         IntPolyRef p = fitr->first;
         if (allPolys.find(p) == allPolys.end() ) {
@@ -198,9 +199,11 @@ namespace tarski {
           isStrict = false;
           
           all.addCol();
-          allPolys[p] = cIdxToPoly.size();
+	  int j = cIdxToPoly.size();
+          allPolys[p] = j;
           cIdxToPoly.push_back(p);
-          newRowVec.push_back(false);
+	  int val = fitr->second % 2 == 0 ? 2 : 1;
+          newRowVec.push_back(val);
         }
         //not strict and known not strict
         else {
@@ -212,7 +215,13 @@ namespace tarski {
           if (fitr->second % 2 == 0 && fitr->second > 0
               && j >= getNumStrictCols()) newRowVec[j] = 2;
           else if (fitr->second % 2 == 0) newRowVec[j] = 0;
-          else newRowVec[j] = 1;
+          else {
+	    if (j >= newRowVec.size())
+	    {
+	      std::cerr << "j = " << j << ", newRowVec.size() = " << newRowVec.size() << std::endl;
+	    }
+	    newRowVec[j] = 1;
+	  }
         }
       }
       if (isStrict && isRow) {
