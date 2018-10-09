@@ -69,6 +69,7 @@ namespace tarski {
   private:
     vector<TAtomRef> shadowAtoms;
     std::map< pair<int, int>, TAtomRef> edgeAtoms;
+    PolyManager* PMptr; //-- Chris added
   public:
     ExpGraph(TAndRef F);
     void addEdge(VarSet x, Word a, Word b, TAtomRef t);

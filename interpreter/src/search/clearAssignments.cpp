@@ -5,6 +5,7 @@
 #include <queue>
 #include <stack>
 #include <utility>
+#include <algorithm>
 #include <cassert> 
 namespace tarski {
   Graph::Graph() : var2vert(-1) 
@@ -27,7 +28,7 @@ namespace tarski {
   }
 
   void Graph::writeShadow(int i, PolyManager* PMptr) {
-    if (i > 0 && i < vertices.size()-1 && hasShadowVertex[i]) {
+    if (i > 0 && i < vertices.size() && hasShadowVertex[i]) {
       std::cout << i << "(-" << PMptr->getName(vertices[i]) << ")"
                 << ": " << -i << "(" << PMptr->getName(vertices[i]) << ")"  << std::endl;
     }
@@ -35,7 +36,7 @@ namespace tarski {
   }
 
   void Graph::writeEdge(int i, PolyManager* PMptr) {
-    if (i > 0 && i < vertices.size()-1) {
+    if (i > 0 && i < vertices.size()) {
       std::cout << i << "(" << PMptr->getName(vertices[i]) << ")" 
                 << ":";
 
@@ -177,75 +178,76 @@ namespace tarski {
   }
 
 
-  ExpGraph::ExpGraph(TAndRef F) : Graph() {
+  ExpGraph::ExpGraph(TAndRef F) : Graph(), PMptr(F->getPolyManagerPtr())
+  {
     for(TAndObj::conjunct_iterator itr = F->begin(); itr != F->end(); ++itr)
-      {
-        TAtomRef A = asa<TAtomObj>(*itr);
-        if (A.is_null())
-          throw TarskiException
-            ("Command clear-assignments requires a pure conjunction!");
+    {
+      TAtomRef A = asa<TAtomObj>(*itr);
+      if (A.is_null())
+	throw TarskiException
+	  ("Command clear-assignments requires a pure conjunction!");
       
-        if (A->getRelop() != EQOP || A->F->numFactors() != 1)
-          continue;
+      if (A->getRelop() != EQOP || A->F->numFactors() != 1)
+	continue;
 
-        IntPolyRef p = A->factorsBegin()->first;
-        /*
+      IntPolyRef p = A->factorsBegin()->first;
+      /*
         if (verbose) {
-          std::cout << "p = "; p->write(*PMptr);
-          std::cout << " :: "; OWRITE(p->sP);
-          std::cout << std::endl;
-          }
-        */
-        switch(p->numVars())
-          {
-          case 1: {
-            VarSet x = p->getVars();
-            if (p->degree(x) != 1) continue;
-            Word P = p->getSaclibPoly();
-            Word d, a, Pp, b;
-            ADV2(P,&d,&a,&Pp);
-            if (Pp == NIL) 
-              { 
-                addEdge(x,1,0,A);
-                /*
-                if (verbose) {
-                std::cout << PMptr->getName(x) << " = 0" << std::endl;
-                }
-                */
-                continue; 
-              }
-            FIRST2(Pp,&d,&b);
-            addEdge(x,a,b,A);
-            /*
-            if (verbose) {
-            IWRITE(a);
-            std::cout << " " << PMptr->getName(x) << " + ";
-            IWRITE(b);
-            std::cout << " = 0" << std::endl;
-            }
-            */
-          } break;
-          case 2: {
-            VarSet V = p->getVars();
-            VarSet::iterator vitr = V.begin();
-            VarSet y = *vitr;
-            VarSet x = *(++vitr);
-            Word P = p->getSaclibPoly();
-            if (PDEG(P) != 1 || PRED(P) == 0) continue;
-            Word d1, c1, d0, c0;
-            FIRST4(P,&d1,&c1,&d0,&c0);
-            if (PDEG(c1) != 0 || PDEG(c0) != 1 || PRED(c0) != 0) continue;
-            Word a = PLDCF(c1), b = PLDCF(c0);
-            addEdge(x,y,a,b,A);
-            /*
-            if (verbose) {
-              IWRITE(a); std::cout << " " << PMptr->getName(x) << " + "; 
-              IWRITE(b); std::cout << PMptr->getName(y) << " = 0" << std::endl;            }
-            */
-          } break;
-          default: break;
-          }
+	std::cout << "p = "; p->write(*PMptr);
+	std::cout << " :: "; OWRITE(p->sP);
+	std::cout << std::endl;
+	}
+      */
+      switch(p->numVars())
+      {
+      case 1: {
+	VarSet x = p->getVars();
+	if (p->degree(x) != 1) continue;
+	Word P = p->getSaclibPoly();
+	Word d, a, Pp, b;
+	ADV2(P,&d,&a,&Pp);
+	if (Pp == NIL) 
+	{ 
+	  addEdge(x,1,0,A);
+	  /*
+	    if (verbose) {
+	    std::cout << PMptr->getName(x) << " = 0" << std::endl;
+	    }
+	  */
+	  continue; 
+	}
+	FIRST2(Pp,&d,&b);
+	addEdge(x,a,b,A);
+	/*
+	  if (verbose) {
+	  IWRITE(a);
+	  std::cout << " " << PMptr->getName(x) << " + ";
+	  IWRITE(b);
+	  std::cout << " = 0" << std::endl;
+	  }
+	*/
+      } break;
+      case 2: {
+	VarSet V = p->getVars();
+	VarSet::iterator vitr = V.begin();
+	VarSet y = *vitr;
+	VarSet x = *(++vitr);
+	Word P = p->getSaclibPoly();
+	if (PDEG(P) != 1 || PRED(P) == 0) continue;
+	Word d1, c1, d0, c0;
+	FIRST4(P,&d1,&c1,&d0,&c0);
+	if (PDEG(c1) != 0 || PDEG(c0) != 1 || PRED(c0) != 0) continue;
+	Word a = PLDCF(c1), b = PLDCF(c0);
+	addEdge(x,y,a,b,A);
+	/*
+	  if (verbose) {
+	  IWRITE(a); std::cout << " " << PMptr->getName(x) << " + "; 
+	  IWRITE(b); std::cout << PMptr->getName(y) << " = 0" << std::endl;            }
+	*/
+      } break;
+      default: break;
       }
+    }
   }
 
   void ExpGraph::addEdge(VarSet x, Word a, Word b, TAtomRef t) {
@@ -269,7 +271,11 @@ namespace tarski {
 
 
   MarkLogExp::MarkLogExp(ExpGraph& E)
-    : MarkLog(E.maxVertexIndex(), 0), atoms(E.maxVertexIndex()+1) {
+    : MarkLog(E.maxVertexIndex(), 0), atoms(E.maxVertexIndex()+1)
+  {
+    // rootFor[i] = j means that vertex j was the root
+    // of the search for vertex i's connected component.
+    // rootFor[i] = 0 means vertex i has not been found.
 
     //set all shadowVertex values to 1
     std::vector<int> V = E.vertexList(); 
@@ -278,81 +284,95 @@ namespace tarski {
 
     int nexti = 0;
     while(nexti < V.size())
-      {
-        int startVertex = V[nexti++];
-        if (getMark(startVertex) != 0) continue;
-        MarkLog::setMark(startVertex,startVertex);
-        E.setValue(startVertex,RNINT(1));
-        stack<int> S;
-        stack<int> numChildren;
-        list<TAtomRef> T;
-        S.push(startVertex);
+    {
+      int startVertex = V[nexti++];
+      if (getMark(startVertex) != 0) continue;
+      MarkLog::setMark(startVertex,startVertex);
+      E.setValue(startVertex,RNINT(1));
+      stack<int> S;
+      stack<int> numChildren;
+      list<TAtomRef> T;
+      S.push(startVertex);
+      
+      while (!S.empty()) {
+	if (numChildren.size() != 0 && numChildren.top() == 0) {
+	  numChildren.pop();
+	  T.pop_front();
+	}
+	else if (numChildren.size() != 0) {
+	  numChildren.top()--;
+	}
+	int i = S.top(); S.pop();
+	int num = 0;
+	for (std::vector<int>::iterator itr = E.nbr_begin(i); itr != E.nbr_end(i); ++itr) {
+	  int j = *itr;
+	  Word L = E.getEdgeWeight(i, j), a, b;
+	  FIRST2(L, &a, &b); //a xi + b xj = 0
+	  Word vi = E.getValue(i), vj = E.getValue(j);
 
-        while (!S.empty()) {
-          if (numChildren.size() != 0 && numChildren.top() == 0) {
-            numChildren.pop();
-            T.pop_front();
-          }
-          else if (numChildren.size() != 0) {
-            numChildren.top()--;
-          }
-          int i = S.top(); S.pop();
-          int num = 0;
-          for (std::vector<int>::iterator itr = E.nbr_begin(i); itr != E.nbr_end(i); ++itr) {
-            int j = *itr;
-            Word L = E.getEdgeWeight(i, j), a, b;
-            FIRST2(L, &a, &b); //a xi + b xj = 0
-            Word vi = E.getValue(i), vj = E.getValue(j);
-            if (vj == NIL) {
-              Word newVal = RNPROD(RNNEG(RNRED(a, b)), vi);
-              E.setValue(j, newVal);
-              T.push_front(E.getEdgeAtom(i, j));
-              setMark(j, startVertex, {T.begin(), T.end()});
-              S.push(j);
-              num++;
-            }
-            else {
-              assert(!(b == 0 && vi != 0));
-              if (b != 0) {
-                Word newVal = RNPROD(RNNEG(RNRED(a,b)), vi);
-                if (!EQUAL(newVal, vj)) {
-                  assert(startVertex >= 0);
-                  E.setValue(startVertex, 0);
-                }
-              }
-            }
-          }
-          numChildren.push(num);
-        }
-
+	  if (vj == NIL)
+	  { // at this point xj can't be a shadowVertex (because it has no value) so b can't be 0  
+	    Word newVal = RNPROD(RNNEG(RNRED(a, b)), vi);
+	    E.setValue(j, newVal);
+	    T.push_front(E.getEdgeAtom(i, j));
+	    setMark(j, startVertex, {T.begin(), T.end()});
+	    S.push(j);
+	    num++;
+	  }
+	  else {
+	    assert(!(b == 0 && vi != 0));
+	    if (b != 0) {
+	      Word newVal = RNPROD(RNNEG(RNRED(a,b)), vi);
+	      if (!EQUAL(newVal, vj)) {
+		assert(startVertex >= 0);
+		E.setValue(startVertex, 0);
+	      }
+	    }
+	  }
+	}
+	numChildren.push(num);
       }
+      
+    }
   }
-
+  
   const pair<GCWord, VarSet> SubExp::nada = {0, 0};
   const list<TAtomRef> SubExp::empty = {};
   
   SubExp::SubExp(ExpGraph& E, MarkLogExp& rootFor, PolyManager * PMptr)
-    : constants(NIL), multiples(nada), exp(empty), PM(PMptr) {
+    : constants(NIL), multiples(nada), exp(empty), PM(PMptr)
+  {
     vector<int> V = E.vertexList();
-    for (size_t i = 0; i < V.size(); i++) {
+    for (size_t i = 0; i < V.size(); i++)
+    {
       if (V[i] < 0) continue;
       Word val = E.getValue(V[i]);
-      if (val == 0 || rootFor.getMark(V[i]) != V[i]) {
+      if (val == 0 || rootFor.getMark(V[i]) != V[i])
+      {
         VarSet x = E.getVarFromVertex(V[i]);
+	if (verbose) { std::cout << PMptr->getName(x) << " = ";  }
         int r = rootFor.getMark(V[i]);
         if (r < 0) {
+	  if (verbose){RNWRITE(val);}
           constants[x] = val;
           list<TAtomRef>& lt = rootFor.getSource(V[i]);
           exp[x] = rootFor.getSource(V[i]);
         }
         else if (E.getValue(r) == 0) {
+	  if (verbose){RNWRITE(0);}
           constants[x] = 0;
           exp[x] = rootFor.getSource(V[i]);
         }
         else {
+	  if (verbose){
+	    if (RNCOMP(val,RNINT(-1)) == 0)       { SWRITE("- "); }
+	    else if (RNCOMP(val,RNINT(1)) != 0)   { RNWRITE(val); SWRITE(" "); }
+	    std::cout << PMptr->getName(E.getVarFromVertex(r));
+	  }
           multiples[x] = pair<GCWord, VarSet>(val, E.getVarFromVertex(r));
           exp[x] = rootFor.getSource(V[i]);
         }
+	if (verbose){std::cout << std::endl;}
       }
     }
   }
@@ -364,12 +384,16 @@ namespace tarski {
       TAtomRef atom = *itr;
       FactRef F = new FactObj(*PM, atom->F->content); 
       for(std::map<IntPolyRef,int>::iterator atomItr = atom->factorsBegin();
-          atomItr != atom->factorsEnd(); ++atomItr) {
+          atomItr != atom->factorsEnd(); ++atomItr)
+      {
+	//-- note: this seems to work OK
         GCWord content;
         IntPolyRef A = evalAtRat(atomItr->first, constants, content, exp, source);
-        if (A->isZero()) {
-          F = new FactObj(PM);
-          F->addFactor(A, 1);
+	
+	if (A->isZero()) {
+          // F = new FactObj(PM);
+          // F->addFactor(A, 1);
+	  F = new FactObj(*PM,0); // Chris added instead
           break;
         }
         //TODO: L1 Normalize as it is read in
@@ -390,49 +414,44 @@ namespace tarski {
           F->negateContent();
         }
       }
-      source.push_front(atom);
       int relop = atom->relop;
       TAtomRef substituted = new TAtomObj(F,relop);
       TAndRef normalized = new TAndObj();
       bool isSat = level1_atom(substituted, normalized);
-      if (!isSat) {
-        list<DedExp> newRes;
-        newRes.emplace_front(Deduction::SUBST, source);
-        return newRes;
+
+      //-- At this point we have the original "atom", we have "source", which consists of all the atoms
+      //-- S1, ..., Sr needed to
+      //-- justify the substitutions we we used, and we have "normalized", which is A1 /\.. /\ Ak, the atoms we
+      //-- got from our subsitutiuons.  So, we get: atom /\ S1 /\ ... /\ Sr ==> A1 /\ ... /\ Ak.  But, we actually
+      //-- know something stronger: S1 /\ ... /\ Sr ==> (atom <==> A1 /\ ... /\ Ak).  So we get the deduced facts
+      //-- atom /\ S1 /\ ... /\ Sr ==> Ai, for each i from 1 to k, and we get S1 /\ ... /\ Sr /\ A1 /\ ... /\ Ak ==> atom.
+      
+      if (!isSat) { //-- we just deduced unsat! forget anything else and just return this deduction
+	res.clear();
+	source.emplace_front(atom);
+        res.emplace_front(Deduction::SUBST, source);
       }
       else {
-        //We want to reject deductions of the form 0 = 0, becuase we dont need to remove constants
-        //std::cerr << "Is the form " << toString(substituted) << endl;
-        if (substituted->getRelop() == EQOP && substituted->getFactors()->isConstant() == 1 && substituted->getFactors()->isZero()) {
-          continue;
-        }
-
-        //DR BROWN THINKS IM WRONG
-        //This represents that something has been simplified out to a constant
-        if (normalized->begin() == normalized->end()) {
-          auto itr = source.begin(); ++itr;
-          forward_list<TAtomRef> tmp(itr, source.end());
-          tmp.emplace_front(substituted);
-          res.emplace_front(substituted, Deduction::SUBST, source);
-          res.emplace_front(atom, Deduction::SUBST, tmp);
-
-
-        }
-        for (TAndObj::conjunct_iterator itr = normalized->begin();
-             itr != normalized->end(); ++itr) {
+	forward_list<TAtomRef> altsource(source);      
+	source.emplace_front(atom);
+        for (TAndObj::conjunct_iterator itr = normalized->begin(); itr != normalized->end(); ++itr) {
           TAtomRef out = asa<TAtomObj>(*itr);
-          forward_list<TAtomRef> tmp(source);
-          tmp.emplace_front(out);
-          res.emplace_front(out, Deduction::SUBST, source);
-          res.emplace_front(atom, Deduction::SUBST, tmp);
-
-
-
-
-        }
+	  altsource.emplace_front(out);
+	  //-- Only add deduction for "out" if it is not part of "source"
+	  { auto itr = source.begin(); while(itr != source.end() && !equals(out,*itr)) ++itr;
+	    if (itr == source.end())
+	      res.emplace_front(out, Deduction::SUBST, source); //-- This is our deduction of new atom out
+	  }
+	}
+	//-- Only add deduction for "atom" if it is not part of "altsource"
+	{ auto itr = altsource.begin(); while(itr != altsource.end() && !equals(atom,*itr)) ++itr;
+	  if (itr == altsource.end())
+	    res.emplace_front(atom, Deduction::SUBST, altsource); //-- We have a reverse deduction
+	}
       }
 
     }
+    
     return res;
   }
 
@@ -478,15 +497,16 @@ namespace tarski {
     PolyManager * PM = t->getPolyManagerPtr();
 
     ExpGraph E(t);
+
     MarkLogExp M(E);
 
-    VarKeyedMap<GCWord> constants(NIL);
-    pair<GCWord, VarSet> nada(0, 0);
-    VarKeyedMap<pair<GCWord,VarSet> >multiples(nada);
-    list<TAtomRef> empty;
-    VarKeyedMap<list<TAtomRef> > exp(empty);
+    // VarKeyedMap<GCWord> constants(NIL);
+    // pair<GCWord, VarSet> nada(0, 0);
+    // VarKeyedMap<pair<GCWord,VarSet> >multiples(nada);
+    // list<TAtomRef> empty;
+    // VarKeyedMap<list<TAtomRef> > exp(empty);
     SubExp S(E, M, PM);
-    deductions = S.makeDeductions(t);
+    deductions = S.makeDeductions(t);    
   }
 
   DedExp Substituter::deduce(TAndRef t, bool& res) {
