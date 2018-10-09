@@ -33,7 +33,9 @@ namespace tarski {
 
   string DedExp::toString() {
     string s;
-    s += d.getName() + " = " + tarski::toString(d.getDed()) + "  : ";
+    s += d.getName() + " = "
+      + (d.getDed().is_null() ? "NULL" : tarski::toString(d.getDed()))
+      + "  : ";
     for (forward_list<TAtomRef>::iterator itr = exp.begin();
          itr != exp.end(); ++itr) {
       s += tarski::toString(*itr) + ", ";

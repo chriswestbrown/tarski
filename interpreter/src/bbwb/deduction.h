@@ -73,7 +73,7 @@ namespace tarski {
     inline bool isUnsat() const { return unsat; }
     inline TAtomRef getDed() const { return deduction; }
     inline string toString() {
-      return *name + ": " + tarski::toString(deduction);
+      return *name + ": " + (deduction.is_null() ? string("NULL") : tarski::toString(deduction));
     }
     virtual ~Deduction() {}
     Deduction(TAtomRef t, short code) : unsat(false) {
