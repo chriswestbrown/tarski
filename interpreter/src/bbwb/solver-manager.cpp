@@ -24,6 +24,7 @@ namespace tarski {
    */
   LisRef SolverManager::genLisResult() {
       Result r = deduceAll();
+      //      prettyPrintResult(); //-- CHRIS DEBUG
       LisRef l = new LisObj();
       if (isUnsat()) {
         l->push_back(new SymObj("UNSAT"));
