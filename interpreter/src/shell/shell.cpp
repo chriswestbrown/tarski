@@ -70,7 +70,7 @@ void nln() { cout << endl; } // just to help with using gdb
 int mainDUMMY(int argc, char **argv, void* topOfTheStack)
 {
     // Get the CA Server up and running!
-    int ac; char **av = NULL;
+    int ac = 0; char **av = NULL;
     string CASString = "Saclib";
     bool quiet = false;
     bool file = false;
@@ -196,7 +196,7 @@ Options:\n\
 
 int main(int argc, char **argv)
 {
-  int dummy;
+  int dummy = 0;
   void *topOfTheStack = &dummy;
   if (strcmp(tarski::pathToQepcad, "") == 0) throw tarski::TarskiException("Invalid location for QEPCAD");
   tarski::mainDUMMY(argc,argv,topOfTheStack);
