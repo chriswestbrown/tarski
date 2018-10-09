@@ -1,0 +1,19 @@
+STATUS: CLOSED
+
+SUMMARY
+bbwb (and therefore box-solver) gave incorrect results on,
+for example, input sat/Chua-2-IL-L-chunk-0048.smt2, which is:
+
+[1071294154583 skoS skoX^2 - 45705600000 skoC skoX^2 - 1058000000000 skoX^2 - 1117872161304000 skoS skoX + 47692800000000 skoC skoX - 1104000000000000 skoX + 388825099584000000 skoS - 16588800000000000 skoC - 384000000000000000 <= 0 /\ -1(skoX) <= 0 /\ skoX <= 0 /\ -1(2025130727 skoS - 86400000 skoC) <= 0 /\ skoS^2 + skoC^2 - 1 = 0 /\ skoX - 75 <= 0 /\ [-1(2025130727 skoS - 86400000 skoC) > 0 \/ 2025130727 skoS - 86400000 skoC > 0]]
+
+The crux of the problem was that this was wrong:
+(bbwb [1071294154583 skoS skoX^2 - 45705600000 skoC skoX^2 - 1058000000000 skoX^2 - 1117872161304000 skoS skoX + 47692800000000 skoC skoX - 1104000000000000 skoX + 388825099584000000 skoS - 16588800000000000 skoC - 384000000000000000 <= 0 /\ skoX = 0])
+
+ACTION
+There were a number of problems in code related to Fernando's
+bbwb.  The main issue was that the dynamic black-box code wasn't
+adding new polynomials to the matrix properly when these were
+new poly was non-strict.  This got fixed.  Also fixed were bugs
+in how the "reverse derivation" was created and added, and how
+substitutions that resulted in constants (e.g. -1 <= 0) get handled.
+
