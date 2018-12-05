@@ -31,6 +31,42 @@ namespace tarski {
       return A;
     }
 
+
+  LisRef foobar(TAndRef A)
+  {
+    //L1 Normalization
+    Normalizer * p = new Level1();
+    RawNormalizer R(*p);
+    R(A);
+    delete p;
+    if (R.getRes()->getTFType() == TF_CONST) {
+      if (R.getRes()->constValue() == FALSE)
+        throw TarskiException("UNSAT BY L1 NORMALIZATION");
+      else
+        throw TarskiException("SAT BY L1 NORMALIZATION");
+    }
+
+    SolverManager s( SolverManager::BB |
+                     SolverManager::WB |
+                     SolverManager::SS,  R.getRes());
+
+    s.deduceAll();
+
+    // cerr << endl << "after deduceAll:" << endl;
+    // s.debugWriteSorted();
+    // cerr << endl << endl;
+    // s.prettyPrintResult();
+
+    if (!s.isUnsat())
+    {
+      // cerr << endl << "after call to simplify:" << endl;
+      TAndRef Ap = s.simplify();
+      // cerr << "SIMPLIFIED: "; Ap->write(true); cerr << endl;
+      // s.prettyPrintSimplify(Ap);
+    }
+    return new LisObj();
+  }
+  
   
   SRef BBWBComm::execute(SRef input, std::vector<SRef> &args) {
     TAndRef A;
@@ -41,7 +77,12 @@ namespace tarski {
     catch (TarskiException t) {
       return new ErrObj(t.what());
     }
-
+    
+    if(false){ //-- Dr Brown debug
+      LisRef l = foobar(A);
+      return l;
+    }
+    
     //L1 Normalization
     Normalizer * p = new Level1();
     RawNormalizer R(*p);

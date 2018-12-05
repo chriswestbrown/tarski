@@ -64,7 +64,9 @@ namespace tarski {
     int limit;
     int count;
     TFormRef formula;
-    BoxSolver() : unsat(false), ranOnce(false), isPureConj(true), numAtoms(-1), limit(5), count(0)  {};
+    //----------------------- right now this is set super high to essentially be full lazy
+    //--------------------------------------------------------------------------------vvvv    
+    BoxSolver() : unsat(false), ranOnce(false), isPureConj(true), numAtoms(-1), limit(5000), count(0)  {};
     //Returns the CNF translation of a formula
     listVec makeFormula(tarski::TFormRef formula);
 

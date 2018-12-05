@@ -8,11 +8,19 @@ namespace tarski {
   /*
     A simple constructor which does nothing
   */
-  DMatrix::DMatrix(){};
+  DMatrix::DMatrix(int cols) : pivotCols(cols,-1)
+  {
+    // cerr << "DMatrix() " << this << endl;
+  };
+
   /*
     A simple constructor which initializes the size of the std::vector
   */
-  DMatrix::DMatrix(int rows, int cols): m(rows, std::vector<char>(cols)), comp(rows, std::vector<bool>(rows)) {
+  DMatrix::DMatrix(int rows, int cols):
+    m(rows, std::vector<char>(cols)), comp(rows, std::vector<bool>(rows)),
+    pivotCols(cols,-1)
+  {
+    // cerr << "DMatrix(rows,cols) " << this << endl;
     for (size_t i = 0; i < comp.size(); i++) {
       comp[i][i] = true;
     }
@@ -20,7 +28,10 @@ namespace tarski {
   /*
     A constructor which copies another DMatrix object by copying m
   */
-  DMatrix::DMatrix(const DMatrix &M): m(M.m), comp(M.comp) { }
+  DMatrix::DMatrix(const DMatrix &M): m(M.m), comp(M.comp), pivotCols(M.pivotCols)
+  {
+    //cerr << "DMatrix(M) " << this << endl;
+  }
 
   void DMatrix::write() const {
     for (size_t i = 0; i < m.size(); i++) {
@@ -36,7 +47,9 @@ namespace tarski {
 
 
 
-  void DMatrix::gaussElimExplain() {
+  void DMatrix::gaussElimExplain()
+  {
+    cerr << "gaussElimExplain " << this << endl;
     std::vector<int> pivotRows;
     pivotCols.clear();
     int r = getNumRows();
@@ -67,6 +80,7 @@ namespace tarski {
 
   void DMatrix::redGaussElimExp()
   {
+    // cerr << "redGaussElimExplain " << this << endl;
     pivotCols.clear();
     std::vector<int> pivotRows;
     int r = getNumRows();
@@ -122,9 +136,12 @@ namespace tarski {
     }
   }
 
-  void DMatrix::reduceRow (std::vector<char>& vc,
-                           std::vector<int>& rows) const  {
-    for (size_t i = 1; i < getNumCols(); i++) {
+  void DMatrix::reduceRow (std::vector<char>& vc, std::vector<int>& rows) const
+  {
+    // start at i=1 because we don't want to reduce the relop entry
+    for (size_t i = 1; i < getNumCols(); i++)
+    {
+      // if vc has a non-zero entry in column i
       if (vc[i]) {
         if (pivotCols[i] == -1) break;
         sumRows(vc, m[pivotCols[i]]);
@@ -143,15 +160,13 @@ namespace tarski {
 
 
 
-  
-
-
   void DMatrix::doElim() {
     redGaussElimExp();
   }
 
 
-  void DMatrix::addRow(const std::vector<char>& vb) {
+  void DMatrix::addRow(const std::vector<char>& vb)
+  {
     std::vector<char> vc(vb); 
     if (m.size() > 0)
       vc.resize(m[0].size(), 0);

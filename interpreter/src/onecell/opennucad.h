@@ -357,6 +357,8 @@ public:
     SATFound = nodeQueue->SATAlphaFound();
   }
 
+  VarOrderRef getVarOrder() { return V; }
+  
   bool isSATFound() const { return SATFound; }
 
   //-- returns VarKeyedMap M such that M[x] is the SACLIB rational number representing the

@@ -506,34 +506,41 @@ public:
     VarOrderRef V;
     Word A;
     TAndRef C;
+
+    if (args.size() > 1 && args[0]->sym()->val == "core")
+    {
+      TFormRef F = args[1]->tar()->val;      
+      OpenNuCADSATSolverRef solver = new OpenNuCADSATSolverObj(F);
+      V = solver->getVarOrder();
+      LisRef res = new LisObj();
+
+      if (solver->isSATFound())
+      {
+	VarKeyedMap<GCWord> M = solver->getSatisfyingAssignment();
+	LisRef Lord = new LisObj();
+	LisRef Lpoint = new LisObj();
+	for(int i = 1; i <= V->size(); i++)
+	{
+	  Lord->push_back(new SymObj(getPolyManagerPtr()->getName(V->get(i))));
+	  Lpoint->push_back(new NumObj(M[V->get(i)]));
+	}
+	
+	LisRef Lwit = new LisObj(); Lwit->push_back(Lord); Lwit->push_back(Lpoint);
+	res->push_back(Lwit);
+      }
+      else
+      {
+	TarRef C = new TarObj(solver->getUNSATCore());
+	res->push_back(C);
+      }
+      return res;
+    }
+
     
     if (args.size() != 3)
     {
       TFormRef F = args[0]->tar()->val;
 
-      /*//-- START: TEMP TEST
-      {
-	OpenNuCADSATSolverRef solver = new OpenNuCADSATSolverObj(F);
-	std::cout << "TEST SOLVER SAYS: " << (solver->isSATFound() ? "SAT" : "UNSAT") << std::endl;
-	if (solver->isSATFound())
-	{
-	  VarSet V = F->getVars();
-	  VarKeyedMap<GCWord> M = solver->getSatisfyingAssignment();
-	  for(auto itr = V.begin(); itr != V.end(); ++itr)
-	  {
-	    std::cout << F->getPolyManagerPtr()->getName(*itr) << " = ";
-	    RNWRITE(M[*itr]);
-	    std::cout << std::endl;
-	  }
-	}
-	else
-	{
-	  solver->getUNSATCore()->write();
-	  std::cout << std::endl;
-	}
-      }
-      //-- END  : TEMP TEST*/
-      
       // variable order
       std::vector<VarSet> X = getBrownVariableOrder(F);
       V = new VarOrderObj(interp->PM);
@@ -617,8 +624,11 @@ public:
  
   std::string testArgs(std::vector<SRef> &args)
   { 
-    return args.size() == 3 ? require(args,_lis,_lis,_tar) : require(args,_tar);
-  } 
+    if (args.size() == 1) return require(args,_tar);
+    else if (args.size() == 2) return require(args,_sym,_tar);
+    else return require(args,_lis,_lis,_tar);
+  }
+  
   std::string doc() { return "Given a variable order, point and a conjunction of atomic formulas normalized so that each has an irreducible polynomial as left-hand side, returns a pair (alpha,D) such that alpha is a satisfying point with respect to the given variable order, or FALSE if no such assignment exists, and D is the Open NuCAD constructed in the search."; }
   std::string usage() { return "(SAT-NuCADConjunction var-order rat-point tarski-formula)"; }
   std::string name() { return "SAT-NuCADConjunction"; }

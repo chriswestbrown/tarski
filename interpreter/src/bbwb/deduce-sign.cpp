@@ -41,6 +41,16 @@ namespace tarski {
     Second value - sign of q
     Third value - sign of p + tq
     Output - value of p
+    Note: this can be generated / verified automatically with 
+          QE.  For example, if T_interval[0][LEOP][LTOP] = LTOP is valid if
+          for all t,q,p it holds that 
+
+          [t < 0 /\ q <= 0 /\ p + t*q < 0 ] ==> [ p < 0 ] ] ])
+
+          In general, we should have T_interval[ts][sig_q][sig_sum] = sig_p
+          iff sig_p is the strongest relop s.t. 
+
+          all t,q,p [ [ts * t > 0 /\ q sig_q 0 /\ p + t*q sig_sum 0 ] ==> p sig_p 0 ]        
   */
   short Interval::T_interval[2][8][8] = {
     {
@@ -525,7 +535,10 @@ namespace tarski {
   }
 
 
-  tuple<VarKeyedMap<int>, VarSet, short>  Interval::deduceSign2(const VarKeyedMap<int> &varMap, PolyManager * PM, const IntPolyRef &formOne, const IntPolyRef &formTwo, short formOneSign, short formTwoSign) {
+  tuple<VarKeyedMap<int>, VarSet, short>  Interval::deduceSign2(const VarKeyedMap<int> &varMap, PolyManager * PM,
+								const IntPolyRef &formOne, const IntPolyRef &formTwo,
+								short formOneSign, short formTwoSign)
+  {
     FernPolyIter F1;
     FernPolyIter F2;
     bool v1 = false;
@@ -570,7 +583,7 @@ namespace tarski {
       if (inter.getLeftType() == INCLUSIVE && inter.getLeft() == 0) {
         continue;
       }
-      if (verbose) {
+      if (verbose && false) {
         std::cerr << "Examining interval " << i << ": ";
         inter.write();
         std::cerr << std::endl;
@@ -634,7 +647,7 @@ namespace tarski {
 
       }
       short tSign = RNSIGN(t);
-      if (verbose) {
+      if (verbose && false) {
         std::cerr << "t is ";
         RNWRITE(t);
         std::cerr << "RNSIGN(t) is " << RNSIGN(t) << std::endl;
@@ -660,7 +673,7 @@ namespace tarski {
       IntPolyRef q = formTwo->integerProduct(tn);
       IntPolyRef fin = PM->sum(p, q);
 
-      if (verbose) {
+      if (verbose && false) {
         std::cerr << "p: "; p->write(*PM); std::cerr << std::endl;
         std::cerr << "q: "; q->write(*PM); std::cerr << std::endl;
         std::cerr << "fin: "; fin->write(*PM); std::cerr << std::endl;

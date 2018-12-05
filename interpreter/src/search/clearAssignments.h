@@ -39,7 +39,6 @@ namespace tarski {
     std::map< pair<int,int> , GCWord> edgeWeight;
 
   public:
-
     Graph();
     inline int maxVertexIndex() { return vertices.size() - 1; }
     inline Word getValue(int i) { if (value.find(i) == value.end()) return NIL; else return value[i]; }
@@ -114,35 +113,49 @@ namespace tarski {
     inline list<TAtomRef>& getSource(int i) { return atoms[i]; }
   };
 
-  class SubExp {
+  class SubExp
+  {
   private:
     static const pair<GCWord, VarSet> nada;
     static const list<TAtomRef> empty;
     VarKeyedMap<GCWord> constants;
     VarKeyedMap<pair<GCWord, VarSet> > multiples;
+
+    // value at Variable x is the lisf of atoms that provided the substitution eliminating x [maybe?]
     VarKeyedMap<list<TAtomRef> > exp;
+
+
     PolyManager * PM;
 
-    IntPolyRef evalAtRat(IntPolyRef p, VarKeyedMap<GCWord> &value, GCWord &content, VarKeyedMap<list<TAtomRef> >& sources, forward_list<TAtomRef>& exp);
+    IntPolyRef evalAtRat(IntPolyRef p, VarKeyedMap<GCWord> &value, GCWord &content,
+			 VarKeyedMap<list<TAtomRef> >& sources, forward_list<TAtomRef>& exp);
 
   public:
     SubExp(ExpGraph& E, MarkLogExp& M, PolyManager * PM);
     list<DedExp> makeDeductions(TAndRef t);
+    vector<VarSet> getVarsEliminatedBySubstitutions(ExpGraph& E, MarkLogExp& rootFor);
   };
 
-  class Substituter : public QuickSolver {
+  class Substituter : public QuickSolver
+  {
   private:
     bool once;
     std::list<DedExp> deductions;
     void makeDeductions(TAndRef t);
+
+    //-- for tracking substitution level
+    VarKeyedMap<int> orderSubstituted; //-- 0 means not eliminated by substution
+    int nextSubCounter;
+
   public:
-    Substituter(TAndRef& t) : once(true) {}
+    Substituter(TAndRef& t) : once(true), orderSubstituted(0), nextSubCounter(1) {}
+    bool isIdempotent() { return false; }
     void update(std::vector<Deduction>::const_iterator begin,
                 std::vector<Deduction>::const_iterator end) { }
     void notify() {}
     DedExp deduce(TAndRef t, bool& res);
-
-
+    void dump();
+    int getSubstitutionLevel(VarSet x) { int k = orderSubstituted[x]; return k == 0  ? 0 : nextSubCounter - k; }
   };
 
 

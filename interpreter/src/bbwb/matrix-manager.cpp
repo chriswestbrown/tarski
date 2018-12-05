@@ -6,7 +6,9 @@ namespace tarski {
   //This constructor is intended to be able to create a MatrixManager as
   //a subset of the rows of another
   //the vector rows indicates which rows we desire in the new matrix manager
-  MatrixManager::MatrixManager(const MatrixManager& m, const vector<int>& rows) : cIdxToPoly(m.cIdxToPoly) {
+  MatrixManager::MatrixManager(const MatrixManager& m, const vector<int>& rows) :
+    strict(rows.size(),-1), all(rows.size(),-1), needUpdate(false), cIdxToPoly(m.cIdxToPoly)
+  {
     size_t j = 0;
     int tbRow;
     if (m.tB.size() > j) tbRow = m.tB[j];
@@ -25,7 +27,7 @@ namespace tarski {
     }
   }
 
-  MatrixManager::MatrixManager(TAndRef t) : strict(), needUpdate(false), cIdxToPoly(1) {
+  MatrixManager::MatrixManager(TAndRef t) : strict(0), all(0), needUpdate(false), cIdxToPoly(1) {
     PM = t->getPolyManagerPtr();
     std::set<IntPolyRef> strongPolys;
     std::set<IntPolyRef> weakPolys;
@@ -48,7 +50,9 @@ namespace tarski {
       }
     }
 
-    //These two loops give each polynomial its index
+    // These two loops give each polynomial its index
+    // NOTE: cIdxToPoly already has an index 0 element to the place for the relop
+    //       i.e. column 0 is already taken.
     for (auto itr = strongPolys.begin(), end = strongPolys.end(); itr != end; ++itr) {
       IntPolyRef p = *itr;
       allPolys[p] = cIdxToPoly.size();
@@ -62,7 +66,10 @@ namespace tarski {
     }
 
     //This loop gives each Atom in the formula a row, and populates that row
-    DMatrix d(rIdxToAtom.size(), cIdxToPoly.size());
+    DMatrix Mtmp(0,strongPolys.size() + 1);
+    swap(this->strict,Mtmp);
+
+    DMatrix d(rIdxToAtom.size(), cIdxToPoly.size()); // note cIdxToPoly.size() is correct, see above NOTE
     for (size_t i = 0; i < rIdxToAtom.size(); i++) {
       TAtomRef tf = rIdxToAtom[i];
       if (tf->getRelop() == LTOP || tf->getRelop() == LEOP ||
@@ -142,15 +149,29 @@ namespace tarski {
   }
 
 
-  void MatrixManager::addAtom(TAtomRef tf) {
+  void MatrixManager::addAtom(TAtomRef tf)
+  {
+    // cerr << "In addAtom("; tf->write(true); cerr << ")" << endl;
+    //-- Dr. Brown DEBUG
+    TAtomRef tf_orig = tf;
+    if (tf->getRelop() == EQOP)
+    {
+      FactRef F = new FactObj(*(tf->getPolyManagerPtr()));
+      for (auto fitr = tf->factorsBegin(); fitr != tf->factorsEnd(); ++fitr)
+	F->addFactor(fitr->first,2);
+      tf = new TAtomObj(F,LEOP);
+    }
+    
     bool isRow = true;
-    if (tf->getRelop() == NEOP || tf->getRelop() == EQOP) {
+    if (tf->getRelop() == NEOP || tf->getRelop() == EQOP) { // NOTE: EQOP is not possible now! DRBROWN
       isRow = false;
     }
     else {
-      rIdxToAtom.push_back(tf);
+      rIdxToAtom.push_back(tf_orig);
     }
-    if (isStrictRelop(tf)) {
+
+    if (isStrictRelop(tf))
+    {
       std::vector<char> newRowVec(getNumStrictCols(), 0);
       if (getNumStrictCols() == 0) newRowVec.resize(1, 0);
       if (tf->getRelop() == LTOP) {
@@ -165,14 +186,14 @@ namespace tarski {
           addNewStrict(p);
           newRowVec.push_back(false);
           newRowVec[allPolys[p]] = val;
-          strongMap[p] = tf;
+          strongMap[p] = tf_orig;
         }
         //known and becomes strict
         else if (pItr->second >= getNumStrictCols()){
           needUpdate = true;
           swapToStrict(p);
           newRowVec.push_back(val);
-          strongMap[p] = tf;
+          strongMap[p] = tf_orig;
         }
         //known and was already strict
         else {
@@ -187,8 +208,8 @@ namespace tarski {
       return;
     }
 
-
-    else {
+    else // tf is a non-strict relop
+    { 
       bool isStrict = true;
       vector<char> newRowVec(allPolys.size() + 1,0);
       newRowVec[0] = tf->getRelop() == GEOP ? 0 : 1; // Note: this choice means EQOP gets value 1 as well as LEOP
@@ -219,19 +240,25 @@ namespace tarski {
 	    if (j >= newRowVec.size())
 	    {
 	      std::cerr << "j = " << j << ", newRowVec.size() = " << newRowVec.size() << std::endl;
+	      throw TarskiException("Error in MatrixManager::addAtom!");
 	    }
 	    newRowVec[j] = 1;
 	  }
         }
       }
       if (isStrict && isRow) {
-        if (getNumStrictCols() == 0) {
-          vector<char> sRowVec(newRowVec.begin(), newRowVec.begin()+1+strongMap.size());
-          strict.addRow(sRowVec);
+	// TODO!!! If this comes with tf_orig being an equation ... then we already have a contradiction!
+	
+        if (getNumStrictCols() != 0) { // Fernando had == 0 ... is that even possible?
+          // vector<char> sRowVec(newRowVec.begin(), newRowVec.begin()+1+strongMap.size());
+          // strict.addRow(sRowVec);
+	  strict.addRow(newRowVec);
+	  all.addRow(newRowVec);
+	  tB.push_back(rIdxToAtom.size()-1);
         }
-        tB.push_back(rIdxToAtom.size()-1);
       }
-      if (isRow) all.addRow(newRowVec);
+      else if (isRow)
+	all.addRow(newRowVec);
     }
   }
 
@@ -316,12 +343,18 @@ namespace tarski {
     needUpdate = false;
   }
 
-  bool MatrixManager::isStrictAtom(TAtomRef t) {
+  bool MatrixManager::isStrictPoly(IntPolyRef p)
+  {
+    return strongMap.find(p) != strongMap.end();
+  }
+    
+  bool MatrixManager::isStrictAtom(TAtomRef t)
+  {
     FactRef F = t->getFactors();
     auto itr = F->MultiplicityMap.begin(), end = F->MultiplicityMap.end();
     for (; itr != end; ++itr ) {
       IntPolyRef p = itr->first;
-      if (strongMap.find(p) == strongMap.end())
+      if (! isStrictPoly(p)) //(strongMap.find(p) == strongMap.end())
         return false;
     }
     return true;

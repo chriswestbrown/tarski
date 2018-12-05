@@ -37,9 +37,8 @@ namespace tarski{
     performs BlackBox on t.
   */
   typedef std::list<DedExp> bblist;
-  class BBSolver : public QuickSolver {
-
-  public:
+  class BBSolver : public QuickSolver
+  {
   private:
     PolyManager* PM;
     bblist deductions;
@@ -49,7 +48,11 @@ namespace tarski{
 
     inline BBSolver(TAndRef tf)  : deductions(0), once(true), M(tf) {
       this->PM = tf->getPolyManagerPtr();
+      // cerr << "BBSolver created: "; M.write(); cerr << endl;
     }
+
+    bool isIdempotent() { return true; }
+
     bblist bbsat(TAndRef t);
     DedExp deduce(TAndRef t, bool& res);
     inline void notify() {}
@@ -120,7 +123,7 @@ namespace tarski{
                              const vector<AtomRow>&,
                              const AtomRow&, int);
     static DMatrix mkMatrix(const vector<AtomRow>&);
-    static bool reduceRow(AtomRow&, vector<char>&,
+    static int reduceRow(AtomRow&, vector<char>&,
                           forward_list<TAtomRef>&, const DMatrix&,
                           const vector<AtomRow>&);
     void mkMinWtDed(AtomRow&,const forward_list<TAtomRef>&,
@@ -129,8 +132,10 @@ namespace tarski{
     { mkMinWtDed(a, {a.atom}, deds); }
     void minWtMain(bblist&);
     
-
-
+    MatrixManager* getMatrixManager() { return M; }
+    PolyManager * getPolyManager()  { return PM; }
+    
+    
     //Joint Methods
     void jointDeds(bblist& deds);
     void mkJointDed(std::vector<char>&, std::vector<int>&,
@@ -138,6 +143,7 @@ namespace tarski{
 
     //Debugging only
     void writeChar(const std::vector<char>& vc, int cutOff); 
+
   public:
     bblist getDeductions();
     inline BBDeducer(MatrixManager * m, PolyManager * pm) {

@@ -23,7 +23,9 @@ namespace tarski {
         return d;
       }
       else {
+	// cerr << "BEFORE bbsat: "; M.write(); cerr << endl;
         deductions = bbsat(t);
+	// cerr << "AFTER  bbsat: "; M.write(); cerr << endl;
         if (deductions.empty())  {
           res = false;
           DedExp d;
@@ -38,6 +40,10 @@ namespace tarski {
     return d;
   }
 
+  /**
+   * This gets called prior to the solver being called, in order to inform it of any new facts
+   * that were learned since the last call.
+   **/
   void BBSolver::update(std::vector<Deduction>::const_iterator begin, std::vector<Deduction>::const_iterator end) {
     while (begin != end) {
       //ignore constants!
@@ -95,7 +101,9 @@ namespace tarski {
 
   //returns false if unsat
   bool BBChecker::checkSat() {
+    // cerr << "BEFORE:" << endl; M->write();
     M->strictElim();
+    // cerr << "AFTER:" << endl; M->write();
     const DMatrix& d = M->getStrict();
     unsatRow = BBSolver::findRow(d);
     return (unsatRow == -1) ? true : false;
@@ -105,8 +113,13 @@ namespace tarski {
     If bbsat finds UNSAT, this returns the explanation in the form of a vector of BBDeds with a single BBDed which is the explanation
   */
   bblist BBChecker::explainUnsat() {
-    //std::cerr << "Unsat row is " << unsatRow << std::endl;
-    //M->write();
+    if (false)
+    {
+      std::cerr << "Unsat row is " << unsatRow << std::endl;
+      M->getAtom(unsatRow,true)->write(true); cerr << endl;
+      M->write();
+    }
+    
     std::forward_list<TAtomRef> conflict = getConflict();
     std::set<IntPolyRef> weakFacts = findWeak(conflict);
     std::set<TAtomRef> additions = strengthenWeak(weakFacts);
@@ -165,7 +178,8 @@ namespace tarski {
     Given a set of intpolyrefs which represent the "weak" factors in some explanation, generate a set of
     atoms which strengthen that intpolyref
   */
-  std::set<TAtomRef> BBChecker::strengthenWeak(const std::set<IntPolyRef>& weakFacts) {
+  std::set<TAtomRef> strengthenWeakM(const std::set<IntPolyRef>& weakFacts, MatrixManager* M)
+  {
     set<TAtomRef> sAtoms;
     for (auto itr = weakFacts.begin(); itr != weakFacts.end(); ++itr){
       TAtomRef t = M->strengthenPoly(*itr);
@@ -174,6 +188,10 @@ namespace tarski {
     return sAtoms;
   }
 
+  std::set<TAtomRef> BBChecker::strengthenWeak(const std::set<IntPolyRef>& weakFacts)
+  {
+    return strengthenWeakM(weakFacts,M);
+  }
 
 
 
@@ -183,64 +201,146 @@ namespace tarski {
   }
 
 
-  
+  /**
+     return ku such that if row has exactly one non-zero factor-entry, 
+     ku is the column index of that entry, if there are no non-zero
+     factor entries, ku is zero, otherwise ku is -1.
+   **/
   int BBDeducer::getNonZero(const std::vector<char>& row) {
-    int unique = -1;
-    for (size_t i = 1; i < row.size(); i++)  {
-      if (row.at(i) && unique == -1) unique = i;
-      else if (row.at(i)) return -1;
-    }
-    return unique;
+    int ku = 0;
+    for (size_t i = 1; i < row.size() && ku >= 0; i++)
+      if (row.at(i))
+	ku = (ku == 0 ? i : -1);
+    return ku;
   }
 
 
   /*
-    This function actually makes the deductions returned by getDeductions for the strict part of the matrix
+    This function actually makes the deductions returned by getDeductions 
+    for the strict part of the matrix
   */
-  void BBDeducer::strictDeds(bblist& deds) {
-    //Here, we iterate through everything that we learned by doing gaussian elimination (AKA, all rows which were of the form X, 0, 0, ..., 1, 0, ..., 0 which were not of that form before gaussian elimination)
+  void BBDeducer::strictDeds(bblist& deds)
+  {
+    // Here, we iterate through everything that we learned by doing gaussian
+    // elimination (AKA, all rows which were of the form X, 0, 0, ..., 1, 0, ..., 0
+    // which were not of that form before gaussian elimination)
     const std::vector<std::vector<char> >& matrix = M->getStrict().getMatrix();
     const std::vector<std::vector<bool> >& comp = M->getStrict().getComp();
-    for (size_t i = 0; i < matrix.size(); i++) {
+    for (size_t i = 0; i < matrix.size(); i++)
+    {
+      // We only consider "deductions" to be cases where the row has a unique
+      // non-zero entry - i.e. it represents a known sign on a factor.
+      // Note: dr brown - I still think we need to add deductions from rows that
+      //       get zero'd out!
       short idx = getNonZero(matrix.at(i));
       if (idx == -1) continue;
-      std::forward_list<TAtomRef> atoms;
-      IntPolyRef dedP = M->getPoly(idx);
-      short dedSign = (matrix.at(i).at(0) == 0 ? GTOP : LTOP);
-      FactRef F = new FactObj(PM);
-      F->addFactor(dedP, 1);
-      TAtomRef dedAtom = new TAtomObj(F, dedSign);
-      const std::vector<bool>& deps = comp.at(i);
-      bool strengthen = false;
-      //Iterating through dependencies
-      for (size_t a = 0; a < deps.size(); a++) {
-        if (deps[a] == 0) continue; 
-        TAtomRef A = M->getAtom(a, true);
-        atoms.push_front(A);
-        //check if an existing dependency strengthens
-        if (strengthen) continue;
-        if (A->relop == LEOP || A->relop == GEOP || A->relop == EQOP) continue;
-        FactRef F = A->F;
-        for (auto itr = F->factorBegin(); itr != F->factorEnd(); ++itr) {
-          if (dedP->equal(itr->first)) {
-            strengthen = true;
-            break;
-          }
-        }
+
+      TAtomRef dedAtom; //-- deduced atom
+      std::forward_list<TAtomRef> atoms; // atoms we use to deduce dedAtom
+      TAtomRef strengthener = NULL; // atom that strengthens dedAtom to strict (if needed)
+      if (idx == 0)
+      {
+	//Iterating through dependencies
+	const std::vector<bool>& deps = comp.at(i);
+	for (size_t a = 0; a < deps.size(); a++)
+	{
+	  if (deps[a] == 0) continue; 
+	  TAtomRef A = M->getAtom(a, true);
+	  atoms.push_front(A);
+	}
       }
-      if (!strengthen)  {
-        atoms.push_front(M->strengthenPoly(dedP));
+      else
+      {
+	IntPolyRef dedP = M->getPoly(idx);
+	short dedSign = (matrix.at(i).at(0) == 0 ? GTOP : LTOP);
+	FactRef F = new FactObj(PM);
+	F->addFactor(dedP, 1);
+	dedAtom = new TAtomObj(F, dedSign);
+
+	//-- Add the atoms used to derive dedAtom (Deal with Strengthening too!) --//
+	const std::vector<bool>& deps = comp.at(i);
+	bool strengthen = false;
+	//Iterating through dependencies
+	for (size_t a = 0; a < deps.size(); a++)
+	{
+	  if (deps[a] == 0) continue; 
+	  TAtomRef A = M->getAtom(a, true);
+	  atoms.push_front(A);
+	  //check if an existing dependency strengthens
+	  if (strengthen) continue;
+	  if (A->relop == LEOP || A->relop == GEOP || A->relop == EQOP) continue;
+	  FactRef F = A->F;
+	  for (auto itr = F->factorBegin(); !strengthen && itr != F->factorEnd(); ++itr) {
+	    if (dedP->equal(itr->first))
+	      strengthen = true;
+	  }
+	}
+	if (!strengthen)
+	{
+	  strengthener = M->strengthenPoly(dedP);
+	}
       }
-      if (!(equals(dedAtom, atoms.front())))  {
-        deds.emplace_back(dedAtom, Deduction::BBSTR, atoms);
+         
+      if (idx > 0 && (strengthener.is_null() || !equals(dedAtom,strengthener)))
+      {
+	if (!strengthener.is_null())
+	  atoms.push_front(strengthener);
+	
+	if (!atoms.empty() && ++atoms.begin() != atoms.end()) // |atoms| > 1
+	{	
+	  //-- This actually records the newly deduced fact
+	  deds.emplace_back(dedAtom, Deduction::BBSTR, atoms);
+	  if (verbose && false)//DRBROWN disabled
+	    cout << "Added: " << DedExp(dedAtom, Deduction::BBSTR, atoms).toString() << endl;
+	  
+	  //-- We also need to record the reverse facts dr brown added
+	  for(std::forward_list<TAtomRef>::iterator itr = atoms.begin(); itr != atoms.end(); ++itr)
+	  {
+	    TAtomRef &Latom = *itr;
+	    TAtomRef tmp;
+	    tmp = dedAtom; dedAtom = Latom; Latom = tmp;
+	    deds.emplace_back(dedAtom,Deduction::BBSTR,atoms);
+	    if (verbose && false )//DRBROWN disabled
+	      cerr << "Added: " << DedExp(dedAtom, Deduction::BBSTR, atoms).toString() << endl;
+	    tmp = dedAtom; dedAtom = Latom; Latom = tmp;
+	  }
+	}
+      }
+      else if (idx == 0 && (!atoms.empty() && ++atoms.begin() != atoms.end())) // |atoms| > 1
+      {
+	std::forward_list<TAtomRef> tatoms;
+	swap(atoms,tatoms);
+	std::forward_list<TAtomRef>::iterator itr = tatoms.begin();
+	dedAtom = *itr;
+	for(++itr; itr != atoms.end(); ++itr)
+	  atoms.push_front(*itr);
+	
+	//-- This actually records the newly deduced fact
+	deds.emplace_back(dedAtom, Deduction::BBSTR, atoms);
+	if (verbose && false)//DRBROWN disabled
+	  cout << "Added***: " << DedExp(dedAtom, Deduction::BBSTR, atoms).toString() << endl;
+	
+	//-- We also need to record the reverse facts dr brown added
+	for(std::forward_list<TAtomRef>::iterator itr = atoms.begin(); itr != atoms.end(); ++itr)
+	{
+	  TAtomRef &Latom = *itr;
+	  TAtomRef tmp;
+	  tmp = dedAtom; dedAtom = Latom; Latom = tmp;
+	  deds.emplace_back(dedAtom,Deduction::BBSTR,atoms);
+	  if (verbose && false)//DRBROWN disabled
+	    cout << "Added***: " << DedExp(dedAtom, Deduction::BBSTR, atoms).toString() << endl;
+	  tmp = dedAtom; dedAtom = Latom; Latom = tmp;
+	}
+
       }
     }
   }
 
   /*
-    If bbsat finds BBSAT, this returns all deductions which can be made in the form of a vector of BBDeds
-    Note that MinWtBasis is not yet implemented, so no deductions on the nonstrict part of the function
-    NOTE: Assumes that theh matrix manager has already reduced the strict matrix
+    If bbsat finds BBSAT, this returns all deductions which can be made in the form 
+    of a vector of BBDeds Note that MinWtBasis is not yet implemented, so no deductions 
+    on the nonstrict part of the function 
+    NOTE: Assumes that the matrix manager has already reduced the strict matrix
     NOTE: Ordering matters. strictDeds should always be called first, and its
     deductions should always be returned first
   */
@@ -321,7 +421,8 @@ namespace tarski {
   }
 
   DMatrix BBDeducer::mkMatrix(const vector<AtomRow>& rows) {
-    DMatrix d;
+    const int numCols = rows[0].vc->size();
+    DMatrix d(numCols);
     for (auto itr = rows.begin(); itr != rows.end(); ++itr) {
       d.addRow(*(itr->vc));
     }
@@ -330,29 +431,35 @@ namespace tarski {
 
 
   /*
-    Returns true if once reduction occurs with wp, we have a row of the form
-    1 0 0 ... 0 0
+    Note: Only called in Step 10/11 of MinWtBasis
+    Returns i_0 >= 0 if once reduction occurs with wp, we have a row of the form
+    1 0 0 ... 0 0, and i_0 is the index of such a row.  Else returns -1.
+    Input: wp - the mod 2 image of w           
    */
-  bool BBDeducer::reduceRow(AtomRow& wp, vector<char>& vc,
+  int BBDeducer::reduceRow(AtomRow& wp, vector<char>& vc,
                             forward_list<TAtomRef>& sources,
-                            const DMatrix& beq, const vector<AtomRow>& va) {
+                            const DMatrix& beq, const vector<AtomRow>& va)
+  {
     //Doing the reduction
     vector<char> vtmp(*(wp.vc));
     vc = vtmp;
     DMatrix reducer(beq);
     reducer.addRow(vc);
+    int i_wp = reducer.getNumRows() - 1; //-- index of wp as a row of DMatrix reducer
     reducer.doElim();
-    if (BBSolver::findRow(reducer) == -1) return false;
-    //Now adding the sources
-    sources.push_front(wp.atom);
-    const vector<bool>& idxs = reducer.getComp().back();
-    for (size_t i = 0; i < idxs.size()-1; i++) {
-      if (idxs[i]) {
-        sources.push_front(va[i].atom);
-      }
+    int i_0 = BBSolver::findRow(reducer);
+    if (i_0 == -1) return -1; //-- no row of form 1 0 0 ... 0 0
 
+    //Now adding the sources
+    const vector<bool>& idxs = reducer.getComp()[i_0];
+    for (size_t i = 0; i < idxs.size()-1; i++)
+    {
+      if (idxs[i] != 0)
+        sources.push_front(va[i].atom);
     }
-    return true;
+    if (idxs.back() != 0)
+      sources.push_front(wp.atom);
+    return i_0;
   }
 
   bool checkValid(TAtomRef t,
@@ -399,7 +506,9 @@ namespace tarski {
     description of this algorithm. Note that it has been modified
     in order to provide explanations!
   */
-  void BBDeducer::minWtMain(bblist& deds) {
+  void BBDeducer::minWtMain(bblist& deds)
+  {
+    // cerr << ">>>>>>>> In minWtMain!" << endl;
     int ns = M->getStrict().getNumCols();
     vector<AtomRow> B = mkB();
     sort(B.begin(), B.end(), weightCompare(ns));
@@ -423,62 +532,203 @@ namespace tarski {
       fillMatrices(lt, eq, B, w, ns);
 
       /* STEP 6 */
-      DMatrix blt = mkMatrix(lt);
-      blt.doElim();
-      if (BBSolver::findRow(blt) != -1)  {
-        continue;
-      }
+      if (lt.size() > 0)
+      {
+	DMatrix blt = mkMatrix(lt);
+	blt.doElim();
+	int i_0 = BBSolver::findRow(blt);
+	if (i_0 != -1)
+	{
+	  // This means w is implied by blt.  Specifically, blt produces
+	  // a row of all zeros except a one in the sigma position, which
+	  // represents an equation with support contained within the
+	  // support of w.  That implies w holds with equality.  So ...
+	  // we need to determine which rows in blt sum to zero, and then
+	  // we get the deduction that those rows (mapped back to atoms)
+	  // imply X (w mapped back to an atom)
+	  TAtomRef X = w.atom;
+	  set<IntPolyRef> strictPolysInX;
+	  {
+	    FactRef F = X->F;
+	    for (auto itr = F->factorBegin(); itr != F->factorEnd(); ++itr)
+	    {
+	      IntPolyRef p = itr->first;
+	      if (getMatrixManager()->isStrictPoly(p)) 
+		strictPolysInX.insert(p);
+	    }
+	  }
+	
+	  //-- get indices of the rows that contributed to i_0
+	  set<IntPolyRef> needStrengthening; //-- set of polys that will need strengthening
+	  //-- later call strengthenWeak(needStrengthening)
+	  //-- to actually strengthen
+	  forward_list<TAtomRef> sources;
+	  auto comp = blt.getComp();
+	  const std::vector<bool>& deps = comp.at(i_0);
+	  for (size_t a = 0; a < deps.size(); a++)
+	  {
+	    if (deps[a] == 0) continue; 
+	    TAtomRef A = lt[a].atom;
+	    sources.push_front(A);
 
+	    //-- If lt[a] has any strict factors, we need to be sure that the deduction includes
+	    //-- their "strengthening", i.e. includes an atom that makes them non-zero
+	    //-- specifically, if lt[a]'s atom has any strict factors that are not factors of X.
+	    //-- If they are a factor of X (recall, X is non-strict)) then such a factor being zero
+	    //-- will still imply X.
+
+	    // collect factors that will need strengthening
+	    FactRef F = A->F;
+	    for (auto itr = F->factorBegin(); itr != F->factorEnd(); ++itr)
+	    {
+	      IntPolyRef p = itr->first;
+	      if (getMatrixManager()->isStrictPoly(p) && strictPolysInX.find(p) == strictPolysInX.end())
+		needStrengthening.insert(p);		
+	    }
+	  }
+
+	  //-- get strenghtening atoms
+	  set<TAtomRef> SA = strengthenWeakM(needStrengthening,getMatrixManager());
+	  for(auto itr = SA.begin(); itr != SA.end(); ++itr)
+	    sources.push_front(*itr);
+	
+	  //-- record that atom X, the image of 'w', is implied be 'atoms'
+	  cerr << "Making a Step 6 MinWtBasis deduction: ";
+	  for(auto itr = sources.begin(); itr != sources.end(); ++itr)
+	  { cerr << ' '; (*itr)->write(true); }
+	  cerr << " ==> ";  X->write(true);
+	  cerr << endl;
+	  deds.emplace_back(X, Deduction::MINWT, sources);
+	  continue;
+	}
+      }
+      
       /* STEP 7 */
       eq.insert(eq.end(), lt.begin(), lt.end()); 
-      DMatrix beq = mkMatrix(eq);
-      beq.toMod2();
-
-      /* STEP 8 */
-      beq.doElim();
-      /* STEP 9 */
-
-      vector<char> vc(*(w.vc));
-      for (char& c : vc) {
-        c %= 2;
-      }
-      /* STEP 10 */
-      AtomRow wp(vc, w.atom);
-      vector<char> wpReduced;
       forward_list<TAtomRef> sources;
+      if (eq.size() > 0)
+      {
+	DMatrix beq = mkMatrix(eq);
+	beq.toMod2();
 
-      if (reduceRow(wp, wpReduced, sources, beq, eq)) {
-        /* STEP 11 */
-        vector<char> resRow(*(w.vc));
-        resRow[0] = 1;
-        for (int i = 1; i < ns; i++) {
-          resRow[i] = 0;
-        }
-        for (size_t i = ns; i < resRow.size(); i++) {
-          if (resRow[i] == 1) resRow[i] = 2;
-        }
-        AtomRow res(resRow, w.atom);
-        mkMinWtDed(res, sources, deds);
+	/* STEP 8 */
+	beq.doElim();
+			
+	/* STEP 9 */
+	vector<char> vc(*(w.vc)); //-- vc is the mod 2 image of w
+	for(char& c : vc) { c %= 2; }			
+	AtomRow wp(vc, w.atom);
+	vector<char> wpReduced;
+	int i_0 = reduceRow(wp, wpReduced, sources, beq, eq);
+      
+	/* STEP 10 */
+	if (i_0 != -1) {
+	  /* STEP 11 */
+	  vector<char> resRow(*(w.vc)); //-- set resRow to 2*w + [1 0 ... 0]op[0 ... 0]
+	  resRow[0] = 1;
+	  for (int i = 1; i < ns; i++) //-- all stricts will be zero'd out
+	    resRow[i] = 0;
+	  for (size_t i = ns; i < resRow.size(); i++)
+	    resRow[i] = (resRow[i] != 0 ? 2 : 0);
+	  FactRef factors = new FactObj(getPolyManager());
+	  for (size_t i = ns; i < resRow.size(); i++)
+	    if (resRow[i] != 0)
+	      factors->addFactor(getMatrixManager()->getPoly(i),1);
+	  TAtomRef Anew = new TAtomObj(factors,EQOP);
+	  AtomRow res(resRow,Anew);
 
-        /* STEP 12 */
-        int numPopped = 0;
-        for (int i = B.size()-1; i >= 0; i--) {
-          if (weight(B[i].vc, ns) < weight(w.vc, ns)) break;
-          if (support(B[i].vc, w.vc, ns) == 1) {
-            size_t backIdx = B.size() - (1 + numPopped);
-            if (i != backIdx) {
-              AtomRow tmp = B[i];
-              B[i] = B[backIdx];
-              B[backIdx] = tmp;
-            }
-            numPopped++;
-            i++;
-          }
-        }
-        B.erase(B.end()-numPopped, B.end()); 
-        continue;
+	  // check whether Anew is actually in 'sources' in which case it's not a new deduction
+	  // and whether it's actually just w, in which case it is likewise not new.
+	  bool isNew = !equals(w.atom,Anew);
+	  for(auto itr = sources.begin(); isNew && itr != sources.end(); ++itr)
+	    isNew = !equals(Anew,*itr);
+	  if (isNew)
+	  {
+	    set<IntPolyRef> needStrong, alreadyStrengthened;
+	    for(auto itr = sources.begin(); isNew && itr != sources.end(); ++itr)
+	    {
+	      TAtomRef A = (*itr);
+	      if (!relopIsNonStrict(A->getRelop())) // i.e. this is a strict atom
+	      {
+		FactRef F = A->F;
+		for (auto itr = F->factorBegin(); itr != F->factorEnd(); ++itr)
+		  alreadyStrengthened.insert(itr->first);
+	      }
+	    }
+	    for(auto itr = sources.begin(); isNew && itr != sources.end(); ++itr)
+	    {
+	      TAtomRef A = (*itr);
+	      if (relopIsNonStrict(A->getRelop())) // i.e. this is a non-strict atom
+	      {
+		FactRef F = A->F;
+		for (auto itr = F->factorBegin(); itr != F->factorEnd(); ++itr)
+		  if (getMatrixManager()->isStrictPoly(itr->first))
+		    needStrong.insert(itr->first);
+	      }
+	    }
+	    set<TAtomRef> SA = strengthenWeakM(needStrong,getMatrixManager());
+	    for(auto itr = SA.begin(); itr != SA.end(); ++itr)
+	      sources.push_front(*itr);
+
+	    if (verbose)
+	    {
+	      cerr << "Making a Step 11 MinWtBasis deduction: ";
+	      for(auto itr = sources.begin(); itr != sources.end(); ++itr)
+	      { cerr << ' '; (*itr)->write(true); }
+	      cerr << " ==> ";  res.atom->write(true);
+	      cerr << endl;
+	    }
+	    
+	    mkMinWtDed(res, sources, deds); //-- this is the newly deduced equation
+
+	    //-- must add the fact that the new equation implies w ... that's kind of the point
+	    if (verbose)
+	    {
+	      cerr << "Making a Step 11 MinWtBasis deduction follow on: ";
+	      res.atom->write(true); cerr << " ==> ";  w.atom->write(true);
+	      cerr << endl;
+	    }
+	    
+	    forward_list<TAtomRef> fl({res.atom});
+	    deds.emplace_back(w.atom, Deduction::MINWT, fl);	  
+	  }
+	  
+	  /* STEP 12 */
+	  for(int i = 0; i < B.size(); ++i)
+	  {
+	    if (weight(B[i].vc, ns) > 0 && support(B[i].vc, w.vc, ns) != -1)
+	    {
+	      cerr << "Making a Step 12 MinWtBasis deduction: ";
+	      res.atom->write(true); cout << " ==> "; B[i].atom->write(true); cout << endl;
+
+	      forward_list<TAtomRef> fl({res.atom});
+	      deds.emplace_back(B[i].atom, Deduction::MINWT, fl);	  
+
+	      std::swap(B[i],B[B.size()-1]);
+	      B.pop_back();
+	    }
+	  }
+
+	  // int numPopped = 0;
+	  // for (int i = B.size()-1; i >= 0; i--) {
+	  //   if (weight(B[i].vc, ns) < weight(w.vc, ns)) break;
+	  //   if (support(B[i].vc, w.vc, ns) == 1) {
+	  //     size_t backIdx = B.size() - (1 + numPopped);
+	  //     if (i != backIdx) {
+	  //       cerr << ">>>>>>>> "; B[i].atom->write(true); cerr << endl;
+	  //       AtomRow tmp = B[i];
+	  //       B[i] = B[backIdx];
+	  //       B[backIdx] = tmp;
+	  //     }
+	  //     numPopped++;
+	  //     i++;
+	  //   }
+	  // }
+	  // B.erase(B.end()-numPopped, B.end()); 
+	  continue;
+	}
       }
-
+      
       /* STEP 13-14 */
       //We combine the null step and the non null case here
       //Because we want to deduce the null row and say that

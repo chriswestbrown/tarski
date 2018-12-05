@@ -20,13 +20,19 @@ namespace Minisat {
   public:
     //If there is a conflict, this assumes the conflict will be in lits
     virtual void getClause(vec<Lit>& lits, bool& conf) = 0;
+
     //Assuems tehre will be no conflict here
     virtual void getAddition(vec<Lit>& lits, bool& conf) = 0;
+
     //Final Check (IE, for handing off to a complete theory solver if necessary)
     virtual void getFinalClause(vec<Lit>& lits, bool& conf) {getClause(lits, conf);}
+
     void printStack();
+
     virtual ~TSolver() {}
+
     TSolver() {}
+
     void setSolver(Solver * S) {mini = S;}
 
   protected:

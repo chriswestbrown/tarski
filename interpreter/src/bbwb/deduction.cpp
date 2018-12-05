@@ -82,39 +82,6 @@ namespace tarski {
     return A->F->cmp(B->F) < 0;
   }
 
-
-  /*
-    Heuristic for simplest is
-    Score 0 for best possible case, strict sign on variable
-    Add 1 if sign can somehow be strengthened (AKA, LEOP, GEOP, NEOP)
-    Add 6 for every additional term in a polynomial
-    Add 2 for every variable in a term
-    Add 12 for every factor
-   */
-  int DedManager::scoreDed(const Deduction& d) {
-    int score = 0;
-    TAtomRef a = d.getDed();
-    FactRef f = a->getFactors();
-    if (a->getRelop() == LEOP || a->getRelop() == GEOP ||
-        a->getRelop() == NEOP) {
-      score += 1;
-    }
-    score += 12 * (f->numFactors() - 1);
-    for (FactObj::factorIterator itr = f->factorBegin();
-         itr != f->factorEnd(); ++itr) {
-      IntPolyRef poly = itr->first;
-      if (poly->isVar()) continue;
-      VarKeyedMap<int> M;
-      FernPolyIter F(poly, M);
-      while (!F.isNull()) {
-        score += 2 + (F.getVars().size()-1);
-        F.next();
-        if (!F.isNull()) score += 6;
-      }
-    }
-    return score;
-  }
-
   short DedManager::getSgn(TAtomRef t) {
     return (atomToDed.find(t) == atomToDed.end())
       ? ALOP : deds[atomToDed[t]].getDed()->relop;
@@ -363,8 +330,11 @@ namespace tarski {
   }
 
   /*
-    Given the last deduction d made in this deduction manager, determine all the deductions that were needed to deduce d.
-    This function works by effectively doing a graph traversal with a priority queue through the std::vector of deductions. Since each deduction contains the list of all of its dependencies, we have to check each dependency. If a dependency is a given, then we stop searching there.
+    Given the last deduction d made in this deduction manager, determine all the deductions 
+    that were needed to deduce d. This function works by effectively doing a graph traversal 
+    with a priority queue through the std::vector of deductions. Since each deduction contains 
+    the list of all of its dependencies, we have to check each dependency. If a dependency is 
+    a given, then we stop searching there.
   */
   Result DedManager::traceBack(int idx) {
     std::vector<bool> seen(idx+1, false);
@@ -372,7 +342,8 @@ namespace tarski {
     std::vector<TAtomRef> atoms;
 
     Deduction& d = (deds[idx]);
-    if (depIdxs[idx].size() == 0) {
+    if (depIdxs[idx].size() == 0)
+    {
       TAtomRef t = d.getDed();
       atoms.push_back(t);
       Result r(atoms);
@@ -385,19 +356,20 @@ namespace tarski {
       seen[*it] = true;
     }
 
-    while (!dedQ.empty()) {
-
+    while (!dedQ.empty())
+    {
       int idx = dedQ.front();
       dedQ.pop();
-      seen[idx] = true;
       Deduction& d = (deds[idx]);
-      if (isGiven[idx]) {
+      if (isGiven[idx])
+      {
         atoms.push_back(d.getDed());
       }
-      else {
-        for (set<int>::iterator itr = origDep[idx].begin();
-             itr != origDep[idx].end(); ++itr) {
-          if (!seen[*itr]) dedQ.push(*itr);
+      else
+      {
+        for (set<int>::iterator itr = origDep[idx].begin(); itr != origDep[idx].end(); ++itr)
+	{
+          if (!seen[*itr]) { dedQ.push(*itr); seen[*itr] = true; }
         }
       }
     }
@@ -522,20 +494,62 @@ namespace tarski {
 
   //SIMPLIFICATION CODE ------------------------------------------------------
 
-  TAndRef DedManager::getSimplifiedFormula() {
-    TAndRef t = new TAndObj();
-    vector< int > vScores(deds.size(), 0);
-    for (size_t i = 0; i < deds.size(); i++) {
-      vScores[i] = scoreDed(deds[i]);
+  void DedManager::debugWriteSorted(Orderer &ord)
+  {
+    vector<size_t> indices = ord.proxy_sorted_indices(deds);
+    
+    cout << endl << "Sorted deductions:" << endl;
+    for(size_t i = 0; i < indices.size(); ++i)
+    {
+      int k = indices[i];
+      cout << k << ": ";
+      auto L = depIdxs[k];
+      for(auto litr = L.begin(); litr != L.end(); ++litr)
+      {
+	cout << "[ ";
+	for(auto sitr = litr->begin(); sitr != litr->end(); ++sitr)
+	  cout << " " << *sitr;
+	cout << " ] ";
+      }      
+      cout << deds[k].toString() << endl;
     }
-    vector<size_t> indices = sort_indices(vScores);
+    cout << endl;
+  }
+  
+  TAndRef DedManager::getSimplifiedFormula(Orderer& ord)
+  {
+    vector<size_t> indices = ord.proxy_sorted_indices(deds);
+    
+    // Dr Brown debug
+    if (false)
+    {
+      cout << endl << "Sorted deductions:" << endl;
+      for(size_t i = 0; i < indices.size(); ++i)
+      {
+	int k = indices[i];
+	cout << k << ": ";
+	auto L = depIdxs[k];
+	for(auto litr = L.begin(); litr != L.end(); ++litr)
+	{
+	  cout << "[ ";
+	  for(auto sitr = litr->begin(); sitr != litr->end(); ++sitr)
+	    cout << " " << *sitr;
+	  cout << " ] ";
+	}      
+	cout << deds[k].toString() << endl;
+      }
+      cout << endl;
+    }
+    
     vector<size_t> revIndices(indices.size());
     for (size_t i = 0; i < revIndices.size(); i++) {
       revIndices[indices[i]] = i; 
     }
     //writeIntermediate(indices, revIndices);
+    TAndRef t = new TAndObj();
     set<int> skips;
     listVec asSat = genSatProblem(t, skips, indices);
+
     //writeSatProblem(asSat);
     solveSAT(asSat, t, skips, indices);
     return t;
@@ -572,21 +586,25 @@ namespace tarski {
         j++;
       }
       Minisat::Solver S;
-      /*
-      //cout << "\nSAT CHECK: " << toString(deds[toRemove].getDed()) << endl;
-      writeSatProblem(asSat);
-      cout << "S: ";
-      for (int i = 0; i < s.size(); i++) {
-       write(s[i]); cout << " ";
+
+      // DEBUG
+      if (false)
+      {
+	cout << "\nSAT CHECK: " << toString(deds[toRemove].getDed()) << endl;
+	writeSatProblem(asSat);
+	cout << "S: ";
+	for (int i = 0; i < s.size(); i++) {
+	  write(s[i]); cout << " ";
+	}
+	cout << endl;
       }
-      cout << endl;
-      */
+	
       S.mkProblem(asSat.begin(), asSat.end());
       Minisat::lbool ret = S.solveLimited(s);
-      if (ret == Minisat::toLbool(1)) {
+      if (ret == Minisat::toLbool(1)) { //-- This means "toRemove" is actually necessary
         //cout << "\nSAT\n";
         for (size_t i = 0; i < depIdxs[toRemove].size(); i++)
-        asSat.pop_front();
+	  ;//DRBROWN asSat.pop_front();
         elim[toRemove] = true;
         numElim++;
       }

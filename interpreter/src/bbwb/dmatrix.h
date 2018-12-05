@@ -12,7 +12,7 @@ namespace tarski {
 
   class DMatrix {
   public:
-    DMatrix(); //    A simple constructor which does nothing
+    DMatrix(int cols); //    A simple constructor which does nothing
     DMatrix(int rows, int cols);
     DMatrix(const DMatrix &M);
     ~DMatrix();
@@ -62,6 +62,9 @@ namespace tarski {
     void addRow(const std::vector<char>& vb);
     void doElim(); //FOR TESTING PURPOSES ONLY
 
+    // Input : vc is the row-vector to be reduced. rows should be empty initially
+    // Output/SideEffects: vc is reduced by the rows of the matrix, and 'rows'
+    // contains the indices of all the rows that were used in the reduction
     void reduceRow (std::vector<char>& vc,
                     std::vector<int>& rows) const;
 
@@ -70,12 +73,20 @@ namespace tarski {
   private:
     std::vector< std::vector<char > > m; //the strict matrix
     std::vector < std::vector<bool > >comp; //the strict companion matrix
+
+    // I believe: Let i be the index of a column (i > 0, since we never reduce
+    // the the relop column, which is i = 0).  pivotCols[i] gives the index of
+    // the row in m (the strict matrix) that is the pivot for column i.  I.e.,
+    // m[i] = 1, and m[i] = 0 for all "previous columns".
+    // IMPORTANT: elimination is done left-to-right, i.e. columns 1,2,..., m.size()-1.
+    //            that's why it is OK to reduce checking left-to-right for pivots.
     std::vector<int> pivotCols;
+
+
     inline void swapVal(bool&  val1, bool& val2){
       if (val1 == val2) return;
-      else 
-        val1 = !val1;
-        val2 = !val2;
+      val1 = !val1;
+      val2 = !val2;
     }
     inline void swapVal(char& val1, char& val2){
       char tmp = val2;

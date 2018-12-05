@@ -10,7 +10,8 @@
 
 namespace tarski {
   //A class which defines a solver procedure via the deduce method
-  class QuickSolver {
+  class QuickSolver
+  {
   protected:
     //TODO: Whitebox requires this, so I need to get rid of this from whitebox
     DedManager * dedM;
@@ -18,9 +19,16 @@ namespace tarski {
   public:
 
     virtual ~QuickSolver() {};
+
+    // A quicksolver is idempotent if the set of deduced facts after two consecutive calls
+    // is the same as for one call.  The point of this is that each kind of solver must
+    // declare itself as idempotent or not.
+    virtual bool isIdempotent() = 0; 
+    
     //use this method to have the solve rmake a single deduction
     //res set to false when no deduction can be made
     virtual DedExp deduce(TAndRef t, bool& res) = 0;
+
     //use to notify the solver if the last deduction taught something new
     //notify is called by solvermanager when the deduction manager
     //processes the Deduction * returned by deduce, and returns true
@@ -28,7 +36,8 @@ namespace tarski {
     //called when that deduction causes deduction manager to deduce false,
     //as the solving process stops as soon as false is deduced
     virtual void notify() = 0;
-    inline void setDedM(DedManager * d) {
+    inline void setDedM(DedManager * d)
+    {
       this->dedM = d;
     }
     virtual void update(std::vector<Deduction>::const_iterator
@@ -55,7 +64,8 @@ namespace tarski {
     deduction manger. The solver manager stores the indices in the vector lastDeds, where
     the ith element of solvers has the last index it deduced in the ith element of lastDeds.
    */
-  class SolverManager {
+  class SolverManager : public Orderer
+  {
   private:
     std::vector<QuickSolver *> solvers; //All the solving procedures
     std::vector<short> lastDeds; //The index of the last deduction made by each solver
@@ -68,7 +78,7 @@ namespace tarski {
 
   public:
     SolverManager(int codes, TAndRef tand);
-    ~SolverManager();
+    virtual ~SolverManager();
 
     static const int BB = 1;
     static const int WB = 2;
@@ -82,6 +92,9 @@ namespace tarski {
     //The "main" method which loops through all the QuickSolver objects
     Result deduceAll();
 
+    //This is its "Orderer" function
+    std::vector<size_t> proxy_sorted_indices(std::vector<Deduction> &deds);
+    
     TAndRef simplify(); 
     inline Result explainAtom(TAtomRef t) { return dedM->explainAtom(t);}
     inline Result explainSimp(size_t i) { return dedM->explainSimp(i); }
@@ -89,6 +102,12 @@ namespace tarski {
     //nice, human readable format with a proof and a list of all deductions
     void prettyPrintResult();
     void prettyPrintSimplify(TAndRef t);
+
+    void debugWriteSorted()
+    {
+      if (solvers.size() > 0) dedM->debugWriteSorted(*this);
+      else cout << "No deductions were mades!" << endl;
+    }
 
     //returns a tarksi object containing the results of deduceAll
     LisRef genLisResult();

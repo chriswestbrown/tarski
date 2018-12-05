@@ -64,6 +64,7 @@ namespace tarski {
     std::string name() { return "bbwb"; }
   };
 
+  LisRef foobar(TAndRef A);
 
 
 }//end namespace tarski

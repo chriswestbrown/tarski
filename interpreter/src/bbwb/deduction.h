@@ -39,7 +39,8 @@ namespace tarski {
 
   class DedManager;
 
-  class Deduction {
+  class Deduction
+  {
     friend class DedManager;
   private:
 
@@ -92,8 +93,10 @@ namespace tarski {
 
 
   struct DedExp {
+    // DATA
     Deduction d;
     forward_list<TAtomRef> exp;
+
     //constructor with an existing deduction
     DedExp(const Deduction& D, const forward_list<TAtomRef>& EXP)
       : d(D), exp(EXP) {};
@@ -125,25 +128,51 @@ namespace tarski {
 
     inline void write() {
       bool notFirst = false;
-      cout << "size is " << atoms.size() << endl;
+      cout << "size is " << atoms.size() << " [ ";
       for (std::vector<TAtomRef>::iterator itr = atoms.begin(); itr != atoms.end(); ++itr) {
         if (notFirst) std::cout << " /\\ "; 
         else notFirst = true;
         (*itr)->write();
       }
+      cout << " ]";
     }
 
   };
 
+  /**
+     sort_indices (a proxy sort)
+     Input : v - a vector of type T objects, where operator< is defined for T's
+     Output: idx - a vector of size_t objects, s.t. v[idx[0]],...,v[idx[1]] are
+             sorted w.r.t. T's < operator
+   **/
+  template <typename T> vector<size_t> sort_indices(const vector<T>& v)
+  {
+    vector<size_t> idx(v.size());
+    iota(idx.begin(),idx.end(), 0);
+    sort(idx.begin(), idx.end(), [&v](size_t i1, size_t i2) {
+	return v[i1] < v[i2];
+      });
+    return idx;
+  }
+
+  class Orderer
+  {
+  public:
+    // Must return a vector of indices representing a proxy sort of the indices of deds.
+    // i.e. a vector of size_t objects, s.t. v[idx[0]],...,v[idx[1]] are sorted w.r.t. to some order
+    virtual std::vector<size_t> proxy_sorted_indices(std::vector<Deduction> &deds) = 0;
+  };
   
 
-  class DedManager{
+  class DedManager
+  {
 
   public:
     typedef forward_list<TAtomRef> dedList;
+
   private:
-    
-    struct ManagerComp {
+    struct ManagerComp
+    {
       bool operator()(const TAtomRef &A, const TAtomRef &B);
     };
     PolyManager * PM;
@@ -152,8 +181,10 @@ namespace tarski {
     typedef
     std::vector<std::list<std::set<int> > > vecDep;
     vector<char> isGiven;
-    vecDep depIdxs; //The indexes of all the atoms a deduction is dependent on
-    std::vector<std::set<int> > origDep; //The indices of the first time a deduction was made. This is necessary because cycles can ruin tracebacks, but std::set doesn't give us a way to retrieve the first way a deduction was made
+    vecDep depIdxs; //The indices of all the atoms a deduction is dependent on
+    std::vector<std::set<int> > origDep; //The indices of the first time a deduction was made. This
+    // is necessary because cycles can ruin tracebacks, but std::set doesn't give us a way to retrieve
+    // the first way a deduction was made
     VarKeyedMap<int> varSigns; //A fast mapping for variables, which is needed for WB algorithms
     //The index of the last deduction on an atom
     std::map<TAtomRef, int, ManagerComp> atomToDed;
@@ -181,14 +212,6 @@ namespace tarski {
     TAndRef simplify();
     int scoreDed(const Deduction& d);
     void writeIntermediate(vector<size_t>&, vector<size_t>&);
-    template <typename T> vector<size_t> sort_indices(const vector<T>& v) {
-      vector<size_t> idx(v.size());
-      iota(idx.begin(),idx.end(), 0);
-      sort(idx.begin(), idx.end(), [&v](size_t i1, size_t i2) {
-          return v[i1] < v[i2];
-        });
-      return idx;
-    }
     listVec genSatProblem(TAndRef& t, set<int>& skips, vector<size_t>&);
     void writeSatProblem(listVec& lv);
     void solveSAT(listVec& lv, TAndRef& t, set<int>& skips,
@@ -222,7 +245,7 @@ namespace tarski {
     { itr = deds.begin(); end = deds.begin()+givenSize;}
     int searchMap(TAtomRef A);
     bool isEquiv(TAtomRef A, TAtomRef B);
-    TAndRef getSimplifiedFormula();
+    TAndRef getSimplifiedFormula(Orderer& ord);
     Result explainAtom(TAtomRef t);
     //Explain the atoms required to produce an atom in the simplified formula
     //At idx i.
@@ -231,6 +254,10 @@ namespace tarski {
       return (!isGiven[i])
         ? traceBack(simpIdx[i]) : Result({deds[simpIdx[i]].getDed()});
     }
+
+    //-- for debugging, writes all deductions sorted as they would be for simplification
+    void debugWriteSorted(Orderer &ord);
+
   };
 
 

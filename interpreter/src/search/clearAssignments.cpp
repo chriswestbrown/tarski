@@ -350,33 +350,74 @@ namespace tarski {
       if (val == 0 || rootFor.getMark(V[i]) != V[i])
       {
         VarSet x = E.getVarFromVertex(V[i]);
-	if (verbose) { std::cout << PMptr->getName(x) << " = ";  }
+	//	if (verbose) { std::cout << PMptr->getName(x) << " = ";  }
         int r = rootFor.getMark(V[i]);
         if (r < 0) {
-	  if (verbose){RNWRITE(val);}
+	  // if (verbose){RNWRITE(val);}
           constants[x] = val;
           list<TAtomRef>& lt = rootFor.getSource(V[i]);
           exp[x] = rootFor.getSource(V[i]);
         }
         else if (E.getValue(r) == 0) {
-	  if (verbose){RNWRITE(0);}
+	  // if (verbose){RNWRITE(0);}
           constants[x] = 0;
           exp[x] = rootFor.getSource(V[i]);
         }
         else {
-	  if (verbose){
-	    if (RNCOMP(val,RNINT(-1)) == 0)       { SWRITE("- "); }
-	    else if (RNCOMP(val,RNINT(1)) != 0)   { RNWRITE(val); SWRITE(" "); }
-	    std::cout << PMptr->getName(E.getVarFromVertex(r));
-	  }
+	  // if (verbose){
+	  //   if (RNCOMP(val,RNINT(-1)) == 0)       { SWRITE("- "); }
+	  //   else if (RNCOMP(val,RNINT(1)) != 0)   { RNWRITE(val); SWRITE(" "); }
+	  //   std::cout << PMptr->getName(E.getVarFromVertex(r));
+	  // }
           multiples[x] = pair<GCWord, VarSet>(val, E.getVarFromVertex(r));
           exp[x] = rootFor.getSource(V[i]);
         }
-	if (verbose){std::cout << std::endl;}
+	// if (verbose){std::cout << std::endl;}
       }
     }
+
+    vector<VarSet> K = getVarsEliminatedBySubstitutions(E,rootFor);
+    for(int i = 0; i < K.size(); ++i)
+    {
+      Variable x = K[i];
+      cout << "Eliminated " << PM->getName(x) << " with ";
+      auto L = exp[x];
+      for(auto itr = L.begin(); itr != L.end(); ++itr)
+      {
+	cout << " ";
+	(*itr)->write(true);
+      }
+      cout << endl;
+
+      cout << PM->getName(x) << " = ";
+      if (multiples[x] == nada)
+	RNWRITE(constants[x]);
+      else
+      {
+	RNWRITE(multiples[x].first);
+	cout << " " << PM->getName(multiples[x].second);
+      }
+      cout << endl;      
+    }	
   }
 
+  vector<VarSet> SubExp::getVarsEliminatedBySubstitutions(ExpGraph& E, MarkLogExp& rootFor)
+  {
+    vector<VarSet> res;
+    vector<int> V = E.vertexList();
+    for (size_t i = 0; i < V.size(); i++)
+    {
+      if (V[i] < 0) continue;
+      Word val = E.getValue(V[i]);
+      if (val == 0 || rootFor.getMark(V[i]) != V[i])
+      {
+        VarSet x = E.getVarFromVertex(V[i]);
+	res.push_back(x);
+      }
+    }
+    return res;
+  }
+  
   list<DedExp> SubExp::makeDeductions(TAndRef t) {
     list<DedExp> res;
     for (TAndObj::conjunct_iterator itr = t->begin(); itr != t->end(); ++itr) {
@@ -493,7 +534,8 @@ namespace tarski {
     return new IntPolyObj(sleveleval,Cb,Vremain);
   }
 
-  void Substituter::makeDeductions(TAndRef t) {
+  void Substituter::makeDeductions(TAndRef t)
+  {
     PolyManager * PM = t->getPolyManagerPtr();
 
     ExpGraph E(t);
@@ -506,6 +548,13 @@ namespace tarski {
     // list<TAtomRef> empty;
     // VarKeyedMap<list<TAtomRef> > exp(empty);
     SubExp S(E, M, PM);
+
+    //-- track what gets substituted
+    vector<VarSet> V = S.getVarsEliminatedBySubstitutions(E, M);
+    for(int i = 0; i < V.size(); ++i)
+      orderSubstituted[V[i]] = nextSubCounter;
+    nextSubCounter++;
+    
     deductions = S.makeDeductions(t);    
   }
 
@@ -534,4 +583,12 @@ namespace tarski {
     return d;
   }
 
+  void Substituter::dump()
+  {
+    cout << "Substituter(once = " << once << "):" << endl;
+    for(auto itr = deductions.begin(); itr != deductions.end(); ++itr)
+      cout << itr->toString() << endl;
+  }
+
+  
 } //end namespace

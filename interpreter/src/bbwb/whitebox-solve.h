@@ -10,7 +10,8 @@
 
 namespace tarski {
 
-  class WBSolver : public QuickSolver {
+  class WBSolver : public QuickSolver
+  {
   private:
     PolyManager* PM;
     VarSet allVars;
@@ -56,7 +57,7 @@ namespace tarski {
     void notify();
 
     void update(std::vector<Deduction>::const_iterator begin, std::vector<Deduction>::const_iterator end);
-
+    bool isIdempotent() { return true; }
   
   };
 

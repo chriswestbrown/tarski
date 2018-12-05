@@ -39,11 +39,16 @@ namespace tarski {
     void swapToStrict(IntPolyRef);
 
     bool isStrictAtom(TAtomRef t);
+
     void strictUpdate();
     inline int getNumStrictCols() {return strict.getNumCols(); }
   public:
     MatrixManager(TAndRef);
     MatrixManager(const MatrixManager&, const vector<int>&);
+
+    //-- return true if the polynomial p is "strict", i.e. if it is present in a strict atom
+    bool isStrictPoly(IntPolyRef p);
+
     void addAtom(TAtomRef t);
     TAtomRef getMeaning(int row);
     forward_list<TAtomRef> explainMeaning(int row);

@@ -1,4 +1,5 @@
 #include "solver-manager.h"
+#include "bbwb.h"
 #include "blackbox-solve.h"
 #include "whitebox-solve.h"
 #include "formula-maker.h"
@@ -54,8 +55,11 @@ BoxSolver::BoxSolver(TFormRef formula) : unsat(false), ranOnce(false), M(NULL), 
     processAtoms(l1norm);
     this->formula = l1norm;
   }
-  cerr << "The orig formula is " << toString(l1norm) << endl;
-  cerr << "Formula to solve is " << toString(this->formula) << endl;
+  if (verbose)
+  {
+    cout << "The orig formula is " << toString(l1norm) << endl;
+    cout << "Formula to solve is " << toString(this->formula) << endl;
+  }
   if (!isPureConj){
     S = new Solver(this);
     listVec l = makeFormula(this->formula);
@@ -67,7 +71,8 @@ BoxSolver::BoxSolver(TFormRef formula) : unsat(false), ranOnce(false), M(NULL), 
       cerr << endl;
     }
     */
-    M = (numAtoms > 5) ? M = new MHSGenerator(l, numAtoms) : NULL;
+    //    M = (numAtoms > 5) ? M = new MHSGenerator(l, numAtoms) : NULL;
+    M = new MHSGenerator(l, numAtoms); //-- Dr Brown modified
     S->mkProblem(l.begin(), l.end());
   }
 }
@@ -91,10 +96,12 @@ listVec BoxSolver::makeFormula(TFormRef formula) {
 
 bool BoxSolver::solve(string& err) {
   if (isPureConj)
-    try {return directSolve();}
+  {
+    try { return directSolve(); }
     catch (TarskiException& e) {
       err = string(e.what()); return false;
     }
+  }
   err = "";
   if (!S->simplify()) return false;
   Minisat::vec<Minisat::Lit> dummy;
@@ -115,10 +122,10 @@ bool BoxSolver::solve(string& err) {
 short BoxSolver::solve() {
   if (unsat) return 0;
   if (isPureConj)
-    try {return directSolve();}
-    catch (TarskiException& e) {
-      return 2;
-    }
+  {
+    try { return directSolve(); }
+    catch (TarskiException& e) { return 2; }
+  }
   if (!S->simplify()) return 0;
   Minisat::vec<Minisat::Lit> dummy;
   Minisat::lbool ret;
@@ -133,7 +140,8 @@ short BoxSolver::solve() {
 
 //Runs under the explicit assumtion that
 //the formula is a pure conjunction!
-bool BoxSolver::directSolve() {
+bool BoxSolver::directSolve()
+{
   //std::cerr << "Direct solving formula\n";
   if (unsat) return false;
   TAndRef t = asa<TAndObj>(formula);
@@ -172,7 +180,8 @@ bool BoxSolver::directSolve() {
  Returns false when the formula blow up is too large
   For now, it is when the resulting formula would be > 50 atoms
  */
-bool BoxSolver::doSplit(TFormRef t, int& s) {
+bool BoxSolver::doSplit(TFormRef t, int& s)
+{
   const int threshold = 50000000; //fernando set to 50
   switch (t->getTFType()) {
   case TF_ATOM: {
@@ -213,17 +222,21 @@ bool BoxSolver::doSplit(TFormRef t, int& s) {
 
 //if no splitting is done, the result is of size 1
 //else, the result is of size 2, containing the split atoms
-vector<TAtomRef> BoxSolver::splitAtom(TAtomRef t) {
+vector<TAtomRef> BoxSolver::splitAtom(TAtomRef t)
+{
   vector<TAtomRef> res;
-  if (t->getFactors()->numFactors() != 1) {
+  if (t->getFactors()->numFactors() != 1 &&false)//DRBROWN ... disabling this test
+  {
     res.push_back(t); return res;
   }
 
-  if (!(t->getRelop() == LEOP || t->getRelop() == GEOP)) {
+  if (!(t->getRelop() == LEOP || t->getRelop() == GEOP))
+  {
     res.push_back(t); return res;
   }
   IntPolyRef p = t->factorsBegin()->first;
-  if (p->numVars() > 2) {
+  if (p->numVars() > 2 && false)//DRBROWN ... disabling this to test
+  {
     res.push_back(t); return res;
   }
   TAtomRef t1 = new TAtomObj(t->getFactors(), EQOP);
@@ -443,12 +456,22 @@ void BoxSolver::getFinalClause(vec<Lit>& lits, bool& conf) {
     if (ranOnce) delete SM;
     TAndRef t = genMHS();
     //cerr << "getFinalClause: " << toString(t) << endl;
+    if (verbose) { cout << endl << "box-solve: Tarski formula produced from sufficient assignment is "
+			<< toString(t) << endl; }
+
     SM = new SolverManager(SolverManager::BB |
                            SolverManager::WB |
                            SolverManager::SS, t);
+
     Result res = SM->deduceAll();
+
     if (SM->isUnsat()) {
       //std::cerr << "UNSAT DETECTED\n";
+      if (verbose) {
+	cout << "Unsat! core : ";
+	res.write();
+	cout << endl;
+      }
       constructClauses(lits, res);
       conf = true;
       return;
@@ -462,6 +485,7 @@ void BoxSolver::getFinalClause(vec<Lit>& lits, bool& conf) {
     QepcadConnection q;
     TAndRef tand = SM->simplify();
     //std::cerr << "SIMPLIFIED: " << toString(tand) << endl;
+    if (verbose) { cout << endl << "box-solve: simplified to " << toString(tand) << endl; }
     if (tand->constValue() == 1) return;
 
     //NUCAD
@@ -471,11 +495,15 @@ void BoxSolver::getFinalClause(vec<Lit>& lits, bool& conf) {
     if (classifyConj(tand) == 0) {
       OpenNuCADSATSolverRef nuCadSolver = new OpenNuCADSATSolverObj(tand);
       if (nuCadSolver->isSATFound())
+      {
+	if (verbose) { cout << "Open-NuCAD found SAT!" << endl; }
         return;
+      }
       else {
         conf = true;
         //std::cerr << "NUCAD UNSAT DETECTED\n";
         TAndRef t = nuCadSolver->getUNSATCore();
+	if (verbose) { cout << "Open-NuCAD found UNSAT! core : "; t->write(true); cout << endl; }
         std::set<TAtomRef> allAtoms;
         for (auto itr = t->begin(); itr != t->end(); ++itr) {
           TAtomRef A = asa<TAtomObj>(*itr);
@@ -504,14 +532,15 @@ void BoxSolver::getFinalClause(vec<Lit>& lits, bool& conf) {
     std::set<TAtomRef> allAtoms;
     if (res->constValue() == 0) {
       conf = true;
-      //std::cerr << "QEPCAD UNSAT DETECTED\n";
       vector<int> core = q.getUnsatCore();
       sort(core.begin(), core.end());
+      TAndRef F_core= new TAndObj();
       int currAtom = 0, curr = 0;
       for (auto begin = tand->begin(); begin != tand->end(); ++begin) {
         if (core[curr] == currAtom) {
           curr++;
           TAtomRef A = asa<TAtomObj>(*begin);
+	  F_core->AND(A);
           Result r = SM->explainAtom(A);
           for (auto atom = r.atoms.begin(); atom != r.atoms.end(); ++atom) {
             if (allAtoms.find(*atom) == allAtoms.end()) {
@@ -525,6 +554,7 @@ void BoxSolver::getFinalClause(vec<Lit>& lits, bool& conf) {
         }
         currAtom++;
       }
+      if (verbose) { cout << "QEPCADB found UNSAT! core : "; F_core->write(true); cout << endl; }
     }
   }
 }

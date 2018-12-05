@@ -25,7 +25,8 @@ namespace tarski {
   /*
     Requires a fresh FernPolyIter
   */
-  VarKeyedMap<int> polyStrict(const VarKeyedMap<int> &knownSigns, const short &sign, FernPolyIter &F, bool& success){
+  VarKeyedMap<int> polyStrict(const VarKeyedMap<int> &knownSigns, const short &sign, FernPolyIter &F, bool& success)
+  {
     VarKeyedMap<int> M(ALOP);
     std::vector<VarKeyedMap <int> > candidates;
     std::vector<Variable> vars = F.getAllVars();
@@ -78,7 +79,8 @@ namespace tarski {
   /*
     Requires a fresh FernPolyIter
   */
-  VarKeyedMap<int> polyNonStrict(const VarKeyedMap<int> &knownSigns, const short &sign, FernPolyIter &F, bool& success){
+  VarKeyedMap<int> polyNonStrict(const VarKeyedMap<int> &knownSigns, const short &sign, FernPolyIter &F, bool& success)
+  {
     VarKeyedMap<int> M(ALOP);
     success = true;
     std::vector<Variable> vars = F.getAllVars();
@@ -100,7 +102,8 @@ namespace tarski {
     Try to prove polyStrict
     If not, try to find at exactly one term which is NEOP, and verify all others are EQOP
   */
-  VarKeyedMap<int> polyNotEqual(const VarKeyedMap<int> &knownSigns, FernPolyIter &F, bool& success){
+  VarKeyedMap<int> polyNotEqual(const VarKeyedMap<int> &knownSigns, FernPolyIter &F, bool& success)
+  {
     VarKeyedMap<int> tmp(ALOP);
     VarKeyedMap<int> res(ALOP);
     std::vector<VarKeyedMap <int> > candidates;
@@ -150,16 +153,14 @@ namespace tarski {
 
 
     return res;
-
-
-
   }
 
 
   /*
     Requires a fresh FernPolyIter
   */
-  VarKeyedMap<int> polyEqual(const VarKeyedMap<int> &knownSigns, FernPolyIter &F, bool& success){
+  VarKeyedMap<int> polyEqual(const VarKeyedMap<int> &knownSigns, FernPolyIter &F, bool& success)
+  {
     VarKeyedMap<int> M(ALOP);
     success = true;
     std::vector<Variable> vars = F.getAllVars();
@@ -176,7 +177,8 @@ namespace tarski {
   }
 
 
-  void writePolyExp(const VarKeyedMap<int> &signs, const short &sign, FernPolyIter &F, const std::vector<Variable> &vars,   VarContext &VC){
+  void writePolyExp(const VarKeyedMap<int> &signs, const short &sign, FernPolyIter &F, const std::vector<Variable> &vars,   VarContext &VC)
+  {
     bool success = true;
     VarKeyedMap<int> M(ALOP);
     if (sign == LTOP || sign == GTOP) {

@@ -44,21 +44,91 @@ namespace tarski {
       return l;
     }
 
+
+  //********************** ORDERER STUFF *************************/
+
+
+    /*
+    Heuristic for simplest is
+    Score 0 for best possible case, strict sign on variable
+    Add 1 if sign can somehow be strengthened (AKA, LEOP, GEOP, NEOP)
+    Add 6 for every additional term in a polynomial
+    Add 2 for every variable in a term
+    Add 12 for every factor
+   */
+  int scoreDed(const Deduction& d) {
+    int score = 0;
+    TAtomRef a = d.getDed();
+    FactRef f = a->getFactors();
+    if (a->getRelop() == LEOP || a->getRelop() == GEOP ||
+        a->getRelop() == NEOP) {
+      score += 1;
+    }
+    score += 12 * (f->numFactors() - 1);
+    for (FactObj::factorIterator itr = f->factorBegin();
+         itr != f->factorEnd(); ++itr) {
+      IntPolyRef poly = itr->first;
+      if (poly->isVar()) continue;
+      VarKeyedMap<int> M;
+      FernPolyIter F(poly, M);
+      while (!F.isNull()) {
+        score += 2 + (F.getVars().size()-1);
+        F.next();
+        if (!F.isNull()) score += 6;
+      }
+    }
+    return score;
+  }
+
+
+  class SpecialPair : public std::pair<int,int>
+  {
+  public:
+    SpecialPair(int a, int b) : std::pair<int,int>(a,b) { }
+    bool operator<(const SpecialPair &A) { return first < A.first || first == A.first && second < A.second; }
+  };
+  
+  std::vector<size_t> SolverManager::proxy_sorted_indices(std::vector<Deduction> &deds)
+  {
+    Substituter* sp = dynamic_cast<Substituter*>(solvers[2]); //-- DANGER! HACK!
+    vector<size_t> indices;
+    {
+      vector< SpecialPair > vScores(deds.size(), SpecialPair(0,0));
+      for (size_t i = 0; i < deds.size(); i++)
+      {
+	if (deds[i].isUnsat()) //-- if we deduce UNSAT, that deduction should always be ordered last
+	{
+	  vScores[i] = SpecialPair(INT_MAX,INT_MAX);
+	  continue;
+	}
+	VarSet S = deds[i].getDed()->getVars();
+	int maxL = 0;
+	for(auto itr = S.begin(); itr != S.end(); ++itr)
+	  maxL = std::max(maxL,sp->getSubstitutionLevel(*itr));
+	vScores[i] = SpecialPair(maxL,scoreDed(deds[i]));
+      }
+      indices = sort_indices(vScores);
+    }
+    return indices;
+  }
+  
+  //***************************************************************/
+  
+
+
+  
   /*
     Assumes deduceAll has already been called
    */
   TAndRef SolverManager::simplify() {
     if (!hasSimplified) {
       deduceOrig();
-      simp = dedM->getSimplifiedFormula();
+      simp = dedM->getSimplifiedFormula(*this);
       hasSimplified = true;
       return simp;
     }
     return simp;
   }
-
-
-
 
   /*
     The main body of the solver manager
@@ -74,24 +144,23 @@ namespace tarski {
     hasRan = true;
     if (dedM->isUnsat()) { finResult = dedM->traceBack(); return finResult; }
     for (int i = 0; i < lastDeds.size(); i++) lastDeds[i] = dedM->size();
-    int i = 0, lastChange = -1;
-    while (true) {
+    int i = 0, lastChange = 0, N = solvers.size();
+    while (true)
+    {
       //case where solvers can't deduce UNSAT and all deductions exhausted
-      if (i == lastChange) {
-        Result r; finResult = r; return r;
-      }
+      if (i - lastChange == N && solvers[i % N]->isIdempotent() ||  i - lastChange > N)
+	return (finResult = Result());
 
-      if (lastChange == -1) lastChange = 0; //for first iteration
-      short res = deduceLoop(i);
-      if (res == 1) lastChange = i;
-      else if (res == 2) {
-        finResult = dedM->traceBack();
-        //std::cerr << "size of result is " <<  finResult.count();
-        return finResult;
+      // cerr << "i = " << i << endl;
+
+      switch(deduceLoop(i % N))
+      {
+      case 1: lastChange = i; break;
+      case 2: return (finResult = dedM->traceBack()); break;
+      default: break;
       }
       i++;
-      if (i >= solvers.size()) i = 0;
-    } 
+    }
   }
   
   /*
@@ -122,11 +191,12 @@ namespace tarski {
   }
   /*
     return 0 to indicate the solver learned nothing
-    return 1 to indicate a solver learned something
+    return 1 to indicate a solver learned something (but not UNSAT)
     return 2 to indicate the solver deduced UNSAT
    */
   short SolverManager::deduceLoop(int i) {
     short retCode = 0;
+    cerr << "Calling solver[" << i << "]!!!" << endl;
     QuickSolver * q = solvers[i];
     updateSolver(i);
     bool res = true;
