@@ -103,6 +103,15 @@ public:
   void write() const { std::cout << (*this); }
   int positionInOrder(VarSet x) const; // returns i where x is the ith element of std::set, starting at 0.
   bool isEmpty() const { return !any(); } 
+  VarSet operator&(const VarSet& X) const
+  {
+    return VarSet(std::operator&(*this,X));
+  }
+  VarSet operator|(const VarSet& X) const 
+  {
+    return VarSet(std::operator|(*this,X));
+  }
+  VarSet operator~() const { return VarSet(this->std::bitset<varNumLimit>::operator~()); }
 };
 
 inline VarSet operator+(const VarSet &A, const VarSet &B) { return VarSet(A | B); }

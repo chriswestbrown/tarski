@@ -151,6 +151,7 @@ IntPolyRef PolyManager::evalAtRationalMultipleOfVariable(IntPolyRef A, VarSet xi
   // compute r := res_xi(A,w) = -1^deg_xi(A) * s^deg_xi(A) * A|_{xi=r/s*xj}
   IntPolyRef R = resultant(A,w,xi);
   if (R->isZero()) { content = RNINT(1); return R; }
+  if (R->isConstant()) { content = RNINT(R->valueIfConstant()); return new IntPolyObj(1); }
   Word n = R->numVars(), H = R->sP;
   VarSet V = R->getVars();
 

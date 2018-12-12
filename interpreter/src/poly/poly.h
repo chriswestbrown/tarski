@@ -42,6 +42,7 @@ public:
   VarSet isVariable() const { return slevel == 1 && EQUAL(sP,LIST2(1,1)) ? svars : 0; }
   bool isVar() const { return slevel == 1 && EQUAL(sP, LIST2(1,1)) ? true : false; }
   int signIfConstant() const { return isConstant() ? ISIGNF(sP) : 0; }
+  Word valueIfConstant() const { return sP; }
   bool isZero() const { return sP == 0; }
   const VarSet& getVars() const { return svars; }
   int numVars() { return slevel; }
