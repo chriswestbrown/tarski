@@ -52,17 +52,17 @@ namespace tarski {
 
     s.deduceAll();
 
-    // cerr << endl << "after deduceAll:" << endl;
-    // s.debugWriteSorted();
-    // cerr << endl << endl;
-    // s.prettyPrintResult();
+     cerr << endl << "after deduceAll:" << endl;
+     s.debugWriteSorted();
+     cerr << endl << endl;
+     s.prettyPrintResult();
 
     if (!s.isUnsat())
     {
-      // cerr << endl << "after call to simplify:" << endl;
+       cerr << endl << "after call to simplify:" << endl;
       TAndRef Ap = s.simplify();
-      // cerr << "SIMPLIFIED: "; Ap->write(true); cerr << endl;
-      // s.prettyPrintSimplify(Ap);
+       cerr << "SIMPLIFIED: "; Ap->write(true); cerr << endl;
+       s.prettyPrintSimplify(Ap);
     }
     return new LisObj();
   }

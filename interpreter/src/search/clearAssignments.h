@@ -113,7 +113,9 @@ namespace tarski {
     inline list<TAtomRef>& getSource(int i) { return atoms[i]; }
   };
 
-  class SubExp
+  class SubExp;
+  typedef GC_Hand<SubExp> SubExpRef;
+  class SubExp : public GC_Obj
   {
   private:
     static const pair<GCWord, VarSet> nada;
@@ -121,19 +123,21 @@ namespace tarski {
     VarKeyedMap<GCWord> constants;
     VarKeyedMap<pair<GCWord, VarSet> > multiples;
 
-    // value at Variable x is the lisf of atoms that provided the substitution eliminating x [maybe?]
+    // value at Variable x is the list of atoms that provided the substitution eliminating x [maybe?]
     VarKeyedMap<list<TAtomRef> > exp;
 
-
     PolyManager * PM;
+    ExpGraph E;
+    MarkLogExp rootFor;
+    TAndRef t;
 
     IntPolyRef evalAtRat(IntPolyRef p, VarKeyedMap<GCWord> &value, GCWord &content,
 			 VarKeyedMap<list<TAtomRef> >& sources, forward_list<TAtomRef>& exp);
 
   public:
-    SubExp(ExpGraph& E, MarkLogExp& M, PolyManager * PM);
-    list<DedExp> makeDeductions(TAndRef t);
-    vector<VarSet> getVarsEliminatedBySubstitutions(ExpGraph& E, MarkLogExp& rootFor);
+    SubExp(TAndRef t);
+    list<DedExp> makeDeductions();
+    vector<VarSet> getVarsEliminatedBySubstitutions(set<TAtomRef,TAtomObj::OrderComp> &usedToElim);
   };
 
   class Substituter : public QuickSolver
@@ -147,6 +151,11 @@ namespace tarski {
     VarKeyedMap<int> orderSubstituted; //-- 0 means not eliminated by substution
     int nextSubCounter;
 
+    //-- Stack of Substitutions
+    stack<SubExpRef> subStack;
+    stack<VarSet> eliminatedVars;
+    set<TAtomRef,TAtomObj::OrderComp> usedToElim;
+    
   public:
     Substituter(TAndRef& t) : once(true), orderSubstituted(0), nextSubCounter(1) {}
     bool isIdempotent() { return false; }
@@ -156,6 +165,7 @@ namespace tarski {
     DedExp deduce(TAndRef t, bool& res);
     void dump();
     int getSubstitutionLevel(VarSet x) { int k = orderSubstituted[x]; return k == 0  ? 0 : nextSubCounter - k; }
+    TAndRef filter(TAndRef t);
   };
 
 

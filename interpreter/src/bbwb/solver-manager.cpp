@@ -27,6 +27,13 @@ namespace tarski {
       //      prettyPrintResult(); //-- CHRIS DEBUG
       LisRef l = new LisObj();
       if (isUnsat()) {
+
+	//-- CHRIS DEBUG
+	if (solvers.size() == 0)
+	  cout << "Solvers never instantiated, no sorted print!" << endl;
+	else
+	  dedM->debugWriteSorted(*this);
+	
         l->push_back(new SymObj("UNSAT"));
         vector<TAtomRef>& vec = r.atoms;
         TAndRef res = new TAndObj();
@@ -196,9 +203,18 @@ namespace tarski {
    */
   short SolverManager::deduceLoop(int i) {
     short retCode = 0;
-    cerr << "Calling solver[" << i << "]!!!" << endl;
+     // cerr << endl << endl;
+     // dedM->writeAll();
+     // cerr << endl << endl;
+     // cerr << "Calling solver[" << i << "]!!!" << endl;
     QuickSolver * q = solvers[i];
+
+    // HACK! This is a hack to simulate no incrementality
+    if (i == 0) { delete q; q = solvers[i] = new BBSolver(t); solvers[i]->setDedM(dedM); }
+    else if (i == 1) { delete q; q = solvers[i] = new WBSolver(t); solvers[i]->setDedM(dedM); }
+    else
     updateSolver(i);
+
     bool res = true;
     DedExp d = q->deduce(t, res);
     while (res && !dedM->isUnsat()) {
@@ -283,4 +299,14 @@ namespace tarski {
     solvers.clear();
     delete dedM;
   }
+
+  TAndRef SolverManager::filterOut(TAndRef t)
+  {
+    Substituter* S = dynamic_cast<Substituter*>(solvers[2]);
+    if (S == NULL)
+      throw TarskiException("Assumption in solver-manager failed!");
+    return S->filter(t);
+  }
+
+
 }//end namespace tarski

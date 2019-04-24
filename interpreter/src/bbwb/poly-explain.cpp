@@ -6,10 +6,6 @@
 
 namespace tarski {
 
-
-
-
-
   VarKeyedMap<int> combine(const VarKeyedMap<int> &v1, const VarKeyedMap<int> &v2, const std::vector<Variable> &vars) {
     VarKeyedMap<int> M(ALOP);
     for (std::vector<Variable>::const_iterator vIter = vars.begin(); vIter != vars.end(); ++vIter){

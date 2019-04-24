@@ -507,7 +507,7 @@ public:
     Word A;
     TAndRef C;
 
-    if (args.size() > 1 && args[0]->sym()->val == "core")
+    if (args.size() > 1 && args[0]->type() == _sym && args[0]->sym()->val == "core")
     {
       TFormRef F = args[1]->tar()->val;      
       OpenNuCADSATSolverRef solver = new OpenNuCADSATSolverObj(F);

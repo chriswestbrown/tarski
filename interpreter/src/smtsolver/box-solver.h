@@ -63,10 +63,15 @@ namespace tarski {
     int numAtoms;
     int limit;
     int count;
+    int numGetFinalClauseCalls;
+    double numDNFDisjuncts; // the number of disjuncts in naive DNF on the "formula to solve" (since we may split orig!)
+
     TFormRef formula;
     //----------------------- right now this is set super high to essentially be full lazy
     //--------------------------------------------------------------------------------vvvv    
-    BoxSolver() : unsat(false), ranOnce(false), isPureConj(true), numAtoms(-1), limit(5000), count(0)  {};
+    // BoxSolver() : unsat(false), ranOnce(false), isPureConj(true), numAtoms(-1), limit(5000), count(0),
+    // 		  numGetFinalClauseCalls(0) {};
+    
     //Returns the CNF translation of a formula
     listVec makeFormula(tarski::TFormRef formula);
 

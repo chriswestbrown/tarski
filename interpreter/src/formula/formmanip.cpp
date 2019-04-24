@@ -6,6 +6,7 @@
 #include "../algparse/getvars.h"
 #include "../algparse/treemanip.h"
 #include "../algparse/prettyprint.h"
+#include "normalize.h"
 #include "formmanip.h"
 #include "../realroots/realroots.h"
 
@@ -305,8 +306,40 @@ bool isConjunctionOfAtoms(TFormRef F)
   return res;
 }
 
+//-- GetDNFNumDisjuncts
+double getDNFNumDisjuncts(TFormRef F)
+{
+  double n = -1;
+  switch(F->getTFType())
+  {
+  case TF_CONST:
+  case TF_ATOM:
+  case TF_EXTATOM:
+    n = 1.0; break;
+  case TF_AND: {
+    TAndRef C = asa<TAndObj>(F);
+    n = 1.0;
+    for(auto itr = C->begin(); itr != C->end(); ++itr)
+      n *= getDNFNumDisjuncts(*itr);
+  } break;
+  case TF_OR: {
+    TOrRef C = asa<TOrObj>(F);
+    n = 0.0;
+    for(auto itr = C->begin(); itr != C->end(); ++itr)
+      n += getDNFNumDisjuncts(*itr);
+  } break;
+  case TF_QB: {
+    TQBRef Q = asa<TQBObj>(F);
+    n = getDNFNumDisjuncts(Q);
+  } break;
+  default:
+    throw TarskiException("Unknown TFormObj type!");
+  }
+  return n;
+}
 
 
+//-- DNF!
 class MakeDNF : public TFPolyFun
 {
 public:
@@ -838,5 +871,42 @@ TFormRef makePrenex(TFormRef F)
     }
     return res;
   }
+
+
+TFormRef splitAtom(TAtomRef A)
+{
+  FactRef f = A->getFactors();
+  int relop = A->getRelop();
+  switch(relop)
+  {
+  case LEOP: case GEOP:
+    return mkOR(makeAtom(f,EQOP) , makeAtom(f,relop & NEOP));
+    break;
+  default:
+    return A;
+    break;
+  }
+}
+
+ TFormRef splitNonStrict(TFormRef F)
+ {
+   TFormRef F1 = level1(F);
+   switch (F1->getTFType()){
+   case TF_CONST: return F1; break;
+   case TF_ATOM:
+     return splitAtom(F1);
+     break;
+   case TF_AND: {     
+     TAndRef res = new TAndObj(), C = dynamic_cast<TAndObj*>(&*F1);
+     for(auto itr = C->begin(); itr != C->end(); ++itr) {
+       TFormRef tmp = splitAtom(*itr);
+       res->AND(tmp); }
+     return res;
+   } break;
+   default: throw TarskiException("splitNonStrict requires constants, atoms or conjunctions.");
+    }
+   return NULL;
+ }
+
 
 }//end namespace tarski

@@ -816,14 +816,32 @@ public:
   CommDnf(NewEInterpreter* ptr) : EICommand(ptr) { }
   SRef execute(SRef input, vector<SRef> &args) 
   {
-    return new TarObj(getDNF(args[0]->tar()->val));
+    TFormRef F;
+    if (args.size() == 3)
+    {
+      if (args[0]->sym()->val != "limit")
+	return new ErrObj("Unknown flag '" + args[0]->sym()->val + " ... 'limit expected!");
+      double lim = (double)RNCEIL(args[1]->num()->getVal());
+      F = args[2]->tar()->val;
+      double est = getDNFNumDisjuncts(F);
+      if (est > lim)	
+	return new ErrObj("DNF size exceeds limit.");
+    }
+    else
+      F = args[0]->tar()->val;
+    return new TarObj(getDNF(F));
   }
-  string testArgs(vector<SRef> &args) { return require(args,_tar); }
+  string testArgs(vector<SRef> &args)
+  {
+    string res = require(args,_tar);
+    if (res == "") return res;
+    return require(args,_sym,_num,_tar);
+  }
   string doc() 
   {
     return "(dnf F), where F is a tarski formula, returns a DNF equivalent to F.";
   }
-  string usage() { return "(dnf <tarski formula>)"; }
+  string usage() { return "(dnf <tarski formula>) or (dnf 'limit <num> <tarski formula>)"; }
   string name() { return "dnf"; }
 };
 
@@ -1012,6 +1030,32 @@ public:
   string name() { return "make-prenex"; }
 };
 
+class CommSplitNonStrict : public EICommand
+{
+public:
+  CommSplitNonStrict(NewEInterpreter* ptr) : EICommand(ptr) { }
+  SRef execute(SRef input, vector<SRef> &args) 
+  { 
+    TFormRef F = args[0]->tar()->val;
+    try {
+      TFormRef G = splitNonStrict(F);
+      return new TarObj(G);
+    }
+    catch(TarskiException &e) { return new ErrObj(e.what()); }
+  }
+  string testArgs(vector<SRef> &args)
+  {
+    return require(args,_tar);
+  }
+  string doc() 
+  {
+    return "(split-non-strict F), where F is a Tarski formula, returns an equivalent Tarski formula with all non-strict inequalities split.";
+  }
+  string usage() { return "(split-non-strict <tarski formula>)"; }
+  string name() { return "split-non-strict"; }
+};
+
+  
 void NewEInterpreter::init() 
 {
   Interpreter::init();
@@ -1028,6 +1072,7 @@ void NewEInterpreter::init()
   add(new CommExclose(this));
   add(new CommDnf(this));
   add(new CommMakePrenex(this));
+  add(new CommSplitNonStrict(this));
   add(new CommRenameVariables(this));
   add(new CommQFR(this));
   add(new ClearAssignmentsComm(this));

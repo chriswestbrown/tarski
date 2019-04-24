@@ -35,6 +35,9 @@ VarSet appearsInNonStrict(TFormRef F);
 
 bool isPrenex(TFormRef F);
 
+  // return the number of disjuncts that would result in naive DNF expansion
+  double getDNFNumDisjuncts(TFormRef F);
+ 
 TFormRef getDNF(TFormRef F);
 
 VarSet getFreeVars(TFormRef F);
@@ -64,6 +67,13 @@ TFormRef evalFormulaAtRationalPoint(VarKeyedMap<GCWord> &value, TFormRef F);
 
  TFormRef exclose(TFormRef T);
 
+ /** splitNonStrict(T)
+  * Input: F a tarski formula that is a conjunction of atomic formulas (not in
+  *        in the extended language.
+  * Output: formula F' equivalent to F, in which all non-strict inequalities
+  *         have been split (e.g. x >= 0 --> x > 0 \/ x = 0).
+  */
+ TFormRef splitNonStrict(TFormRef F);
 
 }//end namespace tarski
 #endif

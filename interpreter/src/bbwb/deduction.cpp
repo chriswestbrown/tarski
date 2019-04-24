@@ -515,13 +515,41 @@ namespace tarski {
     }
     cout << endl;
   }
+
+
+  // void DedManager::temporaryDebugInfo(Orderer& ord)
+  // {
+  //   vector<size_t> indices = ord.proxy_sorted_indices(deds);
+    
+  //   // Dr Brown debug
+  //   if (true)
+  //   {
+  //     cout << endl << "Sorted deductions:" << endl;
+  //     for(size_t i = 0; i < indices.size(); ++i)
+  //     {
+  // 	int k = indices[i];
+  // 	cout << k << ": ";
+  // 	auto L = depIdxs[k];
+  // 	for(auto litr = L.begin(); litr != L.end(); ++litr)
+  // 	{
+  // 	  cout << "[ ";
+  // 	  for(auto sitr = litr->begin(); sitr != litr->end(); ++sitr)
+  // 	    cout << " " << *sitr;
+  // 	  cout << " ] ";
+  // 	}      
+  // 	cout << deds[k].toString() << endl;
+  //     }
+  //     cout << endl;
+  //   }
+  // } 
+
   
   TAndRef DedManager::getSimplifiedFormula(Orderer& ord)
   {
     vector<size_t> indices = ord.proxy_sorted_indices(deds);
     
     // Dr Brown debug
-    if (false)
+    if (true)
     {
       cout << endl << "Sorted deductions:" << endl;
       for(size_t i = 0; i < indices.size(); ++i)

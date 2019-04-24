@@ -83,6 +83,7 @@ namespace tarski {
     static const int BB = 1;
     static const int WB = 2;
     static const int SS = 4;
+
     //Adds a quicksolver
     inline void addNew(QuickSolver * q) { solvers.push_back(q); solvers.back()->setDedM(dedM); }
 
@@ -114,6 +115,10 @@ namespace tarski {
 
     void update();
     void updateSolver(const std::vector<TAtomRef>&);
+
+    // HACK!
+    TAndRef filterOut(TAndRef t);
+
   private:
     //return 0 if nothing has changed
     //return 1 if somehting hew has been deduced
@@ -128,6 +133,7 @@ namespace tarski {
     //deduceOrig is used to alert each solver that they should try to deduce
     //the given atoms for purposes of simplification
     void deduceOrig();
+
   };
   
   

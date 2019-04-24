@@ -155,12 +155,16 @@ namespace tarski {
     this->right = RNRED(rNum, rDen);
     this->rightType = rightType;
     this->sign = sign;
+    if (EQUAL(left,LIST1(0))) throw TarskiException("debug 1a");
+    if (EQUAL(right,LIST1(0))) throw TarskiException("debug 2a");
   }
 
   /*
     A constructor based on words
   */
   Interval::Interval(Word left, short leftType, Word right, short rightType, short sign) {
+    if (EQUAL(left,LIST1(0))) throw TarskiException("debug 1");
+    if (EQUAL(right,LIST1(0))) throw TarskiException("debug 2");
     this->left = left;
     this->leftType = leftType;
     this->right = right;
@@ -686,8 +690,8 @@ namespace tarski {
 
       bool success = true;
       //Note: In case of breakage, change currSign to sign
-      VarKeyedMap<int> explain = (v1) ? select(varMap2, F, sign, success)
-        : select(varMap, F, sign, success);
+      VarKeyedMap<int> explain = (v1) ? select(varMap2, F, sign, success) : select(varMap, F, sign, success);
+
       if (verbose) std::cout << " ";
       if (!success) {
         std::cerr << "\nThere is an issue - I wasn't able to prove the sign " + FernPolyIter::numToRelop(sign) << " on tn * p + td * q\n";
@@ -697,6 +701,11 @@ namespace tarski {
         std::cerr << "p: "; p->write(*PM); std::cerr << " " + numToRelop(formOneSign) << " 0 " << std::endl;
         std::cerr << "q: "; q->write(*PM); std::cerr << " " + numToRelop(formTwoSign) << " 0 " << std::endl;
         std::cerr << "fin: "; fin->write(*PM); std::cerr << std::endl;
+	std::cerr << "Variable knowns:" << endl;
+	VarSet Vp = p->getVars(), Vq = q->getVars();
+	VarSet V = Vp + Vq;
+	for(auto itr = V.begin(); itr != V.end(); ++itr)
+	  std::cerr << PM->getName(*itr) << " : " << varMap2[*itr] << " " << relopString(varMap2[*itr]) << " 0" << endl;
         throw TarskiException("ERROR - call to PolySign failed in DeduceSignExplain");
       }
       else {

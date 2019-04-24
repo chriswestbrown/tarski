@@ -27,7 +27,9 @@ using namespace std;
   Initializes the index manager on the split L1 normalized formula
   Constructs a Minisat Solver if the formula is NOT a pure conjuction
  */
-BoxSolver::BoxSolver(TFormRef formula) : unsat(false), ranOnce(false), M(NULL), isPureConj(true), numAtoms(0), limit(5), count(0) {
+BoxSolver::BoxSolver(TFormRef formula) : unsat(false), ranOnce(false), M(NULL), isPureConj(true),
+					 numAtoms(0), limit(5000), count(0), numGetFinalClauseCalls(0), numDNFDisjuncts(0)
+{
   Normalizer* p = new Level1();
   RawNormalizer R(*p);
   R(formula);
@@ -60,6 +62,7 @@ BoxSolver::BoxSolver(TFormRef formula) : unsat(false), ranOnce(false), M(NULL), 
     cout << "The orig formula is " << toString(l1norm) << endl;
     cout << "Formula to solve is " << toString(this->formula) << endl;
   }
+  numDNFDisjuncts = getDNFNumDisjuncts(this->formula);
   if (!isPureConj){
     S = new Solver(this);
     listVec l = makeFormula(this->formula);
@@ -78,6 +81,9 @@ BoxSolver::BoxSolver(TFormRef formula) : unsat(false), ranOnce(false), M(NULL), 
 }
 
 BoxSolver::~BoxSolver() {
+  cout << "BoxSolver: numGetFinalClauseCalls = " << numGetFinalClauseCalls << endl;
+  cout << "BoxSolver: numDNFDisjuncts = " << numDNFDisjuncts << endl;
+  
   delete IM;
   if (!isPureConj) {
     delete S;
@@ -154,20 +160,34 @@ bool BoxSolver::directSolve()
   if (b.isUnsat()) return false;
   else t2 = b.simplify();
   if (t2->constValue() == 1) return true;
-  if (classifyConj(t2) == 0) {
-    OpenNuCADSATSolverRef nuCadSolver = new OpenNuCADSATSolverObj(t2);
+
+  //-- AT THIS POINT: t2 is a simplified equivalent formula, but we don't know SAT/UNSAT
+
+  // strip out any atoms that we eliminated by substitutions
+  TAndRef t3 = b.filterOut(t2);
+
+  if (verbose)
+  {
+    cout << "Simplified formula is : ";
+    t3->write(true);
+    cout << endl;
+  }
+
+  // call a full solver to decide this problem
+  if (classifyConj(t3) == 0) {
+    OpenNuCADSATSolverRef nuCadSolver = new OpenNuCADSATSolverObj(t3);
     if (nuCadSolver->isSATFound())
       return true;
     else return false;
   }
-  //writeSimpToFile(t, t2);
+  //writeSimpToFile(t, t3);
   TFormRef res;
   try  {
     QepcadConnection q;
-    res = q.basicQepcadCall(exclose(t2), true);
+    res = q.basicQepcadCall(exclose(t3), true);
   }
   catch (TarskiException& e) {
-    throw TarskiException("QEPCAD failure on "  + toString(t2) +  \
+    throw TarskiException("QEPCAD failure on "  + toString(t3) +  \
                           ".\nErr: " + e.what());
   }
   if (res->constValue() == 0) return false;
@@ -449,13 +469,15 @@ TAndRef BoxSolver::genMHS() {
  
 }
 
-//This method is used to verify the complete solution with CAD
-void BoxSolver::getFinalClause(vec<Lit>& lits, bool& conf) {
+// This is called by MiniSat when it has a full propositional solution, which we
+// Then must check for satisfiablilty w.r.t. the theory.
+void BoxSolver::getFinalClause(vec<Lit>& lits, bool& conf)
+{
+  numGetFinalClauseCalls++;
   conf = false;
   if (M != NULL) {
     if (ranOnce) delete SM;
     TAndRef t = genMHS();
-    //cerr << "getFinalClause: " << toString(t) << endl;
     if (verbose) { cout << endl << "box-solve: Tarski formula produced from sufficient assignment is "
 			<< toString(t) << endl; }
 
@@ -466,7 +488,6 @@ void BoxSolver::getFinalClause(vec<Lit>& lits, bool& conf) {
     Result res = SM->deduceAll();
 
     if (SM->isUnsat()) {
-      //std::cerr << "UNSAT DETECTED\n";
       if (verbose) {
 	cout << "Unsat! core : ";
 	res.write();
@@ -483,9 +504,15 @@ void BoxSolver::getFinalClause(vec<Lit>& lits, bool& conf) {
   //Only if BB/WB cannot detect unsat do we need to call QEPCAD"
   if (conf == false) {
     QepcadConnection q;
-    TAndRef tand = SM->simplify();
-    //std::cerr << "SIMPLIFIED: " << toString(tand) << endl;
+    TAndRef tsimp = SM->simplify();
+
+    // strip out any atoms that we eliminated by substitutions
+    TAndRef tand = SM->filterOut(tsimp);
+
+    
     if (verbose) { cout << endl << "box-solve: simplified to " << toString(tand) << endl; }
+
+
     if (tand->constValue() == 1) return;
 
     //NUCAD
@@ -501,7 +528,6 @@ void BoxSolver::getFinalClause(vec<Lit>& lits, bool& conf) {
       }
       else {
         conf = true;
-        //std::cerr << "NUCAD UNSAT DETECTED\n";
         TAndRef t = nuCadSolver->getUNSATCore();
 	if (verbose) { cout << "Open-NuCAD found UNSAT! core : "; t->write(true); cout << endl; }
         std::set<TAtomRef> allAtoms;
@@ -680,6 +706,11 @@ void BoxSolver::getClauseMain(vec<Lit>& lits, bool& conf) {
   }
   Result res = SM->deduceAll();
   if (SM->isUnsat()) {
+    if (verbose) {
+      cout << "Unsat in getClauseMain! core : ";
+      res.write();
+      cout << endl;
+    }
     constructClauses(lits, res);
     conf = true;
   }

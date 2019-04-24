@@ -7,7 +7,8 @@ namespace tarski {
 
   using namespace std;
   
-  WBSolver::WBSolver(TAndRef taf) :varToIneq(forward_list<IntPolyRef>()) {
+  WBSolver::WBSolver(TAndRef taf) :varToIneq(forward_list<IntPolyRef>())
+  {
     PM = taf->getPolyManagerPtr();
     allVars = taf->getVars(); 
     loadVars(taf);
@@ -69,7 +70,8 @@ namespace tarski {
   }
 
   //populate multiVarsDed. Every multivariable factor gets a deduction chance on all multivariable factors
-  void WBSolver::populateMultiVars() {
+  void WBSolver::populateMultiVars()
+  {
     for (set<IntPolyRef>::iterator mItr1 =
            multiVars.begin(); mItr1 != multiVars.end(); ++mItr1){
       IntPolyRef p1 = *mItr1;
@@ -168,20 +170,33 @@ namespace tarski {
     DeduceSign2 from multi to multi variable factor
     If nothing can be learned, then this method is guaranteed to return NULL
   */
-  DedExp WBSolver::deduce(TAndRef t, bool& res) {
-    if (!polySigns.empty()) return doPolySigns(res);
-    else if (!singleVarsDed.empty()) return doSingleDeduce(res);
-    else if (!multiVarsDed.empty()) return doMultiDeduce(res);
-    res = false;
+  DedExp WBSolver::deduce(TAndRef t, bool& res)
+  {
+    res = true;
     DedExp d;
+    if (!polySigns.empty())
+      d = doPolySigns(res);
+    else if (!singleVarsDed.empty())
+      d = doSingleDeduce(res);
+    else if (!multiVarsDed.empty())
+      d = doMultiDeduce(res);
+    else
+      res = false;
+
+    // if (res) cerr << "WhiteBox deduced : " << d.toString() << endl;
+    
     return d;
   }
 
 
-  void WBSolver::update(std::vector<Deduction>::const_iterator begin, std::vector<Deduction>::const_iterator end) {
-    while (begin != end) {
+  void WBSolver::update(std::vector<Deduction>::const_iterator begin, std::vector<Deduction>::const_iterator end)
+  {
+    while (begin != end)
+    {
       TAtomRef t = begin->getDed();
-      if (t->F->numFactors() == 1 && !t->F->factorBegin()->first->isConstant()) {
+      cerr << "WhiteBox updating with : "; t->write(true); cerr << endl;
+      if (t->F->numFactors() == 1 && !t->F->factorBegin()->first->isConstant())
+      {
         lastUsed = t->F->factorBegin()->first;
         notify();
       }

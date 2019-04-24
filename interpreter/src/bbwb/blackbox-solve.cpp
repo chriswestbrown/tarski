@@ -24,7 +24,7 @@ namespace tarski {
       }
       else {
 	// cerr << "BEFORE bbsat: "; M.write(); cerr << endl;
-        deductions = bbsat(t);
+	deductions = bbsat(t);
 	// cerr << "AFTER  bbsat: "; M.write(); cerr << endl;
         if (deductions.empty())  {
           res = false;
@@ -44,7 +44,10 @@ namespace tarski {
    * This gets called prior to the solver being called, in order to inform it of any new facts
    * that were learned since the last call.
    **/
-  void BBSolver::update(std::vector<Deduction>::const_iterator begin, std::vector<Deduction>::const_iterator end) {
+  void BBSolver::update(std::vector<Deduction>::const_iterator begin, std::vector<Deduction>::const_iterator end)
+  {
+    // NOTE! This is broken!  This issue is currently sidestepped by having solver recreate the
+    //       BBSolver from scratch each time, which obviates the problem 
     while (begin != end) {
       //ignore constants!
       if (begin->getDed()->getFactors()->numFactors() != 0)
@@ -101,9 +104,9 @@ namespace tarski {
 
   //returns false if unsat
   bool BBChecker::checkSat() {
-    // cerr << "BEFORE:" << endl; M->write();
+    cerr << "BEFORE:" << endl; M->write();
     M->strictElim();
-    // cerr << "AFTER:" << endl; M->write();
+    cerr << "AFTER:" << endl; M->write();
     const DMatrix& d = M->getStrict();
     unsatRow = BBSolver::findRow(d);
     return (unsatRow == -1) ? true : false;
@@ -348,11 +351,11 @@ namespace tarski {
 
     bblist deds;
     //Size check - a formula of size one won't let BB strict deduce anything
-    short m = M->getStrict().getMatrix().size();
-    if (m < 2) {
-      minWtMain(deds);
-      return deds;
-    }
+    // short m = M->getStrict().getMatrix().size();
+    // if (m < 2) {
+    //   minWtMain(deds);
+    //   return deds;
+    // }
     strictDeds(deds);
     minWtMain(deds);
     jointDeds(deds);
@@ -593,11 +596,14 @@ namespace tarski {
 	    sources.push_front(*itr);
 	
 	  //-- record that atom X, the image of 'w', is implied be 'atoms'
-	  cerr << "Making a Step 6 MinWtBasis deduction: ";
-	  for(auto itr = sources.begin(); itr != sources.end(); ++itr)
-	  { cerr << ' '; (*itr)->write(true); }
-	  cerr << " ==> ";  X->write(true);
-	  cerr << endl;
+	  if (verbose)
+	  {
+	    cout << "Making a Step 6 MinWtBasis deduction: ";
+	    for(auto itr = sources.begin(); itr != sources.end(); ++itr)
+	    { cout << ' '; (*itr)->write(true); }
+	    cout << " ==> ";  X->write(true);
+	    cout << endl;
+	  }
 	  deds.emplace_back(X, Deduction::MINWT, sources);
 	  continue;
 	}
@@ -622,7 +628,7 @@ namespace tarski {
 	int i_0 = reduceRow(wp, wpReduced, sources, beq, eq);
       
 	/* STEP 10 */
-	if (i_0 != -1) {
+	if (i_0 != -1) { /* reduced to 1 0 0 ... 0 */
 	  /* STEP 11 */
 	  vector<char> resRow(*(w.vc)); //-- set resRow to 2*w + [1 0 ... 0]op[0 ... 0]
 	  resRow[0] = 1;
@@ -698,9 +704,11 @@ namespace tarski {
 	  {
 	    if (weight(B[i].vc, ns) > 0 && support(B[i].vc, w.vc, ns) != -1)
 	    {
-	      cerr << "Making a Step 12 MinWtBasis deduction: ";
-	      res.atom->write(true); cout << " ==> "; B[i].atom->write(true); cout << endl;
-
+	      if (verbose) {
+		cout << "Making a Step 12 MinWtBasis deduction: ";
+		res.atom->write(true); cout << " ==> "; B[i].atom->write(true); cout << endl;
+	      }
+	      
 	      forward_list<TAtomRef> fl({res.atom});
 	      deds.emplace_back(B[i].atom, Deduction::MINWT, fl);	  
 
@@ -725,21 +733,33 @@ namespace tarski {
 	  //   }
 	  // }
 	  // B.erase(B.end()-numPopped, B.end()); 
+ 
 	  continue;
 	}
+
+	vector<int> rows;
+	beq.reduceRow(vc,rows);
+	bool isZero = true;
+	for(int i = 0; isZero && i < vc.size(); i++)
+	  isZero = (vc[i] == 0);
+	if (isZero)
+	{ /* STEP 15 */
+	  forward_list<TAtomRef> sources;
+	  for(int i = 0; i < rows.size(); i++)
+	    sources.push_front(eq[rows[i]].atom);
+	  mkMinWtDed(w,sources,deds);
+	  continue;
+	}
+	
       }
       
       /* STEP 13-14 */
-      //We combine the null step and the non null case here
-      //Because we want to deduce the null row and say that
-      //Some atom can be deduced by other atoms
       mkMinWtDed(w, sources, deds);
       continue;
-
     }
     return;
   }
-
+  
 
   void BBDeducer::mkJointDed(vector<char>& row, vector<int>& sources, TAtomRef orig, bblist& deds) {
     bool res;

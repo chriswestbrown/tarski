@@ -251,7 +251,10 @@ public:
   void apply(TFPolyFun &F);
   void AND(TFormRef a);
   int size() const { return conjuncts.size(); }
-  PolyManager* getPolyManagerPtr() { return (*conjuncts.begin())->getPolyManagerPtr(); }
+  PolyManager* getPolyManagerPtr()
+  {
+    return conjuncts.empty() ? NULL : (*conjuncts.begin())->getPolyManagerPtr();
+  }
   VarSet getVars();
   TFormRef negate();
   int constValue()
@@ -289,7 +292,10 @@ public:
   void OR(TFormRef a);
   int size() const { return disjuncts.size(); }
   VarSet getVars();
-  PolyManager* getPolyManagerPtr() { return (*disjuncts.begin())->getPolyManagerPtr(); }
+  PolyManager* getPolyManagerPtr()
+  {
+    return disjuncts.empty() ? NULL : (*disjuncts.begin())->getPolyManagerPtr();
+  }
   TFormRef negate();
   int constValue() { return size() == 0 ? FALSE : -1; }
   TFormRef renameVars(VarKeyedMap<VarSet> &M)
@@ -457,11 +463,28 @@ inline TAndRef operator&&(TFormRef a, TFormRef b)
   p->AND(b);
   return p;
 }
+
 inline TOrRef operator||(TFormRef a, TFormRef b)
 {
   TOrObj *p = new TOrObj();
   p->OR(a);
   p->OR(b);
+  return p;
+}
+
+inline TOrRef mkOR(TFormRef a, TFormRef b)
+{
+  TOrObj *p = new TOrObj();
+  p->OR(a);
+  p->OR(b);
+  return p;
+}
+
+inline TAndRef mkAND(TFormRef a, TFormRef b)
+{
+  TAndObj *p = new TAndObj();
+  p->AND(a);
+  p->AND(b);
   return p;
 }
 

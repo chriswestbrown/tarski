@@ -1721,7 +1721,7 @@ int evalTruth(TAtomRef A, map<IntPolyObj*,int > &knownRelop)
   {
     IntPolyObj* p = &(*(itr->first));
     int relop_p = knownRelop[p];
-    evalRelop = T_prod[evalRelop][itr->second % 2 == 2 ? T_square[relop_p] : relop_p];
+    evalRelop = T_prod[evalRelop][itr->second % 2 == 0 ? T_square[relop_p] : relop_p];
   }
   if (sameOrStronger(evalRelop,targetRelop))
     return TRUE;
@@ -1762,6 +1762,7 @@ TAndRef OpenNuCADSATSolverObj::getUNSATCore()
     OpenCellRef D = b->getCell();
     Word alpha = D->getAlpha();
 
+    
     //-- b->inPFSet(p), where p is an IntPolyRef, returns true iff p is known
     //-- to be sign invariant in cell D.
 

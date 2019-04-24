@@ -7,7 +7,9 @@
 #include <utility>
 #include <algorithm>
 #include <cassert> 
-namespace tarski {
+namespace tarski
+{
+
   Graph::Graph() : var2vert(-1) 
   { 
     VarSet v; 
@@ -66,6 +68,9 @@ namespace tarski {
   }
   void Graph::addEdge(VarSet x, Word a, Word b) // a x + b = 0
   {
+    // TODO: if there is already an edge to the shadow of x, then unless we have the
+    //       exact same (a,b) here (which I don't think should happen!) we have discoverd
+    //       a conflict!  So add that functionality!
     int i = getVertex(x);
     hasShadowVertex[i] = 1;
     Nbrs[i].push_back(-i);
@@ -95,10 +100,11 @@ namespace tarski {
         Word Lp = itr->second, ap, bp;
         FIRST2(Lp,&ap,&bp);
         if (ICOMP(IPROD(a,bp),IPROD(ap,b)) != 0)
-          { // in this case, we can only satisyfy a x + b y = 0 = ap x + bp y if x = y = 0
-            return false;
-          }
-        return true;
+	{ // in this case, we can only satisyfy a x + b y = 0 = ap x + bp y if x = y = 0
+	  return false;
+	}
+        return true; //-- I think this should never happen since it would require duplicate atoms
+	             //-- or non-normalized polynomials in atoms ... both of which should not happen.
       }
     return true;
   }
@@ -339,8 +345,10 @@ namespace tarski {
   const pair<GCWord, VarSet> SubExp::nada = {0, 0};
   const list<TAtomRef> SubExp::empty = {};
   
-  SubExp::SubExp(ExpGraph& E, MarkLogExp& rootFor, PolyManager * PMptr)
-    : constants(NIL), multiples(nada), exp(empty), PM(PMptr)
+  SubExp::SubExp(TAndRef A)
+    //ExpGraph& E, MarkLogExp& rootFor, PolyManager * PMptr)
+    : constants(NIL), multiples(nada), exp(empty), PM(A->getPolyManagerPtr()),
+      E(A), rootFor(this->E), t(A)
   {
     vector<int> V = E.vertexList();
     for (size_t i = 0; i < V.size(); i++)
@@ -376,33 +384,34 @@ namespace tarski {
       }
     }
 
-    vector<VarSet> K = getVarsEliminatedBySubstitutions(E,rootFor);
-    for(int i = 0; i < K.size(); ++i)
-    {
-      Variable x = K[i];
-      cout << "Eliminated " << PM->getName(x) << " with ";
-      auto L = exp[x];
-      for(auto itr = L.begin(); itr != L.end(); ++itr)
-      {
-	cout << " ";
-	(*itr)->write(true);
-      }
-      cout << endl;
+    // set<TAtomRef,TAtomObj::OrderComp> dummy;
+    // vector<VarSet> K = getVarsEliminatedBySubstitutions(dummy);
+    // for(int i = 0; i < K.size(); ++i)
+    // {
+    //   Variable x = K[i];
+    //   cout << "Eliminated " << PM->getName(x) << " with ";
+    //   auto L = exp[x];
+    //   for(auto itr = L.begin(); itr != L.end(); ++itr)
+    //   {
+    // 	cout << " ";
+    // 	(*itr)->write(true);
+    //   }
+    //   cout << endl;
 
-      cout << PM->getName(x) << " = ";
-      if (multiples[x] == nada)
-	RNWRITE(constants[x]);
-      else
-      {
-	RNWRITE(multiples[x].first);
-	cout << " " << PM->getName(multiples[x].second);
-      }
-      cout << endl;      
-    }	
+    //   cout << PM->getName(x) << " = ";
+    //   if (multiples[x] == nada)
+    // 	RNWRITE(constants[x]);
+    //   else
+    //   {
+    // 	RNWRITE(multiples[x].first);
+    // 	cout << " " << PM->getName(multiples[x].second);
+    //   }
+    //   cout << endl;      
+    // }	
   }
 
-  vector<VarSet> SubExp::getVarsEliminatedBySubstitutions(ExpGraph& E, MarkLogExp& rootFor)
-  {
+  vector<VarSet> SubExp::getVarsEliminatedBySubstitutions(set<TAtomRef,TAtomObj::OrderComp> &usedToElim)
+  {    
     vector<VarSet> res;
     vector<int> V = E.vertexList();
     for (size_t i = 0; i < V.size(); i++)
@@ -413,12 +422,15 @@ namespace tarski {
       {
         VarSet x = E.getVarFromVertex(V[i]);
 	res.push_back(x);
+	list<TAtomRef>& L = exp[x];
+	for(auto itr = L.begin(); itr != L.end(); ++itr)
+	  usedToElim.insert(*itr);
       }
     }
     return res;
   }
   
-  list<DedExp> SubExp::makeDeductions(TAndRef t) {
+  list<DedExp> SubExp::makeDeductions() {
     list<DedExp> res;
     for (TAndObj::conjunct_iterator itr = t->begin(); itr != t->end(); ++itr) {
       forward_list<TAtomRef> source;
@@ -534,28 +546,53 @@ namespace tarski {
     return new IntPolyObj(sleveleval,Cb,Vremain);
   }
 
+  TAndRef Substituter::filter(TAndRef t)
+  {        
+    TAndRef t_filtered = new TAndObj();
+    for(auto itr = t->begin(); itr != t->end(); ++itr)
+    {
+      TAtomRef A = *itr;
+      if (usedToElim.find(A) == usedToElim.end())
+	t_filtered->AND(A);
+    }
+      
+    return t_filtered;
+  }
+
   void Substituter::makeDeductions(TAndRef t)
   {
-    PolyManager * PM = t->getPolyManagerPtr();
+    VarSet deadVars = eliminatedVars.empty() ? VarSet() : eliminatedVars.top();
 
-    ExpGraph E(t);
-
-    MarkLogExp M(E);
-
-    // VarKeyedMap<GCWord> constants(NIL);
-    // pair<GCWord, VarSet> nada(0, 0);
-    // VarKeyedMap<pair<GCWord,VarSet> >multiples(nada);
-    // list<TAtomRef> empty;
-    // VarKeyedMap<list<TAtomRef> > exp(empty);
-    SubExp S(E, M, PM);
+    TAndRef t_filtered = new TAndObj();
+    for(auto itr = t->begin(); itr != t->end(); ++itr)
+      if (((*itr)->getVars() & deadVars).isEmpty())
+	t_filtered->AND(*itr);
+	
+    
+    subStack.push(new SubExp(t_filtered));
+    SubExpRef &S = subStack.top();
+      
 
     //-- track what gets substituted
-    vector<VarSet> V = S.getVarsEliminatedBySubstitutions(E, M);
-    for(int i = 0; i < V.size(); ++i)
+    VarSet varsEliminatedThisRound;
+    vector<VarSet> V = S->getVarsEliminatedBySubstitutions(usedToElim);
+    for(int i = 0; i < V.size(); ++i) {
       orderSubstituted[V[i]] = nextSubCounter;
+      varsEliminatedThisRound = varsEliminatedThisRound | V[i];
+    }
     nextSubCounter++;
-    
-    deductions = S.makeDeductions(t);    
+
+    if (! varsEliminatedThisRound.isEmpty())
+    {
+      deductions = S->makeDeductions();
+      eliminatedVars.push(deadVars | varsEliminatedThisRound);
+    }
+
+    //debug
+    // cerr << "usedToElim is ";
+    // for(auto itr = usedToElim.begin(); itr != usedToElim.end(); ++itr)
+    // { cerr << " "; (*itr)->write(true); }
+    // cerr << endl;
   }
 
   DedExp Substituter::deduce(TAndRef t, bool& res) {
