@@ -108,8 +108,7 @@ namespace tarski{
       weightCompare(int i) : cutoff(i) {}
       int cutoff;
       inline bool operator() (const AtomRow& l, const AtomRow& r) {
-        return BBDeducer::weight(l.vc, cutoff) <
-          BBDeducer::weight(r.vc, cutoff);
+        return BBDeducer::weight(l.vc, cutoff) < BBDeducer::weight(r.vc, cutoff);
       }
     };
     

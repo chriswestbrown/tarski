@@ -561,6 +561,19 @@ namespace tarski {
     //Find the intervals of the interators
     std::vector<Interval> intervals = findIntervals2(F1, F2);
 
+    /* DEBUGGING CODE I SHOULD TAKE OUT
+      cout << "Call to findIntervals2:" << endl;
+      cout << "p: "; formOne->write(*PM); cout << "  q: "; formTwo->write(*PM); cout << endl;
+      cout << "OWRITE(p) : "; OWRITE(formOne->getSaclibPoly()); cout << endl;
+      cout << "OWRITE(q) : "; OWRITE(formTwo->getSaclibPoly()); cout << endl;
+      F1.debug(*PM);
+      F2.debug(*PM);
+      for(int i = 0; i < intervals.size(); i++)
+      {
+      intervals[i].write(); cout << ' ';
+      }
+      cout << endl << endl;
+    */
 
     VarKeyedMap<int> bestExplain;
     int minScore = -1;
@@ -690,6 +703,11 @@ namespace tarski {
 
       bool success = true;
       //Note: In case of breakage, change currSign to sign
+
+      // cout << "sign = " << numToRelop(sign) << ' ';
+      // F.write(*PM);
+      // cout << endl;
+      
       VarKeyedMap<int> explain = (v1) ? select(varMap2, F, sign, success) : select(varMap, F, sign, success);
 
       if (verbose) std::cout << " ";

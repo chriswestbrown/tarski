@@ -202,7 +202,7 @@ bool BoxSolver::directSolve()
  */
 bool BoxSolver::doSplit(TFormRef t, int& s)
 {
-  const int threshold = 50000000; //fernando set to 50
+  const int threshold = 50; //50000000; //fernando set to 50
   switch (t->getTFType()) {
   case TF_ATOM: {
       TAtomRef a = asa<TAtomObj>(t);
@@ -277,6 +277,7 @@ void BoxSolver::processAtoms(TFormRef formula) {
     break;
   }
   case TF_OR: {
+    isPureConj = false; //-- Dr. Brown Added
     TOrRef o = asa<TOrObj>(formula);
     for (auto itr = o->begin(); itr != o->end(); ++itr) {
       processAtoms(*itr);

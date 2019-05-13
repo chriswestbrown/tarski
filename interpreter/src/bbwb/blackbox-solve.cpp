@@ -104,9 +104,9 @@ namespace tarski {
 
   //returns false if unsat
   bool BBChecker::checkSat() {
-    cerr << "BEFORE:" << endl; M->write();
+    //cerr << "BEFORE:" << endl; M->write();
     M->strictElim();
-    cerr << "AFTER:" << endl; M->write();
+    //cerr << "AFTER:" << endl; M->write();
     const DMatrix& d = M->getStrict();
     unsatRow = BBSolver::findRow(d);
     return (unsatRow == -1) ? true : false;
@@ -512,7 +512,12 @@ namespace tarski {
   void BBDeducer::minWtMain(bblist& deds)
   {
     // cerr << ">>>>>>>> In minWtMain!" << endl;
+    //-- set ns to the index of the first non-strict entry in the "all" matrix.
+    //-- NOTE: The is Dr Brown's understanding of what Fernando wants to accomplish,
+    //--       which I'm also correcting here!
     int ns = M->getStrict().getNumCols();
+    if (ns == 0) ns = 1; //-- the index 0 column of the all matrix is the relop entry!
+
     vector<AtomRow> B = mkB();
     sort(B.begin(), B.end(), weightCompare(ns));
     while (B.size() != 0) {

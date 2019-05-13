@@ -34,9 +34,9 @@ namespace tarski {
     static short T_interval[2][8][8];
     static short T_restrict[8];
     static short T_weak[2][8][8];
-    Word left;
+    GCWord left;
     short leftType;
-    Word right;
+    GCWord right;
     short rightType;
     short sign;
 

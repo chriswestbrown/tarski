@@ -15,7 +15,7 @@ Word FernPolyIter::dive(){
   Word Ap = A;
 
   //Loop as long as the second is a list and we are not actually looking at the description of a fraction
-  while (currDepth < size-1 && (SECOND(Ap) > BETA || SECOND(Ap) < BETA) ){
+  while (currDepth < size-1 /*&& (SECOND(Ap) > BETA || SECOND(Ap) < BETA) DR BROWN: NONSENSE!*/ ){
     
     Word e = FIRST(Ap); // x_r^e - e is the exponent
     mono.push(RED2(Ap)); //Note that we need to look at the reductum of this 
@@ -35,9 +35,8 @@ Word FernPolyIter::dive(){
 
       //Save variable and exponent to currVars, mark that this level is relevant
       exponents.push_back(e);
-      currVars.push_back(allVars.at(size-(1+currDepth)));
+      currVars.push_back(allVars[currDepth]);
       varLevels.push_back(currDepth);
-
     }
 
     currDepth++;
@@ -66,7 +65,7 @@ Word FernPolyIter::dive(){
       }
 
       exponents.push_back(e);
-      currVars.push_back(allVars[size-(1+currDepth)]);
+      currVars.push_back(allVars[currDepth]);
       varLevels.push_back(currDepth);
     }
 
@@ -118,8 +117,6 @@ Word FernPolyIter::next(){
 
     currDepth--;
     Ap = mono.top();
-
-
   }
 
   mono.pop();
@@ -163,7 +160,7 @@ Word FernPolyIter::begin(){
   we must use std::reverse
   NOTE: If your polynomial is 0, this breaks! 
  */
-FernPolyIter::FernPolyIter(Word A, const VarSet &S, const VarKeyedMap<int> &varSign){
+  void FernPolyIter::init(Word A, const VarSet &S, const VarKeyedMap<int> &varSign){
   null = false;
   this->A = A;
   int i = 0;
@@ -177,6 +174,7 @@ FernPolyIter::FernPolyIter(Word A, const VarSet &S, const VarKeyedMap<int> &varS
 
   }
   std::reverse(aSigns.begin(), aSigns.end());
+  std::reverse(allVars.begin(), allVars.end()); //-- <<<< DR BROWN ADDED
   size = i;
   if (size == 0) {
     coefficient = A;
@@ -186,27 +184,57 @@ FernPolyIter::FernPolyIter(Word A, const VarSet &S, const VarKeyedMap<int> &varS
   begin();
 }
 
-FernPolyIter::FernPolyIter(IntPolyRef ref, const VarKeyedMap<int> &varSign){
-  null = false;
-  this->A = ref->getSaclibPoly();
-  const VarSet& S = ref->getVars();
-  currDepth = 0;
-  coefficient = 0;
-  int i = 0;
-  for(VarSet::iterator itr = S.begin(); itr != S.end(); ++itr) {
-    allVars.push_back(*itr);
-    aSigns.push_back(varSign.get(*itr));
-    i++;
+  FernPolyIter::FernPolyIter(Word A, const VarSet &S, const VarKeyedMap<int> &varSign){
+    init(A,S,varSign);
+  // null = false;
+  // this->A = A;
+  // int i = 0;
+  // currDepth = 0;
+  // coefficient = 0;
+  // for(VarSet::iterator itr = S.begin(); itr != S.end(); ++itr) {
+  //   allVars.push_back(*itr);
+  //   aSigns.push_back(varSign.get(*itr));
 
-  }
-  size = i;
-  if (size == 0) {
-    coefficient = A;
-    //cerr << "coefficient is " << A;
-    return;
-  }
-  else
-    begin();
+  //   i++;
+
+  // }
+  // std::reverse(aSigns.begin(), aSigns.end());
+  // std::reverse(allVars.begin(), allVars.end()); //-- <<<< DR BROWN ADDED
+  // size = i;
+  // if (size == 0) {
+  //   coefficient = A;
+  //   //cerr << "coefficient is " << A;
+  //   return;
+  // }
+  // begin();
+}
+
+FernPolyIter::FernPolyIter(IntPolyRef ref, const VarKeyedMap<int> &varSign){
+  init(ref->getSaclibPoly(),ref->getVars(),varSign);
+  // this->A = ref->getSaclibPoly();
+  // const VarSet& S = ref->getVars();
+  // null = false;
+  // currDepth = 0;
+  // coefficient = 0;
+  // int i = 0;
+  // for(VarSet::iterator itr = S.begin(); itr != S.end(); ++itr) {
+  //   allVars.push_back(*itr);
+  //   aSigns.push_back(varSign.get(*itr));
+  //   i++;
+
+  // }
+
+  // std::reverse(aSigns.begin(), aSigns.end()); //-- <<<< DR BROWN ADDED
+  // std::reverse(allVars.begin(), allVars.end()); //-- <<<< DR BROWN ADDED
+
+  // size = i;
+  // if (size == 0) {
+  //   coefficient = A;
+  //   //cerr << "coefficient is " << A;
+  //   return;
+  // }
+  // else
+  //   begin();
 }
 
   FernPolyIter::FernPolyIter(const FernPolyIter& F) {
@@ -258,13 +286,13 @@ int FernPolyIter::compareTo(FernPolyIter F){
   if (null && F.isNull()) return 0;
   else if (null) return 1;
   else if (F.isNull()) return -1;
-  vector<Variable>& vars1 = currVars;
+  const vector<Variable>& vars1 = this->getVars();
   const vector<Variable>& vars2 = F.getVars();
-  vector<short>& exp1 = exponents;
+  const vector<short>& exp1 = this->getExponents();
   const vector<short>& exp2 = F.getExponents();
-  vector<Variable>::iterator vIter1 = vars1.begin();
+  vector<Variable>::const_iterator vIter1 = vars1.begin();
   vector<Variable>::const_iterator vIter2 = vars2.begin();
-  vector<short>::iterator sIter1 = exp1.begin();
+  vector<short>::const_iterator sIter1 = exp1.begin();
   vector<short>::const_iterator sIter2 = exp2.begin();
 
   while (vIter1 != vars1.end() && vIter2 != vars2.end()) {
@@ -312,14 +340,13 @@ int FernPolyIter::compare(FernPolyIter F1, FernPolyIter F2) {
   Exactly what it says on the tin.
  */
 void FernPolyIter::write(PolyManager&  PM){
-  cout << endl;
   vector<short>::iterator itc = exponents.begin();
   for (vector<Variable>::iterator it = currVars.begin(); it != currVars.end(); ++it){
     cout << PM.getName(*it) << "^" << *itc << "*";
 
     ++itc;
   }
-  cout << coefficient << ": " << shortToRelop[finSign] << endl;
+  cout << coefficient << ": " << shortToRelop[finSign];
 }
 
 

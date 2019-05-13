@@ -17,9 +17,9 @@ namespace tarski {
   class FernPolyIter
   {
   private:
-    int size;
+    int size; //-- The number of variables in the original polynomial
     int currDepth;
-    Word A;
+    GCWord A;
     bool null;
     vector<short> aSigns;
     vector<short> exponents;  //The exponents on every variable in the current stack
@@ -28,12 +28,13 @@ namespace tarski {
     vector<Variable> allVars; //All variables in the polynomial
     stack<short> sSigns; //The sign of the term for the current monomial is the top of this
     short finSign; //The sign on the monomial taking into account the constant factor
-    stack<Word> mono; //Let's us know what we need to hit next
-    Word coefficient; //The coefficient. Whoohoo!
+    stack<GCWord> mono; //Let's us know what we need to hit next
+    GCWord coefficient; //The coefficient. Whoohoo!
     Word begin();
     Word dive();
+    void init(Word A, const VarSet &S, const VarKeyedMap<int> &varSign);
     static string shortToRelop[8];
-
+    
   public:
 
     //Overload postfix ++
@@ -60,7 +61,12 @@ namespace tarski {
     void writeAll(PolyManager& PM);
     static string numToRelop(short num);
     static int compare(FernPolyIter F1, FernPolyIter F2);
-
+    void debug(PolyManager& PM)
+    {
+      cout << "allVars.size() = " << allVars.size() << "  aSigns.size() = " << aSigns.size() << endl;
+      for(int i = 0; i < allVars.size(); ++i)
+	cout << PM.getName(allVars[i]) << " = " << shortToRelop[aSigns[i]] << endl;
+    }
   };
 
 }//end namespace tarski

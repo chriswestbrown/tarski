@@ -1,3 +1,4 @@
+#include "qfr.h" //-- this is only to get 'verbose'!
 #include "deduction.h"
 #include <unordered_set>
 #include <algorithm>
@@ -549,7 +550,7 @@ namespace tarski {
     vector<size_t> indices = ord.proxy_sorted_indices(deds);
     
     // Dr Brown debug
-    if (true)
+    if (verbose)
     {
       cout << endl << "Sorted deductions:" << endl;
       for(size_t i = 0; i < indices.size(); ++i)
