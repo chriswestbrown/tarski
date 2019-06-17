@@ -1,0 +1,12 @@
+STATUS: CLOSED
+
+SUMMARY
+The following input hangs ...
+
+(qepcad-qe [ all x [ [ x < 0 \/ x = 0 ] ==> x <= 0 ] ])
+
+ACTION
+In qepcad-session.h, I added a case for when calling d-witness
+returns "Command only valid for SAT problems!".  This is a little
+bit klugey, since I really should be checking before I call the
+d-witness command!

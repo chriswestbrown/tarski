@@ -130,6 +130,8 @@ namespace tarski {
           while(getline(outofQepcad.in(),ln))
 	  {
 	    //cerr << "err2: " << ln << " " << (ln.find("-   Sample point  -") != string::npos) << endl;
+	    if (found == 0 && (ln.find("Command only valid for SAT problems!") != string::npos))
+	      break;
 	    
 	    if (found == 0 && (ln.find("-   Sample point  -") != string::npos))
 	      found = 1;
