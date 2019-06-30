@@ -94,10 +94,19 @@ namespace tarski {
       else
         return new SymObj("SAT BY L1 NORMALIZATION");
     }
+    
+    /*
+      Solver Manager requires the formula to be a TAnd.
+      So if R.getRes() is an atom, we need to wrap it in a 
+      TAnd.
+     */
+    TAndRef res = R.getRes();
+    if (res.is_null()) { res = new TAndObj(); res->AND(R.getRes()); }
 
+    
     SolverManager s( SolverManager::BB |
                      SolverManager::WB |
-                     SolverManager::SS,  R.getRes());
+                     SolverManager::SS,  res);
     LisRef l = s.genLisResult();
     if (o.getOpt(0)) s.prettyPrintResult();
     return l;
