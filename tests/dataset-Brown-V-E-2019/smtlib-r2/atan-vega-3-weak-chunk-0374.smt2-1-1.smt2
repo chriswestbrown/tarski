@@ -1,0 +1,8 @@
+(set-logic QF_NRA)
+(set-info :source | Produced by tarski version 1.27  |)
+(set-info :smt-lib-version 2.0)
+(declare-fun skoX () Real)
+(declare-fun skoY () Real)
+(declare-fun skoZ () Real)
+(assert (and (=  skoX 0) (<  (+ (+ (+ 133 (* skoX (+ 400 (* skoX (+ 399 (* skoX 300)))))) (* skoY (+ (+ 400 (* skoX (+ 532 (* skoX 400)))) (* skoY (+ (+ 399 (* skoX (+ 400 (* skoX (+ 133 (* skoX 100)))))) (* skoY (+ 300 (* skoX (* skoX 100))))))))) (* skoZ (+ (+ (+ 300 (* skoX (+ 798 (* skoX 600)))) (* skoY (+ (+ 798 (* skoX (+ 600 (* skoX (+ (- 798) (* skoX (- 600))))))) (* skoY (+ (+ 600 (* skoX (+ (- 798) (* skoX (- 900))))) (* skoY (* skoX (- 600)))))))) (* skoZ (+ (+ 399 (* skoX 300)) (* skoY (+ (+ 300 (* skoX (+ (- 798) (* skoX (- 600))))) (* skoY (+ (* skoX (+ (- 600) (* skoX (+ 399 (* skoX 300))))) (* skoY (* skoX (* skoX 300)))))))))))) 0) (=  skoY 0) (=  (+ (+ (* skoX (- 1)) (* skoY (- 1))) (* skoZ (+ (- 1) (* skoY skoX)))) 0) (>  skoZ 0) (<  (+ (- 1) skoY) 0) (>  (+ (* skoX (- 1)) skoY) 0)))
+(check-sat)

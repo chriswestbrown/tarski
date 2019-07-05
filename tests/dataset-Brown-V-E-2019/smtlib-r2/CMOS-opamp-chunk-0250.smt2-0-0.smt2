@@ -1,0 +1,6 @@
+(set-logic QF_NRA)
+(set-info :source | Produced by tarski version 1.27  |)
+(set-info :smt-lib-version 2.0)
+(declare-fun skoY () Real)
+(assert (>  (+ 11975439168 (* skoY (* skoY (+ (- 5987520000) (* skoY (* skoY (+ 498960000 (* skoY (* skoY (+ (- 16632000) (* skoY (* skoY (+ 297000 (* skoY (* skoY (+ (- 3300) (* skoY (* skoY 25)))))))))))))))))) 0))
+(check-sat)

@@ -1,0 +1,8 @@
+(set-logic QF_NRA)
+(set-info :source | Produced by tarski version 1.27  |)
+(set-info :smt-lib-version 2.0)
+(declare-fun skoB () Real)
+(declare-fun skoT () Real)
+(declare-fun skoA () Real)
+(assert (and (=  (+ (* skoB (- 1)) skoT) 0) (>  skoA 0) (>  (+ (* skoT (+ (* skoB (* skoB (* skoB (- 157)))) (* skoT (+ (* skoB (* skoB (+ 200 (* skoB (- 30))))) (* skoT (+ (* skoB (- 157)) (* skoT (+ 100 (* skoB (- 30)))))))))) (* skoA (* skoB (* skoB (* skoB 100))))) 0) (>  (+ (- 1) skoT) 0) (<  (+ (* skoB (- 1)) skoA) 0)))
+(check-sat)

@@ -1,0 +1,8 @@
+(set-logic QF_NRA)
+(set-info :source | Produced by tarski version 1.27  |)
+(set-info :smt-lib-version 2.0)
+(declare-fun h3 () Real)
+(declare-fun h5 () Real)
+(declare-fun h6 () Real)
+(assert (and (>  h3 0) (>  h5 0) (>  h6 0) (=  (+ (+ (* h3 2) h5) h6) 0)))
+(check-sat)

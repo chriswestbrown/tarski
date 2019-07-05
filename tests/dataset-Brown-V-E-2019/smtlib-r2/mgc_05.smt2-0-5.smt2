@@ -1,0 +1,8 @@
+(set-logic QF_NRA)
+(set-info :source | Produced by tarski version 1.27  |)
+(set-info :smt-lib-version 2.0)
+(declare-fun lambda1 () Real)
+(declare-fun vv1 () Real)
+(declare-fun vv3 () Real)
+(assert (>  (+ 1 (* vv3 (* vv3 (* vv3 (* vv3 (+ (* vv1 (* lambda1 5)) vv3)))))) 0))
+(check-sat)

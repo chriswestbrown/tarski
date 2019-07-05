@@ -1,0 +1,48 @@
+July 2019
+
+Data Sets from "From Simplification to a Partial Theory 
+Solver for Non-Linear Real Polynomial Constraints", C. Brown
+and F. Vale-Enriquez. 
+
+A. Round 1
+   - As described in the paper, these formulas are all
+     conjunctions that were produced by expanding SMTLIB
+     QF_NRA inputs into DNF and collecting the disjuncts.
+     
+   - The file round1inputs has the problems, one per line, in
+     the format: 
+
+     <name> : <formula>
+
+     Names are of the form <smtlibname>-<disjunctnumber>, e.g.
+     atan-problem-2-weak-chunk-0198.smt2-4, which means the
+     formula is the 5th disjunct in the DNF expansion of the
+     SMTLIB formula atan-problem-2-weak-chunk-0198.smt2-4.
+
+   - The directory smtlib-r1 contains each of the formulas
+     from round1inputs in smtlib format, with file name
+     <name>.smt2.  So atan-problem-2-weak-chunk-0198.smt2-4
+     is named atan-problem-2-weak-chunk-0198.smt2-4.smt2.
+
+B. Round 2
+   - As described in the paper, these inputs are conjunctions
+     that were produced from the simplified equivalents of
+     formulas that were not determined to be UNSAT by the
+     partial solver in the Round 1 experiments.  They were
+     produced by breaking <= and >= into cases "< or =" and
+     "> or =" and expanding to DNF.
+   
+   - The file round2inputs has the problems, one per line, in
+     the format: 
+
+     <name> : <formula>
+
+     Names are of the form <round1name>-<disjunctnumber>, e.g.
+     atan-problem-2-weak-chunk-0190.smt2-1-3, which means the
+     4th disjunct in the expansion of round1 input problem
+     atan-problem-2-weak-chunk-0190.smt2-1.
+
+   - The directory smtlib-r1 contains each of the formulas
+     from round2inputs in smtlib format, with file name
+     <name>.smt2.  So atan-problem-2-weak-chunk-0190.smt2-1-3
+     is in file atan-problem-2-weak-chunk-0190.smt2-1-3.smt2.
