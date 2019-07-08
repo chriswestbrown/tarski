@@ -2,8 +2,8 @@
 # Following the blog post by Job Vranish
 # https://spin.atomicobject.com/2016/08/26/makefile-c-projects/
 
-CXX=clang++
-CC=clang++
+CXX=g++
+CC=g++
 MROOT=-I../minisat
 TMROOT=../minisat
 extIncludesSACLIB:=-I${saclib}/include
