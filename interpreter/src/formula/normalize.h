@@ -13,9 +13,9 @@ extern TFormRef testmi(TFormRef F); // temp to test!
 
 // Straight-up functions ... probably won't use except internally
   bool level1_atom(TAtomRef A, TAndRef C);
-TFormRef level1(TFormRef F);
-TFormRef level2(TFormRef F);
-TFormRef level3(TFormRef F, int l3flags, int l4flags);
+  TFormRef level1(TFormRef F, TAtomRef* ptr = NULL);
+  TFormRef level2(TFormRef F);
+  TFormRef level3(TFormRef F, int l3flags, int l4flags);
 
 
 const int nf_ded_inconsistencies = 1;
@@ -29,7 +29,12 @@ public:
   virtual ~Normalizer() { }
 };
 class Level0 : public Normalizer { TFormRef normalize(TFormRef F) { return F; } };
-class Level1 : public Normalizer { TFormRef normalize(TFormRef F) { return level1(F); } };
+class Level1 : public Normalizer {
+  TAtomRef unsatAtom;
+  TFormRef normalize(TFormRef F) { return level1(F,&unsatAtom); }
+ public:
+  TAtomRef getUnsatAtom() { return unsatAtom; }
+};
 class Level2 : public Normalizer { TFormRef normalize(TFormRef F) { return level2(level1(F)); } };
 class Level3and4 : public Normalizer 
 { 

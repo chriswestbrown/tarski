@@ -45,10 +45,10 @@ public:
 
 // asa:  makes casting easier.  Ex: asa<TAndObj>(p)
 template<class T>
-T* asa(const TFormRef& p) { return dynamic_cast<T*>(&(*p)); }
+  T* asa(const TFormRef& p) { return p.is_null() ? NULL : dynamic_cast<T*>(&(*p)); }
 
  template<class T>
-T* TFasa(const TFormRef& p) { return dynamic_cast<T*>(&(*p)); }
+   T* TFasa(const TFormRef& p) { return p.is_null() ? NULL : dynamic_cast<T*>(&(*p)); }
 
 /******************************************************
  * TConst
@@ -87,8 +87,11 @@ public:
   
   TAtomObj(PolyManager &_M) { F = new FactObj(_M); }
   TAtomObj(FactRef _F, int _relop) { F = _F; relop = _relop; }
-  virtual void write(bool flag = false) 
-    { F->write(); SWRITE(" "); SWRITE(relopString(relop)); SWRITE(" 0"); }
+  virtual void write(bool flag = false) {
+    if (flag) { SWRITE("["); }
+    F->write(); SWRITE(" "); SWRITE(relopString(relop)); SWRITE(" 0");
+    if (flag) { SWRITE("]"); }
+  }
   void apply(TFPolyFun &F);
 
   std::map<IntPolyRef,int>::iterator factorsBegin() { return F->MultiplicityMap.begin(); }
@@ -159,6 +162,7 @@ public:
 
   virtual void write(bool flag = false) 
   { 
+    if (flag) { SWRITE("["); }
     PolyManager *pM = F->getPolyManagerPtr();
     SWRITE(pM->getName(var).c_str());
     SWRITE(" ");
@@ -167,6 +171,7 @@ public:
     IWRITE(rootIndex);
     SWRITE(" "); 
     F->write(); 
+    if (flag) { SWRITE("["); }
   }
 
   std::map<IntPolyRef,int>::iterator factorsBegin() { return F->MultiplicityMap.begin(); }
@@ -348,19 +353,15 @@ public:
   TQBObj(VarSet S, int Qtype, TFormRef fp)
   {
     PMptr = fp->getPolyManagerPtr();
-    //    if (pm == 0) return;
-    outermostBlockType = Qtype;
-    //    blocks.push_back(fp->getVars() & S);
-    blocks.push_back(S);
     formulaPart = fp;
+    add(S,Qtype);
   }
 
   TQBObj(VarSet S, int Qtype, TFormRef fp, PolyManager *pm)
   {
     PMptr = pm;
-    outermostBlockType = Qtype;
-    blocks.push_back(S);
     formulaPart = fp;
+    add(S,Qtype);
   }
 
   void add(VarSet S, int Qtype)
@@ -370,8 +371,12 @@ public:
       blocks[blocks.size()-1] = blocks[blocks.size()-1] + (formulaPart->getVars() & S);
     else
     {
-      blocks.push_back(formulaPart->getVars() & S);
-      outermostBlockType = Qtype;
+      VarSet newVars = formulaPart->getVars() & S;
+      if (!newVars.isEmpty())
+      {
+	blocks.push_back(newVars);
+	outermostBlockType = Qtype;
+      }
     }
   }
 
@@ -434,6 +439,7 @@ public:
   }
   void write(bool flag = false)
   {
+    flag = false;
     writeHelper(0,size()-1,outermostBlockType);
   }
   void apply(TFPolyFun &F);

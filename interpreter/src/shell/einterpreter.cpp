@@ -1055,7 +1055,115 @@ public:
   string name() { return "split-non-strict"; }
 };
 
-  
+
+class CommPolySizeStats : public EICommand
+{
+  //-- score is defined as follows:
+  class Score : public TFPolyFun
+  {
+    int sscore;
+    int sumOfTotalDegree;
+    int numConjuncts;
+    int factorWeightedNumConjuncts;
+  public:
+    int getScore() { return sscore; }
+    int getSotd() { return sumOfTotalDegree; }
+    int getNumConstraints() { return numConjuncts; }
+    int getFactorWeightedNumConstraints() { return factorWeightedNumConjuncts; }
+    Score() { sscore = 0; sumOfTotalDegree = 0; numConjuncts = 0; }
+    virtual void action(TAtomObj* p)
+    {
+      numConjuncts++;
+      int tscore = 0, fcount = 0;
+      for(auto itr = p->factorsBegin(); itr != p->factorsEnd(); ++itr) {
+	IntPolyRef f = itr->first;
+	int a, b, c, t;
+	t = f->sizeStats(a,b,c);
+	tscore += 10*b + (t == 0 ? 0 : 5) + c;
+	sumOfTotalDegree += b;
+	++fcount;
+      }
+      factorWeightedNumConjuncts += (fcount == 0 ? 1 : fcount);
+      if (p->getRelop() != NEOP)
+	tscore = fcount * tscore;
+      sscore = tscore;
+    }
+    virtual void action(TAndObj* p)
+    {
+      int tscore = 0;
+      for(auto itr = p->begin(); itr != p->end(); ++itr)
+      {
+	sscore = 0;
+	(*this)(*itr);
+	tscore += sscore;
+      }
+      sscore = tscore;
+      return;
+    }
+  };
+
+  static int compscore(IntPolyRef F)
+  {
+      int a, b, c, t;
+      t = F->sizeStats(a,b,c);
+      return 10*b + (t == 0 ? 0 : 5) + c;
+  }
+public:
+  CommPolySizeStats(NewEInterpreter* ptr) : EICommand(ptr) { }
+  SRef execute(SRef input, vector<SRef> &args) 
+  {
+    if (args[0]->type() == _alg)
+    {
+      IntPolyRef F = args[0]->alg()->val;
+      try {
+	int a, b, c, t;
+	t = F->sizeStats(a,b,c);
+	int score = 10*b + (t == 0 ? 0 : 5) + c;
+	LisRef L = new LisObj(new NumObj(a), new NumObj(b), new NumObj(c));
+	L->push_back(new NumObj(t));
+	L->push_back(new NumObj(score));
+	return L;
+      }
+      catch(TarskiException &e) { return new ErrObj(e.what()); }
+    }
+    else if (args[0]->type() == _tar)
+    {
+      TFormRef F = args[0]->tar()->val;
+      Score S;
+      S(F);
+      int res = 0;
+      if (args.size() > 1 && args[1]->type() == _sym)
+      {
+	if (args[1]->sym()->val == "sotd")
+	  res = S.getSotd();
+	else if (args[1]->sym()->val == "constraints")
+	  res = S.getNumConstraints();
+	else if (args[1]->sym()->val == "wconstraints")
+	  res = S.getFactorWeightedNumConstraints();
+	else
+	  return new ErrObj(name() + " invalid argument!");
+      }
+      else
+	res = S.getScore();
+      return new NumObj(res);
+    }
+    else
+      return new ErrObj(name() + " invalid argument!");
+  }
+  string testArgs(vector<SRef> &args)
+  {
+    return "";
+  }
+  string doc() 
+  {
+    return "(poly-size-stats F), where F is a Tarski formula or algebraic object, returns returns list (num-terms sum-of-total-degree maximum-coef-bit-length) .";
+  }
+  string usage() { return "(poly-size-stats <tarski formula>|<alg obj>)"; }
+  string name() { return "poly-size-stats"; }
+};
+
+
+
 void NewEInterpreter::init() 
 {
   Interpreter::init();
@@ -1082,7 +1190,8 @@ void NewEInterpreter::init()
   add(new CommUFactor(this));
   add(new CommCollectFactors(this));
   add(new EvalFormAtRat(this));
-
+  add(new CommPolySizeStats(this));
+  
   add(new CommSub(this));
   add(new CommGetSub(this));
   add(new CommGetArgs(this));

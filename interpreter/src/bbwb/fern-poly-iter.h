@@ -30,6 +30,7 @@ namespace tarski {
     short finSign; //The sign on the monomial taking into account the constant factor
     stack<GCWord> mono; //Let's us know what we need to hit next
     GCWord coefficient; //The coefficient. Whoohoo!
+    
     Word begin();
     Word dive();
     void init(Word A, const VarSet &S, const VarKeyedMap<int> &varSign);
@@ -41,13 +42,13 @@ namespace tarski {
     FernPolyIter operator++(int);
     FernPolyIter& operator++();
     bool operator <(const FernPolyIter& F);
-    int compareTo(FernPolyIter F);
+    int compareTo(const FernPolyIter &F);
     FernPolyIter(Word A, const VarSet &S, const VarKeyedMap<int> &varSign);
     FernPolyIter(IntPolyRef ref, const VarKeyedMap<int> &varSign);
-    FernPolyIter(const FernPolyIter& F);
+    //FernPolyIter(const FernPolyIter& F);
     FernPolyIter() {}
     Word next();
-    bool isNull();
+    bool isNull() const;
     int end() { return 0; }
     int numVars() const;
     Word getCoefficient() const;

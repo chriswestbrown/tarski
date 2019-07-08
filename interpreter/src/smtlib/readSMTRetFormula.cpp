@@ -326,6 +326,18 @@ public:
   }
   void action(TAtomObj* p) 
   { 
+
+    // SMTLIB has no neop ... must be (not (= ....))
+    if (p->getRelop() == NEOP)
+    {
+      out << "(not ";
+      TAtomObj* eqp = new TAtomObj(p->getFactors(),EQOP);
+      action(eqp);
+      delete eqp;
+      out << ")";
+      return;
+    }
+    
     out << '(' << relopString(p->getRelop()) << ' ';
 
     FactRef F = p->F;

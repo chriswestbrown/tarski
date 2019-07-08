@@ -56,8 +56,10 @@ int QFR::init(int QMTf, TFormRef _T, PolyManager *_pM)
     else F = tmp;
   }
   else
+  {
     F = defaultNormalizer->normalize(F);
-
+  }
+    
   // What to do if F normalizes to a constant?
 
   // Initialize QueueManager

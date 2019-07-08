@@ -11,8 +11,10 @@ namespace tarski {
   private:
     int s;
     std::vector< tarski::TAtomRef> mapping;
-    //Removed tarski::TAtomObj::OrderComp
-    std::map<tarski::TAtomRef, int> revMapping;
+    //DRBROWN: added the "ConjunctOrder" back in!  What was he thinking!
+    //         we need this so that distinct Objects in memory that represent
+    //         the same atom don't result in duplicate entries.
+    std::map<tarski::TAtomRef, int,ConjunctOrder> revMapping;
 
   public:
     inline IdxManager() : s(0), mapping(0) {}
@@ -24,6 +26,11 @@ namespace tarski {
       else return itr->second;
     }
     inline void mkIdx(tarski::TAtomRef t) {
+      //<<<DRBROWN ADDED: This way we don't add what's already there.  I.e. if
+      //                  t is an atom that is already represented in the IdxManager
+      //                  we need to do nothing, not add a duplicate!
+      if (revMapping.find(t) != revMapping.end()) return;
+      //>>>DRBROWN ADDED
       mapping.push_back(t);
       revMapping[t] = s;
       s++;

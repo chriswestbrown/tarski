@@ -108,7 +108,10 @@ int mainDUMMY(int argc, char **argv, void* topOfTheStack)
     if (!quiet) { isin.setPrompt("> "); }
 
     // Input?
-    istream* piin = (file ? (istream*)&fin : (istream*)&isin);
+    istream* piin =
+      file ?
+      (istream*)&fin :
+      (quiet && !isatty(fileno(stdin)) ? (istream*)&cin : (istream*)&isin);
     istream &iin = *piin;
     LexContext LC(iin,';');
     defaultNormalizer = new Level3and4(7,7);

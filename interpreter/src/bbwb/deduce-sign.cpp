@@ -485,6 +485,7 @@ namespace tarski {
     F1 and F2 must be fresh iterators at the first term of the polynomial.
   */
   std::vector<Interval> Interval::findIntervals2(FernPolyIter &F1, FernPolyIter &F2){
+
     std::vector<Interval> q;
 
     bool first = true;
@@ -543,26 +544,27 @@ namespace tarski {
 								const IntPolyRef &formOne, const IntPolyRef &formTwo,
 								short formOneSign, short formTwoSign)
   {
-    FernPolyIter F1;
-    FernPolyIter F2;
+    // cout << "Call to deduceSign2:" << endl;
+    // cout << "p: "; formOne->write(*PM); cout << "  q: "; formTwo->write(*PM); cout << endl; cout << flush;
     bool v1 = false;
     VarKeyedMap<int> varMap2(varMap);
     if (formOne->isVar() && varMap.get(formOne->isVariable()) != ALOP) {
       varMap2[formOne->isVariable()] = ALOP;
       formTwoSign = formTwo->signDeduce(varMap2);
-      F1 = FernPolyIter(formOne->getSaclibPoly(), formOne->getVars(), varMap2);
-      F2 = FernPolyIter(formTwo->getSaclibPoly(), formTwo->getVars(), varMap2);
       v1 = true;
     }
-    else  {
-      F1 = FernPolyIter(formOne->getSaclibPoly(), formOne->getVars(), varMap);
-      F2 = FernPolyIter(formTwo->getSaclibPoly(), formTwo->getVars(), varMap);
-    }
+
+    FernPolyIter F1(formOne->getSaclibPoly(), formOne->getVars(), varMap2);
+    FernPolyIter F2(formTwo->getSaclibPoly(), formTwo->getVars(), varMap2);
+
+    
+    //cout << "Before findIntervals2" << endl << flush;
+    
     //Find the intervals of the interators
     std::vector<Interval> intervals = findIntervals2(F1, F2);
 
-    /* DEBUGGING CODE I SHOULD TAKE OUT
-      cout << "Call to findIntervals2:" << endl;
+    /* DEBUGGING CODE I SHOULD TAKE OUT 
+      cout << "After call to findIntervals2:" << endl;
       cout << "p: "; formOne->write(*PM); cout << "  q: "; formTwo->write(*PM); cout << endl;
       cout << "OWRITE(p) : "; OWRITE(formOne->getSaclibPoly()); cout << endl;
       cout << "OWRITE(q) : "; OWRITE(formTwo->getSaclibPoly()); cout << endl;
@@ -573,7 +575,7 @@ namespace tarski {
       intervals[i].write(); cout << ' ';
       }
       cout << endl << endl;
-    */
+      */
 
     VarKeyedMap<int> bestExplain;
     int minScore = -1;

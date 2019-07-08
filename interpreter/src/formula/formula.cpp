@@ -218,6 +218,7 @@ string toString(TFormRef t)
 void TAndObj::write(bool flag) 
 { 
   if (conjuncts.size() == 0) { SWRITE("true"); return; }
+  flag = false;
   SWRITE("["); 
   for(set<TFormRef>::iterator i = conjuncts.begin(); i != conjuncts.end(); ++i)
   {  
@@ -260,6 +261,7 @@ TFormRef TAndObj::negate()
 void TOrObj::write(bool flag) 
 { 
   if (disjuncts.size() == 0) { SWRITE("false"); return; }
+  flag = false;
   SWRITE("["); 
   for(set<TFormRef>::iterator i = disjuncts.begin(); i != disjuncts.end(); ++i)
   {  

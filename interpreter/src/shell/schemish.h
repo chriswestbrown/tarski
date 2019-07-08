@@ -163,6 +163,10 @@ public:
   LisObj() :  markVal(-1) { }
   LisObj(const SRef &x1) :  markVal(-1) { push_back(x1); }
   LisObj(const SRef &x1, const SRef &x2) :  markVal(-1) { push_back(x1); push_back(x2); }
+  LisObj(const SRef &x1, const SRef &x2, const SRef &x3) :  markVal(-1)
+  {
+    push_back(x1); push_back(x2); push_back(x3);
+  }
   virtual void mark(Interpreter *pI);
   void push_back(const SRef &s) { elts.push_back(s); }
   virtual int length() { return elts.size(); }

@@ -64,7 +64,7 @@ namespace tarski {
     static std::vector<Interval> findIntervals2(FernPolyIter &F1, FernPolyIter &F2);
 
     //Returns a tuple consisting of deduced signs (in the VKM), a VarSet of all the variables whose signs were deduced, and a short indicating the sign deduced on p
-    static tuple<VarKeyedMap<int>, VarSet, short, Word> findIntervalsExplain(const VarKeyedMap<int> &varMap, PolyManager * PM, const IntPolyRef &formOne, const IntPolyRef &formTwo);
+    static tuple<VarKeyedMap<int>, VarSet, short, GCWord> findIntervalsExplain(const VarKeyedMap<int> &varMap, PolyManager * PM, const IntPolyRef &formOne, const IntPolyRef &formTwo);
     static tuple<VarKeyedMap<int>, VarSet, short>  dedSignExp(const VarKeyedMap<int> &varMap, PolyManager * PM, const IntPolyRef &formOne, const IntPolyRef &formTwo, short formTwoSign);
 
 

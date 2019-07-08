@@ -115,6 +115,8 @@ public:
   
   void varStats(VarKeyedMap< vector<int> > &M); //updates M,  M[x] = [maxdeg of x, max tot degree of term in x, num terms with x]
 
+  int sizeStats(int &numTerms, int &sotd, int &maxCeffBitlength) const;
+  
 private:
   void compactify(Word r, Word A, VarSet S);
   Word expand(VarSet newV) const { return expand(slevel,sP,getVars(),newV); }

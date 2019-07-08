@@ -470,4 +470,13 @@ IntPolyRef IntPolyObj::makePositive(int& sn)
   Word P = IPABS(slevel,sP);
   return new IntPolyObj(slevel,P,getVars());
 }
+
+int IntPolyObj::sizeStats(int &numTerms, int &sotd, int &maxCeffBitlength) const
+{
+  Word a,b,c,t;
+  t = IPSIZESTATS(getLevel(),getSaclibPoly(),&a,&b,&c);
+  numTerms = a; sotd = b; maxCeffBitlength = c;
+  return t;
+}
+
 }//end namespace tarski

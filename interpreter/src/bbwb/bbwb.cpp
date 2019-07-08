@@ -17,15 +17,21 @@ namespace tarski {
       if (tarRef.is_null()) {throw TarskiException("bbwb argument not a Tarski formula");}
       TFormRef tRef = tarRef->getValue();
       TAndRef A = asa<TAndObj>(tRef);
-      if (A.is_null()) {
-        throw TarskiException("ERROR - NOT A CONJUNCTION");
+      TAtomRef atom = asa<TAtomObj>(tRef);
+      if (A.is_null() && atom.is_null()) {
+        throw TarskiException("ERROR - bbwb requires conjunction of atoms");
       }
-      else if (A->size() == 0) {
+      else if (!A.is_null() && A->size() == 0) {
         throw TarskiException("ERROR - EMTPY CONJUNCTION");
       }
-      for (TAndObj::conjunct_iterator itr = A->conjuncts.begin(); itr != A->conjuncts.end(); ++itr) {
-        TAtomRef tf = asa<TAtomObj>(*itr);
-        if (tf.is_null()) throw TarskiException("ERROR - bbwb requires strict conjunction");
+      if (A.is_null()) {
+	A = new TAndObj();
+	A->AND(atom); }
+      else {
+	for (TAndObj::conjunct_iterator itr = A->conjuncts.begin(); itr != A->conjuncts.end(); ++itr) {
+	  TAtomRef tf = asa<TAtomObj>(*itr);
+	  if (tf.is_null()) throw TarskiException("ERROR - bbwb requires strict conjunction");
+	}
       }
       o.loadOptions(args);
       return A;
@@ -84,31 +90,34 @@ namespace tarski {
     }
     
     //L1 Normalization
-    Normalizer * p = new Level1();
+    Level1 * p = new Level1();
     RawNormalizer R(*p);
     R(A);
-    delete p;
+    LisRef l;
     if (R.getRes()->getTFType() == TF_CONST) {
-      if (R.getRes()->constValue() == FALSE)
-        return new SymObj("UNSAT BY L1 NORMALIZATION");
+      if (R.getRes()->constValue() == FALSE) {
+	l = new LisObj(new SymObj("UNSAT"), new TarObj(p->getUnsatAtom()));
+      }
       else
-        return new SymObj("SAT BY L1 NORMALIZATION");
+	l = new LisObj(new SymObj("SAT"), new TarObj(new TConstObj(true)));
     }
-    
-    /*
-      Solver Manager requires the formula to be a TAnd.
-      So if R.getRes() is an atom, we need to wrap it in a 
-      TAnd.
-     */
-    TAndRef res = R.getRes();
-    if (res.is_null()) { res = new TAndObj(); res->AND(R.getRes()); }
-
-    
-    SolverManager s( SolverManager::BB |
-                     SolverManager::WB |
-                     SolverManager::SS,  res);
-    LisRef l = s.genLisResult();
-    if (o.getOpt(0)) s.prettyPrintResult();
+    delete p;
+    if (l.is_null()) {
+      /*
+	Solver Manager requires the formula to be a TAnd.
+	So if R.getRes() is an atom, we need to wrap it in a 
+	TAnd.
+      */
+      TAndRef res = R.getRes();
+      if (res.is_null()) { res = new TAndObj(); res->AND(R.getRes()); }
+      
+      
+      SolverManager s( SolverManager::BB |
+		       SolverManager::WB |
+		       SolverManager::SS,  res);
+      l = s.genLisResult();
+      if (o.getOpt(0)) s.prettyPrintResult();
+    }
     return l;
   }
 

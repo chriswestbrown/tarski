@@ -1,5 +1,6 @@
 #include "writeForQE.h"
 #include "formmanip.h"
+#include "normalize.h"
 
 using namespace std;
 
@@ -140,6 +141,18 @@ string naiveButCompleteWriteForQepcad(TFormRef Fin,
     Fqff = F;
   blocks.push_back(Vall - Vq);
 
+  // If Fqff has no variables, we need to handle this separately.
+  if (Fqff->getVars().isEmpty())
+  {
+    Level1 normalizer;
+    RawNormalizer R(normalizer);
+    R(F);
+    int t = R.getRes()->constValue();
+    if (t == TRUE) { return "true"; }
+    else if (t == FALSE) { return "false"; }
+    else throw TarskiException("Error in naiveButCompleteWriteForQepcad!");
+  }
+
   // map s.t. for var v, varToBlockIndex[v] is the index i s.t. v is in blocks[i]
   VarKeyedMap<int> varToBlockIndex;
   for(unsigned int i = 0; i < blocks.size(); i++)
@@ -191,13 +204,15 @@ string naiveButCompleteWriteForQepcad(TFormRef Fin,
     }
 
   // Write the quantifier block
+  //-- NOTE: I NEED TO FIX THIS!  1. universal requires =/<=/>= only, 2. what the heck
+  //         happens if there are alternations!  I think it all breaks down!
   for(int k = blockOrders.size() - 2; k >= 0; --k)
   {
     for(unsigned int j = 0; j < blockOrders[k].size(); ++j, --countNonStrict)
     {
       sout << "(" << (Q->blockType(k) == EXIST
 		      ? (countNonStrict > 0 ? "E" : "F")
-		      : (countNonStrict > 0 ? "A" : "G")
+		      : (countNonStrict > 0 ? "A" : "A") 
 		      ) << " " << PM.getName(blockOrders[k][j]) << ")";
     }
   }

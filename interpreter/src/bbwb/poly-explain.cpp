@@ -134,7 +134,7 @@ namespace tarski {
       res = combine(res, tmp, allVars);
     } while (tgtSgn == NOOP && F.next() != F.end());
 
-    cout << "tgtSgn is " << numToRelop(tgtSgn) << endl;
+    //cout << "tgtSgn is " << numToRelop(tgtSgn) << endl;
     if (tgtSgn == LTOP || tgtSgn == GTOP) {
       tmp = polyEqual(knownSigns, F, success);
       res = combine(res, tmp, allVars);

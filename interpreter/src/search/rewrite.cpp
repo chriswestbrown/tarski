@@ -59,7 +59,6 @@ TFormRef BasicRewrite::refine(QAndRef target, TFQueueRef Q)
     if (asa<TConstObj>(res)) return res;
   }
 
-
   if (true)
   {
     // if we have a conjunction of atoms of the form A1 /\ ... /\ Ak /\ B1 /\ ... /\ Bl s.t.
@@ -101,7 +100,6 @@ TFormRef BasicRewrite::refine(QAndRef target, TFQueueRef Q)
       }
     }
   }
-
 
   return NULL;
 }

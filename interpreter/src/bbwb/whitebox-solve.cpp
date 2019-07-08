@@ -90,9 +90,9 @@ namespace tarski {
           pair<IntPolyRef, IntPolyRef> p((p1), (p2));
           multiVarsDed.insert(p);
         }
-      }
-      
+      }      
     }
+    nextMVDToDo = multiVarsDed.begin();
   }
 
   /*
@@ -147,19 +147,34 @@ namespace tarski {
     If there is nothing left, return null
   */
   DedExp WBSolver::doMultiDeduce(bool& success) {
-    if (multiVarsDed.empty()) {
-      DedExp d;
-      success = false;
-      return d;
+    while(nextMVDToDo != multiVarsDed.end())
+    {
+      pair<IntPolyRef, IntPolyRef> p = *nextMVDToDo;
+      ++nextMVDToDo;
+      lastUsed = p.first;
+      tuple<VarKeyedMap<int>, VarSet, short> res;
+      res = Interval::deduceSign2(dedM->getVars(), PM, p.first, p.second, dedM->getSign(p.first), dedM->getSign(p.second));
+      if (get<2>(res) != ALOP) 
+	return toDed(get<0>(res), get<1>(res), p.first, p.second, get<2>(res), dedM->getSign(p.second), Deduction::DEDUC);
     }
-    std::set<pair<IntPolyRef, IntPolyRef>>::iterator it = multiVarsDed.begin();
-    pair<IntPolyRef, IntPolyRef> p = *it;
-    multiVarsDed.erase(it);
-    lastUsed = p.first;
-    tuple<VarKeyedMap<int>, VarSet, short> res;
-    res = Interval::deduceSign2(dedM->getVars(), PM, p.first, p.second, dedM->getSign(p.first), dedM->getSign(p.second));
-    if (get<2>(res) == ALOP) return doMultiDeduce(success);
-    return toDed(get<0>(res), get<1>(res), p.first, p.second, get<2>(res), dedM->getSign(p.second), Deduction::DEDUC);
+    DedExp d;
+    success = false;
+    return d;
+
+    // Fernando's crazy code --- TODO Remove this!
+    // if (multiVarsDed.empty()) {
+    //   DedExp d;
+    //   success = false;
+    //   return d;
+    // }
+    // std::set<pair<IntPolyRef, IntPolyRef>>::iterator it = multiVarsDed.begin();
+    // pair<IntPolyRef, IntPolyRef> p = *it;
+    // multiVarsDed.erase(it);
+    // lastUsed = p.first;
+    // tuple<VarKeyedMap<int>, VarSet, short> res;
+    // res = Interval::deduceSign2(dedM->getVars(), PM, p.first, p.second, dedM->getSign(p.first), dedM->getSign(p.second));
+    // if (get<2>(res) == ALOP) return doMultiDeduce(success);
+    // return toDed(get<0>(res), get<1>(res), p.first, p.second, get<2>(res), dedM->getSign(p.second), Deduction::DEDUC);
   }
 
   /*

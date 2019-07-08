@@ -91,12 +91,15 @@ namespace tarski {
     return true;
   }
 
-  TFormRef level1_and(TAndRef Cinit)     
+  TFormRef level1_and(TAndRef Cinit, TAtomRef* ptr = NULL)
   {
     TAndRef Cfinal = new TAndObj;
     for(set<TFormRef>::iterator itr = Cinit->conjuncts.begin(); itr != Cinit->conjuncts.end(); ++itr)
       if (level1_atom(*itr,Cfinal) == false)
+      {
+	if (ptr != NULL) { (*ptr) = *itr; }
         return new TConstObj(FALSE);
+      }
 
     if (0)
       { // stats gathering ... temporary stuff!
@@ -109,7 +112,7 @@ namespace tarski {
     return Cfinal;
   }
 
-  TFormRef level1(TFormRef F)
+  TFormRef level1(TFormRef F, TAtomRef* ptr)
   {
     TAndRef A = asa<TAndObj>(F); 
     if (A.is_null())
@@ -117,7 +120,7 @@ namespace tarski {
         TAtomRef T = asa<TAtomObj>(F); 
         if (!T.is_null()) { A = new TAndObj; A->conjuncts.insert(T); }
       }
-    if (!A.is_null()) return level1_and(A);
+    if (!A.is_null()) return level1_and(A,ptr);
     else return F;
   }
 

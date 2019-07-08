@@ -15,7 +15,7 @@ Outputs
            of I1 and I2.
    s     : s = -1 if J1 < J2 and s = +1 otherwise.
 ======================================================================*/
-extern "C" { 
+extern "C" {
 #include "saclib.h"
 };
 

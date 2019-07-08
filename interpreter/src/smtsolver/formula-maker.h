@@ -10,7 +10,12 @@
 #include <forward_list>
 #include <set>
 namespace tarski {
-  
+
+  /*
+    DRBROWN Commentary on Fernando code:
+    This class is responsible for mapping the original Tarski formula to
+    a Propositional formula.
+   */
   class FormulaMaker {
   protected:
     bool topLevel;

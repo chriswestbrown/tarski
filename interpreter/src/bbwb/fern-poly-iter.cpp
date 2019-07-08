@@ -237,6 +237,7 @@ FernPolyIter::FernPolyIter(IntPolyRef ref, const VarKeyedMap<int> &varSign){
   //   begin();
 }
 
+  /*
   FernPolyIter::FernPolyIter(const FernPolyIter& F) {
     this->size = F.size; 
     this->null = F.null;
@@ -253,7 +254,7 @@ FernPolyIter::FernPolyIter(IntPolyRef ref, const VarKeyedMap<int> &varSign){
     this->mono = F.mono; //Let's us know what we need to hit next
     this->coefficient = F.coefficient; //The coefficient. Whoohoo!
   }
-
+  */
 
 FernPolyIter FernPolyIter::operator++(int){
   FernPolyIter * tmp = this;
@@ -282,7 +283,7 @@ bool FernPolyIter::operator <(const FernPolyIter& F){
   Returns 1 if this has iterated through all monomials
   Returns -1 if F has iterated through all monomials
  */
-int FernPolyIter::compareTo(FernPolyIter F){
+int FernPolyIter::compareTo(const FernPolyIter &F){
   if (null && F.isNull()) return 0;
   else if (null) return 1;
   else if (F.isNull()) return -1;
@@ -424,7 +425,7 @@ string FernPolyIter::numToRelop(short num) {
 }
 
 
-bool FernPolyIter::isNull(){
+bool FernPolyIter::isNull() const {
   return null;
 }
 

@@ -20,6 +20,8 @@ namespace tarski {
     /* These three sets store all the calculations we need to do */
     std::set<pair<IntPolyRef, IntPolyRef>> singleVarsDed;
     std::set<pair<IntPolyRef, IntPolyRef>> multiVarsDed;
+    std::set<pair<IntPolyRef, IntPolyRef>>::iterator nextMVDToDo;
+
     std::set<IntPolyRef> polySigns;
 
     /* Vars to all the inequalities they appear in */

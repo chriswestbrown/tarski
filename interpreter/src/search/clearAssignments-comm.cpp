@@ -115,31 +115,31 @@ namespace tarski {
 	    Word vi = G.getValue(i), vj = G.getValue(j);
 	  
 	    if (vj == NIL) 
-	    { // at this point xj can't be a shadowVertex (because it has no value) so b can't be 0  
+	    { // xj not yet assigned a value
+	      // NOTE: at this point xj can't be a shadowVertex (because it has no value) so b can't be 0  
 	      Word newVal = RNPROD(RNNEG(RNRED(a,b)),vi);
 	      G.setValue(j,newVal);
 	      rootFor.setMark(j,startVertex);
 	      Q.push(j); 
 	    }
 	    else
-	    {
-	      if (b == 0 && vi != 0) { throw TarskiException("Contradiction!"); }
-	      else if (b != 0)
+	    { // at this point, xj already has a value.  If the new value derived for xj conflicts
+	      // with the old value vj, then the only way we might not get a conflict is if the
+	      // start vertex is not a shadow vertex, and we set its value to zero.  So we try it.
+	      // Otherwise we ignore the conflict, since it will come out when the substitutions
+	      // happen.
+
+	      // if xj is not a shadow vertex and startVertex is not a shadow vertex and
+	      //    xj already has a value vj s.t. vj and newVal disagree, then set startVertex
+	      //    value to 0.  Else do nothing!
+	      Word newVal = b == 0 ? 0 : RNPROD(RNNEG(RNRED(a,b)),vi);
+	      if (j > 0 && startVertex > 0 && vj != NIL && !EQUAL(newVal,vj))
 	      {
-		Word newVal = RNPROD(RNNEG(RNRED(a,b)),vi);
-		if (verbose) { std::cout << i << ' ' << j << ' '; RNWRITE(vi); std::cout << ' '; RNWRITE(vj); 
-		  std::cout << " "; RNWRITE(newVal); std::cout << std::endl; }
-		if (!EQUAL(newVal,vj)) 
-		{ 
-		  if (startVertex < 0)
-		    throw TarskiException("Contradiction (constant)!"); 
-		  else
-		    G.setValue(startVertex,0);
-		}
+		G.setValue(startVertex,0);
 	      }
 	    }
-	  }
-	}      
+	  }      
+	}
       }
 
       /*************************************************************

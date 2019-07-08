@@ -155,3 +155,15 @@ Side effects
 ===========================================================================*/
 void IPDWRITEMAPLE(Word r, Word A, Word V);
 
+/*
+Integer Polynomial Size Statistics
+Input
+  r : a non-negative BETA-integer.
+  A : in Z[x_1,...,x_r].
+Outputs
+  nt  : number of terms in A
+  sotd: sum of the total degrees of all terms in A
+  mcbl: the maximum bit-length of any coefficint (zero for A = 0)
+ */
+int IPSIZESTATS(Word r, Word A, Word *nt, Word *sotd, Word* mcbl);
+

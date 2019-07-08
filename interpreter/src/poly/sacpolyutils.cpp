@@ -368,3 +368,38 @@ Step2: /* General case. */
 Return: /* Prepare for return. */
        return;
 }
+
+/*
+Integer Polynomial Size Statistics
+Input
+  r : a non-negative BETA-integer.
+  A : in Z[x_1,...,x_r].
+Outputs
+  nt  : number of terms in A
+  sotd: sum of the total degrees of all terms in A
+  mcbl: the maximum bit-length of any coefficint (zero for A = 0)
+  t   : the sign of the constant coefficient
+ */
+int IPSIZESTATS(Word r, Word A, Word *nt, Word *sotd, Word* mcbl)
+{
+  Word nnt = 0, nsotd = 0, nmcbl = 0, t = 0;
+  if (r == 0)
+  {
+    nnt = 1; nsotd = 0; nmcbl = ILOG2(A); t = ISIGNF(A);
+  }
+  else
+  {
+    for(Word Ap = A; Ap != NIL; Ap = RED2(Ap))
+    {
+      Word e, c, rnt, rsotd, rmcbl, rt;
+      FIRST2(Ap,&e,&c);
+      rt = IPSIZESTATS(r-1,c,&rnt,&rsotd,&rmcbl);
+      nnt += rnt;
+      nsotd += e*rnt + rsotd;
+      nmcbl = std::max(nmcbl,rmcbl);
+      if (e == 0) t = rt;
+    }
+  }
+  *nt = nnt; *sotd = nsotd; *mcbl = nmcbl;
+  return t;
+}

@@ -107,11 +107,20 @@ public:
   {
     return VarSet(std::operator&(*this,X));
   }
+  VarSet operator&(const Variable& X) const
+  {
+    return VarSet(std::operator&(*this,X));
+  }
   VarSet operator|(const VarSet& X) const 
   {
     return VarSet(std::operator|(*this,X));
   }
+  VarSet operator^(const VarSet& X) const 
+  {
+    return VarSet(std::operator^(*this,X));
+  }
   VarSet operator~() const { return VarSet(this->std::bitset<varNumLimit>::operator~()); }
+  VarSet flip() const {  std::bitset<varNumLimit> tmp(*this); tmp.flip(); return VarSet(tmp); }
 };
 
 inline VarSet operator+(const VarSet &A, const VarSet &B) { return VarSet(A | B); }

@@ -81,8 +81,9 @@ BoxSolver::BoxSolver(TFormRef formula) : unsat(false), ranOnce(false), M(NULL), 
 }
 
 BoxSolver::~BoxSolver() {
-  cout << "BoxSolver: numGetFinalClauseCalls = " << numGetFinalClauseCalls << endl;
-  cout << "BoxSolver: numDNFDisjuncts = " << numDNFDisjuncts << endl;
+  if (verbose) {
+    cout << "BoxSolver: numGetFinalClauseCalls = " << numGetFinalClauseCalls << endl;
+    cout << "BoxSolver: numDNFDisjuncts = " << numDNFDisjuncts << endl; }
   
   delete IM;
   if (!isPureConj) {
@@ -202,7 +203,7 @@ bool BoxSolver::directSolve()
  */
 bool BoxSolver::doSplit(TFormRef t, int& s)
 {
-  const int threshold = 50; //50000000; //fernando set to 50
+  const int threshold = 50000000; //50000000; //fernando set to 50
   switch (t->getTFType()) {
   case TF_ATOM: {
       TAtomRef a = asa<TAtomObj>(t);
@@ -474,6 +475,9 @@ TAndRef BoxSolver::genMHS() {
 // Then must check for satisfiablilty w.r.t. the theory.
 void BoxSolver::getFinalClause(vec<Lit>& lits, bool& conf)
 {
+
+  if (verbose) { cout << "S||"; this->printStack(); cout << endl; }
+  
   numGetFinalClauseCalls++;
   conf = false;
   if (M != NULL) {
@@ -774,7 +778,10 @@ void BoxSolver::constructClauses(vec<Lit>& lits, Result& r) {
   //Traceback the last result (AKA, the conflict)
   //Place it into lits
   vector<TAtomRef> atoms = r.atoms;
-  /*
+
+  if (true) {
+    cout << "MAPPING: ";
+    printMapping(); cout << endl;
   cout << "ASSIGNMENTS: "; printStack(); cout << endl;
 
   cerr << "CONFLICT   : ";
@@ -786,7 +793,7 @@ void BoxSolver::constructClauses(vec<Lit>& lits, Result& r) {
     }
   }
   cerr << endl;
-  */
+  }
   for (auto itr = atoms.begin(); itr != atoms.end(); ++itr) {
     TAtomRef t = *itr;
     if (t->getRelop() == ALOP) continue;
@@ -795,14 +802,15 @@ void BoxSolver::constructClauses(vec<Lit>& lits, Result& r) {
     lits.push(l);
   }
 
-  /*
+  if (true){
   cout << "LEARNED    :";
   for (int i = 0; i < lits.size(); i++) {
     write(lits[i]); cout << " ";
   }
   cout << endl;
   writeLearnedClause(lits);
-  */
+  }
+  
   //Traceback all other learned items
   //Place them into stack "learned"
   /*

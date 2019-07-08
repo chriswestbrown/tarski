@@ -64,6 +64,13 @@ namespace tarski {
       TFormRef introducedAssumptions;
       string qscript = naiveButCompleteWriteForQepcad(F,introducedAssumptions,false,this->trackUnsatCore);
       //cerr << "qscript START>>\n" << qscript << endl << "<<END qscript\n";
+
+      if (qscript == "true" || qscript == "false")
+      {
+	// TODO: need to set things up so call to get witness or unsat core doesn't barf!
+	return new TConstObj(qscript == "true");
+      }
+
       UnnamedPipe intoQepcad, outofQepcad;
       
       int childpid = fork();

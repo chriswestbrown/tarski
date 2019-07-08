@@ -326,13 +326,19 @@ namespace tarski
 	    num++;
 	  }
 	  else {
-	    assert(!(b == 0 && vi != 0));
-	    if (b != 0) {
-	      Word newVal = RNPROD(RNNEG(RNRED(a,b)), vi);
-	      if (!EQUAL(newVal, vj)) {
-		assert(startVertex >= 0);
-		E.setValue(startVertex, 0);
-	      }
+	    // at this point, xj already has a value.  If the new value derived for xj conflicts
+	    // with the old value vj, then the only way we might not get a conflict is if the
+	    // start vertex is not a shadow vertex, and we set its value to zero.  So we try it.
+	    // Otherwise we ignore the conflict, since it will come out when the substitutions
+	    // happen.
+
+	    // if xj is not a shadow vertex and startVertex is not a shadow vertex and
+	    //    xj already has a value vj s.t. vj and newVal disagree, then set startVertex
+	    //    value to 0.  Else do nothing!
+	    Word newVal = b == 0 ? 0 : RNPROD(RNNEG(RNRED(a,b)),vi);
+	    if (j > 0 && startVertex > 0 && vj != NIL && !EQUAL(newVal,vj))
+	    {
+	      E.setValue(startVertex,0);
 	    }
 	  }
 	}
