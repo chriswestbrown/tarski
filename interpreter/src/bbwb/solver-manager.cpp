@@ -29,11 +29,13 @@ namespace tarski {
       if (isUnsat()) {
 
 	//-- CHRIS DEBUG
-	if (solvers.size() == 0)
-	  cout << "Solvers never instantiated, no sorted print!" << endl;
-	else
-	  dedM->debugWriteSorted(*this);
-	
+	if (false) {
+	  if (solvers.size() == 0)
+	    cout << "Solvers never instantiated, no sorted print!" << endl;
+	  else
+	    dedM->debugWriteSorted(*this);
+	}
+	  
         l->push_back(new SymObj("UNSAT"));
         vector<TAtomRef>& vec = r.atoms;
         TAndRef res = new TAndObj();
@@ -97,7 +99,11 @@ namespace tarski {
   
   std::vector<size_t> SolverManager::proxy_sorted_indices(std::vector<Deduction> &deds)
   {
-    Substituter* sp = dynamic_cast<Substituter*>(solvers[2]); //-- DANGER! HACK!
+    
+    Substituter* sp = NULL;
+    for(size_t i = 0; i < solvers.size() && sp == NULL; ++i)
+      sp = dynamic_cast<Substituter*>(solvers[i]);
+    
     vector<size_t> indices;
     {
       vector< SpecialPair > vScores(deds.size(), SpecialPair(0,0));
@@ -111,7 +117,7 @@ namespace tarski {
 	VarSet S = deds[i].getDed()->getVars();
 	int maxL = 0;
 	for(auto itr = S.begin(); itr != S.end(); ++itr)
-	  maxL = std::max(maxL,sp->getSubstitutionLevel(*itr));
+	  maxL = std::max(maxL,sp == NULL ? 0 : sp->getSubstitutionLevel(*itr));
 	vScores[i] = SpecialPair(maxL,scoreDed(deds[i]));
       }
       indices = sort_indices(vScores);

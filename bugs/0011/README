@@ -1,0 +1,21 @@
+STATUS: CLOSED
+
+SUMMARY
+I get a segfault from:
+
+(wbsat [ x = 0 /\ y = 0 /\ x y >= 0 ])
+
+... ugh!
+
+ACTION
+In solver-manager.cpp
+
+std::vector<size_t> SolverManager::proxy_sorted_indices(std::vector<Deduction> &deds)
+
+... there was a hack in which the "substituter" is assumed to
+exist at solvers[2].  When wbsat is called, there is no
+"substituter", so we got the segfault.  This was fixed by
+having each solver checked to see if it's a substituter.  If
+one exists, then the substitution level is factored into the
+sorting.  Otherwise, all substitution levels are set to 0.
+
