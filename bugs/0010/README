@@ -1,0 +1,25 @@
+STATUS: OPEN
+
+SUMMARY
+The following command 
+(suggest-qepcad [all p,t,q[ 0 /= 0 /\ t < 0 /\ 0 /= 0 ==> 0 /= 0 ]])
+gives a qepcad suggestion with a negative number for "number of free
+variables".  Obviously, this is not good!  In particular, this causes
+an error in qepcad-qe.
+
+Another somewhat related bug ... the following input actually causes
+Tarski to hang!
+
+(def F [ex x [all y [ ex z [ x - z^2 > 0 ] ] ] ])
+F
+
+Figured it out!  the print functionality hangs if a quantifier block
+has no variables.  I actually fixed the constructors so that if you
+add a quantifier block with VarSet S, it only actually adds the elements
+of S that appear in the formula part of the quantifier block.
+HOWEVER ... if that means that there are no quantified variables at
+all in any block, there are still problems.  Have to consider how I want
+to deal with that, since the point is that we don't actually want a
+TQBObj in that case!
+
+ACTION

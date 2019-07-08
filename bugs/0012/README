@@ -1,0 +1,18 @@
+STATUS: CLOSED
+
+SUMMARY
+> (def F [10897286400 skoY^4 - 217945728000 skoY^2 + skoX^14 - 210 skoX^12 + 32760 skoX^10 - 3603600 skoX^8 + 259459200 skoX^6 - 10897286400 skoX^4 + 217945728000 skoX^2 <= 0 /\ skoY^8 - 72 skoY^6 + 3024 skoY^4 - 60480 skoY^2 + 72 skoX^6 - 3024 skoX^4 + 60480 skoX^2 > 0 /\ skoY^4 - 20 skoY^2 + 20 skoX^2 > 0 /\ 110 skoY^8 - 7920 skoY^6 + 332640 skoY^4 - 6652800 skoY^2 + skoX^10 - 110 skoX^8 + 7920 skoX^6 - 332640 skoX^4 + 6652800 skoX^2 > 0 /\ skoX > 0 /\ 42 skoY^4 - 840 skoY^2 + skoX^6 - 42 skoX^4 + 840 skoX^2 > 0 /\ 5000000 pi - 15707963 > 0 /\ 10000000 pi - 31415927 < 0 /\ pi - 2 skoY >= 0 /\ skoY - skoX > 0])
+:void
+> (def D (SAT-NuCADConjunction F))
+Segmentation fault (core dumped)
+
+ACTION
+In realroots.cpp function
+
+Word rationalPointInInterval(RealAlgNumRef X, RealAlgNumRef Y)
+
+There was a pretty obvious bug.  Had
+if (!x1.is_null()) { separated = x1->separate(x2); }
+... which is bad because x2 might be null.  Corrected to
+if (!x1.is_null()) { separated = x1->separate(Y); }
+Same thing for x2.is_null() ...

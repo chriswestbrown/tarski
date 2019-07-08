@@ -232,12 +232,20 @@ Return: /* Return. */
 }
 
 Word rationalPointInInterval(RealAlgNumRef X, RealAlgNumRef Y)
-{ 
+{
   bool separated = true;
   RealRootIUPRef x1 = asa<RealRootIUPObj>(X);
   RealRootIUPRef x2 = asa<RealRootIUPObj>(Y);
-  if (!x1.is_null()) { separated = x1->separate(x2); }
-  else if (!x2.is_null()) { separated = x2->separate(x1); }
+  if (!x1.is_null()) { separated = x1->separate(Y); }
+  else if (!x2.is_null()) { separated = x2->separate(X); }
+  else if (!X->isFinite() && !Y->isFinite())
+  {
+    separated = X->compareToNegInfty() == 0 && Y->compareToPosInfty() == 0;
+  }
+  else
+  {
+    throw TarskiException("Error! Unknown RealAlgNum type in rationalPointInInterval!");
+  }
   if (!separated) { cout << "Error in rationalPointInInterval! could not separate " 
 			 << X->toStr() << " and " << Y->toStr() << endl; return NIL; }
 
