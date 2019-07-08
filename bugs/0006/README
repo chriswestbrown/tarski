@@ -1,0 +1,13 @@
+STATUS: CLOSED
+
+SUMMARY
+
+(bbwb [ x >= 0 /\ x y <= 0 /\ y <= 0 ]) produces a "simplified"
+formula that's exactly the input. Why isn't it seeing that
+x y <= 0 is implied by the other two?  Note: normalize works here!
+
+ACTION
+The error was in blackbox-solve / minWtMain(...).  "Step 15" was
+essentially being ignored.  I added the code that explicitly
+checked for it and added the deduction it required.
+

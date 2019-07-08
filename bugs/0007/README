@@ -1,0 +1,9 @@
+STATUS: CLOSED
+
+SUMMARY
+
+I get a segfault on the following:
+(bbwb [2 u - 2 a + 1 = 0 /\ (2 u - 2 a + 1)(2 u - 2 a - 1) <= 0 /\ 2936 u^2 - 5872 a u + 2936 a^2 + 25 >= 0 /\ 3136 u^2 - 5872 a u - 400 u + 3136 a^2 - 400 a - 359 >= 0 /\ u + a - 2 <= 0 /\ a - 1 <= 0 /\ a >= 0 /\ b - 1 <= 0 /\ b >= 0 /\ u - 1 <= 0 /\ u >= 0 /\ 160000 b^4 - 2348800 u^2 b^2 + 4697600 a u b^2 - 2348800 a^2 b^2 - 20000 b^2 + 9834496 u^4 - 39337984 a u^3 + 59006976 a^2 u^2 - 156800 u^2 - 39337984 a^3 u + 313600 a u + 9834496 a^4 - 156800 a^2 + 625 <= 0 /\ 160000 b^4 - 2348800 u^2 b^2 + 4697600 a u b^2 - 2348800 a^2 b^2 - 20000 b^2 + 9834496 u^4 - 39337984 a u^3 + 59006976 a^2 u^2 - 156800 u^2 - 39337984 a^3 u + 313600 a u + 9834496 a^4 - 156800 a^2 + 625 >= 0 /\ 400 b^2 - 2936 u^2 + 5872 a u - 2936 a^2 - 25 >= 0 /\ u + a >= 0 /\ 4 b^2 - 8 b + 4 u^2 - 8 a u + 4 a^2 + 3 >= 0])
+
+ACTION
+The bug here was in minWtMain().  Fernando's code set variable ns, which is supposed to be the index of the first non-strict factor column in the "all" matrix, to zero in the case that the strict part is empty.  However, the zero column is for the "sign" direction, so ns should be one in this case.  All fixed now, but not fun to track down.
