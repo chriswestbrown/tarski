@@ -78,8 +78,10 @@ int countUNSATStrictConjunctionAtPoint(VarOrderRef X, GCWord alpha, TAndRef C);
  *****************************************************************/
 class BasicPolyCompare
 {
- private:
+private:
   VarOrderRef X;
+public:
+  static int SACPOLYSIZE(IntPolyRef p) { return SACPOLYSIZE(p->sP); }
   static int SACPOLYSIZE(Word A)
   {
     if (A == 0) return 1;
@@ -89,7 +91,7 @@ class BasicPolyCompare
     ADV2(A,&d1,&c1,&Ap);
     return d1 + SACPOLYSIZE(c1) + (Ap == NIL ? 0 : SACPOLYSIZE(Ap));
   }
- public:
+public:
   BasicPolyCompare(VarOrderRef X) { this->X = X; }
   virtual bool lt(IntPolyRef a, IntPolyRef b)
   {
@@ -106,12 +108,11 @@ class BasicPolyCompare
     if (b_lev < a_lev) return false;
 
     // otherwise, make the decision based on the "size"
-    int a_size = SACPOLYSIZE(a->sP);
-    int b_size = SACPOLYSIZE(b->sP);
+    int a_size = SACPOLYSIZE(a);
+    int b_size = SACPOLYSIZE(b);
     return a_size < b_size;
   }
 };
 
 }//end namespace tarski
 #endif
-

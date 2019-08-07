@@ -22,6 +22,7 @@ public:
   FactObj(PolyManager &_M) { M = &_M; content = 1; }
   FactObj(PolyManager &_M, Word C) { M = &_M; content = C; }
   FactObj(PolyManager * M) {this->M = M; content = 1; }
+  FactObj(const FactObj &f) : M(f.M), MultiplicityMap(f.MultiplicityMap), content(f.content) { }
   int numFactors() const { return MultiplicityMap.size(); }
   int isZero() const { return content == 0; }
   int isConstant() const { return numFactors() == 0; }

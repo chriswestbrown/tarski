@@ -10,7 +10,9 @@ TypeExtensionObj::LFH<OpenNuCADObj> OpenNuCADObj::A[] = {
   {"print-f-cells",&OpenNuCADObj::printFCells,"prints all leaf cells marked FALSE."},
   {"pf-summary",&OpenNuCADObj::pfSummary,"TO APPEAR"},
   {"get-cell",&OpenNuCADObj::getCell,"given label L, returns OCBuilder object for the cell with label L."},
+  {"get-num-split-options",&OpenNuCADObj::getNumSplitOptions,"given label L, returns number of possible splits for that node."},
   {"get-var-order",&OpenNuCADObj::getVarOrder,"returns the variable order for this NuCAD."},
+  {"get-unsat-core",&OpenNuCADObj::getUNSATCore,"returns an UNSAT core from this NuCAD."},
   {"plot-all",&OpenNuCADObj::plotAll,"TO APPEAR"},
   {"plot-leaves",&OpenNuCADObj::plotLeaves,"(msg <OpenNuCAD> 'plot-leaves view lab fname) produces an svg-formatted file with name fname that draws the leaf cells of the NuCAD cell with label given by the string lab.  The parameter 'view' is a string describing the portion of the plane to be shown, and the dimensions (in pixels) of the window the plot will appear in.  So, (msg D 'plot-leaves \"-1 3 -2 2 400 400\" \"C\" \"out.svg\") would produce the file out.svg, which would draw cells in the decomposition that fall within -1 < x < 3 and -2 < y < 2.  The plot would be drawn in a 400px-by-400px window."},
   {"show-graph",&OpenNuCADObj::showGraph,"(msg <OpenNuCAD> 'show-graph lab fname) prints a dot-formatted description of the subgraph of the OpenNuCAD structure rooted at the cell with label lab.  What is done with this file is up to the user, but if the file was named foo.dot, for example, the call 'dot -Tsvg foo.dot -o foo.svg' would produce an svg rendering of the graph in the file foo.svg."},
@@ -19,7 +21,9 @@ TypeExtensionObj::LFH<OpenNuCADObj> OpenNuCADObj::A[] = {
   {"exprop",&OpenNuCADObj::exprop,"(msg <OpenNuCAD> 'exprop L k) performs 'EasyProjection' onto k-space on the cell with label L. 'EasyProjection' is described in a paper submitted to ISSAC2017.  It tries to project onto lower dimension based purely on the structure of the NuCAD tree."},
   {"tiss",&OpenNuCADObj::tiss,"TO APPEAR"},
   {"def-form",&OpenNuCADObj::defForm,"returns a defining formula for the true cells in the NuCAD."},
+  {"refine-subtree",&OpenNuCADObj::refineSubtree,"TO APPEAR"},
   {"refine-cell",&OpenNuCADObj::refineCell,"TO APPEAR"},
+  {"revert-cell",&OpenNuCADObj::revertCell,"TO APPEAR"},
   {"negate",&OpenNuCADObj::negate,"negates truth values, so that all TRUE cells are marked FALSE and vice versa."},
   {"locate",&OpenNuCADObj::locate,"given rational point alpha, locate returns the/a cell containing alpha.  If the level of alpha is equal to the level of the NuCAD, there will be a unique cell that contains it.  If alpha has lower dimenion, call it k, then one cell whose intersection with alpha x R^(n-k) is non-empty will be returned, though there may be multiple such cells."},
   {"subtree-level",&OpenNuCADObj::subtreeLevel,"(msg <OpenNuCAD> 'subtree-level L), given label L, returns k that is the maximum split-level of all proper descendents of the cell, or 0 if the cell is leaf."},
@@ -27,6 +31,7 @@ TypeExtensionObj::LFH<OpenNuCADObj> OpenNuCADObj::A[] = {
   {"project",&OpenNuCADObj::projectStrict,"(msg <OpenNuCAD> 'project k) modifies the OpenNuCAD by projecting down onto R^k, this projection is strict, meaning that if a cell is marked true, there is a solution point over every point in the cell."},
   {"project-loose",&OpenNuCADObj::projectLoose,"(msg <OpenNuCAD> 'project-loose k) modifies the OpenNuCAD by projecting down onto R^k, this projection is not strict, meaning if a cell is marked true, there may be a lower dimensional subset of points in the cell over which there are no solutions."},
   {"union",&OpenNuCADObj::unionOp,"(msg <OpenNuCAD> 'union D) modifies the OpenNuCAD so that it's true cells define the union of the set it originally defines and the set defined by the true cells of OpenNuCAD D."},
+  {"trial",&OpenNuCADObj::trial,"For 2019 HPC Learning trials."},
   {"test",&OpenNuCADObj::test,"PURELY FOR TESTING EXPERIMENTAL FEATURES"},
   {0,0,"function does not exist"}
  };

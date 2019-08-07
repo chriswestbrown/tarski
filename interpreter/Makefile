@@ -24,7 +24,7 @@ OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)
 AOBJ := $(ASRC:%=$(BUILD_DIR)/%.o)
 DEPS := $(OBJS:.o=.d)
 
-LDFLAGS := -lssl -lcrypto -lreadline $(extLibSACLIB) $(extLibMINISAT) 
+LDFLAGS := -lssl -lcrypto -lreadline -lrt $(extLibSACLIB) $(extLibMINISAT) 
 
 INC_DIRS := $(shell find $(SRC_DIRS) -type d)
 INC_FLAGS := $(addprefix -I,$(INC_DIRS)) $(extIncludesSACLIB) $(extIncludeMINISAT)

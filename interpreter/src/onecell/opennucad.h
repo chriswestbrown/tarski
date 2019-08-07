@@ -11,8 +11,7 @@
 
 namespace tarski {
 
-class SplitSetChooserObj; typedef GC_Hand<SplitSetChooserObj> SplitSetChooserRef;
-
+ 
 class NodeObj; typedef GC_Hand<NodeObj> NodeRef;
 /** A class for representing a node the in Open NuCAD structure.
  *  The concept of a "label" for a cell in a NuCAD is crucial, and a few notes on the subject are needed.
@@ -33,6 +32,11 @@ class NodeObj : public GC_Obj
   std::vector<NodeRef> Lchild, Uchild;
   NodeRef XYchild;
 
+  //-- DATA FOR 2019 HPC PROJECT
+  BuilderRef originalData;
+  int originalTruthValue;
+  int numSplitOptions;
+
  public:
   NodeObj(NodeObj* parent, BuilderRef data, int truthValue, int splitLevel,
 	  char splitLabel
@@ -42,8 +46,27 @@ class NodeObj : public GC_Obj
     this->splitLevel = splitLevel; this->splitLabel = splitLabel;
     XYchild = NULL;
     this->truthValueAtAlpha = truthValue;
+
+    this->originalData = data;
+    this->originalTruthValue = truthValue;
   }
 
+  // This method reverts a node back to the state it had prior to being refined
+  // This is not quite completely trivial, because some "refinement" steps don't
+  // change the cell bounds, but do change the cell's "pfset", i.e. the set of
+  // poly's known to be sign-invariant in the cell might expand.  This function
+  // actually wants to set that back to what it was originally.  NOTE:  the
+  // function supports exploring the consequences of different split polynomial
+  // choices.  That's why it exists.
+  void revert()
+  {
+    this->data = this->originalData;
+    this->truthValue = this->originalTruthValue;
+    Lchild.clear();
+    Uchild.clear();
+    XYchild = NULL;
+  }
+  
   BuilderRef getData() { return data; }
   int getTruthValue() { return truthValue; }
   void setTruthValue(int tv) { truthValue = tv; }
@@ -107,6 +130,106 @@ class NodeObj : public GC_Obj
   ChildIterator childEnd() { return ChildIterator::getEnd(this); }
 };
 
+
+ class SplitSetChooserObj; typedef GC_Hand<SplitSetChooserObj> SplitSetChooserRef;
+ class SplitSetChooserObj : public GC_Obj
+ {
+ public:
+   virtual void chooseSplit(VarOrderRef X, NodeRef node, int dim,
+			    set<IntPolyRef> &Q, int &tvAtAlpha, int &targetTruthValue) = 0;
+
+   virtual IntPolyRef chooseNextPoly(set<IntPolyRef> &S, VarOrderRef X, NodeRef node);
+ };
+
+ class SplitSetChooserConjunction : public SplitSetChooserObj
+ {
+ public:
+   SplitSetChooserConjunction(TAndRef C) { this->C = C; }
+   void chooseSplit(VarOrderRef X, NodeRef node, int dim,
+		    set<IntPolyRef> &Q, int &tvAtAlpha, int &targetTruthValue);
+ private:
+   TAndRef C;
+ };
+  
+  /********* HPC LEARNING STUFF *************/
+  
+  class SSCCompObj; typedef GC_Hand<SSCCompObj> SSCCompRef;
+  class SSCCompObj : public GC_Obj
+  {
+  public:
+    virtual float eval(const std::vector<float> &F) = 0;
+  };
+
+  class BPCAsComp : public SSCCompObj
+  {
+  public:
+    float eval(const std::vector<float> &F)
+    {
+      if (F[0] != 0) return F[0];
+      if (F[1] != 0) return F[1];
+      return F[3];
+    }
+  };
+
+  class PlayComp : public SSCCompObj
+  {
+  public:
+    float eval(const std::vector<float> &F)
+    {
+      if (F[6] != 0) return F[6];
+      if (F[7] != 0) return F[7];
+      return F[8];
+    }
+  };
+
+  class RandomComp : public SSCCompObj
+  {
+    std::vector<float> W;
+  public:
+    float eval(const std::vector<float> &F)
+    {
+      if (W.size() == 0)
+	for(int i = 0; i < F.size(); ++i)
+	  W.push_back(2.0*(rand()/float(RAND_MAX) - 0.5));
+      float sum = 0.0f;
+      for(int i = 0; i < F.size(); ++i)
+	sum += W[i]*F[i];
+      return sum;
+    }
+  };
+  
+  class FeatureChooser :  public SplitSetChooserConjunction
+  {
+    SSCCompRef comp;
+  public:
+    FeatureChooser(TAndRef C, SSCCompRef comp) : SplitSetChooserConjunction(C) { this->comp = comp; }
+    IntPolyRef chooseNextPoly(set<IntPolyRef> &S, VarOrderRef X, NodeRef node);
+  };
+  /******************************************/
+
+ class SplitSetChooserDNF : public SplitSetChooserObj
+ {
+ public:
+   SplitSetChooserDNF(TFormRef F) 
+   {
+     TOrRef G = asa<TOrObj>(F);
+     if (G.is_null()) { throw TarskiException("mkNuCADDNF requires an OR at the top level!"); }    
+     for(TOrObj::disjunct_iterator itr = G->begin(); itr != G->end(); ++itr)
+     {
+       TAndRef a = new TAndObj();
+       a->AND(*itr);
+       if (!isConjunctionOfAtoms(a))
+	 throw TarskiException("mkNuCADDNF requires an OR of conjunctions of atoms");      
+       C.push_back(a);
+     }
+   }
+   void chooseSplit(VarOrderRef X, NodeRef node, int dim,
+		    set<IntPolyRef> &Q, int &tvAtAlpha, int &targetTruthValue);
+ private:
+   vector<TAndRef> C;
+ };
+
+ 
 class SearchQueueObj; typedef GC_Hand<SearchQueueObj> SearchQueueRef;
 class SearchQueueObj : public GC_Obj
 {
@@ -196,20 +319,32 @@ class ONuCADObj : public GC_Obj
 
   NodeRef root;
   SearchQueueRef nodeQueue;
+  SplitSetChooserRef chooser;
 
+  void init(VarOrderRef X, TAndRef F, int dim, Word alpha, SearchQueueRef nodeQueue, SplitSetChooserRef chooser)
+  {
+    this->X = X; this->C = F; this->dim = dim; this->alpha = alpha; this->root = NULL;
+    this->nodeQueue = nodeQueue;
+    this->chooser = chooser;
+  }
+  
  public:
   void testTree(NodeRef c); // JUST FOR DEBUG
   ONuCADObj(VarOrderRef X, TAndRef F, int dim, Word alpha)
-  { 
-    this->X = X; this->C = F; this->dim = dim; this->alpha = alpha; this->root = NULL;
-    nodeQueue = new SearchQueueObj();
-    //nodeQueue = new EarlyTerminateSearchQueueObj(X,F);
-  }
-  
+  {
+    init(X,F,dim,alpha,new SearchQueueObj(),new SplitSetChooserConjunction(F));
+  }  
+  // ONuCADObj(VarOrderRef X, TAndRef F, int dim, Word alpha, SplitSetChooserRef chooser)
+  // {
+  //   init(X,F,dim,alpha,new SearchQueueObj(),chooser);
+  // }  
   ONuCADObj(VarOrderRef X, TAndRef F, int dim, Word alpha, SearchQueueRef nodeQueue)
-  { 
-    this->X = X; this->C = F; this->dim = dim; this->alpha = alpha; this->root = NULL;
-    this->nodeQueue = nodeQueue;
+  {
+    init(X,F,dim,alpha,nodeQueue,new SplitSetChooserConjunction(F));
+  }
+  ONuCADObj(VarOrderRef X, TAndRef F, int dim, Word alpha, SearchQueueRef nodeQueue, SplitSetChooserRef chooser)
+  {
+    init(X,F,dim,alpha,nodeQueue,chooser);
   }
   
  class LeafIterator
@@ -291,6 +426,17 @@ class ONuCADObj : public GC_Obj
   // Does one refinement step on cell given by label.
   void refineNuCADConjunction(const std::string &label);
 
+  // refines subtree rooted at label all the way til truth invariant.
+  void refineSubtreeNuCADConjunction(NodeRef node);
+  void refineSubtreeNuCADConjunction(const string &label);
+  
+  // Takes whatever is enqueued and keeps refining until the queue is empty
+  void fullRefine();
+  
+  // Revert's cell given by label to it's original form (e.g. remove children)
+  void revertCell(const std::string &label);
+
+  
   // just a helper
   void NuCADSplitConjunction(VarOrderRef X, TAndRef C, int dim, NodeRef node);
   void NuCADSplit(VarOrderRef X, SplitSetChooserRef chooser, int dim, NodeRef node);
@@ -310,6 +456,11 @@ class ONuCADObj : public GC_Obj
   std::string toString() { return toString(m_acells); }
   std::string toString(int mask);
 
+  TAndRef getUNSATCore();
+  //-- This is the HPC learning 2019 trial
+  void trial(NodeRef node, vector<vector<float>> &X, vector<float> &y);
+  int getCandidateNodes(NodeRef node, std::vector<pair<int,NodeRef>> &candidates, int leafThreshold, int choicesThreshold);
+  
 };
 
 class OpenNuCADSATSolverObj; typedef GC_Hand<OpenNuCADSATSolverObj> OpenNuCADSATSolverRef;
@@ -380,6 +531,8 @@ public:
   //-- UNSAT.  TODO:  For now this just returns the original formula as the core.  I will work on
   //-- doing better. 
   TAndRef getUNSATCore();
+
+
 };
 
 }//end namespace tarski

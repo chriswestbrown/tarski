@@ -10,46 +10,6 @@ using namespace std;
 
 namespace tarski {
   
-class SplitSetChooserObj : public GC_Obj
-{
-public:
-  virtual void chooseSplit(VarOrderRef X, NodeRef node, int dim,
-			   set<IntPolyRef> &Q, int &tvAtAlpha, int &targetTruthValue) = 0;
-};
-
-class SplitSetChooserConjunction : public SplitSetChooserObj
-{
-public:
-  SplitSetChooserConjunction(TAndRef C) { this->C = C; }
-  void chooseSplit(VarOrderRef X, NodeRef node, int dim,
-		   set<IntPolyRef> &Q, int &tvAtAlpha, int &targetTruthValue);
-private:
-  TAndRef C;
-};
-
-class SplitSetChooserDNF : public SplitSetChooserObj
-{
-public:
-  SplitSetChooserDNF(TFormRef F) 
-  {
-    TOrRef G = asa<TOrObj>(F);
-    if (G.is_null()) { throw TarskiException("mkNuCADDNF requires an OR at the top level!"); }    
-    for(TOrObj::disjunct_iterator itr = G->begin(); itr != G->end(); ++itr)
-    {
-      TAndRef a = new TAndObj();
-      a->AND(*itr);
-      if (!isConjunctionOfAtoms(a))
-	throw TarskiException("mkNuCADDNF requires an OR of conjunctions of atoms");      
-      C.push_back(a);
-    }
-  }
-  void chooseSplit(VarOrderRef X, NodeRef node, int dim,
-		   set<IntPolyRef> &Q, int &tvAtAlpha, int &targetTruthValue);
-private:
-  vector<TAndRef> C;
-};
-
-
 
 
 void ONuCADObj::mkNuCADConjunction(VarOrderRef X, TAndRef F, int dim, Word alpha)
@@ -57,37 +17,61 @@ void ONuCADObj::mkNuCADConjunction(VarOrderRef X, TAndRef F, int dim, Word alpha
   // Initialize V/L as an empty "queue" of labeled cells, then enque the cell R^dim
   PolyManager *ptrPM = X->getPolyManager();
   BuilderRef rootBuilder = new BuilderObj(new OpenCellObj(X,alpha,dim));
-  int front = 0, countX = 0;
+  int front = 0;
   nodeQueue->push(root = new NodeObj(NULL,rootBuilder,UNDET,0,'C'));
+  fullRefine();
+}
 
-  SplitSetChooserRef chooser = new SplitSetChooserConjunction(F);
 
-  while(!nodeQueue->stopSearch())
+  void ONuCADObj::fullRefine()
   {
-    // Dequeue cell D with label label
-#ifdef _OC_DEBUG_
-    cerr << "queue size = " << nodeQueue->size() << endl;
-#endif
-    if (verbose) { cerr << "queue size = " << nodeQueue->size() << endl; }
-    NodeRef node = nodeQueue->front(); nodeQueue->pop();
-    if (node->getTruthValue() != UNDET) { countX++; continue; }
-    //    NuCADSplitConjunction(X,F,dim,node);
-    NuCADSplit(X,chooser,dim,node);
-  }  
+    while(!nodeQueue->stopSearch())
+    {
+      NodeRef node = nodeQueue->front(); nodeQueue->pop();
+      if (node->getTruthValue() == UNDET)
+	NuCADSplit(getVarOrder(),chooser,getDim(),node);
+    }  
+  }
+  
+/*
+  Given label, does the "next" refinement step in NuCAD conjunction
+  by splitting the cell defined by the label.
+ */
+  void ONuCADObj::refineNuCADConjunction(const std::string &label)
+  {
+    NodeRef node = getNode(label);
+    if (node->getTruthValue() != UNDET) { return; }
+    NuCADSplit(getVarOrder(),chooser,getDim(),node);
 }
 
 /*
   Given label, does the "next" refinement step in NuCAD conjunction
   by splitting the cell defined by the label.
  */
-void ONuCADObj::refineNuCADConjunction(const string &label)
+void ONuCADObj::refineSubtreeNuCADConjunction(NodeRef node)
 {
-  NodeRef node = getNode(label);
-  if (node->getTruthValue() != UNDET) { return; }
-  SplitSetChooserRef chooser = new SplitSetChooserConjunction(getCurrentFormula());
-  NuCADSplit(getVarOrder(),chooser,getDim(),node);
+  SearchQueueRef toRestore = nodeQueue;
+  nodeQueue = new SearchQueueObj();
+  nodeQueue->push(node);
+  fullRefine();
+  nodeQueue = toRestore;
+}
+void ONuCADObj::refineSubtreeNuCADConjunction(const string &label)
+{
+  refineSubtreeNuCADConjunction(getNode(label));
 }
 
+/*
+  Given label, does the "next" refinement step in NuCAD conjunction
+  by splitting the cell defined by the label.
+ */
+void ONuCADObj::revertCell(const string &label)
+{
+  NodeRef node = getNode(label);
+  node->revert();
+}
+
+  
 /*
   Input:
     Builder "D" with label "label" and variable order X, dimension dim and conjunction C.
@@ -1058,24 +1042,46 @@ void ONuCADObj::negateTruthValues()
 }
 
 
-IntPolyRef chooseNextPoly(set<IntPolyRef> &S, VarOrderRef X)
+IntPolyRef SplitSetChooserObj::chooseNextPoly(set<IntPolyRef> &S, VarOrderRef X, NodeRef node)
 {
-  if (S.empty()) throw TarskiException("Set S empty in chooseNextPoly!");
+  
+  // cout << endl << "Order is "; X->write(); cout << " choosing between ... ";
+  // for(auto itr = S.begin(); itr != S.end(); ++itr) {
+  //   (*itr)->write(*X->getPolyManager()); cout << ", ";
+  // }
+  // cout << endl;
+  // node->getData()->getCell()->debugPrint(cout);
+  int N = S.size();
+  node->numSplitOptions = N;
+    
+  if (N == 0) throw TarskiException("Set S empty in chooseNextPoly!");
   IntPolyRef choice;
-  const int CHOOSE_FIRST = 0, CHOOSE_BPC_MIN = 1;
-  switch(CHOOSE_BPC_MIN)
-  {
-  case CHOOSE_FIRST: { choice = *(S.begin());  } break;
-  case CHOOSE_BPC_MIN: { // This uses the BasicPolyCompare lt method to make the choice
-    BasicPolyCompare BPC(X);
-    IntPolyRef smallest;
-    for(set<IntPolyRef>::iterator itr = S.begin(); itr != S.end(); ++itr)
-      if (smallest.is_null() || BPC.lt(*itr,smallest))
+  if (N == 1)
+    choice = *S.begin();
+  else {  
+    const int CHOOSE_FIRST = 0, CHOOSE_BPC_MIN = 1, CHOOSE_RANDOM = 2;
+    switch(CHOOSE_BPC_MIN)
+    {
+    case CHOOSE_FIRST: { choice = *(S.begin()); } break;
+    case CHOOSE_BPC_MIN: { // This uses the BasicPolyCompare lt method to make the choice
+      BasicPolyCompare BPC(X);
+      IntPolyRef smallest;
+      for(set<IntPolyRef>::iterator itr = S.begin(); itr != S.end(); ++itr)
+	if (smallest.is_null() || BPC.lt(*itr,smallest))
 	  smallest = *itr;
-	  return smallest;
-  }break;
-  default: { throw TarskiException("In chooseNextPoly: unkown criterion!"); } break;
+      choice = smallest;
+    }break;
+    case CHOOSE_RANDOM: {
+      int n = S.size();
+      int k = rand()%S.size();
+      set<IntPolyRef>::iterator itr = S.begin();
+      for(int i = 0; i < k; ++itr, ++i);
+      choice = *itr;
+    } break;
+    default: { throw TarskiException("In chooseNextPoly: unkown criterion!"); } break;
+    }
   }
+  
   return choice;
 }
 
@@ -1181,7 +1187,7 @@ void SplitSetChooserConjunction::chooseSplit(VarOrderRef X, NodeRef node, int di
 
   if (alphaF != 0)
   {
-    IntPolyRef p = chooseNextPoly(polyF,X);
+    IntPolyRef p = chooseNextPoly(polyF,X,node);
     tvAtAlpha = FALSE;
     targetTruthValue = polyIndividuallySufficientF.find(p) == polyIndividuallySufficientF.end() ? UNDET : FALSE;
     Q.insert(p);
@@ -1190,7 +1196,7 @@ void SplitSetChooserConjunction::chooseSplit(VarOrderRef X, NodeRef node, int di
 
   if (alphaT != 0)
   {
-    IntPolyRef p = chooseNextPoly(polyT,X);
+    IntPolyRef p = chooseNextPoly(polyT,X,node);
     tvAtAlpha = TRUE;
     targetTruthValue = polyT.size() == 1 ? TRUE : UNDET;
     Q.insert(p);
@@ -1212,7 +1218,7 @@ void ONuCADObj::mkNuCADDNF(VarOrderRef X, TFormRef F, int dim, Word alpha)
   // Initialize V/L as an empty "queue" of labeled cells, then enque the cell R^dim
   PolyManager *ptrPM = X->getPolyManager();
   BuilderRef rootBuilder = new BuilderObj(new OpenCellObj(X,alpha,dim));
-  int front = 0, countX = 0;
+  int front = 0;
   nodeQueue->push(root = new NodeObj(NULL,rootBuilder,UNDET,0,'C'));
 
   SplitSetChooserRef chooser = new SplitSetChooserDNF(F);
@@ -1225,7 +1231,7 @@ void ONuCADObj::mkNuCADDNF(VarOrderRef X, TFormRef F, int dim, Word alpha)
 #endif
     if (verbose) { cerr << "queue size = " << nodeQueue->size() << endl; }
     NodeRef node = nodeQueue->front(); nodeQueue->pop();
-    if (node->getTruthValue() != UNDET) { countX++; continue; }
+    if (node->getTruthValue() != UNDET) { continue; }
     NuCADSplit(X,chooser,dim,node);
   }  
 }
@@ -1734,6 +1740,8 @@ int evalTruth(TAtomRef A, map<IntPolyObj*,int > &knownRelop)
 
 TAndRef OpenNuCADSATSolverObj::getUNSATCore()
 {
+  return nucad->getUNSATCore();
+  /*
   const int n = C->size();  //-- C is the conjunction that came as orig input
   std::vector<TFormRef> atoms(n);
   {  int i = 0;
@@ -1803,6 +1811,329 @@ TAndRef OpenNuCADSATSolverObj::getUNSATCore()
   for(int k = 0; k < H.size(); ++k)
     unsatCore->AND(atoms[H[k] - 1]);
   return unsatCore;
+  */
 }
+
+
+TAndRef ONuCADObj::getUNSATCore()
+{
+  const int n = this->C->size();  //-- C is the conjunction that came as orig input
+  std::vector<TFormRef> atoms(n);
+  {  int i = 0;
+    for(auto citr = C->begin(); citr != C->end(); ++citr)
+      atoms[i++] = *citr;
+  }
+  set<IntPolyObj*> S;
+  for(int i = 0; i < n; i++)
+  {
+    TAtomRef atom = asa<TAtomObj>(atoms[i]);
+    if (atom.is_null()) {
+      throw TarskiException("OpenNuCADSATSolverObj::getUNSATCore currently conjunction of atoms"); }
+    FactRef F = atom->getFactors();
+    for(auto fitr = F->factorBegin(); fitr != F->factorEnd(); ++fitr)
+      S.insert(&(*(fitr->first)));
+  }
+  
+  //-- set up hitting set problem
+  std::vector< std::vector<int> > hitSetIn;
+  auto litr = this->iterator(); //-- itrates of the leaves
+  for(int i = 0; litr.hasNext(); ++i)
+  {
+    //-- pull out D, the next cell to consider (and associated info)
+    NodeRef node = litr.next();
+    BuilderRef b = node->getData();
+    OpenCellRef D = b->getCell();
+    Word alpha = D->getAlpha();
+
+    
+    //-- b->inPFSet(p), where p is an IntPolyRef, returns true iff p is known
+    //-- to be sign invariant in cell D.
+
+    //-- for IntPolyObj* p, knownRelop[p] is > if it is known positive throught cell D, < if
+    //-- it is known negative throught, = if it is known zero throughout, and ALOP otherwise.
+    map<IntPolyObj*,int > knownRelop;
+    for(auto pitr = S.begin(); pitr != S.end(); ++pitr)
+    {
+      if (b->inPFSet(*pitr))
+      {
+	IntPolyRef p = this->X->partialEval(*pitr,alpha,LENGTH(alpha));
+	if (!p->isConstant()) { throw TarskiException("Error!  Evaluation did not produce a constant!"); }
+	int sigma = signToSigma(p->signIfConstant());
+	knownRelop[*pitr] = sigma;
+      }
+      else
+	knownRelop[*pitr] = ALOP;
+    }
+
+    //-- add to hist set problem any atom known to be false throught cell D
+    hitSetIn.push_back(vector<int>());
+    vector<int> &nextset = hitSetIn.back();
+    for(int j = 0; j < n; j++)
+    {
+      if (evalTruth(atoms[j],knownRelop) == FALSE)
+	nextset.push_back(j+1);
+    }
+    nextset.push_back(0);
+  }
+  
+  //-- solve hitting set problem and translate into unsat core
+  HitProb HP;
+  HP.fill(n,hitSetIn.size(),hitSetIn);
+  vector<int> H;
+  naiveSolve(HP,H);
+  
+  TAndRef unsatCore = new TAndObj();
+  for(int k = 0; k < H.size(); ++k)
+    unsatCore->AND(atoms[H[k] - 1]);
+  return unsatCore;
+}
+
+
+/********* HPC LEARNING STUFF *************/
+/*
+  Get node, revert it, run each choice along with the subtree size it produced.  Output.
+ */
+
+class NothingLeftToChoose : public TarskiException
+{
+public:
+  NothingLeftToChoose() : TarskiException("Nothing Left To Choose.") { }
+};
+
+class TrialChooserObj; typedef GC_Hand<TrialChooserObj> TrialChooserRef;
+class TrialChooserObj : public SplitSetChooserConjunction
+{
+private:
+  SplitSetChooserRef chooser;
+  set<IntPolyRef> chosen;
+  IntPolyRef lastChoice;
+  NodeRef splitNode;
+  BasicPolyCompare BPC;
+public:
+  TrialChooserObj(SplitSetChooserRef chooser, NodeRef node, TAndRef C) : SplitSetChooserConjunction(C),
+									 BPC(node->getData()->getCell()->getVarOrder())
+  {
+    this->chooser = chooser; splitNode = node;
+  }
+
+  bool operator()(const pair<int,IntPolyRef> &p1, const pair<int,IntPolyRef> &p2)
+  {
+    return BPC.lt(p1.second,p2.second);
+  } 
+  
+  IntPolyRef chooseNextPoly(set<IntPolyRef> &S, VarOrderRef X, NodeRef node)
+  {
+    if (this->splitNode.identical(node) && lastChoice.is_null())
+    {
+      /*
+      if (chosen.size() == 0) {
+	for(auto itr = S.begin(); itr != S.end(); ++itr) {
+	  cout << ">>>> "; (*itr)->write(*(X->getPolyManager())); cout << endl; }
+      }
+      cout << "S.size() = " << S.size() << "   " << node->getLabel() << endl;
+      */
+      auto itr = S.begin();
+      while(itr != S.end() && chosen.find(*itr) != chosen.end())
+	++itr;
+      if (itr == S.end()) throw NothingLeftToChoose();
+      chosen.insert(lastChoice = *itr);
+      return lastChoice;
+    }
+    else
+      return chooser->chooseNextPoly(S,X,node);
+  }
+  void reset() { chosen.clear(); lastChoice = NULL; } 
+  int numChosen() { return chosen.size(); }
+  IntPolyRef getLastChoice() { auto x = lastChoice; lastChoice = NULL; return x; }
+};
+
+vector<float> generateFeatures(NodeRef node, IntPolyRef p1, IntPolyRef p2);
+pair<IntPolyRef,IntPolyRef> removeTerms(IntPolyRef p, IntPolyRef q);
+
+void ONuCADObj::trial(NodeRef node, vector<vector<float>> &X, vector<float> &y)
+{  
+  SplitSetChooserRef toRevert = chooser;
+  TrialChooserRef tchooser = new TrialChooserObj(toRevert,node,this->C);
+  chooser = tchooser;
+
+  /*
+    Populate 'results' with (int,poly) pairs in which 'poly' is
+    the split polynomial chosen, and 'int' is the number of nodes in
+    the subtree that resulted from taking that choice.
+   */
+  vector<pair<int,IntPolyRef>> results;
+  Word alpha = node->getData()->getCell()->getAlpha();
+  bool done = false;
+  int minSize = -1;
+  while(!done)
+  {
+    node->revert(); //revertCell(label);
+    try {
+      refineSubtreeNuCADConjunction(node);
+      Word alphap = node->getData()->getCell()->getAlpha();
+      if (!EQUAL(alpha,alphap)) {
+	tchooser->reset();
+	results.clear();
+	alpha = alphap;
+	//cout << " sample point is now "; node->getData()->getCell()->writeAlpha(); cout << endl;
+      }
+      else {
+	int count = 0;
+	for(auto itr = iterator(node); itr.hasNext(); itr.next(), ++count);
+	results.push_back(pair<int,IntPolyRef>(count,tchooser->getLastChoice()));
+	if (minSize == -1 || count < minSize) { minSize = count; }
+      }
+    }
+    catch(NothingLeftToChoose &e) { done = true; }      
+  }
+  
+  //node->getData()->getCell()->debugPrint();
+
+  /*
+    For each pair (int_i,poly_i) , (int_j,poly_j) we get a data row,
+    features(poly_i,poly_j), int_i - int_j.
+   */
+  for(int i = 0; i < results.size(); ++i) {
+    for(int j = 0; j < results.size(); ++j) {
+      int delta = results[i].first - results[j].first;
+      if (delta == 0) continue;
+
+      X.push_back(generateFeatures(node,results[i].second,results[j].second));
+      y.push_back(float(delta)/minSize);
+
+      /*
+      vector<float> &V = X.back();
+      cout << delta << "(" << float(delta)/minSize << ") : ";
+      results[i].second->write(*(node->getData()->getPolyManager()));
+      cout << ", ";
+      results[j].second->write(*(node->getData()->getPolyManager()));
+      cout << " ";
+      cout << "[ " << V[0];
+      for(int k = 1; k < V.size(); ++k)
+	cout << ", " << V[k];
+      cout << " ]";
+      cout << " --- ";
+      pair<IntPolyRef,IntPolyRef> p = removeTerms(results[i].second,results[j].second);
+      p.first->write(*(node->getData()->getPolyManager()));
+      cout << " , ";
+      p.second->write(*(node->getData()->getPolyManager()));
+      cout << endl;
+      */
+    }
+  }
+  chooser = toRevert;
+}
+
+
+
+Word REMOVETERMS(Word r, Word A, Word B)
+{
+  if (B == 0 || B == NIL)
+    return A;
+  if (A == 0 || A == NIL || r == 0)
+    return 0;
+  Word dA, cA, dB, cB, Ap, Bp;
+  FIRST2(A,&dA,&cA);
+  FIRST2(B,&dB,&cB);
+  Bp = RED2(B); Bp = Bp == NIL ? 0 : Bp;
+  Ap = RED2(A); Ap = Ap == NIL ? 0 : Ap;  
+  if (dA < dB)
+    return REMOVETERMS(r,A,Bp);
+  else if (dA > dB)
+  {
+    Word As = REMOVETERMS(r,Ap,B);    
+    return COMP2(dA,cA,(As == 0 ? NIL : As));
+  }
+  else // dA = dB
+  {
+    Word cAp = REMOVETERMS(r-1,cA,cB);
+    Word As = REMOVETERMS(r,Ap,Bp);
+    return cAp == 0 ? As : COMP2(dA,cAp,(As == 0 ? NIL : As));
+  }
+}
+  
+/*
+  Return a poly that is equal to A with all terms removed that correspond to
+  power-products that appear in B.
+ */
+pair<IntPolyRef,IntPolyRef> removeTerms(IntPolyRef p, IntPolyRef q)
+{
+  VarSet V = p->getVars() + q->getVars();
+  Word r = V.numElements();
+  Word A = p->expand(V), B = q->expand(V);
+  return pair<IntPolyRef,IntPolyRef>(new IntPolyObj(r,REMOVETERMS(r,A,B),V),new IntPolyObj(r,REMOVETERMS(r,B,A),V));
+}
+  
+void polyPairFeatures(NodeRef node, IntPolyRef p1, IntPolyRef p2, vector<float> &V);
+
+/*** currently 1 + 5 + 5 = 11 features ***/
+vector<float> generateFeatures(NodeRef node, IntPolyRef p1, IntPolyRef p2)
+{
+  vector<float> V;
+  int td1 = p1->totalDegree(), td2 = p2->totalDegree();
+  V.push_back(td1 == 1 && td2 > 1 ? -1.0 : (td2 == 1 && td1 > 1 ? 1.0 : 0.0));
+  polyPairFeatures(node,p1,p2,V);
+  pair<IntPolyRef,IntPolyRef> w = removeTerms(p1,p2);
+  polyPairFeatures(node,w.first,w.second,V);
+  
+  // comparative measures - construct q1 the poly consisting of all terms of p1 that are not in p2 (and q2 vice versa)
+  // VarKeyedMap<int> M(ALOP);
+  // FernPolyIter f1(p1,M), f2(p2,M);
+  return V;
+}
+
+void polyPairFeatures(NodeRef node, IntPolyRef p1, IntPolyRef p2, vector<float> &V)
+{
+  VarOrderRef X = node->getData()->getCell()->getVarOrder();
+  int n = node->getData()->getCell()->dimension(), lev1 = X->level(p1), lev2 = X->level(p2);
+  int td1 = p1->totalDegree(), td2 = p2->totalDegree();
+  int sps1 = BasicPolyCompare::SACPOLYSIZE(p1), sps2 = BasicPolyCompare::SACPOLYSIZE(p2); 
+  
+  // Individual measures
+  double s_level = lev1 - lev2 == 0 ? 0.0 : (lev1 - lev2)/double(n - 1);
+  double s_tdeg = td1 - td2 == 0 ? 0.0 : (td1 - td2)/5.0;
+  double s_sps = sps1 - sps2 == 0 ? 0.0 : (sps1 - sps2)/10.0;
+  V.push_back(s_level);
+  V.push_back(s_tdeg);
+  V.push_back(s_sps);
+  V.push_back(p1->degree(X->get(lev1)) - 1.0); // degree in main variable
+  V.push_back(p2->degree(X->get(lev2)) - 1.0); // degree in main variable
+}
+
+// candidate[i] = (k,node) where node has k leaves.
+int ONuCADObj::getCandidateNodes(NodeRef node, std::vector<pair<int,NodeRef>> &candidates,
+				 int leafThreshold, int choicesThreshold)
+{
+  if (!node->hasChildren()) return 1;
+  int numLeaves = 0;
+  for(auto itr = node->childBegin(); itr.hasNext(); )
+    numLeaves += getCandidateNodes(itr.next(),candidates,leafThreshold,choicesThreshold);
+  if (numLeaves >= leafThreshold && node->numSplitOptions >= choicesThreshold)
+    candidates.push_back(pair<int,NodeRef>(numLeaves,node));
+  return numLeaves;
+}
+
+IntPolyRef FeatureChooser::chooseNextPoly(set<IntPolyRef> &S, VarOrderRef X, NodeRef node)
+{
+  int N = S.size();
+  if (N == 0) throw TarskiException("Set S empty in chooseNextPoly!");
+  IntPolyRef choice;
+  if (N == 1)
+    choice = *S.begin();
+  else {  
+    auto itr = S.begin();
+    choice = *itr;
+    while(++itr != S.end())
+    {
+      IntPolyRef next = *itr;
+      vector<float> F = generateFeatures(node,next,choice);
+      float val = this->comp->eval(F);
+      if (val < 0.0)
+	choice = next;
+    }
+  }
+  return choice;
+}
+
 
 }//end namespace tarski

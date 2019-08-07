@@ -13,6 +13,7 @@
 #include "readlineistream.h"
 #include "../onecell/memopolymanager.h"
 #include "../tarskisysdep.h" /* defines pathToMaple variable */
+#include <signal.h>
 
 using namespace std;
 
@@ -66,7 +67,11 @@ void help(ostream& out);
 void printVersion(ostream& out);
 
 void nln() { cout << endl; } // just to help with using gdb
+void SIGINT_handler(int i, siginfo_t *sip,void* uap);
+void init_SIGINT_handler();
+int sendSignalAfterInterval(int seconds, int signum);
 
+  
 int mainDUMMY(int argc, char **argv, void* topOfTheStack)
 {
     // Get the CA Server up and running!
@@ -87,6 +92,18 @@ int mainDUMMY(int argc, char **argv, void* topOfTheStack)
       else if (argv[i][0] == '+') { ; }
       else if (argv[i] == string("-h")) { help(cout); exit(0); }
       else if (argv[i] == string("--version")) { printVersion(cout); exit(0); }
+      else if (argv[i] == string("-t")) {
+	int tout = -1;
+	if (i + 1 < argc && (tout = atoi(argv[i+1])) && tout > 0) {
+	  init_SIGINT_handler();
+	  sendSignalAfterInterval(tout,SIGALRM);
+	  i++;
+	}
+	else {
+	  cerr << "tarski: Error! -t requires a poositive integer argument!\n";
+	  exit(1);
+	}
+      }
       else
       {
 	inputFileNames.push_back(argv[i]);
@@ -103,6 +120,8 @@ int mainDUMMY(int argc, char **argv, void* topOfTheStack)
     }
     free(av);
 
+    srand(time(0));
+    
     //  istream *inptr = new readlineIstream();
     readlineIstream isin;
     if (!quiet) { isin.setPrompt("> "); }
@@ -185,6 +204,7 @@ Options:\n\
        recommended ... though it requires having Maple, of course.\n\
   -h : print this helpful description\n\
   -q : quiet mode, no prompt, no echo results\n\
+  -t <num> : terminates tarski after <num> seconds\n\
   -v : verbose, prints out debugging info\n\
   --version : prints out version number and exists\n\
   +N<numcells> : instructs Saclib to intialize with <numcells> cells\n\
@@ -194,6 +214,50 @@ Options:\n\
       << flush;
 }
 
+void SIGINT_handler(int i, siginfo_t *sip,void* uap)
+{  
+  if (sip->si_signo == SIGALRM)
+    FAIL("TIMEOUT","Exiting Tarski due to timeout");
+  SacModEnd();
+  exit(1);
+}
+
+void init_SIGINT_handler() 
+{
+  struct sigaction *p;
+  p = (struct sigaction *)malloc(sizeof(struct sigaction));
+  p->sa_handler = NULL;
+  p->sa_sigaction = SIGINT_handler;
+  sigemptyset(&(p->sa_mask));
+  p->sa_flags = SA_SIGINFO;
+  sigaction(SIGINT,p,NULL);
+  sigaction(SIGTERM,p,NULL);
+  sigaction(SIGALRM,p,NULL);
+  free(p);
+}
+
+int sendSignalAfterInterval(int seconds, int signum)
+{
+  /* Create timer */
+  timer_t timerid;
+  struct sigevent sev;
+  sev.sigev_notify = SIGEV_SIGNAL;
+  sev.sigev_signo = signum;
+  sev.sigev_value.sival_ptr = &timerid;
+  if (timer_create(CLOCK_MONOTONIC, &sev, &timerid) == -1)
+    return 1;
+
+  /* Start timer */
+  struct itimerspec its;
+  its.it_value.tv_sec = seconds;
+  its.it_value.tv_nsec = 0;
+  its.it_interval.tv_sec = its.it_value.tv_sec;
+  its.it_interval.tv_nsec = its.it_value.tv_nsec;
+  if (timer_settime(timerid, 0, &its, NULL) == -1)
+    return 2;
+
+  return 0;
+}
 }//end namespace tarski
 
 
@@ -204,3 +268,4 @@ int main(int argc, char **argv)
   if (strcmp(tarski::pathToQepcad, "") == 0) throw tarski::TarskiException("Invalid location for QEPCAD");
   tarski::mainDUMMY(argc,argv,topOfTheStack);
 }
+

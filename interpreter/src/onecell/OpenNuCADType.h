@@ -7,6 +7,7 @@
 #include "varorder.h"
 #include "../formula/writeForQE.h"
 #include <string>
+#include <sstream>
 
 namespace tarski {
 class OpenNuCADObj; typedef GC_Hand<OpenNuCADObj> OpenNuCADRef;
@@ -25,6 +26,52 @@ class OpenNuCADObj : public TypeExtensionObj
   std::string display() 
   { 
     return nucad->toString();
+  }
+
+  static std::ostream& fooxx(const float &f, std::ostream &out)
+  {
+    if (int(f) == f) { return out << int(f) << ".0"; }
+    else { return out << f; }
+  }
+  
+  SRef trial(std::vector<SRef>& args)
+  {
+    std::string label;
+
+    if (args.size() > 0)
+    {
+      StrRef s = args[0]->str();
+      if (s.is_null()) { throw TarskiException("trial only accepts a string (label) as argument!"); }
+      label = s->getVal();
+    }
+    
+    /*** Choose node ***/
+    NodeRef node;
+    if (label == "") // randomly choose node
+    {
+      std::vector<pair<int,NodeRef>> candidates;
+      this->nucad->getCandidateNodes(this->nucad->getRoot(),candidates,5,2); // 5=leafThreshold, 2=choicesThreshold
+      if (candidates.size() == 0) { return new StrObj(""); }
+      int i = rand() % candidates.size();
+      node = candidates[i].second;
+    }
+    else // node comes as agument
+      node = this->nucad->getNode(label);
+
+    std::vector<std::vector<float>> X;
+    std::vector<float> y;
+    nucad->trial(node,X,y);
+    std::ostringstream sout;
+    int N = X[0].size(), M = X.size();
+    for(int r = 0; r < M; ++r)
+    {
+      fooxx(X[r][0],sout);
+      for(int c = 1; c < N; ++c)
+      { sout << ','; fooxx(X[r][c],sout); }
+      sout << ':'; fooxx(y[r],sout) << std::endl;
+    }
+    return new StrObj(sout.str());
+
   }
   
   SRef numXCells(std::vector<SRef>& args) { nucad->toString(0); return new NumObj(nucad->nx); }
@@ -45,6 +92,20 @@ class OpenNuCADObj : public TypeExtensionObj
     return L;
   }
 
+  SRef getUNSATCore(std::vector<SRef>& args)
+  {
+    return new TarObj(nucad->getUNSATCore());
+  }
+
+ SRef getNumSplitOptions(std::vector<SRef>& args)
+ {
+   StrRef s = args[0]->str();
+   if (args.size() == 0 || (s = args[0]->str()).is_null()) 
+   { return new ErrObj("OpenNuCAD msg subtree-level requires argument of type str."); }
+   NodeRef n = nucad->getNode(s->getVal());
+   return new NumObj(n->numSplitOptions);   
+ }
+  
   SRef subtreeLevel(std::vector<SRef>& args)
   {
     StrRef s = args[0]->str();
@@ -161,6 +222,15 @@ class OpenNuCADObj : public TypeExtensionObj
     sout << (count == 0 ? "[ false ]" : " ]");
     return new StrObj(sout.str());
   }
+  SRef refineSubtree(std::vector<SRef>& args)
+  {
+    StrRef s;
+    if (args.size() == 0 || (s = args[0]->str()).is_null()) 
+    { return new ErrObj("OpenNuCAD msg refine-subtree requires argument of type str."); }      
+    try { nucad->refineSubtreeNuCADConjunction(s->val); }
+    catch(TarskiException e) { return new ErrObj("Error in OpenNuCAD msg refine-subtree with label \"" + s->val + "\"."); }
+    return new SObj();
+  }
   SRef refineCell(std::vector<SRef>& args)
   {
     StrRef s;
@@ -168,6 +238,15 @@ class OpenNuCADObj : public TypeExtensionObj
     { return new ErrObj("OpenNuCAD msg refine-cell requires argument of type str."); }      
     try { nucad->refineNuCADConjunction(s->val); }
     catch(TarskiException e) { return new ErrObj("Error in OpenNuCAD msg refine-cell with label \"" + s->val + "\"."); }
+    return new SObj();
+  }
+  SRef revertCell(std::vector<SRef>& args)
+  {
+    StrRef s;
+    if (args.size() == 0 || (s = args[0]->str()).is_null()) 
+    { return new ErrObj("OpenNuCAD msg revert-cell requires argument of type str."); }      
+    try { nucad->revertCell(s->val); }
+    catch(TarskiException e) { return new ErrObj("Error in OpenNuCAD msg revert-cell with label \"" + s->val + "\"."); }
     return new SObj();
   }
   SRef negate(std::vector<SRef>& args)
@@ -450,47 +529,110 @@ public:
   
   SRef execute(SRef input, std::vector<SRef> &args) 
   { 
-    if (args.size() != 3) { return execute(args[0]->tar()->val); }
-
-    // Variable order
-    LisRef Lv = args[0]->lis();
-    VarOrderRef V = new VarOrderObj(interp->PM);
-    for(int i = 0; i < Lv->length(); ++i)
+    /*
+      Options are pairs: ('chooser <string:name>)
+    */
+    int optionsCount = 0;
+    std::string comp_name;
+    for(int i = 0; i < args.size(); ++i)
     {
-      SymRef s = Lv->get(i)->sym();
-      V->push_back(s->val);
-    }
+      LisRef P = args[i]->lis();
+      SymRef kind;
+      StrRef name;
+      if (P.is_null() || P->length() != 2 || ((kind = P->get(0)->sym()), kind.is_null())
+	  || ((name = P->get(1)->str()), name.is_null()))
+      { continue; }
+      optionsCount++;
+      if (kind->getVal() == "chooser") { comp_name = name->getVal(); }
+      else throw TarskiException("Unknown option kind!");
+    }    
 
-    // Rational point alpha
-    LisRef La = args[1]->lis();
+    VarOrderRef V = NULL;
     Word A = NIL;
-    for(int i = La->length() - 1; i >= 0; --i)
-      A = COMP(La->get(i)->num()->val,A);
-
-    // Conjunction F
-    TarRef TF = args[2]->tar();
-    TFormRef F = TF->val;
-    TAndRef C = asa<TAndObj>(F);
-    if (C.is_null())
+    TAndRef C = NULL;
+    
+    if (args.size() - optionsCount != 3)
     {
-      TAtomRef a = asa<TAtomObj>(F);
-      TExtAtomRef b = asa<TExtAtomObj>(F);
-      if (a.is_null() && b.is_null()) 
-	return new ErrObj("OCMakeNuCADConjunction requires a conjunction or atomic formula.");      
-      C = new TAndObj(); C->AND(F);
+      TFormRef F = args[0]->tar()->getValue();
+      
+      // variable order
+      std::vector<VarSet> X = getBrownVariableOrder(F);
+      V = new VarOrderObj(interp->PM);
+      for(int i = 0; i < X.size(); ++i)
+	V->push_back(X[i]);
+    
+      // choose the origin for "point alpha"
+      A = NIL;
+      for(int i = 0; i < X.size(); ++i)
+	A = COMP(0,A);
+
+      // Make sure C is a conjunction!
+      C = asa<TAndObj>(F);
+      if (C.is_null())
+      {
+	TAtomRef a = asa<TAtomObj>(F);
+	TExtAtomRef b = asa<TExtAtomObj>(F);
+	if (a.is_null() && b.is_null()) 
+	  return new ErrObj("OCMakeNuCADConjunction requires a conjunction or atomic formula.");      
+	C = new TAndObj(); C->AND(F);
+      }
+    }
+    else
+    {
+      // Variable order
+      LisRef Lv = args[0]->lis();
+      VarOrderRef V = new VarOrderObj(interp->PM);
+      for(int i = 0; i < Lv->length(); ++i)
+      {
+	SymRef s = Lv->get(i)->sym();
+	V->push_back(s->val);
+      }
+
+      // Rational point alpha
+      LisRef La = args[1]->lis();
+      Word A = NIL;
+      for(int i = La->length() - 1; i >= 0; --i)
+	A = COMP(La->get(i)->num()->val,A);
+
+      // Conjunction F
+      TarRef TF = args[2]->tar();
+      TFormRef F = TF->val;
+      TAndRef C = asa<TAndObj>(F);
+      if (C.is_null())
+      {
+	TAtomRef a = asa<TAtomObj>(F);
+	TExtAtomRef b = asa<TExtAtomObj>(F);
+	if (a.is_null() && b.is_null()) 
+	  return new ErrObj("OCMakeNuCADConjunction requires a conjunction or atomic formula.");      
+	C = new TAndObj(); C->AND(F);
+      }
     }
 
+    // Decide which search queue and chooser to use
+    SearchQueueRef searchQueue = new SearchQueueObj();
+    SplitSetChooserRef chooser = NULL;
+    if (comp_name == "BPC") // basic polynomial compare
+      chooser = new FeatureChooser(C,new BPCAsComp());
+    else if (comp_name == "play")
+      chooser = new FeatureChooser(C,new PlayComp());
+    else if (comp_name == "rand")
+      chooser = new FeatureChooser(C,new RandomComp());
+    else
+      chooser = new SplitSetChooserConjunction(C);
+
+    
     // Build the OpenNuCAD and return it
-    ONuCADRef nucad = new ONuCADObj(V,C,V->size(),A);
+    ONuCADRef nucad = new ONuCADObj(V,C,V->size(),A,searchQueue,chooser);
     nucad->mkNuCADConjunction(V,C,V->size(),A);
     return new ExtObj(new OpenNuCADObj(nucad));
   }
 
   std::string testArgs(std::vector<SRef> &args) 
   { 
-    return args.size() == 3 ? require(args,_lis,_lis,_tar) : require(args,_tar);
+    std::string s1 = requirepre(args,_tar);
+    return s1 == "" ? s1 : requirepre(args,_lis,_lis,_tar);
   } 
-  std::string doc() { return "Given a variable order, point and a conjunction of atomic formulas normalized so that each has an irreducible polynomial as left-hand side, returns a list of (l1,c1,...,lk,ck) of labels and cells."; }
+  std::string doc() { return "Given a variable order, point and a conjunction of atomic formulas normalized so that each has an irreducible polynomial as left-hand side, returns a list of (l1,c1,...,lk,ck) of labels and cells. Can also be called with just a formula, in which case order and initial point are chosen for you.  After the regular arguments, you can add any number of option pairs (name value), where name is a symbol and value is a string.  Option name 'chooser allows you to specify the strategy used for choosing which polynomial to split on during the construction process. Values for 'chooser are \"BPC\" (the default), which is a simple heuristic, \"rand\" which creates a random heuristic function to be used for the construction (this is never a good idea!). "; }
   std::string usage() { return "(make-NuCADConjunction var-order rat-point tarski-formula)"; }
   std::string name() { return "make-NuCADConjunction"; }
 };
