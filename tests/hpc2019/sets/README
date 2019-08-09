@@ -1,3 +1,11 @@
+Here's an example showing how 
+(def F [ 0 < 4*w*y+w+5*z-6 and 0 < 5-6*y-3*x and 0 < -10*x*y-3*w and 0 < 5*w*y-3*y-4*z and 0 < -8*w*z+10*x*y+7*y^2-7*x and 0 < 2*w^2+4*w*x+5*w+10*x and 0 < 9*x^2-6*x*z+z^2-w-3*z-3 and 0 < -6*w-10*x-9*z and 0 < -8*w+4*y-4*z and 0 < 3*w+9*y-10*z and 0 < -9*x-6*y+1 and 0 < 4*w+3*z+1 ])
+(def D (make-NuCADConjunction F '(chooser "nnet") '(nn-chooser "12 ( i  func 0 0.0  [ ] [ ] ) ( i  func 1 0.0  [ ] [ ] ) ( i  func 2 0.0  [ ] [ ] ) ( i  func 3 0.0  [ ] [ ] ) ( i  func 4 0.0  [ ] [ ] ) ( i  func 5 0.0  [ ] [ ] ) ( i  func 6 0.0  [ ] [ ] ) ( i  func 7 0.0  [ ] [ ] ) ( i  func 8 0.0  [ ] [ ] ) ( i  func 9 0.0  [ ] [ ] ) ( i  func 10 0.0  [ ] [ ] ) ( m linear 11 0.0 [ 0  1  2  3  4  5  6  7  8  9  10 ] [ -0.496732950211 -0.591809511185 -0.0187621116638 0.611699640751 -0.68747985363 -0.63534116745 -0.127867639065 -0.444904476404 -0.147764503956 -0.0402657389641 -0.162889301777 ] )")))
+(msg D 'trial)
+
+
+
+
 
 (def F753 [ 0 < 4*w*y+w+5*z-6 and 0 < 5-6*y-3*x and 0 < -10*x*y-3*w and 0 < 5*w*y-3*y-4*z and 0 < -8*w*z+10*x*y+7*y^2-7*x and 0 < 2*w^2+4*w*x+5*w+10*x and 0 < 9*x^2-6*x*z+z^2-w-3*z-3 and 0 < -6*w-10*x-9*z and 0 < -8*w+4*y-4*z and 0 < 3*w+9*y-10*z and 0 < -9*x-6*y+1 and 0 < 4*w+3*z+1 ])
 (def D (make-NuCADConjunction F753))
