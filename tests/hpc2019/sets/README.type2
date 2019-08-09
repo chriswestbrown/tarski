@@ -1,0 +1,65 @@
+with(combinat):
+g := (x,y)->expand(randpoly([x,y],degree=2,terms=3,coeffs=rand(-5..5)));
+linform := (vars,B) -> expand(randpoly(vars,degree=1,coeffs=rand(-B..B),homogeneous));
+bp := (V) -> g(linform(randcomb(V,2),4),linform(randcomb(V,2),4));
+
+randinterval := (x,B,w) ->  ((t) -> t < x and x < t+w)((rand(B)()-B/2)/(rand(B-1)() + 1));
+box := proc(V,B,w)
+  local res := true;
+  for x in V do
+    res := res and randinterval(x,B,w);
+  end do;
+  return res;
+end proc;
+
+
+foo := proc(V,terms,B)
+  local Vp := [];
+  local n := nops(V);
+  local f := rand(1..n);
+  for i from 1 to terms do
+      Vp := [ op(Vp), V[f()]*V[f()] ];
+  end do;
+#  print(Vp);
+  return linform(Vp,B);
+end proc;
+
+bar := proc(V)
+    return foo([op(V),op(map(x->1,V))],4,10) > 0;
+end proc;
+
+tmp := proc(V,n1,n2,n3,n4)
+  local res := true;
+  for i from 1 to n1 do
+    res := res and bar(V);
+  end do;
+  for i from 1 to n2 do
+    res := res and bp(randcomb(V,3)) > 0
+  end do;
+  for i from 1 to n3 do
+    res := res and linform(randcomb(V,3),10) > 0
+  end do;
+#  for i from 1 to 2 do
+#    res := res and bp(randcomb(V,2),10) > 0
+#  end do;
+  for i from 1 to n4 do
+    res := res and linform(randcomb(V,2),10) + 1 > 0
+  end do;
+#  res := res and box(randcomb(V,n5),2,4);
+  return res;
+end proc;
+
+
+gentestset := proc(fname,V,n1,n2,n3,n4)
+  fd:=fopen(fname,WRITE);
+  for i from 0 to 999 do
+    fprintf(fd,"(def F%.3d [ %a ])\n",i,tmp(V,n1,n2,n3,n4));
+  end do;
+  fclose(fd);
+end proc;
+
+gentestset("type2-3vars.txt",[x,y,z],2,2,2,1);
+gentestset("type2-4vars.txt",[w,x,y,z],5,2,3,2);
+gentestset("type2-5vars.txt",[v,w,x,y,z],6,2,3,2);
+gentestset("type2-6vars.txt",[v,w,x,y,z],7,3,4,2);
+

@@ -1,0 +1,57 @@
+
+(def F753 [ 0 < 4*w*y+w+5*z-6 and 0 < 5-6*y-3*x and 0 < -10*x*y-3*w and 0 < 5*w*y-3*y-4*z and 0 < -8*w*z+10*x*y+7*y^2-7*x and 0 < 2*w^2+4*w*x+5*w+10*x and 0 < 9*x^2-6*x*z+z^2-w-3*z-3 and 0 < -6*w-10*x-9*z and 0 < -8*w+4*y-4*z and 0 < 3*w+9*y-10*z and 0 < -9*x-6*y+1 and 0 < 4*w+3*z+1 ])
+(def D (make-NuCADConjunction F753))
+(msg D 'trial)
+
+(display (msg D 'trial "CY3U"))
+
+
+> (msg D 'num-x-cells)
+121:num
+
+(def F981 [ 0 < x^2-2*v-7*x-8 and 0 < 4*z^2+3*v+6*y and 0 < -10*v*x+3*y*z+3*w and 0 < -8-y+5*x-3*v and 0 < -13*x+2*z and 0 < -x^2+3*x*y+6*x*z-10*y and 0 < 16*v^2+24*v*y+9*y^2+20*v+19*y-8*z and 0 < -20*w^2+70*w*z-30*z^2-4*w+2*z+1 and 0 < -3*v+3*y+5*z and 0 < 7*v+2*y+10*z and 0 < -2*v-7*w-3*z and 0 < 7*v-4*w+1 and 0 < 3*y+z+1 ])
+
+(def F942 [ 0 < 2*v*y-4*w+19*x and 0 < 2+9*w-9*x+2*y and 0 < -7*y+z+3*x+3*w and 0 < 9*w*z+5*x-8 and 0 < 2*v*x-9*v*y-6*v-5*z and 0 < w*y+10*w*z-10*x and 0 < 4*w^2-32*w*z+64*z^2+8*v-16*z and 0 < -20*v*y+20*v*z+40*y^2-40*y*z-4*v+18*y-10*z and 0 < 2*v-3*x+2*z and 0 < -10*x-8*y+z and 0 < 8*v+4*y+8*z and 0 < -9*x-2*z+1 and 0 < 3*y-z+1 ])
+(def D (make-NuCADConjunction F942))
+(msg D 'num-x-cells)
+
+(def F742 [ 0 < 5*y^2-4*w-7*z+2 and 0 < 3*w*z-8*x^2-x+2 and 0 < -3*y*z-8*y+6 and 0 < 2+9*z+4*x and 0 < -6*y^2-5*v-7*w+9*y and 0 < -8+6*x+3*z and 0 < 9*y^2+12*y*z+4*z^2+15*y+10*z and 0 < -5*v^2+10*v*y+8*v*z-5*y^2-8*y*z+12*z^2 and 0 < 4*v-6*w+3*x and 0 < 8*v+4*x+y and 0 < 5*v-5*w+9*z and 0 < -2*v+w+1 and 0 < 9*x+4*z+1 ])
+(def D (make-NuCADConjunction F742))
+(msg D 'num-x-cells)
+
+(def F719 [ 0 < -6*w^2+9*x and 0 < -8*v*y-3*w*y+7*x*z-7 and 0 < 7*w*x-5*y^2+2*y-8 and 0 < 7*x*y-9*x*z+7*w+8*y and 0 < 3+9*z-5*x-y and 0 < -2*z-8*v-4*w and 0 < -15*v^2-50*v*z-40*z^2+4 and 0 < 20*v-10*w and 0 < 3*x-9*y and 0 < 8*v-8*w-9*y and 0 < -7*w+6*x+8*y and 0 < -8*v-2*x+1 and 0 < -9*w-x+1 ])
+(def D (make-NuCADConjunction F719))
+(msg D 'num-x-cells)
+
+(def F719 [ 0 < -6*w^2+9*x and 0 < -8*v*y-3*w*y+7*x*z-7 and 0 < 7*w*x-5*y^2+2*y-8 and 0 < 7*x*y-9*x*z+7*w+8*y and 0 < 3+9*z-5*x-y and 0 < -2*z-8*v-4*w and 0 < -15*v^2-50*v*z-40*z^2+4 and 0 < 20*v-10*w and 0 < 3*x-9*y and 0 < 8*v-8*w-9*y and 0 < -7*w+6*x+8*y and 0 < -8*v-2*x+1 and 0 < -9*w-x+1 ])
+(def D (make-NuCADConjunction F719 '(chooser "play")))
+(msg D 'trial)
+
+(def F727 [ 0 < -7*v^2+4*v*y-8*y and 0 < -9*w*y-3*x+5*z+3 and 0 < -2*y^2-8*z+2 and 0 < -9*x*z-4*v-3*w+8 and 0 < -y+6*z and 0 < -4-2*v and 0 < 16*v^2-24*v*x+72*v*y-36*x*y+72*y^2 and 0 < -47*v^2+24*v*x-57*x^2+4*v-6*x and 0 < -7*w+y-4*z and 0 < -8*w-10*y+8*z and 0 < -6*w+5*y+10*z and 0 < 10*v+8*z+1 and 0 < -9*x+10*z+1 ])
+(def D (make-NuCADConjunction F727 '(chooser "play")))
+(msg D 'trial)
+
+(def F000 [ 0 < 7*v*z-6*w-9*y-3 and 0 < 2+3*y+x-2*w and 0 < 6*x^2+6*x*z-3*v-8 and 0 < 9*x*z-2*w+4*z-9 and 0 < -3+z+9*x and 0 < -14*v+9*w+6*y and 0 < -x*y-3*y-7*z-7 and 0 < -16*v^2+16*y^2+4*v and 0 < 20*v^2+40*v*w+30*v*z+60*w*z-4*v-8*w-2 and 0 < 8*w^2-24*w*y+18*y^2+4*z^2+4*w-6*y and 0 < -2*x+10*y-8*z and 0 < -8*v-2*x-6*y and 0 < 8*v-8*w-2*x and 0 < -3*v-4*w-2*y and 0 < -6*v-10*w+1 and 0 < -2*v-2*x+1 ])
+(def D (make-NuCADConjunction F000 '(chooser "play")))
+(msg D 'trial)
+
+
+
+(def F719 [ 0 < -6*w^2+9*x and 0 < -8*v*y-3*w*y+7*x*z-7 and 0 < 7*w*x-5*y^2+2*y-8 and 0 < 7*x*y-9*x*z+7*w+8*y and 0 < 3+9*z-5*x-y and 0 < -2*z-8*v-4*w and 0 < -15*v^2-50*v*z-40*z^2+4 and 0 < 20*v-10*w and 0 < 3*x-9*y and 0 < 8*v-8*w-9*y and 0 < -7*w+6*x+8*y and 0 < -8*v-2*x+1 and 0 < -9*w-x+1 ])
+(def D (make-NuCADConjunction F719 '(chooser "nnet") '(nn-chooser "12 ( i  func 0 0.0  [ ] [ ] ) ( i  func 1 0.0  [ ] [ ] ) ( i  func 2 0.0  [ ] [ ] ) ( i  func 3 0.0  [ ] [ ] ) ( i  func 4 0.0  [ ] [ ] ) ( i  func 5 0.0  [ ] [ ] ) ( i  func 6 0.0  [ ] [ ] ) ( i  func 7 0.0  [ ] [ ] ) ( i  func 8 0.0  [ ] [ ] ) ( i  func 9 0.0  [ ] [ ] ) ( i  func 10 0.0  [ ] [ ] ) ( m linear 11 0.0 [ 0  1  2  3  4  5  6  7  8  9  10 ] [ -0.496732950211 -0.591809511185 -0.0187621116638 0.611699640751 -0.68747985363 -0.63534116745 -0.127867639065 -0.444904476404 -0.147764503956 -0.0402657389641 -0.162889301777 ] )")))
+(msg D 'num-x-cells)
+
+
+
+(def F [ 0 < 7*v*z-6*w-9*y-3 and 0 < 2+3*y+x-2*w and 0 < 6*x^2+6*x*z-3*v-8 and 0 < 9*x*z-2*w+4*z-9 and 0 < -3+z+9*x and 0 < -14*v+9*w+6*y and 0 < -x*y-3*y-7*z-7 and 0 < -16*v^2+16*y^2+4*v and 0 < 20*v^2+40*v*w+30*v*z+60*w*z-4*v-8*w-2 and 0 < 8*w^2-24*w*y+18*y^2+4*z^2+4*w-6*y and 0 < -2*x+10*y-8*z and 0 < -8*v-2*x-6*y and 0 < 8*v-8*w-2*x and 0 < -3*v-4*w-2*y and 0 < -6*v-10*w+1 and 0 < -2*v-2*x+1 ])
+(def D (make-NuCADConjunction F '(chooser "nnet") '(nn-chooser "12 ( i  func 0 0.0  [ ] [ ] ) ( i  func 1 0.0  [ ] [ ] ) ( i  func 2 0.0  [ ] [ ] ) ( i  func 3 0.0  [ ] [ ] ) ( i  func 4 0.0  [ ] [ ] ) ( i  func 5 0.0  [ ] [ ] ) ( i  func 6 0.0  [ ] [ ] ) ( i  func 7 0.0  [ ] [ ] ) ( i  func 8 0.0  [ ] [ ] ) ( i  func 9 0.0  [ ] [ ] ) ( i  func 10 0.0  [ ] [ ] ) ( m linear 11 0.0 [ 0  1  2  3  4  5  6  7  8  9  10 ] [ -0.496732950211 -0.591809511185 -0.0187621116638 0.611699640751 -0.68747985363 -0.63534116745 -0.127867639065 -0.444904476404 -0.147764503956 -0.0402657389641 -0.162889301777 ] )")))
+(msg D 'num-x-cells)
+
+
+
+
+(def F [ 0 < 4*w*y+w+5*z-6 and 0 < 5-6*y-3*x and 0 < -10*x*y-3*w and 0 < 5*w*y-3*y-4*z and 0 < -8*w*z+10*x*y+7*y^2-7*x and 0 < 2*w^2+4*w*x+5*w+10*x and 0 < 9*x^2-6*x*z+z^2-w-3*z-3 and 0 < -6*w-10*x-9*z and 0 < -8*w+4*y-4*z and 0 < 3*w+9*y-10*z and 0 < -9*x-6*y+1 and 0 < 4*w+3*z+1 ])
+(def D (make-NuCADConjunction F '(chooser "nnet") '(nn-chooser "12 ( i  func 0 0.0  [ ] [ ] ) ( i  func 1 0.0  [ ] [ ] ) ( i  func 2 0.0  [ ] [ ] ) ( i  func 3 0.0  [ ] [ ] ) ( i  func 4 0.0  [ ] [ ] ) ( i  func 5 0.0  [ ] [ ] ) ( i  func 6 0.0  [ ] [ ] ) ( i  func 7 0.0  [ ] [ ] ) ( i  func 8 0.0  [ ] [ ] ) ( i  func 9 0.0  [ ] [ ] ) ( i  func 10 0.0  [ ] [ ] ) ( m linear 11 0.0 [ 0  1  2  3  4  5  6  7  8  9  10 ] [ -0.496732950211 -0.591809511185 -0.0187621116638 0.611699640751 -0.68747985363 -0.63534116745 -0.127867639065 -0.444904476404 -0.147764503956 -0.0402657389641 -0.162889301777 ] )")))
+(msg D 'num-x-cells)
+
+(def F [ 0 < 4*w*y+w+5*z-6 and 0 < 5-6*y-3*x and 0 < -10*x*y-3*w and 0 < 5*w*y-3*y-4*z and 0 < -8*w*z+10*x*y+7*y^2-7*x and 0 < 2*w^2+4*w*x+5*w+10*x and 0 < 9*x^2-6*x*z+z^2-w-3*z-3 and 0 < -6*w-10*x-9*z and 0 < -8*w+4*y-4*z and 0 < 3*w+9*y-10*z and 0 < -9*x-6*y+1 and 0 < 4*w+3*z+1 ])
