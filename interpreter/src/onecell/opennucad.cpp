@@ -1975,16 +1975,19 @@ void ONuCADObj::trial(NodeRef node, vector<vector<float>> &X, vector<float> &y)
 	tchooser->reset();
 	results.clear();
 	alpha = alphap;
-	//cout << " sample point is now "; node->getData()->getCell()->writeAlpha(); cout << endl;
+	minSize = -1;
+	cout << " sample point is now "; node->getData()->getCell()->writeAlpha(); cout << endl;
       }
       else {
 	int count = 0;
 	for(auto itr = iterator(node); itr.hasNext(); itr.next(), ++count);
+	cerr << "count = " << count << endl;
 	results.push_back(pair<int,IntPolyRef>(count,tchooser->getLastChoice()));
 	if (minSize == -1 || count < minSize) { minSize = count; }
       }
     }
-    catch(NothingLeftToChoose &e) { done = true; }      
+    catch(NothingLeftToChoose &e) { done = true; }
+    cerr << "minSize = " << minSize << endl;
   }
   
   //node->getData()->getCell()->debugPrint();

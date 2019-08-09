@@ -533,7 +533,7 @@ public:
       Options are pairs: ('chooser <string:name>)
     */
     int optionsCount = 0;
-    std::string comp_name;
+    std::string comp_name, nn_string;    
     for(int i = 0; i < args.size(); ++i)
     {
       LisRef P = args[i]->lis();
@@ -544,6 +544,7 @@ public:
       { continue; }
       optionsCount++;
       if (kind->getVal() == "chooser") { comp_name = name->getVal(); }
+      else if (kind->getVal() == "nn-chooser") { nn_string = name->getVal(); }
       else throw TarskiException("Unknown option kind!");
     }    
 
@@ -612,11 +613,13 @@ public:
     SearchQueueRef searchQueue = new SearchQueueObj();
     SplitSetChooserRef chooser = NULL;
     if (comp_name == "BPC") // basic polynomial compare
-      chooser = new FeatureChooser(C,new BPCAsComp());
+      chooser = new FeatureChooser(C, new BPCAsComp());
     else if (comp_name == "play")
-      chooser = new FeatureChooser(C,new PlayComp());
+      chooser = new FeatureChooser(C, new PlayComp());
     else if (comp_name == "rand")
-      chooser = new FeatureChooser(C,new RandomComp());
+      chooser = new FeatureChooser(C, new RandomComp());
+    else if (comp_name == "nnet")
+      chooser = new FeatureChooser(C, new NNetComp(nn_string));
     else
       chooser = new SplitSetChooserConjunction(C);
 

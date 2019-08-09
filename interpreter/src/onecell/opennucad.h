@@ -8,6 +8,7 @@
 #include "builder.h"
 #include <sstream>
 #include "../formula/writeForQE.h"
+#include "nnet.h"
 
 namespace tarski {
 
@@ -176,6 +177,12 @@ class NodeObj : public GC_Obj
   public:
     float eval(const std::vector<float> &F)
     {
+      /* float w[11] = {-0.496732950211,-0.591809511185,-0.0187621116638,0.611699640751,-0.68747985363,-0.63534116745,-0.127867639065,-0.444904476404,-0.147764503956,-0.0402657389641,-0.162889301777}; */
+      /* double sum = 0.0; */
+      /* for(int i = 0; i < 11; ++i) */
+      /* 	sum += w[i]*double(F[i]); */
+      /* return sum; */
+	
       if (F[6] != 0) return F[6];
       if (F[7] != 0) return F[7];
       return F[8];
@@ -197,6 +204,21 @@ class NodeObj : public GC_Obj
       return sum;
     }
   };
+
+  
+  class NNetComp : public SSCCompObj
+  {
+    nnet_interpreter::Graph nn;
+  public:
+  NNetComp(const std::string &snet) : nn(snet.c_str()) { }
+    float eval(const std::vector<float> &F)
+    {
+      nn.setInputs(F);
+      double r = nn.calculate();
+      return r;
+    }
+  };
+  
   
   class FeatureChooser :  public SplitSetChooserConjunction
   {
