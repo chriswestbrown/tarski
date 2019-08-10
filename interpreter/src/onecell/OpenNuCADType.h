@@ -38,11 +38,16 @@ class OpenNuCADObj : public TypeExtensionObj
   {
     std::string label;
 
-    if (args.size() > 0)
+    if (args.size() > 0 && !args[0]->str().is_null())
     {
       StrRef s = args[0]->str();
       if (s.is_null()) { throw TarskiException("trial only accepts a string (label) as argument!"); }
       label = s->getVal();
+    }
+    if (args.size() > 0 && !args[0]->num().is_null())
+    {
+      int seed = args[0]->num()->numerator();
+      srand(seed);
     }
     
     /*** Choose node ***/
