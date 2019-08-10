@@ -107,9 +107,7 @@ if rank == 0:
                 except Exception as err:
                     fail += 1
                     test_num -= 1
-                    # sys.stderr.write("Fail num: "+str(fail)+"\nWorker"+str(ready)+" could not parse this result:\n"+res+"\n")
-                    sys.stderr.write("Error msg: " + str(err)+"\n")
-                    sys.stderr.flush()
+                    errors.write("Error msg: " + str(err)+"\n")
                     errors.write(tarstr+"\n")
                     errors.flush()
             if test_num < examples_per_round:
