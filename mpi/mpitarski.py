@@ -28,6 +28,7 @@ if rank == 0:
 
     errors = open(sys.argv[1]+"_errors.txt","w")
     results = open(sys.argv[1]+"_results.txt","w")
+    sanity_check = open(sys.argv[1]+"_success.txt","w")
 
     # read in params
     param_file = open(sys.argv[1],"r")
@@ -104,6 +105,8 @@ if rank == 0:
                     for line in res.strip().split("\n"):
                         x.append([float(i) for i in line.split(":")[0].split(",")])
                         y.append(0.0 if float(line.split(":")[1]) < 0.0 else 1.0)
+                        sanity_check.write("success!   "+line+"\n")
+                        sanity_check.flush()
                 except Exception as err:
                     fail += 1
                     test_num -= 1
@@ -156,7 +159,7 @@ else:
             continue
         else:
             g = g.replace("sigmoid","tanh")
-            p = Popen(["../bin/tarski","-q", "-t", "60", "+N20000000"],stdout=PIPE,stdin=PIPE)
+            p = Popen(["tarski","-q", "-t", "60", "+N20000000"],stdout=PIPE,stdin=PIPE)
             tarski_string = ex+"\n"+"(def D (make-NuCADConjunction "+str(ex.split(" ")[1])+" '(chooser \"nnet\") '(nn-chooser \""+g+"\")))\n(display (msg D 'trial "+str(random.randint(0,10000000))+") \"\\n\")\n(quit)"
             res = p.communicate(tarski_string.encode())[0]
             p.terminate()
