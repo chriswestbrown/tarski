@@ -99,7 +99,7 @@ if rank == 0:
         active = 0 # the number of processes currently
         fail = 0
         #prompt worker nodes to communicate if not in first round
-        if i != 1:
+        if i != 0:
             for p in range(1,n_workers+1):
                 comm.send(("ex","wakeup"),p)
 
