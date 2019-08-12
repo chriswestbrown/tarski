@@ -141,6 +141,16 @@ if rank == 0:
         generateDataTime = time.time() - start_time
         results.write("Time to generate data in round "+str(i)+": "+str(generateDataTime)+"\n")
         results.flush()
+        model.fit(numpy.array(x),numpy.array(y),epochs=epochs,verbose=0)
+        fit_time = time.time()- generateDataTime
+        results.write("Time to fit model in round "+str(i)+": "+str(fit_time)+"\n")
+        results.flush()
+        learning_rate *= learning_decay
+        model.compile(opt,loss='binary_crossentropy',metrics=['accuracy'])
+        results.write("Round "+str(i)+"weights:\n"+model.get_weights()+"\n")
+        results.write("Round "+str(i)+"graph string:\n"+arrays.getModelGraphString(model)+"\n")
+        results.write("\n\n")
+        results.flush()
 
     #kill all workers
     for p in range(1,n_workers+1):
