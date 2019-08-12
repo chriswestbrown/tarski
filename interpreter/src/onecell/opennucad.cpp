@@ -2119,6 +2119,7 @@ int ONuCADObj::getCandidateNodes(NodeRef node, std::vector<pair<int,NodeRef>> &c
 IntPolyRef FeatureChooser::chooseNextPoly(set<IntPolyRef> &S, VarOrderRef X, NodeRef node)
 {
   int N = S.size();
+  node->numSplitOptions = N;
   if (N == 0) throw TarskiException("Set S empty in chooseNextPoly!");
   IntPolyRef choice;
   if (N == 1)

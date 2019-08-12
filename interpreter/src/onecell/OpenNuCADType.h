@@ -67,16 +67,18 @@ class OpenNuCADObj : public TypeExtensionObj
     std::vector<float> y;
     nucad->trial(node,X,y);
     std::ostringstream sout;
-    int N = X[0].size(), M = X.size();
-    for(int r = 0; r < M; ++r)
+    if (X.size() > 0)
     {
-      fooxx(X[r][0],sout);
-      for(int c = 1; c < N; ++c)
-      { sout << ','; fooxx(X[r][c],sout); }
-      sout << ':'; fooxx(y[r],sout) << std::endl;
+      int N = X[0].size(), M = X.size();
+      for(int r = 0; r < M; ++r)
+      {
+	fooxx(X[r][0],sout);
+	for(int c = 1; c < N; ++c)
+	{ sout << ','; fooxx(X[r][c],sout); }
+	sout << ':'; fooxx(y[r],sout) << std::endl;
+      }
     }
     return new StrObj(sout.str());
-
   }
   
   SRef numXCells(std::vector<SRef>& args) { nucad->toString(0); return new NumObj(nucad->nx); }
