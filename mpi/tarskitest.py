@@ -139,7 +139,7 @@ if rank == 0:
                 sanity_check.flush()
 
         generateDataTime = time.time() - start_time
-        results.write("Time to generate data in round "+str(i)+": "+str(generate_data_time)+"\n")
+        results.write("Time to generate data in round "+str(i)+": "+str(generateDataTime)+"\n")
         results.flush()
 
     #kill all workers
