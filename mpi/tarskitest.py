@@ -95,7 +95,7 @@ if rank == 0:
         graph_string = arrays.getModelGraphString(model).strip()
 
         # Farm out tasks to works until completed
-        test_num = 0 # last completed test, tests are numbered 1 through N
+        tests_completed = 0 # number of successfully completed tests
         active = 0 # the number of processes currently
         fail = 0
         #prompt worker nodes to communicate if not in first round
@@ -104,18 +104,21 @@ if rank == 0:
                 comm.send(("ex","wakeup"),p)
 
         start_time = time.time()
-        x=0
-        while test_num < examples_per_round or active > 0:
-            sanity_check.write("Loop iteration: "+str(x)+"\n")
+        iter_count = 0
+        while tests_completed < examples_per_round or active > 0:
+            sanity_check.write(">>>>>>> Starting loop iteration " + str(iter_count) +
+                               " tests_completed = " + str(tests_completed) + " active = " + str(active) +
+                               "\n")
             sanity_check.flush()
-            x = x+1
+            iter_count = iter_count + 1
             ready,res,tarstr = comm.recv()
             if res == "init":
                 sanity_check.write("Init from worker "+str(ready)+"\n")
                 sanity_check.flush()
-            if res != "init":
-                active = active -1
-                sanity_check.write("Response from worker "+str(ready)+"! Test num="+str(test_num)+"\nActive="+str(active)+"\n")
+            else:
+                tests_completed = tests_completed + 1
+                active = active - 1
+                sanity_check.write("Response from worker "+str(ready)+"! Test num="+str(tests_completed)+"\nActive="+str(active)+"\n")
                 sanity_check.flush()
                 try:
                     for line in res.strip().split("\n"):
@@ -123,18 +126,17 @@ if rank == 0:
                         y.append(0.0 if float(line.split(":")[1]) < 0.0 else 1.0)
                 except Exception as err:
                     fail += 1
-                    #test_num -= 1
+                    #tests_completed -= 1
                     errors.write("Error msg: " + str(err)+"\n")
                     errors.write(str(res.strip().split("\n"))+"\n"+tarstr)
                     errors.flush()
-            if test_num < examples_per_round:
-                test_num = test_num + 1
+            if tests_completed < examples_per_round:
                 ex = examples.pop(random.randint(0,len(examples)))
                 #ex = examples.pop(0)
                 comm.send((ex,graph_string),dest=ready) # give worker more work
+                active = active + 1
                 sanity_check.write("Giving worker "+str(ready)+" more work.\n")
                 sanity_check.flush()
-                active = active + 1
 
         generateDataTime = time.time() - start_time
         results.write("Time to generate data in round "+str(i)+": "+str(generate_data_time)+"\n")
