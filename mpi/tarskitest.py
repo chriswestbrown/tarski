@@ -104,16 +104,23 @@ if rank == 0:
                 comm.send(("ex","wakeup"),p)
 
         start_time = time.time()
+        x=0
         while test_num < examples_per_round or active > 0:
+            sanity_check.write("Loop iteration: "+str(x)+"\n")
+            sanity_check.flush()
+            x = x+1
             ready,res,tarstr = comm.recv()
+            if res == "init":
+                sanity_check.write("Init from worker "+str(ready)+"\n")
+                sanity_check.flush()
             if res != "init":
                 active = active -1
+                sanity_check.write("Response from worker "+str(ready)+"! Test num="+str(test_num)+"\nActive="+str(active)+"\n")
+                sanity_check.flush()
                 try:
                     for line in res.strip().split("\n"):
                         x.append([float(i) for i in line.split(":")[0].split(",")])
                         y.append(0.0 if float(line.split(":")[1]) < 0.0 else 1.0)
-                    sanity_check.write("succes from worker "+str(ready)+"! Test num="+str(test_num)+"\n")
-                    sanity_check.flush()
                 except Exception as err:
                     fail += 1
                     #test_num -= 1
