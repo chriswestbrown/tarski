@@ -99,16 +99,16 @@ if rank == 0:
         active = 0 # the number of processes currently
         fail = 0
         #prompt worker nodes to communicate if not in first round
-        if i != 1:
+        if i != 0:
             for p in range(1,n_workers+1):
                 comm.send(("ex","wakeup"),p)
 
         start_time = time.time()
-        x=0
+        count=0
         while test_num < examples_per_round or active > 0:
-            sanity_check.write("Loop iteration: "+str(x)+"\n")
+            sanity_check.write("Loop iteration: "+str(count)+"\n")
             sanity_check.flush()
-            x = x+1
+            count = count+1
             ready,res,tarstr = comm.recv()
             if res == "init":
                 sanity_check.write("Init from worker "+str(ready)+"\n")
