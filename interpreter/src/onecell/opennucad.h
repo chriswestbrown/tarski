@@ -50,6 +50,7 @@ class NodeObj : public GC_Obj
 
     this->originalData = data;
     this->originalTruthValue = truthValue;
+    this->numSplitOptions = 0;
   }
 
   // This method reverts a node back to the state it had prior to being refined
