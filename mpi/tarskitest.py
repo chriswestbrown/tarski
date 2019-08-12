@@ -142,7 +142,7 @@ if rank == 0:
         results.write("Time to generate data in round "+str(i)+": "+str(generateDataTime)+"\n")
         results.flush()
         model.fit(numpy.array(x),numpy.array(y),epochs=epochs,verbose=0)
-        fit_time = time.time()- generateDataTime
+        fit_time = time.time()- generateDataTime - start_time
         results.write("Time to fit model in round "+str(i)+": "+str(fit_time)+"\n")
         results.write("Round "+str(i)+"weights:\n"+model.get_weights()+"\n")
         results.write("Round "+str(i)+"graph string:\n"+arrays.getModelGraphString(model)+"\n")
