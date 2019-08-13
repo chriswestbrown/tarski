@@ -87,7 +87,7 @@ if rank == 0:
         ready = comm.recv(source=p)
         comm.send(random.randint(0,10000),dest=ready)
     try:
-        for i in range(2):
+        for i in range(math.floor(total_examples/examples_per_round)):
             results.write("STARTING ROUND "+str(i)+":\n")
             results.flush()
             x = []
