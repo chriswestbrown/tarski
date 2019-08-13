@@ -86,72 +86,75 @@ if rank == 0:
     for p in range(1,n_workers+1):
         ready = comm.recv(source=p)
         comm.send(random.randint(0,10000),dest=ready)
+    try:
+        for i in range(2):
+            results.write("STARTING ROUND "+str(i)+":\n")
+            results.flush()
+            x = []
+            y = []
+            graph_string = arrays.getModelGraphString(model).strip()
 
-    for i in range(1):
-        results.write("STARTING ROUND "+str(i)+":\n")
-        results.flush()
-        x = []
-        y = []
-        graph_string = arrays.getModelGraphString(model).strip()
+            # Farm out tasks to works until completed
+            tests_successful = 0 # number of successfully completed tests
+            active = 0 # the number of processes currently
+            fail = 0
+            #prompt worker nodes to communicate if not in first round
+            if i != 0:
+                for p in range(1,n_workers+1):
+                    comm.send(("ex","wakeup"),p)
 
-        # Farm out tasks to works until completed
-        tests_completed = 0 # number of successfully completed tests
-        active = 0 # the number of processes currently
-        fail = 0
-        #prompt worker nodes to communicate if not in first round
-        if i != 0:
-            for p in range(1,n_workers+1):
-                comm.send(("ex","wakeup"),p)
-
-        start_time = time.time()
-        iter_count = 0
-        while tests_completed < examples_per_round or active > 0:
-            sanity_check.write(">>>>>>> Starting loop iteration " + str(iter_count) +
-                               " tests_completed = " + str(tests_completed) + " active = " + str(active) +
-                               "\n")
-            sanity_check.flush()
-            iter_count = iter_count + 1
-            ready,res,tarstr = comm.recv()
-            if res == "init":
-                sanity_check.write("Init from worker "+str(ready)+"\n")
+            start_time = time.time()
+            iter_count = 0
+            while tests_successful < examples_per_round or active > 0:
+                sanity_check.write(">>>>>>> Starting loop iteration " + str(iter_count) +
+                                   " tests_successful = " + str(tests_successful) + " active = " + str(active) +
+                                   "\n")
                 sanity_check.flush()
-            else:
-                tests_completed = tests_completed + 1
-                active = active - 1
-                sanity_check.write("Response from worker "+str(ready)+"! Test num="+str(tests_completed)+"\nActive="+str(active)+"\n")
-                sanity_check.flush()
-                try:
-                    for line in res.strip().split("\n"):
-                        x.append([float(i) for i in line.split(":")[0].split(",")])
-                        y.append(0.0 if float(line.split(":")[1]) < 0.0 else 1.0)
-                except Exception as err:
-                    fail += 1
-                    #tests_completed -= 1
-                    errors.write("Error msg: " + str(err)+"\n")
-                    errors.write(str(res.strip().split("\n"))+"\n"+tarstr)
-                    errors.flush()
-            if tests_completed < examples_per_round:
-                ex = examples.pop(random.randint(0,len(examples)))
-                #ex = examples.pop(0)
-                comm.send((ex,graph_string),dest=ready) # give worker more work
-                active = active + 1
-                sanity_check.write("Giving worker "+str(ready)+" more work.\n")
-                sanity_check.flush()
+                iter_count = iter_count + 1
+                ready,res,tarstr = comm.recv()
+                if res == "init":
+                    sanity_check.write("Init from worker "+str(ready)+"\n")
+                    sanity_check.flush()
+                else:
+                    active = active - 1
+                    sanity_check.write("Response from worker "+str(ready)+"! Tests successful="+str(tests_successful)+"\nActive="+str(active)+"\n")
+                    sanity_check.flush()
+                    try:
+                        for line in res.strip().split("\n"):
+                            x.append([float(i) for i in line.split(":")[0].split(",")])
+                            y.append(0.0 if float(line.split(":")[1]) < 0.0 else 1.0)
+                        tests_successful = tests_successful + 1
+                    except Exception as err:
+                        fail += 1
+                        #tests_successful -= 1
+                        errors.write("Error msg: " + str(err)+"\n")
+                        errors.write(str(res.strip().split("\n"))+"\n"+tarstr)
+                        errors.flush()
+                if tests_successful < examples_per_round:
+                    ex = examples.pop(random.randint(0,len(examples)))
+                    #ex = examples.pop(0)
+                    comm.send((ex,graph_string),dest=ready) # give worker more work
+                    active = active + 1
+                    sanity_check.write("Giving worker "+str(ready)+" more work.\n")
+                    sanity_check.flush()
 
-        generateDataTime = time.time() - start_time
-        results.write("Time to generate data in round "+str(i)+": "+str(generateDataTime)+"\n")
-        results.flush()
-        model.fit(numpy.array(x),numpy.array(y),epochs=epochs,verbose=0)
-        fit_time = time.time()- generateDataTime - start_time
-        results.write("Time to fit model in round "+str(i)+": "+str(fit_time)+"\n")
-        results.write("Round "+str(i)+"weights:\n"+model.get_weights()+"\n")
-        results.write("Round "+str(i)+"graph string:\n"+arrays.getModelGraphString(model)+"\n")
-        results.flush()
-        learning_rate *= learning_decay
-        opt = keras.optimizers.SGD(lr=learning_rate,clipvalue=0.5)
-        model.compile(opt,loss='binary_crossentropy',metrics=['accuracy'])
-        results.write("Round "+str(i)+"done\n\n")
-        results.flush()
+            generateDataTime = time.time() - start_time
+            results.write("Time to generate data in round "+str(i)+": "+str(generateDataTime)+"\n")
+            results.flush()
+            model.fit(numpy.array(x),numpy.array(y),epochs=epochs,verbose=0)
+            fit_time = time.time()- generateDataTime - start_time
+            results.write("Time to fit model in round "+str(i)+": "+str(fit_time)+"\n")
+            results.write("Round "+str(i)+"weights:\n"+str(model.get_weights())+"\n")
+            results.write("Round "+str(i)+"graph string:\n"+str(arrays.getModelGraphString(model))+"\n")
+            results.flush()
+            learning_rate *= learning_decay
+            opt = keras.optimizers.SGD(lr=learning_rate,clipvalue=0.5)
+            model.compile(opt,loss='binary_crossentropy',metrics=['accuracy'])
+            results.write("Round "+str(i)+" done\n\n")
+            results.flush()
+
+    except Exception as err:
+        print(err)
 
     #kill all workers
     for p in range(1,n_workers+1):
