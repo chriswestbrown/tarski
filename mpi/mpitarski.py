@@ -18,11 +18,16 @@ import math
 import sys
 import arrays
 import time
-
+import os
 
 comm = MPI.COMM_WORLD
 rank,size = (comm.Get_rank(), comm.Get_size())
 
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"   # see issue #152
+if rank in range(4):
+ os.environ["CUDA_VISIBLE_DEVICES"] = str(rank)
+else:
+ os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 if rank == 0:
 
@@ -105,7 +110,7 @@ if rank == 0:
                     for line in res.strip().split("\n"):
                         x.append([float(i) for i in line.split(":")[0].split(",")])
                         y.append(0.0 if float(line.split(":")[1]) < 0.0 else 1.0)
-                        sanity_check.write("success!   "+line+"\n")
+                        sanity_check.write("succes! Test num="+str(test_num)+"+line+\n")
                         sanity_check.flush()
                 except Exception as err:
                     fail += 1
@@ -115,8 +120,8 @@ if rank == 0:
                     errors.flush()
             if test_num < examples_per_round:
                 test_num = test_num + 1
-                # ex = examples.pop(random.randint(0,len(examples)))
-                ex = examples.pop(0)
+                ex = examples.pop(random.randint(0,len(examples)))
+                #ex = examples.pop(0)
                 comm.send((ex,graph_string),dest=ready) # give worker more work
                 active = active + 1
             else:
