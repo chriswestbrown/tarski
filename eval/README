@@ -1,0 +1,17 @@
+Uses the same mpi format found in mpitarksi.py to quickly and efficiently
+evaluate choices against one another.
+
+To run: mpirun -n <number of nodes> mpievaltarski.py <path_to_param_file> <path_to_tarski_shell>
+
+The param file should have the following form:
+
+  choice1:<comma seperated list of "graph strings" produced by passing a model to arrays.py>
+  choice2:<a graph string to compare choice1 to, or "BPC" to use the BPC strategy>
+  num_examples:<int, number of examples to test for eacg item in choice1>
+  example_file:<path to file of example problems for tarski>
+
+For each element in choice1, num_examples random examples are pulled from the example
+file and then the number of nodes for each choice (curr in choice1 and choice 2) are
+calculated from tarski for each example. The result is calculated as follows:
+      sum(nodes_from_choice_1)/sum(nodes_from_choice_2)
+so that a number <1 means the first choice is better on everage than the second.
