@@ -39,8 +39,9 @@ if rank == 0:
 
     choice1 = params['choice1'].split(",")
     choice2 = params['choice2']
-    num_examples = int(params['num_examples'])
     example_file = params['example_file']
+    num_examples = int(params['num_examples'])
+
 
     n_workers = size - 1
     example_file = open(example_file,"r")
@@ -90,6 +91,7 @@ if rank == 0:
                     active = active + 1
         results.write(str(nums)+"\n")
         results.flush()
+
 
     #kill all workers
     for p in range(1,n_workers+1):
