@@ -7,7 +7,7 @@ import graphtest
 #   model passed in as input.
 
 def makeArrays(model):
-    weights = []
+    weights = [] 
     bias = []
     functions = []
     #iterate through each layer in the model. Does not include the inputs as a

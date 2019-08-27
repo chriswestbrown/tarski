@@ -7,7 +7,7 @@
 #   functions: 1D array of each layer's (not the input layer) activation functions.
 #       Produced by arrays.makeArrays
 def generateGraph(a, weight, bias, functions):
-    graphString = ""
+    graphString = "" 
     layer={}
     i=1
     while i <= len(a):
