@@ -17,6 +17,7 @@ import math
 import sys
 import arrays
 import time
+import os
 
 tarski_exec = ""
 try:
@@ -117,7 +118,7 @@ else:
             continue
         else:
             g = g.replace("sigmoid","tanh")
-            p = Popen([tarski_exec, "-q", "-t", "60", "+N20000000"],stdout=PIPE,stdin=PIPE)
+            p = Popen([tarski_exec, "-q", "-t", "60", "+N20000000"],stdout=PIPE,stdin=PIPE,env={'LD_LIBRARY_PATH':os.environ['LD_LIBRARY_PATH']})
             tarski_string = ""
             if g == "BPC":
                 tarski_string = ex+"\n"+"(def D (make-NuCADConjunction "+str(ex.split(" ")[1])+" '(chooser \"BPC\")))\n(display (msg D 'num-x-cells) \"\\n\")\n(quit)"

@@ -11,12 +11,17 @@
 #PBS -m be
 #PBS -M m201362@usna.edu
 
-cd ${WORKDIR}/eval
+export TMROOT=/gpfs/scratch/m201362/tarski/minisat
+export saclib=/gpfs/scratch/m201362/tarski/saclib2.2.7
+cd ${WORKDIR}/tarski/interpreter
 module purge
 module load anaconda3/5.2.0
 source activate mpi4py
-module load gcc/5.3.0 openmpi/2.1.1/gnu/5.3.0 tensorflow/1.11.0
+module load gcc/5.3.0
+make
+cd ../eval
+module load openmpi/2.1.1/gnu/5.3.0 tensorflow/1.11.0
 export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/cuda-local-hdd/cuda-9.2/targets/ppc64le-linux/lib/"
 export PATH=$PATH:$WORKDIR/tarski/bin
 export PYTHONPATH="$PYTHONPATH:$WORKDIR/tarski"
-mpirun  python mpievaltarski.py eval_tenthousand /gpfs/scratch/m201362/tarski/bin
+mpirun python mpievaltarski.py eval_tenthousand /gpfs/scratch/m201362/tarski/bin/tarski
