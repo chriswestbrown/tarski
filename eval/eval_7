@@ -1,0 +1,4 @@
+choice1:hokulea_param_file_7_results.txt
+choice2:BPC
+num_examples:300
+example_file:/gpfs/scratch/m201362/tarski/tests/hpc2019/sets/type2LARGE-5vars.txt

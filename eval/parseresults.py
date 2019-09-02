@@ -8,17 +8,16 @@
 #
 ###############################################################################
 
-
 import sys
 import re
 
-file = open(sys.argv[1],"r")
-text = file.read()
-file.close()
-rounds=re.findall("graph string:\\n.*\\n",text)
-rounds = [i.lstrip("graph string:\n").rstrip("\n") for i in rounds]
-out = open("graph_strings_"+sys.argv[1],"w")
-for r in rounds:
-    out.write(str(r)+",")
-out.flush()
-out.close()
+def getGraphStrings(file):
+    file = open(file,"r")
+    text = file.read()
+    file.close()
+    rounds=re.findall("graph string:\\n.*\\n",text)
+    rounds = [i.lstrip("graph string:\n").rstrip("\n") for i in rounds]
+    s = ""
+    for r in rounds:
+        s += (str(r)+",")
+    return s

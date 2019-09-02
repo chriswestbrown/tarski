@@ -18,6 +18,7 @@ import sys
 import arrays
 import time
 import os
+import parseresults
 
 tarski_exec = ""
 try:
@@ -30,6 +31,7 @@ rank,size = (comm.Get_rank(), comm.Get_size())
 
 if rank == 0:
 
+    plot = []
     results = open(sys.argv[1]+"_res","w")
     param_file = open(sys.argv[1],"r")
     param_string = param_file.read()
@@ -38,7 +40,8 @@ if rank == 0:
         name,val = p.split(":")[0],p.split(":")[1]
         params[name] = val
 
-    choice1 = params['choice1'].split(",")
+    choice1 = parseresults.getGraphStrings(params['choice1']).split(",")
+    choice1.pop()
     choice2 = params['choice2']
     example_file = params['example_file']
     num_examples = int(params['num_examples'])
@@ -90,9 +93,29 @@ if rank == 0:
                     graph_string = choice1[i] if j==0 else choice2
                     comm.send((ex,graph_string,index),dest=ready) # give worker more work
                     active = active + 1
-        results.write(str(nums)+"\n")
+                    
+        #test progress
+        win0 = 0
+        win1 = 1
+        for t in nums[0].keys():
+            if(nums[0][t]=="penalty" and nums[1][t]!="penalty"):
+                win1 += 1
+            elif(num[0][t]!="penalty" and nums[1][t]=="penalty"):
+                win0 +=1
+            elif(nums[0][t] > nums[1][t]):
+                win0 += 1
+            elif(nums[0][t] < nums[1][t]):
+                win1 += 1
+        wp = float(win0)/num_examples
+        plot.append(wp)
+        results.write("("+str(i)+","+str(wp)+"),")
         results.flush()
 
+    results.close()
+    f = open(sys.argv[1]+"_plot","w")
+    f.write(str(plot))
+    f.flush()
+    f.close()
 
     #kill all workers
     for p in range(1,n_workers+1):
