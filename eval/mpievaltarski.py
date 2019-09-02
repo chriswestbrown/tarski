@@ -93,14 +93,14 @@ if rank == 0:
                     graph_string = choice1[i] if j==0 else choice2
                     comm.send((ex,graph_string,index),dest=ready) # give worker more work
                     active = active + 1
-                    
+
         #test progress
         win0 = 0
         win1 = 1
         for t in nums[0].keys():
             if(nums[0][t]=="penalty" and nums[1][t]!="penalty"):
                 win1 += 1
-            elif(num[0][t]!="penalty" and nums[1][t]=="penalty"):
+            elif(nums[0][t]!="penalty" and nums[1][t]=="penalty"):
                 win0 +=1
             elif(nums[0][t] > nums[1][t]):
                 win0 += 1
