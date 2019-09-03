@@ -1,0 +1,6 @@
+example_file:../tests/hpc2019/sets/type2LARGE-5vars.txt
+epochs:50
+learning_rate:0.05
+learning_decay:0.9
+model_shape:11,1
+examples_per_round:1000
