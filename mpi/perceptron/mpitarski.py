@@ -179,7 +179,7 @@ else:
             continue
         else:
             g = g.replace("sigmoid","tanh")
-            p = Popen(["../bin/tarski","-q", "-t", "60", "+N20000000"],stdout=PIPE,stdin=PIPE,env={'LD_LIBRARY_PATH':os.environ['LD_LIBRARY_PATH']})
+            p = Popen(["../../bin/tarski","-q", "-t", "60", "+N20000000"],stdout=PIPE,stdin=PIPE,env={'LD_LIBRARY_PATH':os.environ['LD_LIBRARY_PATH']})
             tarski_string = ex+"\n"+"(def D (make-NuCADConjunction "+str(ex.split(" ")[1])+" '(chooser \"nnet\") '(nn-chooser \""+g+"\")))\n(display (msg D 'trial "+str(random.randint(0,10000000))+") \"\\n\")\n(quit)"
             res = p.communicate(tarski_string.encode())[0]
             p.terminate()

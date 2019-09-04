@@ -1,4 +1,4 @@
-example_file:../tests/hpc2019/sets/type2LARGE-5vars.txt
+example_file:/gpfs/scratch/m201362/tarski/tests/hpc2019/sets/type2LARGE-5vars.txt
 epochs:50
 learning_rate:0.05
 learning_decay:0.9
