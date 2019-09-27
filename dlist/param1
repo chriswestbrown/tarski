@@ -1,0 +1,2 @@
+example_file:../tests/hpc2019/sets/type2LARGE-5vars.txt
+examples_per_round:100000
