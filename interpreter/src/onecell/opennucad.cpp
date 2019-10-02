@@ -2009,8 +2009,6 @@ public:
     }
     return vector<int>{sum,ssum};
   }
-  
-
 };
 
 
@@ -2063,21 +2061,23 @@ void ONuCADObj::trial(NodeRef node, vector<vector<float>> &X, vector<vector<floa
     features(poly_i,poly_j), int_i - int_j.
    */
   bool sdebug = false;
-  node->getData()->getCell()->debugPrint();
-  if (sdebug) { cout << "Variable order: "; node->getData()->getCell()->getVarOrder()->write(); cout << endl; }
+  
+  if (sdebug) {
+    node->getData()->getCell()->debugPrint();
+    cout << "Variable order: "; node->getData()->getCell()->getVarOrder()->write(); cout << endl; }
   for(int i = 0; i < results.size(); ++i) {
     for(int j = 0; j < results.size(); ++j) {
       int delta = results[i].first - results[j].first;
       if (delta == 0) continue;
 
       vector<float> F = generateFeatures(node,results[i].second,results[j].second);
-      EntangleMeasure EM(node->getData()->getCell());
-      vector<int> em = EM.measure(results[i].second);
-      vector<int> fm = EM.measure(results[j].second);
-      F.push_back(em[0]); //feature 11
-      F.push_back(fm[0]); //feature 12
-      F.push_back(em[1]); //feature 13
-      F.push_back(fm[1]); //feature 14
+      // EntangleMeasure EM(node->getData()->getCell());
+      // vector<int> em = EM.measure(results[i].second);
+      // vector<int> fm = EM.measure(results[j].second);
+      // F.push_back(em[0]); //feature 11
+      // F.push_back(fm[0]); //feature 12
+      // F.push_back(em[1]); //feature 13
+      // F.push_back(fm[1]); //feature 14
       X.push_back(F);
       y.push_back(vector<float>{(float)results[i].first,(float)results[j].first});
 
