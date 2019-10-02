@@ -149,6 +149,11 @@ public:
     for(std::map<std::string,Variable>::iterator itr = table.begin(); itr != table.end(); ++itr)
       std::cout << itr->first << ":" << itr->second << std::endl;
   }
+  void print(VarSet S)
+  {
+    for(auto itr = S.begin(); itr != S.end(); ++itr)
+      std::cout << (itr == S.begin() ? "" : ",") << getName(*itr);
+  }
 };
 
 // This data structure allows fast lookups for maps keyed by a Variable

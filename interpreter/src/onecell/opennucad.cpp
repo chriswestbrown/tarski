@@ -1950,7 +1950,73 @@ public:
 vector<float> generateFeatures(NodeRef node, IntPolyRef p1, IntPolyRef p2);
 pair<IntPolyRef,IntPolyRef> removeTerms(IntPolyRef p, IntPolyRef q);
 
-void ONuCADObj::trial(NodeRef node, vector<vector<float>> &X, vector<float> &y)
+
+
+class EntangleMeasure
+{
+  VarOrderRef ord;
+  OpenCellRef C;
+public:
+  EntangleMeasure(OpenCellRef _C) : ord(_C->getVarOrder()), C(_C) { } 
+
+  vector<int> measure(IntPolyRef p)
+  {
+    // go through pseduo-projection
+    int level = ord->level(p);
+    vector<vector<VarSet> > S(level+1);  // S[i] holds level i
+    S[level].push_back(p->getVars());
+
+    // simulate discriminants and leading coeffs of p
+    IntPolyRef ldcf = ord->getPolyManager()->ldcf(p,ord->get(level));
+    VarSet s_l = ldcf->getVars();
+    if (!s_l.isEmpty()) S[ord->levelVarSet(s_l)].push_back(s_l);
+    if (p->degree(ord->get(level)) > 1)
+    {
+      VarSet d_l = p->getVars() - ord->get(level);
+      if (!d_l.isEmpty()) S[ord->levelVarSet(d_l)].push_back(d_l);      
+    }
+      
+    for(int i = level; i > 1; --i)
+    {
+      vector<VarSet> B;
+      if (C->get(i)->getLowerBoundCoord()->isFinite())
+	B.push_back(C->get(i)->getLowerBoundPoly()->getVars());
+      if (C->get(i)->getUpperBoundCoord()->isFinite())
+	B.push_back(C->get(i)->getUpperBoundPoly()->getVars());
+      for(auto sitr = S[i].begin(); sitr != S[i].end(); ++sitr)
+      {
+	// simulate resultants with upper and lower bounds
+	for(auto bitr = B.begin(); bitr != B.end(); ++bitr)
+	{	  
+	  VarSet res = ((*bitr)|(*sitr)) - ord->get(i);	  
+	  // ord->getPolyManager()->print(*bitr);
+	  // cout << " and ";
+	  // ord->getPolyManager()->print(*sitr);
+	  // cout << " --> ";
+	  // ord->getPolyManager()->print(res);
+	  // cout << endl;
+	  S[ord->levelVarSet(res)].push_back(res);
+	}
+      }
+    }
+
+    // come up with a number!
+    int sum = 1, ssum = 1;
+    for(int i = level - 1; i > 0; --i)
+    {
+      sum += S[i].size();
+      ssum = 2*ssum + S[i].size();
+    }
+    return vector<int>{sum,ssum};
+  }
+  
+
+};
+
+
+
+
+void ONuCADObj::trial(NodeRef node, vector<vector<float>> &X, vector<vector<float>> &y)
 {  
   SplitSetChooserRef toRevert = chooser;
   TrialChooserRef tchooser = new TrialChooserObj(toRevert,node,this->C);
@@ -1996,32 +2062,50 @@ void ONuCADObj::trial(NodeRef node, vector<vector<float>> &X, vector<float> &y)
     For each pair (int_i,poly_i) , (int_j,poly_j) we get a data row,
     features(poly_i,poly_j), int_i - int_j.
    */
+  bool sdebug = false;
+  node->getData()->getCell()->debugPrint();
+  if (sdebug) { cout << "Variable order: "; node->getData()->getCell()->getVarOrder()->write(); cout << endl; }
   for(int i = 0; i < results.size(); ++i) {
     for(int j = 0; j < results.size(); ++j) {
       int delta = results[i].first - results[j].first;
       if (delta == 0) continue;
 
-      X.push_back(generateFeatures(node,results[i].second,results[j].second));
-      y.push_back(float(delta)/minSize);
+      vector<float> F = generateFeatures(node,results[i].second,results[j].second);
+      EntangleMeasure EM(node->getData()->getCell());
+      vector<int> em = EM.measure(results[i].second);
+      vector<int> fm = EM.measure(results[j].second);
+      F.push_back(em[0]); //feature 11
+      F.push_back(fm[0]); //feature 12
+      F.push_back(em[1]); //feature 13
+      F.push_back(fm[1]); //feature 14
+      X.push_back(F);
+      y.push_back(vector<float>{(float)results[i].first,(float)results[j].first});
 
-      /*
-      vector<float> &V = X.back();
-      cout << delta << "(" << float(delta)/minSize << ") : ";
-      results[i].second->write(*(node->getData()->getPolyManager()));
-      cout << ", ";
-      results[j].second->write(*(node->getData()->getPolyManager()));
-      cout << " ";
-      cout << "[ " << V[0];
-      for(int k = 1; k < V.size(); ++k)
-	cout << ", " << V[k];
-      cout << " ]";
-      cout << " --- ";
-      pair<IntPolyRef,IntPolyRef> p = removeTerms(results[i].second,results[j].second);
-      p.first->write(*(node->getData()->getPolyManager()));
-      cout << " , ";
-      p.second->write(*(node->getData()->getPolyManager()));
-      cout << endl;
-      */
+      
+      if (sdebug) {
+	vector<float> &V = X.back();
+	cout << delta << "(" << results[i].first << " vs " << results[j].first << ") : ";
+	results[i].second->write(*(node->getData()->getPolyManager()));
+	cout << ", ";
+	results[j].second->write(*(node->getData()->getPolyManager()));
+	cout << " ";
+	cout << "[ " << V[0];
+	for(int k = 1; k < V.size(); ++k)
+	  cout << ", " << V[k];
+	cout << " ]";
+	cout << " --- ";
+	pair<IntPolyRef,IntPolyRef> p = removeTerms(results[i].second,results[j].second);
+	p.first->write(*(node->getData()->getPolyManager()));
+	cout << " , ";
+	p.second->write(*(node->getData()->getPolyManager()));
+	cout << " EM: ";
+	EntangleMeasure EM(node->getData()->getCell());
+	vector<int> em = EM.measure(results[i].second);
+	cout << em[0] << " " << em[1] << " / ";
+	vector<int> fm = EM.measure(results[j].second);
+	cout << fm[0] << " " << fm[1] << endl;
+	cout << endl;
+      }      
     }
   }
   chooser = toRevert;
@@ -2070,6 +2154,15 @@ pair<IntPolyRef,IntPolyRef> removeTerms(IntPolyRef p, IntPolyRef q)
 void polyPairFeatures(NodeRef node, IntPolyRef p1, IntPolyRef p2, vector<float> &V);
 
 /*** currently 1 + 5 + 5 = 11 features ***/
+/*
+v[0] \in {-1,0,1} : -1 if tdeg(p1) = 1 and tdeg(p2) > 1, +1 if tdeg(p2) = 1 and tdeg(p1) > 0, else 0
+v[1] \in +/-{0,1/(n-1),2/(n-1),...,1} : (level(p1) - level(p2))/(n-1)
+v[2] \in +/-{0,.2,.4,.6,.8,1.0} (tdeg(p1) - tdeg(p2))/5
+v[3] \in ??? : difference in "size", where size is BasicPolyCompare::SACPOLYSIZE
+v[4] \in {0,1,2,3,big} : degree of p1 in its main variable - 1 (this is seldom much larger than 3)
+v[5] \in {0,1,2,3,big} : degree of p2 in its main variable - 1 (this is seldom much larger than 3)
+V[6] ... V[10] mirror V[1]...V[5], except p1,p2 replaced with "reduced" polys pb1 and pb2.
+ */
 vector<float> generateFeatures(NodeRef node, IntPolyRef p1, IntPolyRef p2)
 {
   vector<float> V;
@@ -2079,7 +2172,8 @@ vector<float> generateFeatures(NodeRef node, IntPolyRef p1, IntPolyRef p2)
   pair<IntPolyRef,IntPolyRef> w = removeTerms(p1,p2);
   polyPairFeatures(node,w.first,w.second,V);
   
-  // comparative measures - construct q1 the poly consisting of all terms of p1 that are not in p2 (and q2 vice versa)
+  // comparative measures - construct q1 the poly consisting of all terms of p1 that are
+  //                        not in p2 (and q2 vice versa)
   // VarKeyedMap<int> M(ALOP);
   // FernPolyIter f1(p1,M), f2(p2,M);
   return V;

@@ -173,6 +173,28 @@ class NodeObj : public GC_Obj
     }
   };
 
+  /*
+if ({['W0=1.0','sign(W9-W10)=0.0','abs(W9-W10)<2=True']}) then ({choose-first:Yes})
+else if ({['sign(W6)=1.0','abs(W9-W10)<2=True','abs(W3)>1=0','abs(W4-W5)<2=True','abs(W8)>1=0','abs(W9-W10)<3=True']}) then ({choose-first:Yes})
+else ({choose-first:No})
+   */
+  class DavesComp : public SSCCompObj
+  {
+  public:
+    float eval(const std::vector<float> &F)
+    {
+      if (F[0] == 1.0 && F[9]-F[10] == 0.0 && fabs(F[9]-F[10])<2)
+	return -1.0;
+      else if (F[6] > 0.0 && fabs(F[9]-F[10])<2.0 && (!fabs(F[3])>1) && fabs(F[4]-F[5])<2 && (!fabs(F[8])>1) && fabs(F[9]-F[10])<3)
+	return -1.0;
+      else
+	return 1.0;
+    }
+  };
+
+  
+
+
   class PlayComp : public SSCCompObj
   {
   public:
@@ -481,7 +503,7 @@ class ONuCADObj : public GC_Obj
 
   TAndRef getUNSATCore();
   //-- This is the HPC learning 2019 trial
-  void trial(NodeRef node, vector<vector<float>> &X, vector<float> &y);
+  void trial(NodeRef node, vector<vector<float>> &X, vector<vector<float>> &y);
   int getCandidateNodes(NodeRef node, std::vector<pair<int,NodeRef>> &candidates, int leafThreshold, int choicesThreshold);
   
 };

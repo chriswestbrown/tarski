@@ -33,6 +33,7 @@ public:
   PolyManager* getPolyManager() const { return ptrPM; }
   void read(std::istream &in);
   void write();
+  int levelVarSet(VarSet W);
   int level(IntPolyRef p);
   VarKeyedMap<GCWord> makeValueMap(Word alpha, int r);
 

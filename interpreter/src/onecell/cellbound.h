@@ -29,6 +29,11 @@ public:
   CellBoundObj(Word rat);
   CellBoundObj(Word rat, Word pb, IntPolyRef p);
 
+  RealAlgNumRef getLowerBoundCoord() { return a; }
+  RealAlgNumRef getUpperBoundCoord() { return b; }
+  IntPolyRef getLowerBoundPoly() { return l; }
+  IntPolyRef getUpperBoundPoly() { return u; }
+  
   RealAlgNumRef getBoundAbovePoint(int dir, int k, Word beta, VarOrderRef X)
   {
     if (dir == -1) // lower bound!

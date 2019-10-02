@@ -63,8 +63,8 @@ class OpenNuCADObj : public TypeExtensionObj
     else // node comes as agument
       node = this->nucad->getNode(label);
 
-    std::vector<std::vector<float>> X;
-    std::vector<float> y;
+    std::vector<std::vector<float> > X;
+    std::vector<std::vector<float> > y;
     nucad->trial(node,X,y);
     std::ostringstream sout;
     if (X.size() > 0)
@@ -75,7 +75,8 @@ class OpenNuCADObj : public TypeExtensionObj
 	fooxx(X[r][0],sout);
 	for(int c = 1; c < N; ++c)
 	{ sout << ','; fooxx(X[r][c],sout); }
-	sout << ':'; fooxx(y[r],sout) << std::endl;
+	sout << ":"; fooxx(y[r][0],sout);
+	sout << ","; fooxx(y[r][1],sout);  sout << std::endl;
       }
     }
     return new StrObj(sout.str());
@@ -548,7 +549,9 @@ public:
       StrRef name;
       if (P.is_null() || P->length() != 2 || ((kind = P->get(0)->sym()), kind.is_null())
 	  || ((name = P->get(1)->str()), name.is_null()))
-      { continue; }
+      {
+	continue;
+      }
       optionsCount++;
       if (kind->getVal() == "chooser") { comp_name = name->getVal(); }
       else if (kind->getVal() == "nn-chooser") { nn_string = name->getVal(); }
@@ -623,6 +626,8 @@ public:
       chooser = new FeatureChooser(C, new BPCAsComp());
     else if (comp_name == "play")
       chooser = new FeatureChooser(C, new PlayComp());
+    else if (comp_name == "daves")
+      chooser = new FeatureChooser(C, new DavesComp());
     else if (comp_name == "rand")
       chooser = new FeatureChooser(C, new RandomComp());
     else if (comp_name == "nnet")

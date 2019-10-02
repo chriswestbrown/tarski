@@ -62,13 +62,17 @@ void VarOrderObj::write()
   } 
 }
 
-int VarOrderObj::level(IntPolyRef p) 
-{ 
-  VarSet W = p->getVars(); 
-  int i = V.size()-1; 
-  while(i > 0 && (V[i] & W).none()) --i; 
-  return i;
-}
+  int VarOrderObj::levelVarSet(VarSet W) 
+  { 
+    int i = V.size()-1; 
+    while(i > 0 && (V[i] & W).none()) --i; 
+    return i;
+  }
+  
+  int VarOrderObj::level(IntPolyRef p) 
+  { 
+    return levelVarSet(p->getVars());
+  }
 
 /*****************************************************************
  * E V A L U A T I O N
