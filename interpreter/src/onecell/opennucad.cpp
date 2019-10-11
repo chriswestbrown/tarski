@@ -1950,10 +1950,65 @@ public:
 vector<float> generateFeatures(NodeRef node, IntPolyRef p1, IntPolyRef p2);
 pair<IntPolyRef,IntPolyRef> removeTerms(IntPolyRef p, IntPolyRef q);
 
-
-
+/*
+  Computing a full projection w.r.t. a cell gives a pretty good 
+  picture of what you're in for when choosing a particular polynomial
+  to split a cell by.  Bit it's prohibitively expensive.  So, we try
+  here to do a psuedo-projection that will try to guess at the expense 
+  of choosing this particular polynomial.
 class EntangleMeasure
 {
+
+  class PseudoPF
+  {
+    VarSet V;
+    IntPolyRef p;
+  public:
+    PseudoPF(const VarSet &_V) : V(_V), p() { }
+    PseudoPF(const IntPolyRef &_p) : V(), p(_p) { }
+    bool isPoly(const VarOrderRef &ord) const { return !p.is_null(); }
+    int level(const VarOrderRef &ord) const { return isPoly(ord) ? ord->level(p) : ord->levelVarSet(V); }
+
+    void projectSelf(vector<vector<PseudoPF> > &S, const VarOrderRef &ord)
+    {
+      if (isPoly())
+      {
+	add(PseudoPF(ord->getPolyManager()->ldcf(p,ord->get(level))),S,ord);
+	if (p->degree(ord->get(level)) > 1)
+	  add(PseudoPF(p->getVars() - ord->get(level)),S,ord);
+      }
+      else
+      {
+	VarSet d = V - ord->get(i);
+	add(PseudoPF(d),S,ord); // discriminant
+	add(PseudoPF(d),S,ord); // ldcf
+      }      
+    }
+    void add(const PseudoPF &V, vector<vector<PseudoPF> > &S, const VarOrderRef &ord);
+
+    void projectWRTBounds(vector<vector<PseudoPF> > &S, const VarOrderRef &ord, vector<IntPolyRef> &B)
+    {
+      int N = level();
+      VarSet x = ord->get(N);
+      for(auto bitr = B.begin(); bitr != B.end(); ++bitr)
+      {
+	if (isPoly())
+	{
+	  if (p->degree(x) == 1 && (*bitr)->degree(x) == 1)
+	  {
+	  }
+	  else
+	    add(((*bitr)->getVars()|p->getVars()) - x,S,ord);
+	}
+	else
+	{
+	  add(((*bitr)->getVars()|V) - x,S,ord);	   
+	}
+      }
+    }
+    
+  };
+  
   VarOrderRef ord;
   OpenCellRef C;
 public:
@@ -1963,28 +2018,22 @@ public:
   {
     // go through pseduo-projection
     int level = ord->level(p);
-    vector<vector<VarSet> > S(level+1);  // S[i] holds level i
-    S[level].push_back(p->getVars());
+    vector<vector<PseudoPF> > S(level+1);  // S[i] holds level i
+    add(PseudoPF(p),S,ord);
 
-    // simulate discriminants and leading coeffs of p
-    IntPolyRef ldcf = ord->getPolyManager()->ldcf(p,ord->get(level));
-    VarSet s_l = ldcf->getVars();
-    if (!s_l.isEmpty()) S[ord->levelVarSet(s_l)].push_back(s_l);
-    if (p->degree(ord->get(level)) > 1)
-    {
-      VarSet d_l = p->getVars() - ord->get(level);
-      if (!d_l.isEmpty()) S[ord->levelVarSet(d_l)].push_back(d_l);      
-    }
       
     for(int i = level; i > 1; --i)
     {
-      vector<VarSet> B;
+      vector<InPolyRef> B;
       if (C->get(i)->getLowerBoundCoord()->isFinite())
-	B.push_back(C->get(i)->getLowerBoundPoly()->getVars());
+	B.push_back(C->get(i)->getLowerBoundPoly());
       if (C->get(i)->getUpperBoundCoord()->isFinite())
-	B.push_back(C->get(i)->getUpperBoundPoly()->getVars());
+	B.push_back(C->get(i)->getUpperBoundPoly());
       for(auto sitr = S[i].begin(); sitr != S[i].end(); ++sitr)
       {
+	// simulate discriminants and leading coeffs
+	(*sitr)->projectSelf(S,ord);
+
 	// simulate resultants with upper and lower bounds
 	for(auto bitr = B.begin(); bitr != B.end(); ++bitr)
 	{	  
@@ -2011,7 +2060,13 @@ public:
   }
 };
 
+void EntangleMeasure::add(const PseudoPF &V, vector<vector<PseudoPF> > &S, const VarOrderRef &ord)
+{
+  int level = V->level(ord);
+  if (level > 0) S[level]->push_back(V);
+}
 
+*/
 
 
 void ONuCADObj::trial(NodeRef node, vector<vector<float>> &X, vector<vector<float>> &y)
@@ -2071,13 +2126,15 @@ void ONuCADObj::trial(NodeRef node, vector<vector<float>> &X, vector<vector<floa
       if (delta == 0) continue;
 
       vector<float> F = generateFeatures(node,results[i].second,results[j].second);
-      // EntangleMeasure EM(node->getData()->getCell());
-      // vector<int> em = EM.measure(results[i].second);
-      // vector<int> fm = EM.measure(results[j].second);
-      // F.push_back(em[0]); //feature 11
-      // F.push_back(fm[0]); //feature 12
-      // F.push_back(em[1]); //feature 13
-      // F.push_back(fm[1]); //feature 14
+      /*
+      EntangleMeasure EM(node->getData()->getCell());
+      vector<int> em = EM.measure(results[i].second);
+      vector<int> fm = EM.measure(results[j].second);
+      F.push_back(em[0]); //feature 11
+      F.push_back(fm[0]); //feature 12
+      F.push_back(em[1]); //feature 13
+      F.push_back(fm[1]); //feature 14
+      */
       X.push_back(F);
       y.push_back(vector<float>{(float)results[i].first,(float)results[j].first});
 
@@ -2099,11 +2156,11 @@ void ONuCADObj::trial(NodeRef node, vector<vector<float>> &X, vector<vector<floa
 	cout << " , ";
 	p.second->write(*(node->getData()->getPolyManager()));
 	cout << " EM: ";
-	EntangleMeasure EM(node->getData()->getCell());
-	vector<int> em = EM.measure(results[i].second);
-	cout << em[0] << " " << em[1] << " / ";
-	vector<int> fm = EM.measure(results[j].second);
-	cout << fm[0] << " " << fm[1] << endl;
+	// EntangleMeasure EM(node->getData()->getCell());
+	// vector<int> em = EM.measure(results[i].second);
+	// cout << em[0] << " " << em[1] << " / ";
+	// vector<int> fm = EM.measure(results[j].second);
+	// cout << fm[0] << " " << fm[1] << endl;
 	cout << endl;
       }      
     }
@@ -2233,5 +2290,42 @@ IntPolyRef FeatureChooser::chooseNextPoly(set<IntPolyRef> &S, VarOrderRef X, Nod
   return choice;
 }
 
+
+int DecisionListComp::decide(const std::vector<float> &features, std::istream& list){
+  std::stack<float> S;
+  bool firstif = true;
+  std::string next;
+  while(list >> next)
+  {
+    switch(next[0])
+    {
+    case 'W':{ float s = S.top(); S.pop(); S.push(features[(int)s]); }break;
+    case 's':{ float s = S.top(); S.pop(); float p = (s > 0) ? 1.0 : ((s < 0) ? -1.0 : 0.0); S.push(p); }break;
+    case 'a':{ float s = S.top(); S.pop(); float p = abs(s); S.push(p); }break;
+    case '=':{ float s = S.top(); S.pop(); float t = S.top(); S.pop(); S.push(s==t ? 1.0 : 0.0); }break;
+    case 'i':{ float r = S.top(); S.pop(); float c = S.top(); S.pop(); if(c==1) return r; }break;
+    case 'e':{ float r = S.top(); S.pop(); return r; }break;
+    case '&':{
+      std::vector<float> C;
+      while(!S.empty()) {
+	C.push_back(S.top());
+	S.pop();
+      }
+      bool all_true = true;
+      for(int i = 0; i < C.size(); ++i){
+	if(C[i] != 1)
+	  all_true = false;
+      }
+      S.push(all_true ? 1.0 : 0.0);
+    }break;
+    case '|':{    }break;
+    case '<':{ float s = S.top(); S.pop(); float t = S.top(); S.pop(); S.push(t<s ? 1.0 : 0.0);  }break;
+    case '-':{ float s = S.top(); S.pop(); float t = S.top(); S.pop();	S.push(t-s);  }break;
+    default: { S.push(std::stod(next)); }break;
+    }
+  }
+
+  return 99999;
+}
 
 }//end namespace tarski

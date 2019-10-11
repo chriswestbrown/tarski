@@ -191,7 +191,7 @@ else ({choose-first:No})
 	return 1.0;
     }
   };
-
+  
   
 
 
@@ -238,6 +238,21 @@ else ({choose-first:No})
     {
       nn.setInputs(F);
       double r = nn.calculate();
+      return r;
+    }
+  };
+  
+  class DecisionListComp : public SSCCompObj
+  {
+    int decide(const std::vector<float> &features, std::istream& list);
+    
+    string postfixDecisionList;
+  public:
+  DecisionListComp(const std::string &postfixDL) : postfixDecisionList(postfixDL) { }
+    float eval(const std::vector<float> &F)
+    {
+      istringstream sin(postfixDecisionList);
+      double r = decide(F,sin) == 1 ? -1.0 : 1.0;
       return r;
     }
   };

@@ -541,7 +541,7 @@ public:
       Options are pairs: ('chooser <string:name>)
     */
     int optionsCount = 0;
-    std::string comp_name, nn_string;    
+    std::string comp_name, nn_string, dl_string;    
     for(int i = 0; i < args.size(); ++i)
     {
       LisRef P = args[i]->lis();
@@ -555,6 +555,7 @@ public:
       optionsCount++;
       if (kind->getVal() == "chooser") { comp_name = name->getVal(); }
       else if (kind->getVal() == "nn-chooser") { nn_string = name->getVal(); }
+      else if (kind->getVal() == "dl-chooser") { dl_string = name->getVal(); }
       else throw TarskiException("Unknown option kind!");
     }    
 
@@ -632,6 +633,8 @@ public:
       chooser = new FeatureChooser(C, new RandomComp());
     else if (comp_name == "nnet")
       chooser = new FeatureChooser(C, new NNetComp(nn_string));
+    else if (comp_name == "dlist")
+      chooser = new FeatureChooser(C, new DecisionListComp(dl_string));
     else
       chooser = new SplitSetChooserConjunction(C);
 
