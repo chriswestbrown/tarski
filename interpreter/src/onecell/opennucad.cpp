@@ -1947,7 +1947,7 @@ public:
   IntPolyRef getLastChoice() { auto x = lastChoice; lastChoice = NULL; return x; }
 };
 
-vector<float> generateFeatures(NodeRef node, IntPolyRef p1, IntPolyRef p2);
+vector<float> generateFeatures(NodeRef node, IntPolyRef p1, IntPolyRef p2, bool &swappedOrder);
 pair<IntPolyRef,IntPolyRef> removeTerms(IntPolyRef p, IntPolyRef q);
 
 /*
@@ -2125,7 +2125,8 @@ void ONuCADObj::trial(NodeRef node, vector<vector<float>> &X, vector<vector<floa
       int delta = results[i].first - results[j].first;
       if (delta == 0) continue;
 
-      vector<float> F = generateFeatures(node,results[i].second,results[j].second);
+      bool swappedOrder;
+      vector<float> F = generateFeatures(node,results[i].second,results[j].second,swappedOrder);
       /*
       EntangleMeasure EM(node->getData()->getCell());
       vector<int> em = EM.measure(results[i].second);
@@ -2136,7 +2137,9 @@ void ONuCADObj::trial(NodeRef node, vector<vector<float>> &X, vector<vector<floa
       F.push_back(fm[1]); //feature 14
       */
       X.push_back(F);
-      y.push_back(vector<float>{(float)results[i].first,(float)results[j].first});
+      y.push_back(swappedOrder
+		  ? vector<float>{(float)results[j].first,(float)results[i].first}
+		  : vector<float>{(float)results[i].first,(float)results[j].first});
 
       
       if (sdebug) {
@@ -2210,8 +2213,35 @@ pair<IntPolyRef,IntPolyRef> removeTerms(IntPolyRef p, IntPolyRef q)
   
 void polyPairFeatures(NodeRef node, IntPolyRef p1, IntPolyRef p2, vector<float> &V);
 
+void feature_vector_reverse(const vector<float> &W, vector<float>& Wrev)
+{
+  Wrev = W; //-- copy!
+  Wrev[0] = -W[0];
+  Wrev[1] = -W[1];
+  Wrev[2] = -W[2];
+  Wrev[3] = -W[3];
+  swap(Wrev[4],Wrev[5]);
+  Wrev[6] = -W[6];
+  Wrev[7] = -W[7];
+  Wrev[8] = -W[8];
+  swap(Wrev[9],Wrev[10]);
+}
+
+int lexcomp(const vector<float>& U, const vector<float>& V, int n)
+{
+  float res = 0;
+  for(int K = std::min(n,(int)U.size()), i = 0;res == 0 && i <= K; i++)
+    res = U[i] - V[i];
+  return res < 0.0 ? -1 : (res > 0.0 ? +1 : 0);
+}
+	    
+
 /*** currently 1 + 5 + 5 = 11 features ***/
 /*
+generateFeatures returns either the vector g(a=p1,b=p2,c=node) or pi(g(a=p1,b=p2,c=node)),
+whicever is lexicographically less.  If the latter is returned, swappedOrder is set to true,
+otherwise swappedOrder is set to false.
+
 v[0] \in {-1,0,1} : -1 if tdeg(p1) = 1 and tdeg(p2) > 1, +1 if tdeg(p2) = 1 and tdeg(p1) > 0, else 0
 v[1] \in +/-{0,1/(n-1),2/(n-1),...,1} : (level(p1) - level(p2))/(n-1)
 v[2] \in +/-{0,.2,.4,.6,.8,1.0} (tdeg(p1) - tdeg(p2))/5
@@ -2220,19 +2250,28 @@ v[4] \in {0,1,2,3,big} : degree of p1 in its main variable - 1 (this is seldom m
 v[5] \in {0,1,2,3,big} : degree of p2 in its main variable - 1 (this is seldom much larger than 3)
 V[6] ... V[10] mirror V[1]...V[5], except p1,p2 replaced with "reduced" polys pb1 and pb2.
  */
-vector<float> generateFeatures(NodeRef node, IntPolyRef p1, IntPolyRef p2)
+vector<float> generateFeatures(NodeRef node, IntPolyRef p1, IntPolyRef p2, bool &swappedOrder)
 {
   vector<float> V;
   int td1 = p1->totalDegree(), td2 = p2->totalDegree();
+  // W[0]
   V.push_back(td1 == 1 && td2 > 1 ? -1.0 : (td2 == 1 && td1 > 1 ? 1.0 : 0.0));
+
+  // W[1],...,W[5]
   polyPairFeatures(node,p1,p2,V);
-  pair<IntPolyRef,IntPolyRef> w = removeTerms(p1,p2);
-  polyPairFeatures(node,w.first,w.second,V);
-  
+
+  // W[6],...,W[10]
   // comparative measures - construct q1 the poly consisting of all terms of p1 that are
   //                        not in p2 (and q2 vice versa)
-  // VarKeyedMap<int> M(ALOP);
-  // FernPolyIter f1(p1,M), f2(p2,M);
+  pair<IntPolyRef,IntPolyRef> w = removeTerms(p1,p2);
+  polyPairFeatures(node,w.first,w.second,V);
+
+  // construct reverse
+  vector<float> Vrev;
+  feature_vector_reverse(V,Vrev);
+
+  swappedOrder = false;
+  if (lexcomp(Vrev,V,V.size()) < 0) { swap(V,Vrev); swappedOrder = true; } 
   return V;
 }
 
@@ -2281,9 +2320,10 @@ IntPolyRef FeatureChooser::chooseNextPoly(set<IntPolyRef> &S, VarOrderRef X, Nod
     while(++itr != S.end())
     {
       IntPolyRef next = *itr;
-      vector<float> F = generateFeatures(node,next,choice);
+      bool swappedOrder;
+      vector<float> F = generateFeatures(node,next,choice,swappedOrder);
       float val = this->comp->eval(F);
-      if (val < 0.0)
+      if (!swappedOrder && val < 0.0 || swappedOrder && val > 0.0)
 	choice = next;
     }
   }
