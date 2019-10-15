@@ -2121,7 +2121,7 @@ void ONuCADObj::trial(NodeRef node, vector<vector<float>> &X, vector<vector<floa
     node->getData()->getCell()->debugPrint();
     cout << "Variable order: "; node->getData()->getCell()->getVarOrder()->write(); cout << endl; }
   for(int i = 0; i < results.size(); ++i) {
-    for(int j = 0; j < results.size(); ++j) {
+    for(int j = i+1; j < results.size(); ++j) {
       int delta = results[i].first - results[j].first;
       if (delta == 0) continue;
 
