@@ -1953,12 +1953,18 @@ pair<IntPolyRef,IntPolyRef> removeTerms(IntPolyRef p, IntPolyRef q);
 /*
   Computing a full projection w.r.t. a cell gives a pretty good 
   picture of what you're in for when choosing a particular polynomial
-  to split a cell by.  Bit it's prohibitively expensive.  So, we try
+  to split a cell by.  But it's prohibitively expensive.  So, we try
   here to do a psuedo-projection that will try to guess at the expense 
   of choosing this particular polynomial.
+*/
 class EntangleMeasure
 {
 
+  /*
+    A pseudo projection factor is either an actual polynomial or
+    a "placeholder" that represents the set of possible variables
+    the projection factor could contain, but nothing more.
+   */
   class PseudoPF
   {
     VarSet V;
@@ -1968,10 +1974,18 @@ class EntangleMeasure
     PseudoPF(const IntPolyRef &_p) : V(), p(_p) { }
     bool isPoly(const VarOrderRef &ord) const { return !p.is_null(); }
     int level(const VarOrderRef &ord) const { return isPoly(ord) ? ord->level(p) : ord->levelVarSet(V); }
-
+    IntPolyRef getPoly() { return p; }
+    
+    // Right now, projectSelf is producing discriminants and leading coefficients.
+    // In fact, as long as the proj fac is not going to be the upper or lower bound
+    // of the cell, we don't need the leading coefficeint.  I should look into this
+    // later so I can get a more accurate prediction
+    // NOTE:  I do not need to be conservative or correct with this.  After all, this
+    //        is just a feature used for prediction.
     void projectSelf(vector<vector<PseudoPF> > &S, const VarOrderRef &ord)
     {
-      if (isPoly())
+      int level = this->level(ord);
+      if (isPoly(ord))
       {
 	add(PseudoPF(ord->getPolyManager()->ldcf(p,ord->get(level))),S,ord);
 	if (p->degree(ord->get(level)) > 1)
@@ -1979,23 +1993,25 @@ class EntangleMeasure
       }
       else
       {
-	VarSet d = V - ord->get(i);
+	VarSet d = V - ord->get(level);
 	add(PseudoPF(d),S,ord); // discriminant
 	add(PseudoPF(d),S,ord); // ldcf
       }      
     }
-    void add(const PseudoPF &V, vector<vector<PseudoPF> > &S, const VarOrderRef &ord);
+
+    //void add(const PseudoPF &V, vector<vector<PseudoPF> > &S, const VarOrderRef &ord);
 
     void projectWRTBounds(vector<vector<PseudoPF> > &S, const VarOrderRef &ord, vector<IntPolyRef> &B)
     {
-      int N = level();
+      int N = this->level(ord);
       VarSet x = ord->get(N);
       for(auto bitr = B.begin(); bitr != B.end(); ++bitr)
       {
-	if (isPoly())
+	if (isPoly(ord))
 	{
 	  if (p->degree(x) == 1 && (*bitr)->degree(x) == 1)
 	  {
+	    
 	  }
 	  else
 	    add(((*bitr)->getVars()|p->getVars()) - x,S,ord);
@@ -2014,6 +2030,13 @@ class EntangleMeasure
 public:
   EntangleMeasure(OpenCellRef _C) : ord(_C->getVarOrder()), C(_C) { } 
 
+  static void add(const PseudoPF &V, vector<vector<PseudoPF> > &S, const VarOrderRef &ord)
+  {
+    int level = V.level(ord);
+    if (level > 0) S[level].push_back(V);
+  }
+
+
   vector<int> measure(IntPolyRef p)
   {
     // go through pseduo-projection
@@ -2024,7 +2047,7 @@ public:
       
     for(int i = level; i > 1; --i)
     {
-      vector<InPolyRef> B;
+      vector<IntPolyRef> B;
       if (C->get(i)->getLowerBoundCoord()->isFinite())
 	B.push_back(C->get(i)->getLowerBoundPoly());
       if (C->get(i)->getUpperBoundCoord()->isFinite())
@@ -2032,9 +2055,13 @@ public:
       for(auto sitr = S[i].begin(); sitr != S[i].end(); ++sitr)
       {
 	// simulate discriminants and leading coeffs
-	(*sitr)->projectSelf(S,ord);
+	(*sitr).projectSelf(S,ord);
 
 	// simulate resultants with upper and lower bounds
+	//void projectWRTBounds(vector<vector<PseudoPF> > &S, const VarOrderRef &ord, vector<IntPolyRef> &B)
+	(*sitr).projectWRTBounds(S,ord,B);
+
+	/*
 	for(auto bitr = B.begin(); bitr != B.end(); ++bitr)
 	{	  
 	  VarSet res = ((*bitr)|(*sitr)) - ord->get(i);	  
@@ -2046,6 +2073,7 @@ public:
 	  // cout << endl;
 	  S[ord->levelVarSet(res)].push_back(res);
 	}
+	*/
       }
     }
 
@@ -2060,13 +2088,7 @@ public:
   }
 };
 
-void EntangleMeasure::add(const PseudoPF &V, vector<vector<PseudoPF> > &S, const VarOrderRef &ord)
-{
-  int level = V->level(ord);
-  if (level > 0) S[level]->push_back(V);
-}
 
-*/
 
 
 void ONuCADObj::trial(NodeRef node, vector<vector<float>> &X, vector<vector<float>> &y)
@@ -2127,15 +2149,7 @@ void ONuCADObj::trial(NodeRef node, vector<vector<float>> &X, vector<vector<floa
 
       bool swappedOrder;
       vector<float> F = generateFeatures(node,results[i].second,results[j].second,swappedOrder);
-      /*
-      EntangleMeasure EM(node->getData()->getCell());
-      vector<int> em = EM.measure(results[i].second);
-      vector<int> fm = EM.measure(results[j].second);
-      F.push_back(em[0]); //feature 11
-      F.push_back(fm[0]); //feature 12
-      F.push_back(em[1]); //feature 13
-      F.push_back(fm[1]); //feature 14
-      */
+
       X.push_back(F);
       y.push_back(swappedOrder
 		  ? vector<float>{(float)results[j].first,(float)results[i].first}
@@ -2159,11 +2173,11 @@ void ONuCADObj::trial(NodeRef node, vector<vector<float>> &X, vector<vector<floa
 	cout << " , ";
 	p.second->write(*(node->getData()->getPolyManager()));
 	cout << " EM: ";
-	// EntangleMeasure EM(node->getData()->getCell());
-	// vector<int> em = EM.measure(results[i].second);
-	// cout << em[0] << " " << em[1] << " / ";
-	// vector<int> fm = EM.measure(results[j].second);
-	// cout << fm[0] << " " << fm[1] << endl;
+	EntangleMeasure EM(node->getData()->getCell());
+	vector<int> em = EM.measure(results[i].second);
+	cout << em[0] << " " << em[1] << " / ";
+	vector<int> fm = EM.measure(results[j].second);
+	cout << fm[0] << " " << fm[1] << endl;
 	cout << endl;
       }      
     }
@@ -2225,6 +2239,8 @@ void feature_vector_reverse(const vector<float> &W, vector<float>& Wrev)
   Wrev[7] = -W[7];
   Wrev[8] = -W[8];
   swap(Wrev[9],Wrev[10]);
+  swap(Wrev[11],Wrev[12]);
+  swap(Wrev[13],Wrev[14]);
 }
 
 int lexcomp(const vector<float>& U, const vector<float>& V, int n)
@@ -2266,6 +2282,15 @@ vector<float> generateFeatures(NodeRef node, IntPolyRef p1, IntPolyRef p2, bool 
   pair<IntPolyRef,IntPolyRef> w = removeTerms(p1,p2);
   polyPairFeatures(node,w.first,w.second,V);
 
+  // W[11],...,W[14]
+  EntangleMeasure EM(node->getData()->getCell());
+  vector<int> em = EM.measure(p1);
+  vector<int> fm = EM.measure(p2);
+  V.push_back(em[0]); //feature 11
+  V.push_back(fm[0]); //feature 12
+  V.push_back(em[1]); //feature 13
+  V.push_back(fm[1]); //feature 14
+  
   // construct reverse
   vector<float> Vrev;
   feature_vector_reverse(V,Vrev);
