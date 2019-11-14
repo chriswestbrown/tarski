@@ -109,16 +109,19 @@ static bool readBracketedInputFromStream(istream &in, ostream &out)
 }
 
 
-inline bool polyChar(char c)
-{ return isalnum(c) || c== ' ' || c == '\n' || c == '+' || c == '-' || c == '^' || c == '*'
-    || c == '(' || c == ')'; }
+inline bool polyCharX(char c)
+{
+
+  bool x = isalnum(c) || c== ' ' || c == '\n' || c == '+' || c == '-' || c == '^' || c == '*' || c == '(' || c == ')';
+  return x;
+}
 
 static Word readMaplePoly(Word r, Word V, istream &in)
 {
   Word A, t;
   string s;
   char c;
-  while((c = in.peek()) && (c == '\\' || polyChar(c)))
+  while((c = in.peek()) && (c == '\\' || polyCharX(c)))
   {
     c = in.get();
     if (c == '\\') { while(in.get() != '\n'); }

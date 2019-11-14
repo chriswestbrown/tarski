@@ -593,7 +593,7 @@ public:
     {
       // Variable order
       LisRef Lv = args[0]->lis();
-      VarOrderRef V = new VarOrderObj(interp->PM);
+      V = new VarOrderObj(interp->PM);
       for(int i = 0; i < Lv->length(); ++i)
       {
 	SymRef s = Lv->get(i)->sym();
@@ -602,14 +602,14 @@ public:
 
       // Rational point alpha
       LisRef La = args[1]->lis();
-      Word A = NIL;
+      A = NIL;
       for(int i = La->length() - 1; i >= 0; --i)
 	A = COMP(La->get(i)->num()->val,A);
 
       // Conjunction F
       TarRef TF = args[2]->tar();
       TFormRef F = TF->val;
-      TAndRef C = asa<TAndObj>(F);
+      C = asa<TAndObj>(F);
       if (C.is_null())
       {
 	TAtomRef a = asa<TAtomObj>(F);
