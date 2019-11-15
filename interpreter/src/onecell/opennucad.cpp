@@ -2385,6 +2385,7 @@ int DecisionListComp::decide(const std::vector<float> &features, std::istream& l
     }break;
     case '|':{    }break;
     case '<':{ float s = S.top(); S.pop(); float t = S.top(); S.pop(); S.push(t<s ? 1.0 : 0.0);  }break;
+    case '>':{ float s = S.top(); S.pop(); float t = S.top(); S.pop(); S.push(t>s ? 1.0 : 0.0);  }break;
     case '-':{ float s = S.top(); S.pop(); float t = S.top(); S.pop();	S.push(t-s);  }break;
     default: { S.push(std::stod(next)); }break;
     }
