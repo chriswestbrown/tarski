@@ -2089,6 +2089,8 @@ public:
 };
 
 
+// for testing!
+void geometricFeatures(NodeRef node, IntPolyRef p1, IntPolyRef p2, vector<float> &V);
 
 
 void ONuCADObj::trial(NodeRef node, vector<vector<float>> &X, vector<vector<float>> &y)
@@ -2142,6 +2144,7 @@ void ONuCADObj::trial(NodeRef node, vector<vector<float>> &X, vector<vector<floa
   if (sdebug) {
     node->getData()->getCell()->debugPrint();
     cout << "Variable order: "; node->getData()->getCell()->getVarOrder()->write(); cout << endl; }
+
   for(int i = 0; i < results.size(); ++i) {
     for(int j = i+1; j < results.size(); ++j) {
       int delta = results[i].first - results[j].first;
@@ -2155,6 +2158,13 @@ void ONuCADObj::trial(NodeRef node, vector<vector<float>> &X, vector<vector<floa
 		  ? vector<float>{(float)results[j].first,(float)results[i].first}
 		  : vector<float>{(float)results[i].first,(float)results[j].first});
 
+      // { // TESTING!
+      // 	vector<float> V;
+      // if (!swappedOrder)
+      // 	geometricFeatures(node,results[i].second,results[j].second,V);
+      // else
+      // 	geometricFeatures(node,results[j].second,results[i].second,V);
+      // }
       
       if (sdebug) {
 	vector<float> &V = X.back();
@@ -2241,16 +2251,31 @@ void feature_vector_reverse(const vector<float> &W, vector<float>& Wrev)
   swap(Wrev[9],Wrev[10]);
   swap(Wrev[11],Wrev[12]);
   swap(Wrev[13],Wrev[14]);
+  swap(Wrev[15],Wrev[16]);
+  Wrev[17] = -W[17];
+  Wrev[18] = -W[18];
 }
 
 int lexcomp(const vector<float>& U, const vector<float>& V, int n)
 {
   float res = 0;
-  for(int K = std::min(n,(int)U.size()), i = 0;res == 0 && i <= K; i++)
+  for(int K = std::min(n,(int)U.size()), i = 0;res == 0 && i < K; i++)
     res = U[i] - V[i];
   return res < 0.0 ? -1 : (res > 0.0 ? +1 : 0);
 }
-	    
+
+int staggeredlexcomp(const vector<float>& U, const vector<float>& V, int n)
+{
+  int initialIndex = 4;
+  int K = std::min(n,(int)U.size());
+  float res = 0;
+
+  for(int i = 0, j = initialIndex; res == 0 && i < K; i++, j = (j+1)%K)
+    res = U[j] - V[j];
+  return res < 0.0 ? -1 : (res > 0.0 ? +1 : 0);
+}
+
+
 
 /*** currently 1 + 5 + 5 = 11 features ***/
 /*
@@ -2265,6 +2290,10 @@ v[3] \in ??? : difference in "size", where size is BasicPolyCompare::SACPOLYSIZE
 v[4] \in {0,1,2,3,big} : degree of p1 in its main variable - 1 (this is seldom much larger than 3)
 v[5] \in {0,1,2,3,big} : degree of p2 in its main variable - 1 (this is seldom much larger than 3)
 V[6] ... V[10] mirror V[1]...V[5], except p1,p2 replaced with "reduced" polys pb1 and pb2.
+v[15] number of roots of p1 over alpha inside cell
+v[16] number of roots of p2 over alpha inside cell
+v[17] -1 if p1 has a weaker lower bound than alpha, +1 if p2 has a weaker lower bound
+v[18] -1 if p1 has a weaker upper bound than alpha, +1 if p2 has a weaker upper bound
  */
 vector<float> generateFeatures(NodeRef node, IntPolyRef p1, IntPolyRef p2, bool &swappedOrder)
 {
@@ -2290,13 +2319,16 @@ vector<float> generateFeatures(NodeRef node, IntPolyRef p1, IntPolyRef p2, bool 
   V.push_back(fm[0]); //feature 12
   V.push_back(em[1]); //feature 13
   V.push_back(fm[1]); //feature 14
+
+  // features 15, 16, 17 and 18
+  geometricFeatures(node,p1,p2,V);
   
   // construct reverse
   vector<float> Vrev;
   feature_vector_reverse(V,Vrev);
 
   swappedOrder = false;
-  if (lexcomp(Vrev,V,V.size()) < 0) { swap(V,Vrev); swappedOrder = true; } 
+  if (staggeredlexcomp(Vrev,V,V.size()) < 0) { swap(V,Vrev); swappedOrder = true; } 
   return V;
 }
 
@@ -2316,6 +2348,115 @@ void polyPairFeatures(NodeRef node, IntPolyRef p1, IntPolyRef p2, vector<float> 
   V.push_back(s_sps);
   V.push_back(p1->degree(X->get(lev1)) - 1.0); // degree in main variable
   V.push_back(p2->degree(X->get(lev2)) - 1.0); // degree in main variable
+}
+
+/*******************************************************************************
+ * Let C be the cell from node
+ * Let (a1,...,an) be the sample point of node
+ * Let p1 (resp. p2) be of level k <= n
+ * Let p* = p(a_1,..,.a_{k-1},x_k)
+ * if p* = zero result is "nullified"
+ * else let u1, u2, ..., um be the real roots of p* with muliplicities e1,...,em
+ *      let Bl and Bu be the coordinates of the lower and upper bounds of cell C
+ *          over (a_1,...,a_{k-1})
+ *      let N be the sum of the ei's for which Bl < ui < Bu  <== TOO TOUGH RIGHT NOW!
+ * - #roots in cell for p1 (-1 if p1 nullified at alpha!)
+ * - #roots in cell for p2 (-1 if p2 nullified at alpha!)
+ * - looser upper bound : z1 = min_{roots z of p1}{z >= alpha_k), z2 = min_{roots z of p2}{z >= alpha_k)
+ *                        -1 if z1 > z2, 0 if z1 = z2, +1 if z1 < z2 (0 if either is nullified)
+ * - loower lower bound : z1 = max_{roots z of p1}{z <= alpha_k), z2 = max_{roots z of p2}{z <= alpha_k)
+ *                        -1 if z1 < z2, 0 if z1 = z2, +1 if z1 > z2 (0 if either is nullified)
+ *******************************************************************************/
+// int geometricInfo(NodeRef node, IntPolyRef p, VarOrderRef ord) {
+//   int n = ord->level(p);
+//   Word alpha = node->getData()->getCell()->getAlpha();
+//   IntPolyRef p1 = ord->partialEval(p,alpha,n-1);
+//   int result = -1;
+//   if (!p1->isZero()) {
+//     vector<RealRootIUPRef> L = RealRootIsolateRobust(p1);
+//     int i = 0, j = L.size()-1;
+//     RealAlgNumRef Bl = node->getData()->getCell()->get(n)->getLowerBoundCoord();
+//     RealAlgNumRef Bu = node->getData()->getCell()->get(n)->getUpperBoundCoord();
+//     while(i <= j && Bl->compareTo(L[i]) >= 0)
+//       ++i;
+//     while(i <= j && Bu->compareTo(L[j]) <= 0)
+//       --j;
+//     int numInside = j - i + 1;
+//     result = numInside;
+//   }
+//   return result;
+// }
+
+// int numInside, <-- will be -1 if p is nullified!
+// RealAlgNum greatestRoot < alpha,
+// RealAlgNum leastRoot > alpha,
+// bool rootThroughAlpha <-- true iff p has alpha as root
+void geometricInfo(NodeRef node, IntPolyRef p, VarOrderRef ord,
+		   int& numInside, RealAlgNumRef& lowBound, RealAlgNumRef& highBound, bool rootThroughAlpha) {
+  numInside = -1;
+  lowBound = new NegInftyObj();
+  highBound = new PosInftyObj();
+  rootThroughAlpha = false;
+  int n = ord->level(p);
+  Word alpha = node->getData()->getCell()->getAlpha();
+  IntPolyRef p1 = ord->partialEval(p,alpha,n-1);
+  if (!p1->isZero()) {
+    vector<RealRootIUPRef> L = RealRootIsolateRobust(p1);
+    int i = 0, j = L.size()-1;
+    RealAlgNumRef Bl = node->getData()->getCell()->get(n)->getLowerBoundCoord();
+    RealAlgNumRef Bu = node->getData()->getCell()->get(n)->getUpperBoundCoord();
+    while(i <= j && Bl->compareTo(L[i]) >= 0)
+      ++i;
+    while(i <= j && Bu->compareTo(L[j]) <= 0)
+      --j;
+    numInside = j - i + 1;
+    while(i <= j) {
+      RealAlgNumRef a = rationalToRealAlgNum(LELTI(alpha,i));
+      int t = L[i]->compareTo(a);
+      if (t == -1) { lowBound = L[i]; i++; }
+      else if (t == 0)  { lowBound = highBound = L[i]; rootThroughAlpha = true; break; }
+      else { highBound = L[i]; break; }
+    }
+  }
+}
+
+void geometricFeatures(NodeRef node, IntPolyRef p1, IntPolyRef p2, vector<float> &V)
+{
+  VarOrderRef ord = node->getData()->getCell()->getVarOrder();
+
+  int numInside1, numInside2;
+  RealAlgNumRef lowBound1, lowBound2, highBound1, highBound2;
+  bool rootThroughAlpha1, rootThroughAlpha2;
+  geometricInfo(node,p1,ord,numInside1,lowBound1,highBound1,rootThroughAlpha1);
+  geometricInfo(node,p2,ord,numInside2,lowBound2,highBound2,rootThroughAlpha2);
+  int level1 = ord->level(p1);
+  int level2 = ord->level(p2);
+  
+  // for testing:
+  // node->getData()->getCell()->debugPrint(cerr);
+  // cerr << node->getData()->getCell()->getPolyManager()->polyToStr(p1) << " ";
+  // cerr << "geometricInfo1 = " << numInside1 << ", ";
+  // cerr << node->getData()->getCell()->getPolyManager()->polyToStr(p2) << " ";
+  // cerr << "geometricInfo2 = " << numInside2 << ", ";
+  // ord->write();
+  // cerr << ", ";
+  // node->getData()->getCell()->writeAlpha();
+  // cerr << endl;
+  // cerr << "Extra info: ";
+  // if (level1 == level2) {
+  //   cerr << lowBound1->compareTo(lowBound2)
+  // 	 << " "
+  // 	 << highBound2->compareTo(highBound1) << endl;
+  // }
+  // else {
+  //   cerr << "N/A" << endl;
+  // }
+
+  V.push_back(numInside1);
+  V.push_back(numInside2);
+  V.push_back(level1 == level2 ? lowBound1->compareTo(lowBound2) : 0);
+  V.push_back(level1 == level2 ? highBound2->compareTo(highBound1) : 0);
+
 }
 
 // candidate[i] = (k,node) where node has k leaves.

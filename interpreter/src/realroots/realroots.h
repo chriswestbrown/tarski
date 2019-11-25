@@ -137,21 +137,16 @@ inline RealAlgNumRef min(RealAlgNumRef a, RealAlgNumRef b) { return b->compareTo
 extern RealAlgNumRef integerToRealAlgNum(Word I); // I a saclib integer
 extern RealAlgNumRef rationalToRealAlgNum(Word R); // R a saclib rational number
 
+extern vector<RealRootIUPRef> mergeMultipleBrittle(vector< vector<RealRootIUPRef> > R);
+
 extern std::vector<RealRootIUPRef> RealRootIsolateSquarefree(Word p); // p must be a non-zero, squarefree integral univariate saclib poly
 inline std::vector<RealRootIUPRef> RealRootIsolateSquarefree(IntPolyRef p) // p must be a non-zero, squarefree integral univariate poly
 {
   return RealRootIsolateSquarefree(p->sP);
 }
-inline std::vector<RealRootIUPRef> RealRootIsolateRobust(IntPolyRef p) // p must be a non-zero univariate poly
-{
-  Word A = p->sP;
-  if (p->isZero()) { throw RealRootException("cannot isolate roots of the zero polynomial"); }
-  if (p->isConstant()) { return std::vector<RealRootIUPRef>(); } 
-  if (p->numVars() > 1) {  throw RealRootException("root isolation requires a univariate polynomial"); }
-  Word Ap = IPDMV(1,A), GCD, C, Cp;
-  IPGCDC(1,A,Ap,&GCD,&C,&Cp);
-  return RealRootIsolateSquarefree(C);
-}
+
+ // p must be a non-zero univariate poly
+std::vector<RealRootIUPRef> RealRootIsolateRobust(IntPolyRef p);
 
 extern std::vector<RealRootIUPRef> RealRootIsolate(FactRef F);
 

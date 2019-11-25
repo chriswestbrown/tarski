@@ -200,6 +200,52 @@ vector<RealRootIUPRef> RealRootIsolateSquarefree(Word p) // p must be a non-zero
   return res;
 }
 
+std::vector<RealRootIUPRef> RealRootIsolateRobust(IntPolyRef p) // p must be a non-zero univariate poly
+{
+  // Easy cases
+  Word A = p->sP;
+  if (p->isZero()) { throw RealRootException("cannot isolate roots of the zero polynomial"); }
+  if (p->isConstant()) { return std::vector<RealRootIUPRef>(); } 
+  if (p->numVars() > 1) {  throw RealRootException("root isolation requires a univariate polynomial"); }
+
+  // Isolate roots of squarefree factors
+  Word L = IPSF(1,A);
+  vector<int> multiplicity;
+  vector< vector<RealRootIUPRef> > roots;
+  for(Word Lp = L; Lp != NIL; Lp = RED(Lp)) {
+    Word e, P;
+    FIRST2(FIRST(Lp),&e,&P);
+    roots.push_back(RealRootIsolateSquarefree(P));
+    multiplicity.push_back(e); }
+
+  return mergeMultipleBrittle(roots);
+  
+  // Merge squarefree factors' roots lists
+  // vector<RealRootIUPRef> lold(roots[0]);
+  // for(int i = 1; i < roots.size(); ++i)
+  // {
+  //   vector<RealRootIUPRef> lnew;
+  //   int jo = 0, jn = 0;
+  //   while(jo < lold.size() && jn < roots[i].size()) {
+  //     if (roots[i][jn].compareToBrittle(lold[jo]) < 0)
+  // 	lnew.push_back(roots[i][jn++]);
+  //     else
+  // 	lnew.push_back(lold[jo++]);
+  //   }
+  //   while(jo < lold.size())
+  //     lnew.push_back(lold[jo++]);
+  //   while(jn < roots[i].size())
+  //     lnew.push_back(roots[i][jn++]);
+  //   swap(lnew,lold);    
+  // }
+  // return lold;
+  /* OLD
+  Word Ap = IPDMV(1,A), GCD, C, Cp;
+  IPGCDC(1,A,Ap,&GCD,&C,&Cp);
+  return RealRootIsolateSquarefree(C); */
+}
+
+  
 
 Word IPIIR1BISECT(Word A, Word I, Word t)
 {
@@ -381,14 +427,8 @@ void mergeBrittle(vector<RealRootIUPRef> &A, vector<RealRootIUPRef> &B, vector<R
     dest.push_back(B[j++]);  
 }
 
-vector<RealRootIUPRef> RealRootIsolate(FactRef F)
-{
-  // isolate real roots of each factor
-  vector< vector<RealRootIUPRef> > R;
-  for(FactObj::factorIterator itr = F->factorBegin(); itr != F->factorEnd(); ++itr)
-    R.push_back(RealRootIsolateSquarefree(itr->first));
-
-  // merge roots from factors
+// Yes I know this copies.  If I don't do that I modify the passed list, which I don't want to do
+vector<RealRootIUPRef> mergeMultipleBrittle(vector< vector<RealRootIUPRef> > R) {
   while(R.size() > 1)
   {
     int n = R.size(), odd = n%2;
@@ -400,6 +440,29 @@ vector<RealRootIUPRef> RealRootIsolate(FactRef F)
     swap(Rp,R);
   }
   return R[0];
+}
+
+vector<RealRootIUPRef> RealRootIsolate(FactRef F)
+{
+  // isolate real roots of each factor
+  vector< vector<RealRootIUPRef> > R;
+  for(FactObj::factorIterator itr = F->factorBegin(); itr != F->factorEnd(); ++itr)
+    R.push_back(RealRootIsolateSquarefree(itr->first));
+
+  return mergeMultipleBrittle(R);
+  
+  // merge roots from factors
+  // while(R.size() > 1)
+  // {
+  //   int n = R.size(), odd = n%2;
+  //   vector< vector<RealRootIUPRef> > Rp(n/2 + odd);
+  //   for(int i = 0; i < n - 1; i += 2)
+  //     mergeBrittle(R[i],R[i+1],Rp[i/2]);
+  //   if (odd)
+  //     Rp[n/2] = R[n-1];
+  //   swap(Rp,R);
+  // }
+  // return R[0];
 }
 
 
