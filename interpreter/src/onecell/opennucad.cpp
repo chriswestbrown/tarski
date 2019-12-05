@@ -2268,11 +2268,11 @@ int lexcomp(const vector<float>& U, const vector<float>& V, int n)
 
 int staggeredlexcomp(const vector<float>& U, const vector<float>& V, int n)
 {
-  int initialIndex = 19;
+  int initialIndex = 19, delta = 13;
   int K = std::min(n,(int)U.size());
   float res = 0;
 
-  for(int i = 0, j = initialIndex; res == 0 && i < K; i++, j = (j+1)%K)
+  for(int i = 0, j = initialIndex; res == 0 && i < K; i++, j = (j+delta)%K)
     res = U[j] - V[j];
   return res < 0.0 ? -1 : (res > 0.0 ? +1 : 0);
 }
@@ -2326,7 +2326,8 @@ vector<float> generateFeatures(NodeRef node, IntPolyRef p1, IntPolyRef p2, bool 
   // features 15, 16, 17 and 18
   geometricFeatures(node,p1,p2,V);
 
-  // "randomish" feature
+  // "randomish" feature this is a feature we can sort on
+  // that should have no real bearing on which poly is better.
   {
     unsigned char A1[16], A2[16];
     md5_digest_saclibObj(p1->getSaclibPoly(),A1);
