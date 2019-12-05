@@ -1,5 +1,6 @@
 #include "opennucad.h"
 #include "../smtsolver/minhitset/naive/hitset.h"
+#include "../poly/md5digest.h"
 
 //#define _OC_DEBUG_
 #ifdef _OC_DEBUG_
@@ -2254,6 +2255,7 @@ void feature_vector_reverse(const vector<float> &W, vector<float>& Wrev)
   swap(Wrev[15],Wrev[16]);
   Wrev[17] = -W[17];
   Wrev[18] = -W[18];
+  Wrev[19] = -W[19];
 }
 
 int lexcomp(const vector<float>& U, const vector<float>& V, int n)
@@ -2266,7 +2268,7 @@ int lexcomp(const vector<float>& U, const vector<float>& V, int n)
 
 int staggeredlexcomp(const vector<float>& U, const vector<float>& V, int n)
 {
-  int initialIndex = 4;
+  int initialIndex = 19;
   int K = std::min(n,(int)U.size());
   float res = 0;
 
@@ -2294,6 +2296,7 @@ v[15] number of roots of p1 over alpha inside cell
 v[16] number of roots of p2 over alpha inside cell
 v[17] -1 if p1 has a weaker lower bound than alpha, +1 if p2 has a weaker lower bound
 v[18] -1 if p1 has a weaker upper bound than alpha, +1 if p2 has a weaker upper bound
+v[19] will be a randomish feature
  */
 vector<float> generateFeatures(NodeRef node, IntPolyRef p1, IntPolyRef p2, bool &swappedOrder)
 {
@@ -2322,6 +2325,17 @@ vector<float> generateFeatures(NodeRef node, IntPolyRef p1, IntPolyRef p2, bool 
 
   // features 15, 16, 17 and 18
   geometricFeatures(node,p1,p2,V);
+
+  // "randomish" feature
+  {
+    unsigned char A1[16], A2[16];
+    md5_digest_saclibObj(p1->getSaclibPoly(),A1);
+    md5_digest_saclibObj(p2->getSaclibPoly(),A2);
+    int i = 0;
+    while (i < 16 && A1[i] == A2[i])
+      ++i;
+    V.push_back(i == 16 ? 0 : (A1[i] < A2[i] ? -1 : +1));
+  }
   
   // construct reverse
   vector<float> Vrev;
