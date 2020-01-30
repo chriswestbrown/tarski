@@ -37,6 +37,8 @@ class NodeObj : public GC_Obj
   BuilderRef originalData;
   int originalTruthValue;
   int numSplitOptions;
+  int numKnownSignInvariantConstraintPolys;
+  int numNotknownSignInvariantConstraintPolys;
 
  public:
   NodeObj(NodeObj* parent, BuilderRef data, int truthValue, int splitLevel,
@@ -51,6 +53,7 @@ class NodeObj : public GC_Obj
     this->originalData = data;
     this->originalTruthValue = truthValue;
     this->numSplitOptions = 0;
+    numKnownSignInvariantConstraintPolys = numNotknownSignInvariantConstraintPolys = -1;
   }
 
   // This method reverts a node back to the state it had prior to being refined

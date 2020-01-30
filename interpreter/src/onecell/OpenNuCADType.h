@@ -55,7 +55,9 @@ class OpenNuCADObj : public TypeExtensionObj
     if (label == "") // randomly choose node
     {
       std::vector<pair<int,NodeRef>> candidates;
-      this->nucad->getCandidateNodes(this->nucad->getRoot(),candidates,5,2); // 5=leafThreshold, 2=choicesThreshold
+      int leafThreshold = 2; //this->nucad->getRoot()->numNotknownSignInvariantConstraintPolys;
+      int choicesThreshold = 2;
+      this->nucad->getCandidateNodes(this->nucad->getRoot(),candidates,leafThreshold,choicesThreshold);
       if (candidates.size() == 0) { return new StrObj(""); }
       int i = rand() % candidates.size();
       node = candidates[i].second;

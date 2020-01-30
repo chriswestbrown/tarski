@@ -1179,6 +1179,9 @@ void SplitSetChooserConjunction::chooseSplit(VarOrderRef X, NodeRef node, int di
       }
   }
 
+  node->numKnownSignInvariantConstraintPolys = tiT + tiF;
+  node->numNotknownSignInvariantConstraintPolys = alphaT + alphaF;
+  
   // make a choice!
   if (tiF != 0) 
   { tvAtAlpha = FALSE; targetTruthValue = FALSE; /* Q = emptyset */ return; }
@@ -2255,7 +2258,9 @@ void feature_vector_reverse(const vector<float> &W, vector<float>& Wrev)
   swap(Wrev[15],Wrev[16]);
   Wrev[17] = -W[17];
   Wrev[18] = -W[18];
-  Wrev[19] = -W[19];
+  Wrev[19] = W[19];
+  Wrev[20] = W[20];
+  Wrev[21] = -W[21];
 }
 
 int lexcomp(const vector<float>& U, const vector<float>& V, int n)
@@ -2268,7 +2273,7 @@ int lexcomp(const vector<float>& U, const vector<float>& V, int n)
 
 int staggeredlexcomp(const vector<float>& U, const vector<float>& V, int n)
 {
-  int initialIndex = 19, delta = 13;
+  int initialIndex = 21, delta = 13;
   int K = std::min(n,(int)U.size());
   float res = 0;
 
@@ -2296,7 +2301,9 @@ v[15] number of roots of p1 over alpha inside cell
 v[16] number of roots of p2 over alpha inside cell
 v[17] -1 if p1 has a weaker lower bound than alpha, +1 if p2 has a weaker lower bound
 v[18] -1 if p1 has a weaker upper bound than alpha, +1 if p2 has a weaker upper bound
-v[19] will be a randomish feature
+v[20] numKnownSignInvariantConstraintPolys
+v[21] numNotknownSignInvariantConstraintPolys
+v[21] will be a randomish feature
  */
 vector<float> generateFeatures(NodeRef node, IntPolyRef p1, IntPolyRef p2, bool &swappedOrder)
 {
@@ -2326,6 +2333,10 @@ vector<float> generateFeatures(NodeRef node, IntPolyRef p1, IntPolyRef p2, bool 
   // features 15, 16, 17 and 18
   geometricFeatures(node,p1,p2,V);
 
+  // features 19 and 20
+  V.push_back(node->numKnownSignInvariantConstraintPolys);
+  V.push_back(node->numNotknownSignInvariantConstraintPolys);
+  
   // "randomish" feature this is a feature we can sort on
   // that should have no real bearing on which poly is better.
   {
