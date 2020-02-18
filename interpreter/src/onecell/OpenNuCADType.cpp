@@ -130,4 +130,71 @@ SRef OpenNuCADObj::project(vector<SRef>& args, bool strictFlag)
     return new SObj();
   }
 
+
+  bool tmpcmp(const std::pair<NodeObj*,int> &a, const std::pair<NodeObj*,int> &b)
+  {
+    return a.second > b.second;
+  }
+
+NodeRef OpenNuCADObj::findSubtreeSizes(ONuCADRef nucad)
+{
+  map<NodeObj*,int> subTreeSizes;
+  stack< std::pair<NodeObj*,bool> > S;
+  S.push(make_pair<NodeObj*,bool>(&*(nucad->getRoot()),false));
+  while(!S.empty()) {
+    std::pair<NodeObj*,bool> p = S.top();
+    S.pop();
+    if (!p.second) { // add children
+      std::pair<NodeObj*,bool> tmp(p.first,true);
+      S.push(tmp);//make_pair<NodeObj*,bool>(tmp,true));
+      NodeObj::ChildIterator itr = p.first->childBegin();
+      while(itr.hasNext()) {
+	NodeRef r = itr.next();
+	S.push(make_pair<NodeObj*,bool>(&*r,false));
+      }
+    }
+    else { // count children
+      int leafcount = 0, childcount = 0;
+      NodeObj::ChildIterator itr = p.first->childBegin();
+      while(itr.hasNext()) {
+	++childcount;
+	NodeRef r = itr.next();
+	leafcount += subTreeSizes[&*r];
+      }
+      subTreeSizes[p.first] = childcount == 0 ? 1 : leafcount;
+    }
+  }
+
+  vector< std::pair<NodeObj*,int> > nodepc;
+  for(auto itr = subTreeSizes.begin(); itr != subTreeSizes.end(); ++itr) {
+    if (itr->second > 1 && itr->first->numSplitOptions > 1)
+      nodepc.push_back(*itr);
+  }
+  sort(nodepc.begin(),nodepc.end(),tmpcmp);
+  vector<vector< NodeObj* >> bins;
+  if (nodepc.size() == 0) return nucad->getRoot();
+  bins.push_back(vector<NodeObj*>{nodepc[0].first});
+  int curr = nodepc[0].second;
+  int i = 1;
+  while(i < nodepc.size()) {
+    if (nodepc[i].second == curr) {
+      bins.back().push_back(nodepc[i].first);
+    }
+    else{
+      bins.push_back(vector<NodeObj*>{nodepc[i].first});
+      curr = nodepc[i].second;
+    }
+    i++;
+  }
+  // for(auto itr = bins.begin(); itr != bins.end(); ++itr)
+  //   cout << itr->size() << " : " << subTreeSizes[(*itr)[0]] << endl;
+  int m1 = rand() % bins.size();
+  int m2 = rand() % bins[m1].size();
+  // cout << "Chose: " << m1 << " " << m2 << " size = " << subTreeSizes[bins[m1][m2]]
+  //      << " " << bins[m1][m2]->getLabel()
+  //      << endl;
+  return bins[m1][m2];
+}
+
+  
 }//end namespace tarski

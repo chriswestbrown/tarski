@@ -33,7 +33,10 @@ class OpenNuCADObj : public TypeExtensionObj
     if (int(f) == f) { return out << int(f) << ".0"; }
     else { return out << f; }
   }
-  
+
+
+  NodeRef findSubtreeSizes(ONuCADRef nucad);
+
   SRef trial(std::vector<SRef>& args)
   {
     std::string label;
@@ -54,6 +57,8 @@ class OpenNuCADObj : public TypeExtensionObj
     NodeRef node;
     if (label == "") // randomly choose node
     {
+      node = findSubtreeSizes(this->nucad);// test
+      /*
       std::vector<pair<int,NodeRef>> candidates;
       int leafThreshold = 2; //this->nucad->getRoot()->numNotknownSignInvariantConstraintPolys;
       int choicesThreshold = 2;
@@ -61,6 +66,7 @@ class OpenNuCADObj : public TypeExtensionObj
       if (candidates.size() == 0) { return new StrObj(""); }
       int i = rand() % candidates.size();
       node = candidates[i].second;
+      */
     }
     else // node comes as agument
       node = this->nucad->getNode(label);
