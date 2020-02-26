@@ -1,0 +1,5 @@
+choice1:9 W 10 W - a 2 < 1 = 9 W 10 W - a 3 < 1 = 4 W 5 W - a 2 < 1 = 6 W s 1 = 9 W 10 W - s 0 = & 0 i 1 e
+num_examples:5
+fname:dlist_test
+seed:2020
+example_file:/home/m201362/csunix/tarski/tests/hpc2019/sets/type2LARGE-5vars.txt

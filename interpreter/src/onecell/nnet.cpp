@@ -1,6 +1,21 @@
 #include "nnet.h"
+#include <math.h>
 using namespace std;
 namespace nnet_interpreter {
+
+  float sigmoid(float x)
+  {
+     float exp_value;
+     float return_value;
+
+     /*** Exponential calculation ***/
+     exp_value = exp((double) -x);
+
+     /*** Final sigmoid value ***/
+     return_value = 1 / (1 + exp_value);
+
+     return return_value;
+  }
 
   /**
      Parent class that splits off into two usable types: Input(for features) and
@@ -69,6 +84,9 @@ namespace nnet_interpreter {
     else if(this->func.compare("tanh")==0){
       return std::tanh(ret);
     }
+    else if(this->func.compare("sigmoid")==0){
+      return sigmoid(ret);
+    }
   }
 
   /**
@@ -83,7 +101,7 @@ namespace nnet_interpreter {
     ss >> num_nodes;
     values.resize(num_nodes);
     num_features = 0;
-    
+
     for(int i=0; i<num_nodes;i++){
       char temp;
       char func[10];
@@ -143,7 +161,7 @@ namespace nnet_interpreter {
   */
   double Graph::calculate(){
     for(int i = num_features; i < nodes.size(); ++i)
-      values[i] = nodes[i]->getValue(values);    
+      values[i] = nodes[i]->getValue(values);
     return this->values[nodes.size() - 1];
   }
 
