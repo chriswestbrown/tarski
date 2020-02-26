@@ -1,3 +1,14 @@
+############################################################
+# This file contains the maple code that generates the
+# "type2" test sets. Note that type2LARGE-5vars.txt
+# and type2LARGE-5varsBETA.txt were both generated with
+# the command below.  This is (of course) just one idea
+# of what a "random formula" might look like.  It is
+# certainly fair to question the value of this ... which
+# ultimately will be decided by whether or not the hueristic
+# performs well on other (perhaps real world!) inputs.
+############################################################
+
 with(combinat):
 g := (x,y)->expand(randpoly([x,y],degree=2,terms=3,coeffs=rand(-5..5)));
 linform := (vars,B) -> expand(randpoly(vars,degree=1,coeffs=rand(-B..B),homogeneous));
@@ -50,10 +61,10 @@ tmp := proc(V,n1,n2,n3,n4)
 end proc;
 
 
-gentestset := proc(fname,V,n1,n2,n3,n4)
+gentestset := proc(fname,N,V,n1,n2,n3,n4)
   fd:=fopen(fname,WRITE);
-  for i from 0 to 999 do
-    fprintf(fd,"(def F%.3d [ %a ])\n",i,tmp(V,n1,n2,n3,n4));
+  for i from 0 to N-1 do
+    fprintf(fd,"(def F%.5d [ %a ])\n",i,tmp(V,n1,n2,n3,n4));
   end do;
   fclose(fd);
 end proc;
@@ -63,3 +74,4 @@ gentestset("type2-4vars.txt",[w,x,y,z],5,2,3,2);
 gentestset("type2-5vars.txt",[v,w,x,y,z],6,2,3,2);
 gentestset("type2-6vars.txt",[v,w,x,y,z],7,3,4,2);
 
+gentestset("type2LARGE-5varsBETA.txt",100000,[v,w,x,y,z],6,2,3,2);
