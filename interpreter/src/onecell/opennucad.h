@@ -255,7 +255,7 @@ else ({choose-first:No})
     {
       nn.setInputs(F);
       double r = nn.calculate();      
-      return networkMeaning == 1 ? r : r - 0.5;
+      return networkMeaning == 1 ? r : -(r - 0.5);
     }
   };
   
