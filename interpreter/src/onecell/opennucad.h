@@ -235,13 +235,27 @@ else ({choose-first:No})
   class NNetComp : public SSCCompObj
   {
     nnet_interpreter::Graph nn;
+    int networkMeaning;
   public:
-  NNetComp(const std::string &snet) : nn(snet.c_str()) { }
+    NNetComp(const std::string &snet) : nn(snet.c_str())
+    {
+      switch(nn.getDecisionKind())
+      {
+      case nnet_interpreter::Graph::ZEROONE:
+	networkMeaning = 0;
+	break;
+      case nnet_interpreter::Graph::SIGN:
+	networkMeaning = 1;	
+	break;
+      default:
+	throw TarskiException("Neural network reporting DecisionKind that NNetComp doesn't support!");	
+      }
+    }
     float eval(const std::vector<float> &F)
     {
       nn.setInputs(F);
-      double r = nn.calculate();
-      return r;
+      double r = nn.calculate();      
+      return networkMeaning == 1 ? r : r - 0.5;
     }
   };
   
