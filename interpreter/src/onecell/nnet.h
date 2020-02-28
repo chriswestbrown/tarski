@@ -11,7 +11,7 @@
 
 namespace nnet_interpreter
 {
-  enum DecisionKind{ZEROONE,SIGN};
+
   class Node;
 
   /**
@@ -19,6 +19,7 @@ namespace nnet_interpreter
   */
   class Graph{
   public:
+    enum DecisionKind{ZEROONE,SIGN};
     Graph(const char* graph_string);
     ~Graph();
     void setWeights(char* weight_string);
