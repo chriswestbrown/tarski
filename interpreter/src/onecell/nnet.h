@@ -11,7 +11,7 @@
 
 namespace nnet_interpreter
 {
-
+  enum DecisionKind{ZEROONE,SIGN};
   class Node;
 
   /**
@@ -29,6 +29,7 @@ namespace nnet_interpreter
     double calculate();
     void printValues();
     void clean();
+    DecisionKind getDecisionKind();
   private:
     std::vector<Node*> nodes;
     std::vector<double> values;

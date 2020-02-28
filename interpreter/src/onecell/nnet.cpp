@@ -2,7 +2,6 @@
 #include <math.h>
 using namespace std;
 namespace nnet_interpreter {
-
   float sigmoid(float x)
   {
      float exp_value;
@@ -48,6 +47,7 @@ namespace nnet_interpreter {
   public:
     MiddleNode(string f, int nn, vector<int> &i, vector<double> &w, double b);
     virtual double getValue(vector<double> &values);
+    std::string getFunc();
   private:
     string func;
     vector<int> inputs;
@@ -89,6 +89,9 @@ namespace nnet_interpreter {
     }
   }
 
+  std::string MiddleNode::getFunc(){
+    return this->func;
+  }
   /**
      Takes an input string in the following format:
      #nodes ( type function node number bias [ inputs ] [ weights ] )...
@@ -168,6 +171,12 @@ namespace nnet_interpreter {
   Graph::~Graph(){
     for(int i = 0; i < nodes.size(); ++i)
       delete nodes[i];
+  }
+
+  DecisionKind Graph::getDecisionKind(){
+    MiddleNode* finalNode = (MiddleNode*)nodes[nodes.size()-1];
+    if (finalNode->getFunc().compare("tanh")==0) return SIGN;
+    else return ZEROONE;
   }
 
 }
