@@ -2437,7 +2437,7 @@ void geometricInfo(NodeRef node, IntPolyRef p, VarOrderRef ord,
       --j;
     numInside = j - i + 1;
     while(i <= j) {
-      RealAlgNumRef a = rationalToRealAlgNum(LELTI(alpha,i));
+      RealAlgNumRef a = rationalToRealAlgNum(LELTI(alpha,n));
       int t = L[i]->compareTo(a);
       if (t == -1) { lowBound = L[i]; i++; }
       else if (t == 0)  { lowBound = highBound = L[i]; rootThroughAlpha = true; break; }
