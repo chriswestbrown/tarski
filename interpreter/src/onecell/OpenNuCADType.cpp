@@ -31,10 +31,11 @@ TypeExtensionObj::LFH<OpenNuCADObj> OpenNuCADObj::A[] = {
   {"project",&OpenNuCADObj::projectStrict,"(msg <OpenNuCAD> 'project k) modifies the OpenNuCAD by projecting down onto R^k, this projection is strict, meaning that if a cell is marked true, there is a solution point over every point in the cell."},
   {"project-loose",&OpenNuCADObj::projectLoose,"(msg <OpenNuCAD> 'project-loose k) modifies the OpenNuCAD by projecting down onto R^k, this projection is not strict, meaning if a cell is marked true, there may be a lower dimensional subset of points in the cell over which there are no solutions."},
   {"union",&OpenNuCADObj::unionOp,"(msg <OpenNuCAD> 'union D) modifies the OpenNuCAD so that it's true cells define the union of the set it originally defines and the set defined by the true cells of OpenNuCAD D."},
+  {"early-term-sat",&OpenNuCADObj::earlyTermSAT,"(msg <OpenNuCAD> 'early-term-sat) returns true if this OpenNuCADObj used an early termination queue and did indeed terminate early with SAT."},
   {"trial",&OpenNuCADObj::trial,"For 2019 HPC Learning trials."},
   {"test",&OpenNuCADObj::test,"PURELY FOR TESTING EXPERIMENTAL FEATURES"},
   {0,0,"function does not exist"}
- };
+};
 
 void OpenNuCADObj::plotLeaves(const string & wininfo, const string startLabel, std::ostream& out)
 {

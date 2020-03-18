@@ -475,7 +475,8 @@ class ONuCADObj : public GC_Obj
   TAndRef getCurrentFormula() { return C; }
   VarOrderRef getVarOrder() { return X; }
   int getDim() { return dim; }
-
+  SearchQueueRef getNodeQueue() { return nodeQueue; }
+  
   void negateTruthValues();
 
 

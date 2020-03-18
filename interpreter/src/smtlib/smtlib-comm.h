@@ -38,9 +38,9 @@ public:
       std::ostringstream sout;
       readSMTRetTarskiString(fin,sout);
       fin.close();
-      /* std::cerr << "TEST" << std::endl;  */
-      /* std::cerr << sout.str();  */
-      /* std::cerr << "TEST" << std::endl;  */
+      /* std::cerr << "TEST" << std::endl; */
+      /* std::cerr << sout.str(); */
+      /* std::cerr << "TEST" << std::endl; */
       TFormRef F;
       if (!clearDenominators)
 	F = processExpFormula(sout.str(),getPolyManagerPtr());

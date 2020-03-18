@@ -2506,7 +2506,7 @@ IntPolyRef FeatureChooser::chooseNextPoly(set<IntPolyRef> &S, VarOrderRef X, Nod
   IntPolyRef choice;
   if (N == 1)
     choice = *S.begin();
-  else {  
+  else {
     auto itr = S.begin();
     choice = *itr;
     while(++itr != S.end())

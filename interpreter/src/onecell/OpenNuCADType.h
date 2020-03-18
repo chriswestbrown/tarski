@@ -338,6 +338,12 @@ class OpenNuCADObj : public TypeExtensionObj
     return new SObj();
   }
 
+  SRef earlyTermSAT(std::vector<SRef>& args)
+  {
+    auto ptr = dynamic_cast<PriorityAEarlyTerminateSearchQueueObj*>(&*(nucad->getNodeQueue()));
+    return new BooObj(ptr && ptr->SATAlphaFound());
+  }
+    
   SRef test(std::vector<SRef>& args)
   { 
     // test NuCAD union
@@ -549,23 +555,33 @@ public:
       Options are pairs: ('chooser <string:name>)
     */
     int optionsCount = 0;
-    std::string comp_name, nn_string, dl_string;    
+    std::string comp_name, nn_string, dl_string;
+    bool early_term = false;
     for(int i = 0; i < args.size(); ++i)
     {
-      LisRef P = args[i]->lis();
-      SymRef kind;
-      StrRef name;
-      if (P.is_null() || P->length() != 2 || ((kind = P->get(0)->sym()), kind.is_null())
-	  || ((name = P->get(1)->str()), name.is_null()))
+      if (!args[i]->sym().is_null())
       {
-	continue;
+	if (args[i]->sym()->getVal() == "early-term")
+	  early_term = true;
+	else
+	  throw TarskiException("Unknown option '" + args[i]->sym()->toStr() + "'!");
       }
-      optionsCount++;
-      if (kind->getVal() == "chooser") { comp_name = name->getVal(); }
-      else if (kind->getVal() == "nn-chooser") { nn_string = name->getVal(); }
-      else if (kind->getVal() == "dl-chooser") { dl_string = name->getVal(); }
-      else throw TarskiException("Unknown option kind!");
-    }    
+      else {
+	LisRef P = args[i]->lis();
+	SymRef kind;
+	StrRef name;
+	if (P.is_null() || P->length() != 2 || ((kind = P->get(0)->sym()), kind.is_null())
+	    || ((name = P->get(1)->str()), name.is_null()))
+	{
+	  continue;
+	}
+	optionsCount++;
+	if (kind->getVal() == "chooser") { comp_name = name->getVal(); }
+	else if (kind->getVal() == "nn-chooser") { nn_string = name->getVal(); }
+	else if (kind->getVal() == "dl-chooser") { dl_string = name->getVal(); }
+	else throw TarskiException("Unknown option kind!");
+      }
+    }
 
     VarOrderRef V = NULL;
     Word A = NIL;
@@ -629,7 +645,8 @@ public:
     }
 
     // Decide which search queue and chooser to use
-    SearchQueueRef searchQueue = new SearchQueueObj();
+    SearchQueueRef searchQueue = (!early_term ? new SearchQueueObj() :
+				  new PriorityAEarlyTerminateSearchQueueObj(V,C));
     SplitSetChooserRef chooser = NULL;
     if (comp_name == "BPC") // basic polynomial compare
       chooser = new FeatureChooser(C, new BPCAsComp());
@@ -755,7 +772,11 @@ public:
       if (C.is_null())
       {
 	TAtomRef a = asa<TAtomObj>(F);
-	if (a.is_null()) { std::cerr << "OCMakeNuCADConjunction requires a conjunction or atomic formula." << std::endl; exit(1); }
+	if (a.is_null())
+	{
+	  std::cerr << "OCMakeNuCADConjunction requires a conjunction or atomic formula."
+		    << std::endl; exit(1);
+	}
 	C = new TAndObj(); C->AND(a);
       }
     }
