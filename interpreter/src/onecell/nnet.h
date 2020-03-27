@@ -34,7 +34,9 @@ namespace nnet_interpreter
   private:
     std::vector<Node*> nodes;
     std::vector<double> values;
-    int num_nodes, num_features;
+    std::vector<std::vector<Node*>> vote_nodes;
+    std::vector<std::vector<double>> vote_values;
+    int num_nodes, num_features, type, num_nets;
   };
 
 }

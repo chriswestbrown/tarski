@@ -1,7 +1,23 @@
 #include "nnet.h"
 #include <math.h>
+#include <bits/stdc++.h>
 using namespace std;
 namespace nnet_interpreter {
+
+double majority(double* arr, int n)
+{
+    int count = 0;
+    int other_index = 0;
+    for(int i=1; i<n; i++){
+      if(arr[i] == arr[1]){
+        count++;
+      }
+      else{
+        other_index = i;
+      }
+    }
+    return (count >=3 ? arr[0] : arr[other_index]);
+}
 
   float sigmoid(float x)
   {
@@ -104,43 +120,94 @@ namespace nnet_interpreter {
   Graph::Graph(const char* graph_string){
     stringstream ss(graph_string);
     ss >> num_nodes;
-    values.resize(num_nodes);
-    num_features = 0;
+    if(num_nodes > 0){
+	    type = 0;
+	    values.resize(num_nodes);
+	    num_features = 0;
 
-    for(int i=0; i<num_nodes;i++){
-      char temp;
-      char func[10];
-      char type;
-      int nn,ln,nil;
-      vector<int> inputs;
-      vector<double> weights;
-      double bias;
+	    for(int i=0; i<num_nodes;i++){
+	      char temp;
+	      char func[10];
+	      char type;
+	      int nn,ln,nil;
+	      vector<int> inputs;
+	      vector<double> weights;
+	      double bias;
 
-      ss >> temp; // '('s
-      ss >> type;
-      ss >> func;
-      ss >> nn >> bias;
-      string n;
-      ss >> temp; // '['
-      while(ss >> n ){
-	if(n.compare("]")==0)
-	  break;
-	inputs.push_back(stoi(n));
-      }
-      ss >> temp; // '['
-      while(ss >> n ){
-	if(n.compare("]")==0)
-	  break;
-	weights.push_back(stod(n));
-      }
-      if(type == 'i'){
-	num_features++;
-	this->nodes.push_back(new InputNode(nn));
-      }
-      else if(type == 'm'){
-	this->nodes.push_back(new MiddleNode(func,nn,inputs,weights,bias));
-      }
-      ss >> temp; // ')'
+	      ss >> temp; // '('s
+	      ss >> type;
+	      ss >> func;
+	      ss >> nn >> bias;
+	      string n;
+	      ss >> temp; // '['
+	      while(ss >> n ){
+		if(n.compare("]")==0)
+		  break;
+		inputs.push_back(stoi(n));
+	      }
+	      ss >> temp; // '['
+	      while(ss >> n ){
+		if(n.compare("]")==0)
+		  break;
+		weights.push_back(stod(n));
+	      }
+	      if(type == 'i'){
+		num_features++;
+		this->nodes.push_back(new InputNode(nn));
+	      }
+	      else if(type == 'm'){
+		this->nodes.push_back(new MiddleNode(func,nn,inputs,weights,bias));
+	      }
+	      ss >> temp; // ')'
+	    }
+    }
+    else{
+    	type=1;
+      cout << type << endl;
+    	ss >> num_nets;
+      vote_values.resize(num_nets);
+      vote_nodes.resize(num_nets);
+    	for(int k=0; k<num_nets; k++){
+    	    ss >> num_nodes;
+    	    vote_values[k].resize(num_nodes);
+    	    num_features = 0;
+
+    	    for(int i=0; i<num_nodes;i++){
+    	      char temp;
+    	      char func[10];
+    	      char type;
+    	      int nn,ln,nil;
+    	      vector<int> inputs;
+    	      vector<double> weights;
+    	      double bias;
+
+    	      ss >> temp; // '('s
+    	      ss >> type;
+    	      ss >> func;
+    	      ss >> nn >> bias;
+    	      string n;
+    	      ss >> temp; // '['
+    	      while(ss >> n ){
+    		if(n.compare("]")==0)
+    		  break;
+    		inputs.push_back(stoi(n));
+    	      }
+    	      ss >> temp; // '['
+    	      while(ss >> n ){
+    		if(n.compare("]")==0)
+    		  break;
+    		weights.push_back(stod(n));
+    	      }
+    	      if(type == 'i'){
+    		num_features++;
+    		this->vote_nodes[k].push_back(new InputNode(nn));
+    	      }
+    	      else if(type == 'm'){
+    		this->vote_nodes[k].push_back(new MiddleNode(func,nn,inputs,weights,bias));
+    	      }
+    	      ss >> temp; // ')'
+    	    }
+    	}
     }
   }
 
@@ -150,13 +217,31 @@ namespace nnet_interpreter {
      but the weights will stay the same for an entire round.
   */
   void Graph::setInputs(const vector<double> &features){
-    for(int i=0; i<features.size(); i++){
-      values[i] = features[i];
+	  if(type==0){
+	    for(int i=0; i<features.size(); i++){
+	      values[i] = features[i];
+	    }
+	  }
+	  else if(type==1){
+		  for(int k=0; k<num_nets; k++){
+		    for(int i=0; i<features.size(); i++){
+		  vote_values[k][i] = features[i];
+		    }
+		  }
     }
   }
   void Graph::setInputs(const vector<float> &features){
-    for(int i=0; i<features.size(); i++){
-      values[i] = features[i];
+    if(type==0){
+	    for(int i=0; i<features.size(); i++){
+	      values[i] = features[i];
+	    }
+	  }
+	  else if(type==1){
+		  for(int k=0; k<num_nets; k++){
+		    for(int i=0; i<features.size(); i++){
+		      vote_values[k][i] = features[i];
+		    }
+		  }
     }
   }
   /**
@@ -165,20 +250,49 @@ namespace nnet_interpreter {
      values if needed, in the order that they appear in the vector
   */
   double Graph::calculate(){
-    for(int i = num_features; i < nodes.size(); ++i)
-      values[i] = nodes[i]->getValue(values);
-    return this->values[nodes.size() - 1];
+    if(type==0){
+      for(int i = num_features; i < nodes.size(); ++i)
+        values[i] = nodes[i]->getValue(values);
+      return this->values[nodes.size() - 1];
+    }
+    else if(type==1){
+      double votes[num_nets];
+      for(int k=0; k<num_nets; k++){
+        for(int i = num_features; i < vote_nodes[k].size(); ++i)
+          vote_values[k][i] = vote_nodes[k][i]->getValue(vote_values[k]);
+        votes[k] = this->vote_values[k][vote_nodes[k].size() - 1];
+      }
+      return majority(votes,num_nets);
+
+    }
+
   }
 
   Graph::~Graph(){
-    for(int i = 0; i < nodes.size(); ++i)
-      delete nodes[i];
+    if(type==0){
+      for(int i = 0; i < nodes.size(); ++i)
+        delete nodes[i];
+    }
+    else if(type==1){
+      for(int k = 0; k<num_nets; k++){
+        for(int i = 0; i < vote_nodes[k].size(); ++i)
+          delete vote_nodes[k][i];
+      }
+    }
+
   }
 
   Graph::DecisionKind Graph::getDecisionKind(){
-    MiddleNode* final = (MiddleNode*)nodes[nodes.size()-1];
-    if(final->getFunc().compare("tanh")==0) return Graph::SIGN;
-    else return Graph::ZEROONE;
+    if(type==0){
+      MiddleNode* final = (MiddleNode*)nodes[nodes.size()-1];
+      if(final->getFunc().compare("tanh")==0) return Graph::SIGN;
+      else return Graph::ZEROONE;
+    }
+    else if(type==1){
+      MiddleNode* final = (MiddleNode*)vote_nodes[0][vote_nodes[0].size()-1];
+      if(final->getFunc().compare("tanh")==0) return Graph::SIGN;
+      else return Graph::ZEROONE;
+    }
   }
 
 }
