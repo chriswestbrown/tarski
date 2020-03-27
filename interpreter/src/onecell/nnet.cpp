@@ -16,7 +16,7 @@ double majority(double* arr, int n)
         other_index = i;
       }
     }
-    return (count >=3 ? arr[0] : arr[other_index]);
+    return (count >=(n/2)+1 ? arr[0] : arr[other_index]);
 }
 
   float sigmoid(float x)
