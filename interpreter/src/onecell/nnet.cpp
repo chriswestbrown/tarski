@@ -163,7 +163,6 @@ double majority(double* arr, int n)
     }
     else{
     	type=1;
-      cout << type << endl;
     	ss >> num_nets;
       vote_values.resize(num_nets);
       vote_nodes.resize(num_nets);
