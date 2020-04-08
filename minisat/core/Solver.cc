@@ -250,6 +250,8 @@ void Solver::cancelUntil(int level) {
     qhead = trail_lim[level];
     trail.shrink(trail.size() - trail_lim[level]);
     trail_lim.shrink(trail_lim.size() - level);
+    if (ts != NULL) // FERNANDO'S CODE (Dr. Brown added)
+      ts->stackCancelNotification(qhead);
   } }
 
 
@@ -977,10 +979,9 @@ lbool Solver::search(int nof_conflicts)
   starts++;
   Lit next;
   for (;;){
-    //std::cerr << "Prior to propagate:  "; ts->printStack(); std::cout << std::endl;
+    //std::cerr << "Prior to propagate (qhead = " << qhead << "):  "; ts->printStack(); std::cout << std::endl;
     //printData();
     CRef confl = propagate();
-    
 
     //THIS CODE LETS YOU ADD A NEW CLAUSE EVERY X ITERATIONS - FERNANDO'S CODE
     if (confl == CRef_Undef &&
@@ -993,8 +994,8 @@ lbool Solver::search(int nof_conflicts)
         return lb;
       }
       if (lb == l_True)  {
-        continue;
         //std::cerr << "NO TCONFLICT\n";
+        continue;
       }
       //std::cerr << "NOTHING DONE\n";
     }

@@ -15,6 +15,13 @@ namespace Minisat {
 
   /*
     Interface for all TSolvers
+
+    - getClause : gets called after each stack push
+    - getAddition : gets called after each stack push
+    - getFinalClause : gets called when all variables have a value
+                       on the stack
+    - stackCancelNotification : gets called after "cancelUntil"
+                  This is essentially notifying TSolver of retractions.
   */
   class TSolver {
   public:
@@ -27,6 +34,9 @@ namespace Minisat {
     //Final Check (IE, for handing off to a complete theory solver if necessary)
     virtual void getFinalClause(vec<Lit>& lits, bool& conf) {getClause(lits, conf);}
 
+    // callee can check qhead to see stack size after cancel
+    virtual void stackCancelNotification(int newStackSize) { }
+    
     void printStack();
 
     virtual ~TSolver() {}
