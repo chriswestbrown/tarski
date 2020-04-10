@@ -19,6 +19,7 @@ void PASSLINE(Word D, Word F, Word P);
 void CADTVNEG(Word D);
 void CADTVSUPINF(Word D, Word k, Word dir);
 Word numberOfFullDimensionalCells(Word C);
+Word CADNUMLEAFCELLS(Word D);
 
 void QepcadCls::USERINT(Word P, Word W)
 {
@@ -333,7 +334,12 @@ Step2: /* Process the command. */
 	   SWRITE("ERROR! unsat-core not applicable for this input!\n");
 	 }
 	 break;
-	 
+
+       case 110: {
+	 SWRITE("Number of leaf cells = ");
+	 IWRITE(CADNUMLEAFCELLS(GVPC));
+	 SWRITE("\n");
+       } break;
        }
        goto Step1;
 
@@ -390,6 +396,15 @@ void CADTVSUPINF(Word D, Word k, Word dir)
     if (m != 0)
       SLELTI(m,TRUTH,TRUE);
   }
+}
+
+Word CADNUMLEAFCELLS(Word D)
+{
+  Word CD = LELTI(D,CHILD);
+  Word count = CD == NIL ? 1 : 0;
+  for(Word L = CD; L != NIL; L = RED(L))
+    count += CADNUMLEAFCELLS(FIRST(L));
+  return count;  
 }
 
 void CADTVNEG(Word D)

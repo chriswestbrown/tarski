@@ -346,6 +346,14 @@ CAD.  Note: a lower-level cell with no children is treated
 as a full-dimensional cell.
 @
 
+d-number-leaf-cells 110 cde d
+@
+d-number-leaf-cells
+
+Displays the number of "leaf" cells in the current CAD.
+Note: A "leaf" cell is a cell with no children.
+@
+
 d-number-solutions 84 de d
 @
 d-number solutions
