@@ -43,15 +43,16 @@ public:
     return ptrPM->getName(a) < ptrPM->getName(b);
   }
 };
-
-  string writeForQEPCADBQFF(TFormRef F, bool endWithQuit);
-
+  
+  string writeForQEPCADBQFF(TFormRef F, bool endWithQuit, char solFormType, VarOrderRef ord);
+  
 // This function is really only intended for existentially quantified conjunctions
-string writeForQEPCADB(TFormRef F, TFormRef &introducedAssumptions, bool endWithQuit, bool trackUnsatCore)
+string writeForQEPCADB(TFormRef F, TFormRef &introducedAssumptions, bool endWithQuit,
+		       bool trackUnsatCore, char solFormType, VarOrderRef ord)
 {
   //-- STEP 1: Test that F is of the proper form!
   if (!isQuantifiedConjunctionOfAtoms(F)) 
-    return writeForQEPCADBQFF(F,endWithQuit);
+    return writeForQEPCADBQFF(F,endWithQuit,solFormType,ord);
 
   TQBRef Fb = asa<TQBObj>(F);
   if (Fb.is_null() || Fb->size() != 1)
@@ -94,11 +95,19 @@ string writeForQEPCADB(TFormRef F, TFormRef &introducedAssumptions, bool endWith
   VarSet FVars = Vs & ~(QVars);
   vector<VarSet> vqv;
   for(VarSet::iterator vitr = QVars.begin(); vitr != QVars.end(); ++vitr) vqv.push_back(*vitr);
-  sort(vqv.begin(),vqv.end(),M);
+  if (ord.is_null())
+    sort(vqv.begin(),vqv.end(),M);
+  else {
+    ord->sort(vqv);
+    std::reverse(vqv.begin(),vqv.end());
+  }
   vector<VarSet> vfv;
   for(VarSet::iterator vitr = FVars.begin(); vitr != FVars.end(); ++vitr) vfv.push_back(*vitr);
-  sort(vfv.begin(),vfv.end(),M);
-
+  if (ord.is_null())
+    sort(vfv.begin(),vfv.end(),M);
+  else
+    ord->sort(vfv);
+    
   //-- STEP 4: Split G into Ge (equations) and Gi (inequalities and inequations)
   TAndRef Ge = new TAndObj();
   TAndRef Gi = new TAndObj();
@@ -173,10 +182,10 @@ string writeForQEPCADB(TFormRef F, TFormRef &introducedAssumptions, bool endWith
   if (vfv.size() == 0 && trackUnsatCore)
     sout << "track-unsat-core" << endl;
   
-  if (false)
-    sout << "finish" << endl;
-  else
-    sout << "\ngo\ngo\nsol T\n";
+  sout << "go\ngo\ngo\n";
+  if (solFormType != 0)
+    sout << "sol " << solFormType << "\n";
+
   if (false) // Just for some debugging
   {
     VarSet Vs = F->getVars();
@@ -193,7 +202,7 @@ string writeForQEPCADB(TFormRef F, TFormRef &introducedAssumptions, bool endWith
   return sout.str();
 }
 
-  string writeForQEPCADBQFF(TFormRef F, bool endWithQuit)
+  string writeForQEPCADBQFF(TFormRef F, bool endWithQuit, char solFormType, VarOrderRef ord)
 {
   //-- STEP 1: Test that F is of the proper form!
   if (!isAndAndAtoms(F))
@@ -222,8 +231,13 @@ string writeForQEPCADB(TFormRef F, TFormRef &introducedAssumptions, bool endWith
   // Get  var orderings in vqv respectively
   vector<VarSet> vqv;
   for(VarSet::iterator vitr = QVars.begin(); vitr != QVars.end(); ++vitr) vqv.push_back(*vitr);
-  sort(vqv.begin(),vqv.end(),M);
-
+  if (ord.is_null())
+    sort(vqv.begin(),vqv.end(),M);
+  else {
+    ord->sort(vqv);
+    std::reverse(vqv.begin(),vqv.end());
+  }
+  
   //-- STEP 4: Split G into Ge (equations) and Gi (inequalities and inequations)
   TAndRef Ge = new TAndObj();
   TAndRef Gi = new TAndObj();
@@ -265,11 +279,9 @@ string writeForQEPCADB(TFormRef F, TFormRef &introducedAssumptions, bool endWith
   else
     sout << "go" << endl;
 
-
-  if (false)
-    sout << "finish" << endl;
-  else
-    sout << "\ngo\ngo\nsol T\n";
+  sout << "go\ngo\n";
+  if (solFormType != 0)
+    sout << "sol " << solFormType << "\n";
 
   if (endWithQuit) { sout << "quit" << endl; }
   return sout.str();

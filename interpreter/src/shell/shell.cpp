@@ -87,6 +87,7 @@ int mainDUMMY(int argc, char **argv, void* topOfTheStack)
       if (argv[i] == string("-CASSaclib")) CASString = "Saclib";
       else if (argv[i] == string("-CASMaple"))  CASString = "Maple";
       else if (argv[i] == string("-CASMapleSac")) CASString = "MapleSac";
+      else if (argv[i] == string("-CASSingSac")) CASString = "SingSac";
       else if (argv[i] == string("-v")) { verbose = true; }
       else if (argv[i] == string("-q")) { quiet = true; }
       else if (argv[i][0] == '+') { ; }
@@ -112,6 +113,8 @@ int mainDUMMY(int argc, char **argv, void* topOfTheStack)
     }
     if (CASString == "MapleSac") 
       SacModInit(argc,argv,ac,av,"MapleSac","Maple",pathToMaple,topOfTheStack);
+    if (CASString == "SingSac") 
+      SacModInit(argc,argv,ac,av,"SingSac","Singular",pathToSingular,topOfTheStack);
     else if (CASString == "Saclib")
       SacModInit(argc,argv,ac,av,"Saclib","","",topOfTheStack);
     else if (CASString == "Maple")

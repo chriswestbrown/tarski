@@ -105,10 +105,13 @@ map<TFormRef,VarSet> atomsContainingUniqueVar(TAndRef F, VarSet S)
 string naiveButCompleteWriteForQepcad(TFormRef Fin,
 				      TFormRef &introducedAssumptions,
 				      bool endWithQuit,
-				      bool trackUnsatCore
+				      bool trackUnsatCore,
+				      char solFormType,
+				      VarOrderRef ord
 				      )
 {
-  try { return writeForQEPCADB(Fin,introducedAssumptions,endWithQuit,trackUnsatCore); }
+  try { return writeForQEPCADB(Fin,introducedAssumptions,endWithQuit,trackUnsatCore,
+			       solFormType,ord); }
   catch(TarskiException e) { }
 
   // Set F to a prenex equivalent to Fin
@@ -161,6 +164,11 @@ string naiveButCompleteWriteForQepcad(TFormRef Fin,
   
   // set blockOrder[i] to the vector of variable from the ith block in brown heuristic order
   vector<VarSet> V = getBrownVariableOrder(Fqff);
+  if (!ord.is_null()) // override with manually specified order
+  {
+    ord->sort(V);
+    std::reverse(V.begin(),V.end());
+  }
   vector< vector<VarSet> > blockOrders(blocks.size());
   for(unsigned int i = 0; i < V.size(); ++i)
     blockOrders[varToBlockIndex[V[i]]].push_back(V[i]);
@@ -222,7 +230,9 @@ string naiveButCompleteWriteForQepcad(TFormRef Fin,
   PopOutputContext();
   sout << "].\n";
   //  sout << "cell-choice-bound (SR,LD,HL)\n"; // T E S T ! ! !
-  sout << "go\ngo\ngo\nsol T\n";
+  sout << "go\ngo\ngo\n";
+  if (solFormType != 0)
+    sout << "sol " << solFormType << "\n";
 
 
   if (endWithQuit) { sout << "quit" << endl; }

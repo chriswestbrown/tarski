@@ -22,14 +22,17 @@ class VarOrderObj : public GC_Obj
 {
 private:
   std::vector<VarSet> V;
+  VarKeyedMap<int> position;
   PolyManager* ptrPM;
 public:
   VarOrderObj(PolyManager* p) { ptrPM = p; V.push_back(VarSet());}
   int size() { return V.size()-1; }
-  void push_back(VarSet x) { V.push_back(x); }
-  void push_back(std::string s) { V.push_back(ptrPM->addVar(s)); }
-  VarSet& operator[](unsigned int i) { return V[i]; }
-  VarSet& get(unsigned int i) { return V[i]; }
+  void push_back(VarSet x) { V.push_back(x); this->position[x] = V.size() - 1; }
+  void push_back(std::string s) { this->push_back(ptrPM->addVar(s)); }
+  VarSet operator[](unsigned int i) { return V[i]; }
+  VarSet get(unsigned int i) { return V[i]; }
+  int getPosition(VarSet x) { return position[x]; }
+  void sort(std::vector<VarSet> &vec);
   PolyManager* getPolyManager() const { return ptrPM; }
   void read(std::istream &in);
   void write();

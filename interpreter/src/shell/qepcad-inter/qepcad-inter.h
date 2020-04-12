@@ -23,23 +23,50 @@ public:
   SRef execute(SRef input, vector<SRef> &args) 
   { 
     TFormRef F = args[0]->tar()->val;
-    TFormRef A = args.size() == 2 ? args[1]->tar()->val : TFormRef(new TConstObj(TRUE));
+    TFormRef A = TFormRef(new TConstObj(TRUE));
+    bool numLeavesOnlyFlag = false;
+    VarOrderRef ord;
+    
+    for(int i = 1; i < args.size(); i++)
+    {
+      if (i == 1 && args[i]->type() == _tar)
+	A = args[1]->tar()->val;
+      else if (args[i]->type() == _sym && args[i]->sym()->getVal() == "num-leaves-only")
+	numLeavesOnlyFlag = true;
+      else if (args[i]->type() == _lis)
+      {
+	LisRef Lv = args[i]->lis();
+	ord = new VarOrderObj(interp->PM);
+	for(int i = 0; i < Lv->length(); ++i)
+	{
+	  SymRef s = Lv->get(i)->sym();
+	  ord->push_back(s->val);
+	}
+      }
+    }
+
     TFormRef res;
     QepcadConnection qconn;
+    if (numLeavesOnlyFlag) { qconn.setSolFormType(0); qconn.setTrackNumberOfLeafCells(true); }
+    if (!ord.is_null())
+      qconn.setVarOrder(ord);
+    
     try {
       res = qconn.basicQepcadCall(F,A);
-      return new TarObj(res);
+      if (numLeavesOnlyFlag)
+	return new NumObj(qconn.getNumberOfLeafCells());
+      else
+	return new TarObj(res);
     } catch(TarskiException &e) { return new ErrObj(e.what()); }
   }
 
   string testArgs(vector<SRef> &args)
   {
-    string s1 = require(args,_tar,_tar);
-    return s1 == "" ? s1 : require(args,_tar);
+    return args.size() > 0 && args[0]->type() == _tar ? "" : "First argument must be a Tarski formula";
   }
   string doc() 
   {
-    return "(qepcad-qe F) returns the result of calling QEPCADB on input formula F.  With the optional second argument A, where A is a tarski formula in the free variables of F, A is passed to QEPCADB as \"assumptions\".";
+    return "(qepcad-qe F) returns the result of calling QEPCADB on input formula F.  With the optional second argument A, where A is a tarski formula in the free variables of F, A is passed to QEPCADB as \"assumptions\".  Following F there are two other optional arguments: 1) 'num-leaves-only, which changes the behavior of qepcad-qe so that the number of \"leaf\" cells in the final CAD is what gets returned. 2) A variable ordering given as a list of variables (<var> ... <var>).  Note: the rightmost variable is eliminated first.";
   }
   string usage() { return "(qepcad-qe <input-formula> <assumptions>) or (qepcad-qe <input-formula>)"; }
   string name() { return "qepcad-qe"; }

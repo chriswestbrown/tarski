@@ -186,4 +186,18 @@ int countUNSATStrictConjunctionAtPoint(VarOrderRef X, GCWord alpha, TAndRef C)
   return count;
 }
 
+  class TmpCmp
+  {
+    VarOrderObj* p;
+  public:
+    TmpCmp(VarOrderObj* p) { this->p = p; }
+    bool operator()(const VarSet &a, const VarSet &b) { return p->getPosition(a) < p->getPosition(b); }
+  };
+  void VarOrderObj::sort(std::vector<VarSet> &vec)
+  {
+    TmpCmp C(this);
+    std::sort(vec.begin(),vec.end(),C);
+  }
+
+  
 }//end namespace tarski

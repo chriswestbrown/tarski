@@ -2,6 +2,7 @@
 #define _WRITE_FOR_QE_
 
 #include "formula.h"
+#include "../onecell/varorder.h"
 
 namespace tarski {
   
@@ -33,14 +34,18 @@ std::set<IntPolyRef> collectFactors(TFormRef F);
 std::string naiveButCompleteWriteForQepcad(TFormRef F,
 					   TFormRef &introducedAssumptions,
 					   bool endWithQuit = true,
-					   bool trackUnsatCore = false
+					   bool trackUnsatCore = false,
+					   char solFormType = 'T',
+					   VarOrderRef ord = NULL
 					   );
 
 
 std::string writeForQEPCADB(TFormRef F,
 			    TFormRef &introducedAssumptions,
 			    bool endWithQuit = true,
-			    bool trackUnsatCore = false
+			    bool trackUnsatCore = false,
+			    char solFormType = 'T',
+			    VarOrderRef ord = NULL
 			    );
 
 }//end namespace tarski

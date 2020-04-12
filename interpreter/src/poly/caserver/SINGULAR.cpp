@@ -8,7 +8,7 @@ using namespace std;
 SingularServer::SingularServer(string dirPath)
 {
   string SingularBase = dirPath;
-  string SingularCall = SingularBase + "/Singular";
+  string SingularCall = SingularBase;
   
   // Fork
   childpid = fork();
