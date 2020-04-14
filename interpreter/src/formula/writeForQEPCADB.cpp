@@ -15,6 +15,7 @@ using namespace std;
 
 namespace tarski {
 
+  
 /********************************************************
  * We assume we're given a formula F that is
  * - is in strong prenex form, i.e. ex x1...xk[G]
@@ -358,5 +359,122 @@ vector<VarSet> getBrownVariableOrder(TFormRef F)
   return res;
 }
 
+ 
+// Given a formula F in two variables, and two variables x and y
+// return a vector of "features" we can compare on.
+/*  F  values
+    0  -1,1     alphabetical ... does variable x come before y
+    1           degree in x of factor with max x-degree
+    2           2nd place of above (or 0)
+    3           3rd place of above (or 0)
+    4           degree in y of factor with max y-degree
+    5           2nd place of above (or 0)
+    6           3rd place of above (or 0)
+    7           max total degree of any term containing x in factor that's 1st-place in this cat
+    8           2nd place of above (or 0)
+    9           3rd place of above (or 0)
+   10           max total degree of any term containing y in factor that's 1st-place in this cat
+   11           2nd place of above (or 0)
+   12           3rd place of above (or 0)
+   13           num terms containing x in factor that's 1st place in this cat.
+   14           2nd place of above (or 0)
+   15           3rd place of above (or 0)
+   16           num terms containing y in factor that's 1st place in this cat.
+   17           2nd place of above (or 0)
+   18           3rd place of above (or 0)
+*/
+
+class FactorCollector : public TFPolyFun
+{
+  std::set<IntPolyRef> factors;
+public:
+  std::set<IntPolyRef>& getFactorSet() { return factors; }
+  virtual void action(TAtomObj* p)
+  {
+    for(auto itr = p->getFactors()->factorBegin(), eitr = p->getFactors()->factorEnd(); itr != eitr; ++itr)
+      factors.insert(itr->first);
+  }  
+  virtual void action(TExtAtomObj* p)
+  {
+    for(auto itr = p->getFactors()->factorBegin(), eitr = p->getFactors()->factorEnd(); itr != eitr; ++itr)
+      factors.insert(itr->first);
+  }  
+  virtual void action(TConstObj* p) {  }
+  virtual void action(TAndObj* p) {
+    for(auto itr = p->conjuncts.begin(), eitr = p->conjuncts.end(); itr != eitr; ++itr)
+      this->actOn(*itr);
+  }
+  virtual void action(TOrObj* p) {
+    for(auto itr = p->disjuncts.begin(), eitr = p->disjuncts.end(); itr != eitr; ++itr)
+      this->actOn(*itr);
+  }
+  virtual void action(TQBObj* p) {
+    this->actOn(p->getFormulaPart());    
+  }
+};
+
+static vector<int> FDempty{0,0,0};
+class FeatDatum
+{
+public:
+  IntPolyRef p;
+  VarKeyedMap< vector<int> > M;
+  FeatDatum() : M(FDempty) { }
+};
+
+class TopThree
+{
+  int A[4];
+  int N;
+public:
+  TopThree() { N = 0; }
+  void add(int x) {
+    A[N] = x;
+    for(int i = N; i > 0 && A[i-1] < A[i]; --i)
+      swap(A[i-1],A[i]);
+    if (N < 3)
+      N++;
+  }
+  int get(int i) { return i < N ? A[i] : 0; }
+};
+
+
+/*
+(def F [ x^2 - y > 0 /\ x y - 1 < 0 /\ x^2 - y^2 - x y < 2 ])
+(get-2var-features F 'x 'y) 
+ */
+
+vector<float> getFeatures2Vars(TFormRef F, VarSet x, VarSet y)
+{
+  FactorCollector FC;
+  FC.actOn(F);
+  vector<FeatDatum> A(FC.getFactorSet().size());
+  int i = 0;
+  for(auto itr = FC.getFactorSet().begin(), eitr = FC.getFactorSet().end(); itr != eitr; ++itr)
+  {
+    A[i].p = *itr;
+    A[i].p->varStats(A[i].M);
+    i++;
+  }
+  TopThree degx[3], degy[3];
+  for(int i = 0; i < A.size(); i++)
+    for(int j = 0; j < 3; j++)
+    {
+      degx[j].add(A[i].M[x][j]);
+      degy[j].add(A[i].M[y][j]);
+    }
+  
+  vector<float> res;    
+  res.push_back(F->getPolyManagerPtr()->getName(x) < F->getPolyManagerPtr()->getName(y) ? -1 : +1);
+  for(int j = 0; j < 3; j++)
+  {
+    for(int i = 0; i < 3; i++)
+      res.push_back(degx[j].get(i));
+    for(int i = 0; i < 3; i++)
+      res.push_back(degy[j].get(i));
+  }
+  
+  return res;
+}
 
 }//end namespace tarski

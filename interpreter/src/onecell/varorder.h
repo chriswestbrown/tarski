@@ -31,6 +31,7 @@ public:
   void push_back(std::string s) { this->push_back(ptrPM->addVar(s)); }
   VarSet operator[](unsigned int i) { return V[i]; }
   VarSet get(unsigned int i) { return V[i]; }
+  VarSet get(const string& name) { return ptrPM->getVar(name); }
   int getPosition(VarSet x) { return position[x]; }
   void sort(std::vector<VarSet> &vec);
   PolyManager* getPolyManager() const { return ptrPM; }

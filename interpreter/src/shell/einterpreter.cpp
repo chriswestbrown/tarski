@@ -1163,6 +1163,48 @@ public:
 };
 
 
+class CommGet2VarFeatures : public EICommand
+{
+public:
+  CommGet2VarFeatures(NewEInterpreter* ptr) : EICommand(ptr) { }
+  SRef execute(SRef input, vector<SRef> &args) 
+  {
+    try {
+      TFormRef F = args[0]->tar()->getValue();
+      string n1 = args[1]->sym()->getVal();
+      string n2 = args[2]->sym()->getVal();
+      VarSet x = F->getPolyManagerPtr()->getVar(n1);
+      if (x.isEmpty())
+	throw TarskiException("Error!  " + n1 + " is not a variable in formula!");
+      VarSet y = F->getPolyManagerPtr()->getVar(n2);
+      if (y.isEmpty())
+	throw TarskiException("Error!  " + n2 + " is not a variable in formula!");
+      vector<float> Fv = getFeatures2Vars(F,x,y);
+      ostringstream sout;
+      sout << "[" << Fv[0];
+      for(int i = 1; i < Fv.size(); i++)
+	sout << "," << Fv[i];
+      sout << "]";
+      return new StrObj(sout.str());
+    }
+    catch(TarskiException &e)
+    {
+      return new ErrObj(e.what());
+    }
+  }
+  string testArgs(vector<SRef> &args)
+  {
+    return require(args,_tar,_sym,_sym);
+  }
+  string doc() 
+  {
+    return "Returns a string representation of feature vector.";
+  }
+  string usage() { return "(get-2var-features <tarski formula> <sym> <sym>)"; }
+  string name() { return "get-2var-features"; }
+};
+
+
 
 void NewEInterpreter::init() 
 {
@@ -1227,6 +1269,7 @@ void NewEInterpreter::init()
   add(new RanCompComm(this));
   add(new NumToRanComm(this));
   add(new IndexedRootToRanComm(this));
+  add(new CommGet2VarFeatures(this)); // this is for 1/C Daves research project
   //add(new TestComm(this));
 
   //Fernando Additions

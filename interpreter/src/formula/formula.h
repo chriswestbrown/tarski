@@ -184,6 +184,7 @@ public:
   VarSet getLHSVar() { return var; }
   int getRootIndex() { return rootIndex; }
   int getRelop() { return relop; }
+  FactRef getFactors() { return F; }
   TFormRef negate() { throw TarskiException("Negate not yet implemented for TExtAtom!"); }
   
   // truth of this ExtAtom assuming the RHS has n_less roots less than var, n_equal roots

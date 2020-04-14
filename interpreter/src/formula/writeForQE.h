@@ -48,6 +48,12 @@ std::string writeForQEPCADB(TFormRef F,
 			    VarOrderRef ord = NULL
 			    );
 
+// Takes formula F and variables x and y appearing in F and returns
+// a "feature vector" describing how the x and y compare w.r.t. F.
+ std::vector<float> getFeatures2Vars(TFormRef F, VarSet x, VarSet y);
+  
+
+ 
 }//end namespace tarski
 
 #endif
