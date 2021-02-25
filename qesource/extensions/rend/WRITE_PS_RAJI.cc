@@ -15,8 +15,9 @@ void WRITE_PS_RAJI(Rend_Cell &M, Rend_Win &W, Word L, Word e, Word P, Word Oflag
   char S[40];
   ofstream out;
   do {
+    int res;
     SWRITE("File name for postscript output? ");
-    scanf("%s",S);
+    res = scanf("%s",S);
     out.open(S);
     if (out) break;
     printf("File %s could not be opened.\n",S);
@@ -27,13 +28,13 @@ void WRITE_PS_RAJI(Rend_Cell &M, Rend_Win &W, Word L, Word e, Word P, Word Oflag
   *****************************************/
   Rend_Win Wp(W);
   {
-    int x,y;
+    int x,y, res;
     SWRITE("Precision k (means precise to within 2^k) for x values: ");
     SWRITE("(Currently "); IWRITE(Wp.precis.x); SWRITE(") ");
-    scanf("%d",&x);
+    res = scanf("%d",&x);
     SWRITE("Precision k (means precise to within 2^k) for y values: ");
     SWRITE("(Currently "); IWRITE(Wp.precis.y); SWRITE(") ");
-    scanf("%d",&y);
+    res = scanf("%d",&y);
     Wp.precis.x = min(x,Wp.precis.x);
     Wp.precis.y = min(y,Wp.precis.y);
   }
@@ -48,7 +49,8 @@ void WRITE_PS_RAJI(Rend_Cell &M, Rend_Win &W, Word L, Word e, Word P, Word Oflag
   if (Oflag) {
     double Ox = 0, Oy = 0,dum;
     SWRITE("Provide an origin: ");
-    scanf("%lf %lf",&Ox,&Oy);
+    int res;
+    res = scanf("%lf %lf",&Ox,&Oy);
     OX = IEEELBRN(Ox);
     OY = IEEELBRN(Oy);
     if (LBRNCOMP(OX,W.x.W) < 0 || LBRNCOMP(OX,W.X.W) > 0 ||
@@ -58,9 +60,9 @@ void WRITE_PS_RAJI(Rend_Cell &M, Rend_Win &W, Word L, Word e, Word P, Word Oflag
     else {
       SWRITE("x offset : ");
       SWRITE("y offset : ");
-      scanf("%lf",&dum);
+      res = scanf("%lf",&dum);
       xoff = IEEELBRN(dum);
-      scanf("%lf",&dum);
+      res = scanf("%lf",&dum);
       yoff = IEEELBRN(dum); } }
  
    /****************************************

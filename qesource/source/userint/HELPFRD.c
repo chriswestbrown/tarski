@@ -27,6 +27,7 @@ void HELPFRD()
        char *p;
        Word c;
        Word  N,I,L,T,C,D;
+       int r1, r2, r3, r4, r5; /* fscanf return values. */
   
 Step1: /* Open the text file containing the helps. */
        if ((qepath = getenv("qe")) == NULL)
@@ -49,13 +50,17 @@ Step3: /* Setup for reading help items. */
        COMCLASS = NIL;
 
 Step4: /* Read in the command name, index, location and classification. */
-       fscanf(fp,"%s", name);
+       r1 = fscanf(fp,"%s", name);
+       if (r1 < 1) { FAIL("HELPFRD","Invalid helpfile syntax!"); }
        if (strcmp(name,"@@@") == 0) goto Step6;
        N = LFS(name);
-       fscanf(fp,"%d", &I);
-       fscanf(fp,"%s", location);
+       r2 = fscanf(fp,"%d", &I);
+       if (r2 < 1) { FAIL("HELPFRD","Invalid helpfile syntax!"); }
+       r3 = fscanf(fp,"%s", location);
+       if (r3 < 1) { FAIL("HELPFRD","Invalid helpfile syntax!"); }
        L = LFS(location);
-       fscanf(fp,"%s",classification);
+       r4 = fscanf(fp,"%s",classification);
+       if (r4 < 1) { FAIL("HELPFRD","Invalid helpfile syntax!"); }
        T = LFS(classification);
        C = LIST4(N,I,L,T);
        COMMANDS = COMP(C,COMMANDS);
@@ -71,7 +76,8 @@ Step5: /* Read in the help text for the command. */
        goto Step4;
 
 Step6: /* Read in classification descriptions. */
-       fscanf(fp,"%s",classification);
+       r5 = fscanf(fp,"%s",classification);
+       if (r5 < 1) { FAIL("HELPFRD","Invalid helpfile syntax!"); }
        if (strcmp(classification,"@@@") == 0) goto Step7;
        T = LFS(classification);
        p = buffer;
