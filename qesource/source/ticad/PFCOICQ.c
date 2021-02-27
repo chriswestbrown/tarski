@@ -28,6 +28,14 @@ Word PFCOICQ(Word r, Word A, Word c, Word P, Word D)
   Word L1 = LPFZCALL(c,P,D);
   Word L2 = LPFTOLRLP(r,L1);
   Word tr = GVCAP->CONSTORDTEST(r,A,L2);
+  if (PCVERBOSE && tr == TRUE) {
+    SWRITE("Determined (in PFCOICQ) that pol ");
+    //    IPDWRITE(k+1,A,GVVL);
+    SWRITE(" has constant order over cell ");
+    //    LWRITE(LELTI(c,INDX));
+    SWRITE("\n");
+  }
+    
   return tr;
 }
 

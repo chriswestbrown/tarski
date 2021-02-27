@@ -29,6 +29,10 @@ Step2: /* Send off to the proper solution formula constructor */
     SFC3(GVPC,GVPF,GVPJ,GVNFV,CCONC(LIST10(1,0,0,1,0,3,2,4,1,5),LIST1(-1)));
     break;
 
+  case 'N': /* Extended Language Formula - Simplification is *not* used if it is not safe! */
+    SFC3(GVPC,GVPF,GVPJ,GVNFV,CCONC(LIST10(1,(GVPFASDPFLAG ? 1 : 0),0,1,0,3,2,4,1,5),LIST1(-1)));
+    break;
+
   case 'G': /* "Geometry-based" Formula */
     SFC3(GVPC,GVPF,GVPJ,GVNFV,
 	 CCONC(LIST4(1,0,2,1),LIST4(3,2,0,-4))); 

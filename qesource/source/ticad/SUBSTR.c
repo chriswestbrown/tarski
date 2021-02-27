@@ -98,6 +98,7 @@ Step3: /* Searches non-zero substituted projection factors to see if the factors
 	     SWRITE("-level projection factor is acting as a \n");
 	     SWRITE("delineating polynomial for another!  CAD Simplification does not\n");
 	     SWRITE("take this into account!\n");
+	     GVPFASDPFLAG = TRUE;
 	   }
 	 }	
        }

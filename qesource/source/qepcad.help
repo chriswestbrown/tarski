@@ -964,11 +964,16 @@ solution-extension  59 de pc
 solution-extension x
  
 Use an alternative solution formula construction method.  The
-parameter x is allowed to be T,E,G, or I.  If x is T, then a
+parameter x is allowed to be T,E,G,N or I.  If x is T, then a
 formula in the usual language of Tarski formulas is produced.
 If x is E, a formula in the language of Extended Tarski formulas
 is produced.  If x is G, then a geometry-based formula is
-produced. Finally, if x is I, and "interactive mode" is entered 
+produced. If x is N, a formula in the extended language is (see
+E) is produced, but CAD Simplification is *not* used if it is
+not known for sure to be safe.  This is relevant when one
+projection factor acts as a "delineating polynomial" for
+another.  Currently, CAD Simplification does not account for
+that. Finally, if x is I, and "interactive mode" is entered 
 and the user is queried to determine how the formula is to be 
 constructed and displayed.
 @

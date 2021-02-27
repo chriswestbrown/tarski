@@ -40,7 +40,8 @@ public:
   GCWord GVNA;         /* Normalized formula for assumptions. */
   GCWord GVWL;         /* List of "witnesses", i.e. cells true by trial eval in a SAT problem. */
   GCWord GVWLL;        /* Witness-list level - i.e. witness should give values to first GVWL vars. */
-
+  GCWord   GVPFASDPFLAG; /* Projection factor is acting as a delinating polynomial flag that this has happened.*/
+  
   /* ------------------------------------------------------------------------*/
   /*                      Program control                                    */
   /* ------------------------------------------------------------------------*/
@@ -76,7 +77,7 @@ public:
   GCWord PCMZERROR;   /* Allow measure zero error in solution formula: 1 -> yes, 0 -> no */
 
   GCWord PCTRACKUNSATCORE; /* FALSE means don't track for unsat core, TRUE means do. */
-  
+
 
   /* Statistics on Normalization Phase */
 Word TMNORMQFF;     /* Time for Normalization Phase, NORMQFF */
