@@ -84,7 +84,6 @@ namespace tarski {
 						      this->solFormType,
 						      this->ord
 						      );
-      //cerr << "qscript START>>\n" << qscript << endl << "<<END qscript\n";
 
       if (qscript == "true" || qscript == "false")
       {
@@ -121,10 +120,11 @@ namespace tarski {
       // Send Qepcad the script & close unneeded pipes
       intoQepcad.closeIn();
       outofQepcad.closeOut();
+      //cerr << "qscript START>>\n" << qscript << "<<END qscript\n";      
       intoQepcad.out() << qscript << flush;
       if (trackNumberOfLeafCells)
 	intoQepcad.out() << "d-number-leaf-cells\n" << flush;
-      intoQepcad.out() << "quit\n" << flush;
+      // intoQepcad.out() << "quit\n" << flush; [NOTE! I commented this out 5/13/2020]
 	
       bool success = true;
       string emsg = "";
@@ -223,7 +223,7 @@ namespace tarski {
 	    { 
 	      MapToTForm MF(*(F->getPolyManagerPtr()));
 	      T->apply(MF);
-	      return introducedAssumptions.is_null() ? MF.res : (TFormRef)(introducedAssumptions && MF.res);
+	      result = introducedAssumptions.is_null() ? MF.res : (TFormRef)(introducedAssumptions && MF.res);
 	    }
 	    catch(TarskiException &e) { 
 	      throw TarskiException(string("Could not interpret Qepcad output as Tarski Formula! ") + e.what());
