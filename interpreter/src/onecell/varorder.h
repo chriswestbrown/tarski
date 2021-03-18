@@ -39,6 +39,7 @@ public:
   void write();
   int levelVarSet(VarSet W);
   int level(IntPolyRef p);
+  VarSet getMainVariable(IntPolyRef p);
   VarKeyedMap<GCWord> makeValueMap(Word alpha, int r);
 
   /*

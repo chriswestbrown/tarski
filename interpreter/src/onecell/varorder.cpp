@@ -73,6 +73,11 @@ void VarOrderObj::write()
   { 
     return levelVarSet(p->getVars());
   }
+  
+  VarSet VarOrderObj::getMainVariable(IntPolyRef p)
+  {
+    return get((unsigned int)level(p));
+  }
 
 /*****************************************************************
  * E V A L U A T I O N
