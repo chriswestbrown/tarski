@@ -298,7 +298,9 @@ namespace Minisat {
     lbool addTheoryClause(bool fin);
     lbool learnTheoryClause(vec<Lit>& lits);
     void addClauseAddition(vec<Lit>& ps);
+  public:
     lbool addAdditions();
+  protected:
     inline bool isConflict(const vec<Lit>& lits);
     //END FERNANDO MODS
   };

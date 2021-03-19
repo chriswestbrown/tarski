@@ -2299,8 +2299,8 @@ v[5] \in {0,1,2,3,big} : degree of p2 in its main variable - 1 (this is seldom m
 V[6] ... V[10] mirror V[1]...V[5], except p1,p2 replaced with "reduced" polys pb1 and pb2.
 v[15] number of roots of p1 over alpha inside cell
 v[16] number of roots of p2 over alpha inside cell
-v[17] -1 if p1 has a weaker lower bound than alpha, +1 if p2 has a weaker lower bound
-v[18] -1 if p1 has a weaker upper bound than alpha, +1 if p2 has a weaker upper bound
+v[17] -1 if p1 has a weaker lower bound over alpha, +1 if p2 has a weaker lower bound
+v[18] -1 if p1 has a weaker upper bound over alpha, +1 if p2 has a weaker upper bound
 v[20] numKnownSignInvariantConstraintPolys
 v[21] numNotknownSignInvariantConstraintPolys
 v[21] will be a randomish feature

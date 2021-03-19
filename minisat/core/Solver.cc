@@ -815,12 +815,16 @@ void Solver::printDataToFile(std::string fname) {
   //NOTE: Fernando Function
  */
 bool Solver::isConflict(const vec<Lit>& lits) {
+  int numUndef = 0;
   for (int i = 0; i < lits.size(); i++) {
-    //std::cout << "Checking " << var(lits[i]) << std::cout << std::endl;
     int v = var(lits[i]);
-    if (value(lits[i]) == l_False) return true;
+    lbool val = value(lits[i]);
+    std::cout << "Checking " << var(lits[i]) << " ... has val = " << toInt(val) << std::endl;
+    if (val == l_True) return false;
+    if (val == l_Undef) numUndef++;
+    //    if (value(lits[i]) == l_False) return true; // This is what Fernando had!
   }
-  return false;
+  return numUndef > 0 ? false : true;
 }
 
 /*
@@ -834,18 +838,20 @@ lbool Solver::addTheoryClause(bool fin) { //-- Fernando function
 
   bool conf = true;
   vec<Lit> lits;
+  int numVars = nVars();
+  int numClauses = nClauses();
   if (!fin)
     ts->getClause(lits, conf);
   else
     ts->getFinalClause(lits, conf);
 
-  if (!conf) { //!conf is true when the theory solver declines to add a clause
-    return l_Undef;
+  if (!conf) { //!conf is true when the theory solver declines to add a conflict clause
+    if (numVars < nVars() || numClauses < nClauses())
+      return l_True;
+    else
+      return l_Undef;
   }
-
-
   else {
-
     for (int i = 0; i < lits.size(); i++) {
       Var v = var(lits[i]);
       if (v >= nVars()) newVar();
@@ -876,9 +882,12 @@ lbool Solver::addTheoryClause(bool fin) { //-- Fernando function
 
     lbool res = learnTheoryClause(lits);
     if (res == l_False) return l_False;
-    //lbool res2 = addAdditions();
-      //if (res2 == l_False) return l_False;
-      return l_True;
+
+    /*
+    lbool res2 = addAdditions();
+    if (res2 == l_False) return l_False;
+    */
+    return l_True;
   }
 
 }
@@ -950,10 +959,13 @@ lbool Solver::addAdditions() {
 }
 
 void Solver::addClauseAddition(vec<Lit>& learnt_clause) {
+  addClauseF(learnt_clause);
+  /* FERNADO's VERSION
   CRef cr = ca.alloc(learnt_clause, true);
   learnts.push(cr);
   attachClause(cr);
   claBumpActivity(ca[cr]);
+  */
 }
 
 

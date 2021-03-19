@@ -80,8 +80,11 @@ namespace SMTLib
 	    state = 3; collect += nc; break;
 	  default: state = 2; collect += nc; break; }	  
 	  break;
-	case 1: 
-	  if (nc == '|') return Token(LITSTR,collect,lineNum,colPos); else collect += nc;
+	case 1:
+	  // NOTE: the commented out line was the old way.  It seems that literal strings are allowed
+	  //       as SYMs, so ... I made the change.
+	  //	   if (nc == '|') return Token(LITSTR,collect,lineNum,colPos); else collect += nc;
+	  if (nc == '|') return Token(SYM,collect,lineNum,colPos); else collect += nc;
 	  break;
 	case 2: 
 	  switch(nc) {

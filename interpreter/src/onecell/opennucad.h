@@ -12,6 +12,7 @@
 
 namespace tarski {
 
+class ONuCADObj; typedef GC_Hand<ONuCADObj> ONuCADRef;
  
 class NodeObj; typedef GC_Hand<NodeObj> NodeRef;
 /** A class for representing a node the in Open NuCAD structure.
@@ -77,6 +78,7 @@ class NodeObj : public GC_Obj
   void setTruthValue(int tv) { truthValue = tv; }
   bool hasChildren() { return !XYchild.is_null(); }
   int getSplitLevel() { return splitLevel; }
+  NodeObj* getRoot() { return this->parent == NULL ? this : this->parent->getRoot(); }
 
   // A node's subtree level is the highest split level of any descendent node
   int getSubtreeLevel(bool initFlag = true);
@@ -139,11 +141,14 @@ class NodeObj : public GC_Obj
  class SplitSetChooserObj; typedef GC_Hand<SplitSetChooserObj> SplitSetChooserRef;
  class SplitSetChooserObj : public GC_Obj
  {
+   ONuCADRef nucad;
  public:
    virtual void chooseSplit(VarOrderRef X, NodeRef node, int dim,
 			    set<IntPolyRef> &Q, int &tvAtAlpha, int &targetTruthValue) = 0;
 
    virtual IntPolyRef chooseNextPoly(set<IntPolyRef> &S, VarOrderRef X, NodeRef node);
+   void setNuCADRef(ONuCADRef nucad) { this->nucad = nucad; }
+   ONuCADRef getNuCADRef() { if (nucad.is_null()) { throw TarskiException("NuCADRef never set!"); } return nucad; }
  };
 
  class SplitSetChooserConjunction : public SplitSetChooserObj
@@ -155,7 +160,43 @@ class NodeObj : public GC_Obj
  private:
    TAndRef C;
  };
-  
+
+ void plotLeaves(ONuCADRef nucad, const string & wininfo, const string startLabel, std::ostream& out);
+ 
+  class UserChooser :  public SplitSetChooserConjunction
+  {
+    int counter;
+  public:
+  UserChooser(TAndRef C) : SplitSetChooserConjunction(C) { counter = 0; }
+    IntPolyRef chooseNextPoly(set<IntPolyRef> &S, VarOrderRef X, NodeRef node)
+    {
+      string fname;
+      fname += "out" + to_string(counter++) + ".svg";
+      ofstream fout(fname);
+      if (!fout) { throw TarskiException("File \"" + fname + "\" could not be opened."); }
+      ONuCADRef nucad = getNuCADRef();
+      plotLeaves(nucad,"-2 2 -2 2 400 400","C",fout);
+
+
+      cout << node->getData()->getCell()->definingFormula() << endl;
+      if (S.size() == 1) { return *(S.begin()); }
+      vector<IntPolyRef> P;
+      PolyManager* pm = node->getData()->getPolyManager();
+      int count = 0;
+      for(auto itr = S.begin(); itr != S.end(); ++itr)
+      {
+	cout << count++ << " " << pm->polyToStr(*itr) << endl;
+	P.push_back(*itr);
+      }
+      cout << "which poly? ";
+      int i;
+      cin >> i;
+      if (i < 0 || i >= P.size()) { throw TarskiException("Invalid index for user poly choice!"); }
+      return P[i];
+    }
+  };
+
+ 
   /********* HPC LEARNING STUFF *************/
   
   class SSCCompObj; typedef GC_Hand<SSCCompObj> SSCCompRef;
@@ -383,7 +424,6 @@ class PriorityAEarlyTerminateSearchQueueObj : public EarlyTerminateSearchQueueOb
   virtual bool empty() { return PQ.empty(); }
 };
 
-class ONuCADObj; typedef GC_Hand<ONuCADObj> ONuCADRef;
 
 class ONuCADObj : public GC_Obj
 {

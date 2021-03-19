@@ -341,7 +341,7 @@ public:
     return V;
   }
 
-  TQBObj(PolyManager* pM) { PMptr = pM; }  
+  TQBObj(PolyManager* pM) { PMptr = pM; outermostBlockType = -1; }  
 
   TQBObj(TQBRef QF) 
   { 

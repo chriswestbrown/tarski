@@ -20,6 +20,7 @@
 #include "../bbwb/bbwb.h"
 #include "../smtsolver/box-solver-comm.h"
 #include "../smtsolver/qep-solver-comm.h"
+#include "../nucad/TestComm.h"
 
 using namespace std;
 
@@ -355,11 +356,24 @@ public:
   SRef execute(SRef input, vector<SRef> &args) 
   { 
     TFormRef T = args[0]->tar()->val;
-    return new TarObj(exclose(T));      
+    if (args.size() <= 1)
+      return new TarObj(exclose(T));
+
+    vector<string> V;
+    LisRef L = args[1]->lis();
+    for(int i = 0; i < L->length(); i++)
+    {
+      SymRef s = L->get(i)->sym();
+      if (s.is_null()) {
+	return new ErrObj("Error! Second argument of exclose must be a list of symbols!");
+      }
+      V.push_back(s->getVal());
+    }
+    return new TarObj(exclose(T,V));
   }
   string testArgs(vector<SRef> &args)
   {
-    return require(args,_tar);
+    return require(args,_tar) == "" ? "" : require(args,_tar,_lis);
   }
   string doc() 
   {
@@ -381,9 +395,10 @@ public:
     {
       //      finalcleanup = false;
       TFormRef T = args[0]->tar()->val;
+      int searchType = args.size() == 1 ? 5 : 4;
       QFR qfr;
       try {
-	if (qfr.init(5,T,interp->PM)) { return new ErrObj("Bad input format for QFR."); }
+	if (qfr.init(searchType,T,interp->PM)) { return new ErrObj("Bad input format for QFR."); }
 	qfr.rewrite();
 	TFormRef Tp = QformToRegularForm(qfr.getBest(),qfr.getQuantifiedVariables());
 	res = new TarObj(Tp);
@@ -398,7 +413,7 @@ public:
   }
   string testArgs(vector<SRef> &args)
   {
-    return require(args,_tar);
+    return require(args,_tar) == "" ? "" : require(args,_tar,_sym);
   }
   string doc() 
   {
@@ -566,7 +581,20 @@ public:
       for(TOrObj::disjunct_iterator itr = tor->disjuncts.begin(); itr != tor->disjuncts.end(); ++itr)
 	res->push_back(new TarObj(*itr));
     }
-    else if ((tqb = asa<TQBObj>(T))) { res->push_back(new TarObj(tqb->formulaPart)); }
+    else if ((tqb = asa<TQBObj>(T))) {
+      LisRef Q = new LisObj();
+      for(int i = tqb->numBlocks() - 1; i >= 0; i--)
+      {
+	LisRef W = new LisObj();
+	VarSet V = tqb->blockVars(i);
+	for(auto itr = V.begin(); itr != V.end(); ++itr) {
+	  W->push_back(new SymObj(getPolyManagerPtr()->getName(*itr)));
+	}
+	Q->push_back(new LisObj(new SymObj(tqb->blockType(i) == EXIST ? "ex" : "all"),W));
+      }
+      res->push_back(Q);
+      res->push_back(new TarObj(tqb->formulaPart));
+    }
     return res;
   }
   string testArgs(vector<SRef> &args)
@@ -575,12 +603,29 @@ public:
   }
   string doc() 
   {
-    return "(getargs F), where F is a Tarski Formula returns a list of the argument subformulas if F is an AND, OR, or quantified block, and an empty list otherwise.";
+    return "(getargs F), where F is a Tarski Formula returns a list of the argument subformulas if F is an AND or OR.  Id F is a quantified block, a list of quantifier-varlist pairs is paired with the formula body, e.g. ((ex (x y)) [x y > z^2]). An empty list is returned otherwise.";
   }
   string usage() { return "(getargs <tarski formula>)"; }
   string name() { return "getargs"; }
 };
 
+class CommTType : public EICommand
+{
+public:
+  CommTType(NewEInterpreter* ptr) : EICommand(ptr) { }
+  SRef execute(SRef input, vector<SRef> &args) 
+  {
+    TFormRef T = args[0]->tar()->val;
+    return new NumObj(T->getTFType());
+  }
+  string testArgs(vector<SRef> &args) { return require(args,_tar); }
+  string doc() 
+  {
+    return "(t-type F), where F is a Tarski Formula, returns a number indexing the formula type: TF_ERROR = 0, TF_CONST = 1, TF_ATOM = 2, TF_EXTATOM = 3, TF_AND = 4, TF_OR = 5, TF_QB = 6.";
+  }
+  string usage() { return "(t-type <t-tarski formula>)"; }
+  string name() { return "t-type"; }
+};
 
 
 class CommAnd : public EICommand
@@ -1163,6 +1208,51 @@ public:
 };
 
 
+class CommLinsubG :  public EICommand
+{
+public:
+  CommLinsubG(NewEInterpreter* ptr) : EICommand(ptr) { }
+  SRef execute(SRef input, vector<SRef> &args) 
+  {
+    TFormRef F = args[0]->tar()->getValue();
+    TFormRef eq = args[1]->tar()->getValue();
+    PolyManager &M = *(eq->getPolyManagerPtr());
+    string name = args[2]->sym()->getVal();
+    VarSet x = M.getVar(name);
+    TFormRef Fp = mkAND(F,eq);
+    bool dontAddGuard = false;
+
+    // process other arguments (if they are there)
+    for(int i = 3; i < args.size(); i++)
+    {
+      if (!args[i]->sym().is_null() && args[i]->sym()->getVal() == "no-guard")
+	dontAddGuard = true;
+      else
+	throw TarskiException("Unknown argument '" + args[i]->toStr() + "'.");	
+    }
+    
+    // get poly to sub with
+    TAtomRef atom = asa<TAtomObj>(eq);
+    if (atom.is_null()) throw TarskiException("Argument eq must be an atom.");
+      
+    // NEED TO CHECK THAT atom IS OF RIGHT FORM!    
+    FactRef eqf = atom->getFactors();
+    IntPolyRef A = eqf->factorBegin()->first;    
+    Fp = linearSubstGenericCase(M,Fp,A,x,atom,false,dontAddGuard);
+    return new TarObj(Fp);
+  }
+  string testArgs(vector<SRef> &args)
+  {
+    return "";
+  }
+  string doc() 
+  {
+    return "(linsub-g F eq x) - performs on F the generic linear substitution defined by solving eq for x. It is required that eq is an equation in which x appears linearly.  With the 'no-guard option, the constraint that the leading coefficient of x is non-zero will not be added.";
+  }
+  string usage() { return "(linsub-g <tarski formula> <tarski formula> <var> ['no-guard])"; }
+  string name() { return "linsub-g"; }
+};
+
 class CommGet2VarFeatures : public EICommand
 {
 public:
@@ -1206,6 +1296,64 @@ public:
 
 
 
+class CommChristest : public EICommand
+{
+public:
+  CommChristest(NewEInterpreter* ptr) : EICommand(ptr) { }
+  SRef execute(SRef input, vector<SRef> &args) 
+  {
+    PolyManager* pPM = getPolyManagerPtr();
+    TFormRef F = args[0]->tar()->val;
+    TAndRef G = asa<TAndObj>(F);
+    if (!G.is_null()) {
+      VarSet V = F->getVars();
+      set<IntPolyRef> S;
+      getFactors(F,S);
+
+      VarKeyedMap<VarSet> M;
+      for(auto pitr = S.begin(); pitr != S.end(); ++pitr)
+	for(auto itr = (*pitr)->getVars().begin();  itr != (*pitr)->getVars().end(); ++itr)
+	{
+	  auto jtr = itr;
+	  for(++jtr; jtr != (*pitr)->getVars().end(); ++jtr)
+	    M[*itr] = M[*itr] + *jtr;
+	}
+
+      cout << "import networkx as nx" << endl;
+      cout << "import matplotlib.pyplot as plt" << endl;
+      cout << "G = nx.Graph()" << endl;
+      cout << "G.add_nodes_from([";
+      for(auto itr = V.begin(); itr != V.end(); ++itr)
+	cout  << (itr != V.begin() ? "," : "") << "'" << pPM->getName(*itr) << "'";
+      cout << "])" << endl;
+      cout << "G.add_edges_from([";
+      for(auto itr = V.begin(); itr != V.end(); ++itr) {
+ 	VarSet a = *itr;
+	VarSet N = M[a];
+	for(auto jtr = N.begin(); jtr != N.end(); ++jtr)
+	  cout << (itr != V.begin() || jtr != N.begin() ? "," : "")
+	       << "('" << pPM->getName(a) << "','" <<  pPM->getName(*jtr) << "')";
+      }
+      cout << "])" << endl;
+      cout << "nx.draw_networkx(G)" << endl;
+      cout << "plt.show()" << endl;
+
+    }
+    return new SObj();
+  }
+  string testArgs(vector<SRef> &args)
+  {
+    return require(args,_tar);
+  }
+  string doc() 
+  {
+    return "(christest F), where F is a Tarski formula does some test stuff.";
+  }
+  string usage() { return "(christest <tarski formula>)"; }
+  string name() { return "christest"; }
+};
+
+
 void NewEInterpreter::init() 
 {
   Interpreter::init();
@@ -1217,6 +1365,7 @@ void NewEInterpreter::init()
   add(new CommNeg(this));
   add(new CommEx(this));
   add(new CommAll(this));
+  add(new CommTType(this));  
   add(new CommNormalize(this));
   add(new CommNormTest(this));
   add(new CommExclose(this));
@@ -1270,7 +1419,8 @@ void NewEInterpreter::init()
   add(new NumToRanComm(this));
   add(new IndexedRootToRanComm(this));
   add(new CommGet2VarFeatures(this)); // this is for 1/C Daves research project
-  //add(new TestComm(this));
+  add(new CommLinsubG(this));
+  add(new TestComm(this));
 
   //Fernando Additions
   //add(new SampleComm(this));
@@ -1281,6 +1431,7 @@ void NewEInterpreter::init()
   add(new BBWBComm(this));
   add(new BoxSolverComm(this));
   add(new QepSolverComm(this));
+  add(new CommChristest(this));
 
   // add extended types
   addType(new RealAlgNumTypeObj(NULL));

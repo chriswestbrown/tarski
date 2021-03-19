@@ -154,12 +154,15 @@ TFormRef linearSubstGenericCase(PolyManager &M,
 				IntPolyRef A, 
 				VarSet x,
 				TAtomRef E, 
-				bool leaveE )
+				bool leaveE,
+				bool dontAddGuard)
 {  
   LinSubGC GCPF(A,x,E,leaveE);
   GCPF(target);
   if (constValue(GCPF.res) == FALSE) return GCPF.res;
 
+  if (dontAddGuard) return GCPF.res;
+  
   IntPolyRef c1 = M.ldcf(A,x);
   if (c1->isConstant()) return GCPF.res;
   TAtomRef A1 = makeAtom(M,c1,NEOP);

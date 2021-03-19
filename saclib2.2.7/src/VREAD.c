@@ -24,7 +24,7 @@ Step1: /* Read. */
          v = COMP(C,v);
          C = CREAD();
          }
-       while (LETTER(C) || DIGIT(C));
+       while (LETTER(C) || DIGIT(C) || C == '_');
        v = INV(v);
        BKSP();
 

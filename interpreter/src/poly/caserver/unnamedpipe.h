@@ -15,7 +15,7 @@
 #include <cstdlib>
 #include <cstdio>
 #include <unistd.h>
-#include <string.h>
+#include <cstring>
 #include <iostream>
 #include <streambuf>
 

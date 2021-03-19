@@ -104,15 +104,17 @@ class OpenCellObj : public GC_Obj
 		 std::vector<Point2D> &V,
 		 int dir, // roundint dir for the y-coordinates
 		 int yRefine,
-		 Word ymin, double ymind, Word ymax, double ymaxd
+		 Word ymin, double ymind, Word ymax, double ymaxd,
+		 double originalXWidth
 		 )
   {
     if (std::max(A.level,B.level) > 10) return;
+    bool minWidthFlag = B.x - A.x > originalXWidth/8;
     Point2D M = split(A,B,0,p,index,dir,yRefine,ymin,ymind,ymax,ymaxd);
-    if (fabs(M.linearFactor) < 0.001*exp(M.level)) return;
-    pinPoints(A,M,p,index,V,dir,yRefine,ymin,ymind,ymax,ymaxd);
+    if (fabs(M.linearFactor) < 0.001*exp(M.level) && !minWidthFlag) return;
+    pinPoints(A,M,p,index,V,dir,yRefine,ymin,ymind,ymax,ymaxd,originalXWidth);
     V.push_back(M);
-    pinPoints(M,B,p,index,V,dir,yRefine,ymin,ymind,ymax,ymaxd);
+    pinPoints(M,B,p,index,V,dir,yRefine,ymin,ymind,ymax,ymaxd,originalXWidth);
   }
 
 
@@ -179,7 +181,7 @@ class OpenCellObj : public GC_Obj
 	Point2D A = makePoint2D(xlp,1,u,index,-1,yRefine,ymin,ymind,ymax,ymaxd);
 	Point2D B = makePoint2D(xup,-1,u,index,-1,yRefine,ymin,ymind,ymax,ymaxd);
 	V.push_back(A);
-	pinPoints(A,B,u,index,V,-1,yRefine,ymin,ymind,ymax,ymaxd);
+	pinPoints(A,B,u,index,V,-1,yRefine,ymin,ymind,ymax,ymaxd,xmaxd - xmind);
 	V.push_back(B);
       }
     }
@@ -199,7 +201,7 @@ class OpenCellObj : public GC_Obj
 	Point2D A = makePoint2D(xlp,1,l,index,+1,yRefine,ymin,ymind,ymax,ymaxd);
 	Point2D B = makePoint2D(xup,-1,l,index,+1,yRefine,ymin,ymind,ymax,ymaxd);
 	W.push_back(A);
-	pinPoints(A,B,l,index,W,+1,yRefine,ymin,ymind,ymax,ymaxd);
+	pinPoints(A,B,l,index,W,+1,yRefine,ymin,ymind,ymax,ymaxd,xmaxd - xmind);
 	W.push_back(B);
       }
     }

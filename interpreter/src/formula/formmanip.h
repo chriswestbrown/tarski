@@ -8,6 +8,7 @@
 #include "formula.h"
 #include "../tarski.h"
 #include "../algparse/treemanip.h"
+#include <set>
 
 namespace tarski {
 class MapToTForm : public Traverse
@@ -66,7 +67,8 @@ TFormRef evalFormulaAtRationalPoint(VarKeyedMap<GCWord> &value, TFormRef F);
  TFormRef makePrenex(TFormRef F);
 
  TFormRef exclose(TFormRef T);
-
+ TFormRef exclose(TFormRef T, const vector<string> &holdout);
+ 
  /** splitNonStrict(T)
   * Input: F a tarski formula that is a conjunction of atomic formulas (not in
   *        in the extended language.
@@ -75,5 +77,7 @@ TFormRef evalFormulaAtRationalPoint(VarKeyedMap<GCWord> &value, TFormRef F);
   */
  TFormRef splitNonStrict(TFormRef F);
 
+ void getFactors(TFormRef F, std::set<IntPolyRef> &W);
+ 
 }//end namespace tarski
 #endif

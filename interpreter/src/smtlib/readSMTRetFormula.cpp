@@ -61,11 +61,11 @@ public:
  * Note: this may include divisions, which Tarski parses, but then
  * refuses to interpret as a Tarski formula.
  *****************************************************************/
-void write(ExpRef e, ostream& out, LetDictionary& D);
+void write(ExpRef e, ostream& out, std::map<string,string>& varTranslationMap, LetDictionary& D);
 
-void write(ExpRef e, ostream& out) { LetDictionary D; write(e,out,D); }
+void write(ExpRef e, ostream& out, std::map<string,string>& varTranslationMap) { LetDictionary D; write(e,out,varTranslationMap,D); }
 
-void write(ExpRef e, ostream& out, LetDictionary& D)
+void write(ExpRef e, ostream& out, std::map<string,string>& varTranslationMap, LetDictionary& D)
 {
   Token &lt = e->getLeadTok();
   const string& lv = lt.getValue();
@@ -92,10 +92,12 @@ void write(ExpRef e, ostream& out, LetDictionary& D)
   if (lt.getType() == SYM) 
   { 
     ExpRef letValue = D.get(lv);
-    if (letValue.is_null())
-      out << lv; 
+    if (letValue.is_null()) {
+      //out << lv;
+      out << varTranslationMap[lv];
+    }
     else
-      write(letValue,out,D);
+      write(letValue,out,varTranslationMap,D);
     return; 
   }
 
@@ -132,20 +134,20 @@ void write(ExpRef e, ostream& out, LetDictionary& D)
     // push the new variable bindings to D, write valueExp, pop the new variable bindings
     for(unsigned int i = 0; i < names.size(); i++)
       D.push(names[i]->getLeadTok().getValue(),values[i]);
-    write(valueExp,out,D);
+    write(valueExp,out,varTranslationMap,D);
     for(int i = names.size()-1; i >= 0; i--)
       D.pop(names[i]->getLeadTok().getValue());
   }
-  else if (v == "not") { out << "~("; write(e->get(1),out,D); out << ")"; }
+  else if (v == "not") { out << "~("; write(e->get(1),out,varTranslationMap,D); out << ")"; }
   else if (v == "-" && N == 2) 
   {
     // NOTE: I'm operating under the assumption that in smtlib (- 3) should be -3.
-    out << "(-("; write(e->get(1),out,D); out << "))"; 
+    out << "(-("; write(e->get(1),out,varTranslationMap,D); out << "))"; 
   } 
   else if (v == "/" && N == 2) 
   {
     // NOTE: I'm operating under the assumption that in smtlib (/ 3) should be 1/3.
-    out << "(1/("; write(e->get(1),out,D); out << "))"; 
+    out << "(1/("; write(e->get(1),out,varTranslationMap,D); out << "))"; 
   }
   else if (v == "+" || 
 	   v == "-" || 
@@ -166,11 +168,11 @@ void write(ExpRef e, ostream& out, LetDictionary& D)
     else if (v == "and") { op = "/\\"; }
     else if (v == "or") { op = "\\/"; }
     for(int i = 1; i < N; i++)
-    { out << (i > 1 ? op : string("")) << "("; write(e->get(i),out,D); out << ")"; }
+    { out << (i > 1 ? op : string("")) << "("; write(e->get(i),out,varTranslationMap,D); out << ")"; }
   }
   else if (v == "=>")
   {
-    out << "~("; write(e->get(1),out,D); out << ")\\/("; write(e->get(2),out,D); out << ")";
+    out << "~("; write(e->get(1),out,varTranslationMap,D); out << ")\\/("; write(e->get(2),out,varTranslationMap,D); out << ")";
   }
   else if (v == "exists" || v == "forall")
   {
@@ -180,10 +182,10 @@ void write(ExpRef e, ostream& out, LetDictionary& D)
     for(int i = 0; i < N; i++)
     {
       if (i > 0 ) out << ", ";
-      write(varlist->get(i)->get(0),out,D);
+      write(varlist->get(i)->get(0),out,varTranslationMap,D);
     }
     out << "[ ";
-    write(e->get(2),out,D);
+    write(e->get(2),out,varTranslationMap,D);
     out << "]]";
   }
   else
@@ -199,6 +201,7 @@ void write(ExpRef e, ostream& out, LetDictionary& D)
 
 TFormRef processExpFormula(const string& instr, PolyManager* PM)
 {
+  cerr << "instr: " << instr << endl << endl;
   // Parse
   istringstream sin(instr);
   TarskiRef T;
@@ -251,6 +254,9 @@ TFormRef processExpFormulaClearDenominators(const string& instr, PolyManager* PM
 
 void readSMTRetTarskiString(std::istream& in, ostream& out)
 {
+  map<string,string> varTranslationMap; // map original var name to saclib-safe var name
+  int mcount = 0;
+  
   using namespace std;
   SMTLib::Parser P(in);
   bool previousAsserts = false, done = false;
@@ -287,13 +293,23 @@ void readSMTRetTarskiString(std::istream& in, ostream& out)
 	if (previousAsserts) { out << " /\\ "; }
 	SMTLib::ExpRef formula = e->get(1);
 	out << "[";
-	write(formula,out);
+	write(formula,out,varTranslationMap);
 	out << "]";
 	previousAsserts = true;
       }
       else if (e->size() == 1 && e->get(0)->matches(SMTLib::Token(SMTLib::SYM,"check-sat")))
       {
 	done = true;
+      }
+      else if (e->size() > 1 && (
+		e->get(0)->matches(SMTLib::Token(SMTLib::SYM,"declare-fun")) ||
+		e->get(0)->matches(SMTLib::Token(SMTLib::SYM,"declare-const"))		
+		))
+      {
+	string& mapvar = varTranslationMap[e->get(1)->getLeadTok().getValue()];
+	cerr << "seeing: " << mapvar << ", looking up : " << e->get(1)->getLeadTok().getValue() << endl;
+	if (mapvar == "")
+	  mapvar = "x" + std::to_string(mcount++);
       }
       break;
     default:

@@ -183,7 +183,7 @@ string writeForQEPCADB(TFormRef F, TFormRef &introducedAssumptions, bool endWith
   if (vfv.size() == 0 && trackUnsatCore)
     sout << "track-unsat-core" << endl;
   
-  sout << "go\ngo\ngo\n";
+  sout << "go\ngo\n";
   if (solFormType != 0)
     sout << "sol " << solFormType << "\n";
 

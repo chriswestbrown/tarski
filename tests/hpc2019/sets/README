@@ -1,3 +1,6 @@
+(def T (lambda (x) (list (msg (make-NuCADConjunction x '(chooser daves)) 'num-x-cells) (msg (make-NuCADConjunction x '(chooser BPC)) 'num-x-cells))))
+
+
 ###########################################################################
 # HPC2019: Caling tarski with nnet to get learning data
 ###########################################################################
@@ -71,3 +74,10 @@ Here's an example showing how tarski's input should look:
 (msg D 'num-x-cells)
 
 (def F [ 0 < 4*w*y+w+5*z-6 and 0 < 5-6*y-3*x and 0 < -10*x*y-3*w and 0 < 5*w*y-3*y-4*z and 0 < -8*w*z+10*x*y+7*y^2-7*x and 0 < 2*w^2+4*w*x+5*w+10*x and 0 < 9*x^2-6*x*z+z^2-w-3*z-3 and 0 < -6*w-10*x-9*z and 0 < -8*w+4*y-4*z and 0 < 3*w+9*y-10*z and 0 < -9*x-6*y+1 and 0 < 4*w+3*z+1 ])
+
+(def F [ 0 < 4*w*y+w+5*z-6 and 0 < 5-6*y-3*x and 0 < -10*x*y-3*w and 0 < 5*w*y-3*y-4*z and 0 < -8*w*z+10*x*y+7*y^2-7*x and 0 < 2*w^2+4*w*x+5*w+10*x and 0 < 9*x^2-6*x*z+z^2-w-3*z-3 and 0 < -6*w-10*x-9*z and 0 < -8*w+4*y-4*z and 0 < 3*w+9*y-10*z and 0 < -9*x-6*y+1 and 0 < 4*w+3*z+1 ])
+(def D (make-NuCADConjunction F '(chooser "dlist") '(dl-chooser "1 e")))
+(msg D 'num-x-cells)
+
+(def D (make-NuCADConjunction F '(chooser "dlist") '(dl-chooser "15 W 16 W - s 1 = & 0 i 1 e")))
+

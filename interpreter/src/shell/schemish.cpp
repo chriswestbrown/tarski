@@ -224,6 +224,7 @@ inline int char2sym(char c)
     symTable["display"] = new FunObj(_f_display);
     symTable["tail"] = new FunObj(_f_tail);
     symTable["typename"] = new FunObj(_f_typename);
+    symTable["apply"] = new FunObj(_f_apply);
   }
 
 string builtinTypesDoc = "\
@@ -250,6 +251,7 @@ list       - e.g. (list '(+ 3 4) 8)\n\
 -          - e.g. (- 8 3)\n\
 *          - e.g. (* 4 5)\n\
 eval       - e.g. (eval '(+ 2 5))\n\
+apply      - e.g. (apply + '(1 2 3))\n\
 map        - e.g. (map * '(1 2 3) '(4 5 6))\n\
 bin-reduce\n\
 length     - length of a list\n\
@@ -376,11 +378,11 @@ SRef Interpreter::eval(Frame* env, SRef input)
   }break;
   case _lis:{
     LisRef L = input->lis();
-
-    // EMPTY    
+    SRef head;
+    
     if (L->empty())
       return new ErrObj("Empty function invocation ().");
-    SRef head = L->get(0);
+    head = L->get(0);
 
     // SPECIAL FORMS
     if (head->type() == _sym && head->sym()->val == "quote")
@@ -451,7 +453,7 @@ SRef Interpreter::eval(Frame* env, SRef input)
       if (t->type() == _err) { return t; }
       args.push_back(t);
     }
-
+    
     if (f->type() != _fun && f->type() != _clo) 
     { 
       return new ErrObj("Object " + f->toStr() + " is not a function."); 
@@ -474,6 +476,20 @@ SRef Interpreter::eval(Frame* env, SRef input)
     if (f->fun()->builtin < 0) { return exFunEval(input,f->fun()->builtin,args); }
     switch(f->fun()->builtin)
     {
+    case _f_apply: {
+      if (args.size() != 2) {
+	return new ErrObj("Function 'apply' requires two arguments."); 
+      }
+      LisRef Lp = new LisObj(new LisObj(new SymObj("quote"),args[0]));
+      LisRef X = args[1]->lis();
+      if (X.is_null()) {
+	return new ErrObj("Function 'apply' requires a list as second argument."); 
+      }
+      for(int i = 0; i < X->length(); i++) {
+	Lp->push_back(new LisObj(new SymObj("quote"),X->get(i)));
+      }
+      return eval(env,Lp);
+    }break;
     case _f_eval:{
       if (args.size() != 1)
 	return new ErrObj("Function eval expects exactly one argument.");
@@ -580,13 +596,17 @@ SRef Interpreter::eval(Frame* env, SRef input)
     }break;
     case _f_get:{
       if (args.size() < 2) return new ErrObj("get requires two arguments.");
-      LisRef alist = args[0]->lis();
-      NumRef idx = args[1]->num();
-      if (alist.is_null()) return new ErrObj("get of non-list undefined.");
-      int i = RNFLOR(idx->val);
-      if (i < 0 || alist->length() <= i) 
-      { return new ErrObj("bad index in get."); }
-      return alist->get(i);
+      SRef res = args[0];
+      for(int k = 1; k < args.size(); k++) {
+	LisRef alist = res->lis();
+	if (alist.is_null()) return new ErrObj("get of non-list undefined.");
+	NumRef idx = args[k]->num();
+	int i = RNFLOR(idx->val);
+	if (i < 0 || alist->length() <= i) 
+	{ return new ErrObj("bad index in get."); }
+	res = alist->get(i);
+      }
+      return res;
     }break;
     case _f_cputime: {
       int t1 = CATime();

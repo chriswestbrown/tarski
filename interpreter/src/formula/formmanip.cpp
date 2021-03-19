@@ -872,6 +872,30 @@ TFormRef makePrenex(TFormRef F)
     return res;
   }
 
+TFormRef exclose(TFormRef T, const vector<string> &holdout)
+{
+  VarSet HVars = 0;
+  PolyManager *p = T->getPolyManagerPtr();
+  for(int i = 0; i < holdout.size(); i++)
+    HVars = HVars + p->getVar(holdout[i]);
+  VarSet FVars = getFreeVars(T);
+  VarSet EVars = FVars - HVars;
+  TFormRef res;
+  if (EVars.none()) 
+    res = T;
+  else {
+    TQBRef Tp = dynamic_cast<TQBObj*>(&*T);
+    if (Tp.is_null())
+      res = new TQBObj(EVars, EXIST, T, T->getPolyManagerPtr());
+    else
+    {
+      Tp->add(EVars,EXIST);
+      res = Tp;
+    }
+  }
+  return res;
+}
+
 
 TFormRef splitAtom(TAtomRef A)
 {
@@ -908,5 +932,29 @@ TFormRef splitAtom(TAtomRef A)
    return NULL;
  }
 
+class FactorCollector : public TFPolyFun
+{
+  PolyManager *pM;
+  std::set<IntPolyRef>* Wp; 
+public:
+  FactorCollector(PolyManager &M, set<IntPolyRef> &W) { pM = &M; Wp = &W; }
+  void action(TAtomObj* p) {
+    FactRef f = p->getFactors();
+    for(auto itr = f->factorBegin(); itr != f->factorEnd(); ++itr)
+      Wp->insert(itr->first);
+  }
+  void action(TConstObj* p) { ; }
+  void action(TAndObj* p) {
+    for(auto itr = p->begin(); itr != p->end(); ++itr)
+      actOn(*itr);
+  }
+};
+
+void getFactors(TFormRef F, std::set<IntPolyRef> &W)
+{
+  FactorCollector FC(*F->getPolyManagerPtr(),W);
+  FC.actOn(F);
+  return;
+}
 
 }//end namespace tarski

@@ -18,8 +18,8 @@ DCOBJS     = $(addsuffix d,  $(COBJS))
 RCOBJS     = $(addsuffix r,  $(COBJS))
 
 
-CXX       ?= g++
-CFLAGS    ?= -Wall -Wno-parentheses
+CXX       ?= g++ 
+CFLAGS    ?= -Wall -Wno-parentheses --std=c++11
 LFLAGS    ?= -Wall
 
 COPTIMIZE ?= -O3

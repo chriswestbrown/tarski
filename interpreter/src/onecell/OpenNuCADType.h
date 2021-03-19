@@ -660,12 +660,16 @@ public:
       chooser = new FeatureChooser(C, new NNetComp(nn_string));
     else if (comp_name == "dlist")
       chooser = new FeatureChooser(C, new DecisionListComp(dl_string));
+    else if (comp_name == "user")
+      chooser = new UserChooser(C);
     else
       chooser = new SplitSetChooserConjunction(C);
 
     
     // Build the OpenNuCAD and return it
     ONuCADRef nucad = new ONuCADObj(V,C,V->size(),A,searchQueue,chooser);
+    chooser->setNuCADRef(nucad);
+    
     nucad->mkNuCADConjunction(V,C,V->size(),A);
     return new ExtObj(new OpenNuCADObj(nucad));
   }

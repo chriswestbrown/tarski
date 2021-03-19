@@ -37,8 +37,20 @@ TypeExtensionObj::LFH<OpenNuCADObj> OpenNuCADObj::A[] = {
   {0,0,"function does not exist"}
 };
 
+  
+
+  void plotLeaves(ONuCADRef nucad, const string & wininfo, const string startLabel, std::ostream& out);
+  
 void OpenNuCADObj::plotLeaves(const string & wininfo, const string startLabel, std::ostream& out)
 {
+  tarski::plotLeaves(nucad,wininfo,startLabel,out);
+}
+
+void plotLeaves(ONuCADRef nucad, const string & wininfo, const string startLabel, std::ostream& out)
+{
+  NodeRef start = nucad->getNode(startLabel);
+  ONuCADObj::LeafIterator itr = nucad->iterator(start);
+
   istringstream sin(wininfo);
   double xmind, xmaxd, ymind, ymaxd;
   int pixw, pixh;
@@ -55,8 +67,6 @@ void OpenNuCADObj::plotLeaves(const string & wininfo, const string startLabel, s
   Word logpixw = ILOG2(pixw);
   Word logpixh = ILOG2(pixh);
 
-  NodeRef start = nucad->getNode(startLabel);
-  ONuCADObj::LeafIterator itr = nucad->iterator(start);
   if (true)
   {
     double lineWidth = 0.75 * (1.0/(pixw/xwd) + 1.0/(pixh/ywd))/2.0;
@@ -69,6 +79,7 @@ void OpenNuCADObj::plotLeaves(const string & wininfo, const string startLabel, s
 	<< "<![CDATA[" << endl
 	<< ".boundaryT { stroke-width: " << lineWidth << "px; fill: rgb(96, 152, 247); fill-opacity: 0.25; stroke: rgb(96, 152, 247); }" << endl
 	<< ".boundaryF { stroke-width: " << lineWidth << "px; fill: rgb(96, 152, 247); fill-opacity: 0.00; stroke: rgb(96, 152, 247); }" << endl
+	<< ".boundaryU { stroke-width: " << lineWidth << "px; fill: rgb(195,252,164); fill-opacity: 0.25; stroke: rgb(96, 152, 247); }" << endl
 	<< "]]>" << endl
 	<< "</style>" << endl;
 
@@ -86,7 +97,7 @@ void OpenNuCADObj::plotLeaves(const string & wininfo, const string startLabel, s
     {
       NodeRef n = itr.next();
       out << "<polyline id=\"" << n->getLabel() << "\""
-	  << " class=\"" << (n->getTruthValue() == TRUE ? "boundaryT" : "boundaryF") << "\"" 
+	  << " class=\"" << (n->getTruthValue() == TRUE ? "boundaryT" : (n->getTruthValue() == FALSE ? "boundaryF" : "boundaryU")) << "\"" 
 	  << " points=\"";
       n->getData()->getCell()->approx2D(xmin,ymin,xw,yw,logpixw,logpixh,out);      
       out << "\">" << endl

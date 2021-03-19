@@ -16,8 +16,10 @@ namespace Minisat {
   /*
     Interface for all TSolvers
 
-    - getClause : gets called after each stack push
-    - getAddition : gets called after each stack push
+    - getClause : gets called after each decision
+    - getAddition : gets called after each decision
+                    set conf to true if there is a clause
+		    to add, and false otherwise
     - getFinalClause : gets called when all variables have a value
                        on the stack
     - stackCancelNotification : gets called after "cancelUntil"
@@ -36,6 +38,19 @@ namespace Minisat {
 
     // callee can check qhead to see stack size after cancel
     virtual void stackCancelNotification(int newStackSize) { }
+
+    // Pass-through functios to add vars & clauses to minisat
+    virtual Var newMinisatVar() { return mini->newVar(); }
+    virtual bool addMinisatClause (const vec<Lit>& ps)
+    {
+      return mini->addClause(ps);
+    }
+    // Chris added ... may regret!
+    virtual void addMinisatLearntClause(vec<Lit>& ps)
+    {
+      mini->addClauseAddition(ps);
+    }
+    
     
     void printStack();
 
@@ -43,10 +58,11 @@ namespace Minisat {
 
     TSolver() {}
 
-    void setSolver(Solver * S) {mini = S;}
+    void setSolver(Solver * S) {mini = S; mini->remove_satisfied = false; }
 
   protected:
     Solver * mini;
+    Solver* getMinisatSolver() { return mini; }
     void printData() {
       mini->printData();
     }

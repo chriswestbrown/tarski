@@ -31,7 +31,7 @@ const int _err = -1;
 // builtin function codes (0 means not builtin, < 0 means extensions)
 const int _f_add = 1, _f_mul = 2, _f_list = 3, _f_eval = 4, _f_map = 5, _f_binred = 6, _f_length = 7,
   _f_cputime = 8, _f_sbt = 9, _f_head = 10, _f_get = 11, _f_quit = 12, _f_msg = 13, _f_version = 14,
-  _f_load = 15, _f_equal = 16, _f_display = 17, _f_tail = 18, _f_typename = 19;
+  _f_load = 15, _f_equal = 16, _f_display = 17, _f_tail = 18, _f_typename = 19, _f_apply = 20;
 
 class Interpreter;
 class SObj;

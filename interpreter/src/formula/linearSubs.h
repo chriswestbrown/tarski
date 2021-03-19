@@ -28,11 +28,16 @@ TFormRef linearSubstDegenerateCase(PolyManager &M,
 //            untouched, otherwise it will be removed (i.e. replaced with 
 //            true.  Essentially, leaveE is true when x is a free variable,
 //            and false when x is quantified.
+//   dontAddGuard - if true the guard expression, namely that the leading
+//            coefficient of x in A is non-zero, will not be added.
+//            default is falsee!
 TFormRef linearSubstGenericCase(PolyManager &M, 
 				TFormRef target, 
 				IntPolyRef A, 
 				VarSet x,
 				TAtomRef E, 
-				bool leaveE );
+				bool leaveE,
+				bool dontAddGuard = false
+				);
 }//end namespace tarski
 #endif
