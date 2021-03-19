@@ -3,33 +3,11 @@
 
 using namespace tarski;
 
-bool prop::check(prop::Tag p, GoalContextRef GC, IntPolyRef f)
+bool prop::isPolynomialCheck(Tag p)
 {
-  SamplePointManagerRef SM = GC->getSamplePointManager();
-  SamplePointId sid = GC->getSamplePointId();
-  switch(p)
-  {
-  case prop::nz_alpha:
-    return SM->polynomialSignAt(sid,f) != 0;
-    break;
-  case prop::nnull_alpha:
-    return !SM->isNullifiedAt(sid,f);
-    break;
-  case prop::null_alpha:
-    return SM->isNullifiedAt(sid,f);
-    break;
-  case prop::constant:
-    return f->isConstant();
-    break;
-  case prop::level1:
-    return GC->getVarOrder()->level(f) == 1;
-    break;
-  default:
-    throw TarskiException("Unknown property in check!");
-    break;
-  }
-  return false;
+  return nz_alpha <= p && p <= level1;
 }
+
 
 string prop::name(prop::Tag p)
 {
@@ -39,6 +17,10 @@ string prop::name(prop::Tag p)
   case prop::oi: return "oi";
   case prop::ni: return "ni";
   case prop::ana_delin: return "ana-delin";
+  case prop::sector: return "sector";
+  case prop::section: return "section";
+  case prop::leq: return "leq";
+  case prop::lt: return "lt";
   case prop::narrowed: return "narrowed";
     
   case prop::nz_alpha: return "nz-alpha";
@@ -47,6 +29,13 @@ string prop::name(prop::Tag p)
   case prop::constant: return "constant";
   case prop::level1: return "level1";
 
+  case prop::above_alpha: return "above-alpha";
+  case prop::on_alpha: return "on-alpha";
+  case prop::below_alpha: return "below-alpha";
+
+  case prop::leq_alpha: return "leq-alpha";
+  case prop::lt_alpha: return "lt-alpha";
+    
   case prop::si_s: return "si*";
   case prop::oi_s: return "oi*";
   case prop::ni_s: return "ni*";

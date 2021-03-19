@@ -1,0 +1,357 @@
+    TermBaseRef TB = new SimpleTermBase();
+    LeveledTermQueueRef Q = new SimpleLeveledTermQueue(TC,TB,V,N);
+    int nextSectionIdentifier = 0;
+    int currentLevel = N;
+    while(currentLevel >= 0)
+    {
+      TermQueueRef TQ = Q->get(currentLevel);
+      if (TQ->empty()) { --currentLevel; continue; }
+      auto next = TQ->dequeue();
+      PropertyRef pt = dynamic_cast<Property*>(&(*(next.first)));
+      TermId nextid = next.second;
+      std::cout << "dequeued " << pt->toString(getPolyManagerPtr()) << std::endl;
+
+
+      if (prop::isCheck(pt->getProperty()))
+      {
+	int res0 = SM->check(sid,pt);
+	if (res0 == TRUE)
+	  TB->add(nextid,"check");
+	else
+	  throw TarskiException("Error!  property check failed!");
+	continue;
+      }
+
+
+      
+      
+      //--- BIG DEAL: Here's where I deal with the case in which all remaining Property Terms
+      //--- at this level have Section Variables!
+      if (pt->hasSectionVariable() && TQ->empty() && pt->getProperty() == prop::sector)
+      {
+	std::cout << "level " << currentLevel << " cell bounds are "
+		  << pt->toString(getPolyManagerPtr()) << std::endl;
+	continue;
+      }
+      if (pt->hasSectionVariable())
+      {
+	// Dequeue everything
+	vector<PropertyRef> V;
+	V.push_back(pt);
+	while(!TQ->empty())
+	  V.push_back(dynamic_cast<Property*>(&(*(TQ->dequeue().first))));
+
+	// Run through elts of V tracking the closest concrete sections below and above alpha
+	SectionRef lower = Section::mkNegInfty(currentLevel);
+	SectionRef upper = Section::mkPosInfty(currentLevel);
+	for(auto itr = V.begin(); itr != V.end(); ++itr)
+	{
+	  PropertyRef pt = *itr;
+	  switch(pt->getProperty())
+	  {
+	  case prop::sector:
+	    break;
+	  case prop::leq: {
+	    SectionTermRef t0 = pt->getChild(0);
+	    SectionTermRef t1 = pt->getChild(1);
+	    if (t1->hasSectionVariable())
+	    {
+	      if (SM->compareAtAlpha(sid,lower,t0->getSection()) < 0)
+		lower = t0->getSection();	      
+	    }
+	    else
+	    {
+	      if (SM->compareAtAlpha(sid,t1->getSection(),upper) < 0)
+		upper = t1->getSection();	      
+	    }	    
+	  } break;
+	  default:
+	    throw TarskiException("Error!  Don't know how to handle " + prop::name(pt->getProperty())
+				  + " containing section variables.");
+	    break;
+	  }
+	}
+	std::cout << "lower = " << lower->toStr(getPolyManagerPtr()) << " "
+		  << "upper = " << upper->toStr(getPolyManagerPtr()) << std::endl;
+
+	for(auto itr = V.begin(); itr != V.end(); ++itr)
+	{
+	  PropertyRef pt = *itr;
+	  switch(pt->getProperty())
+	  {
+	  case prop::sector: {
+	    SectionTermRef t0 = pt->getChild(0);
+	    SectionTermRef t1 = pt->getChild(1);
+	    //	    Q->enqueue(new Property(prop::sector, new SectionTerm(lower), new SectionTerm(upper)));
+	    TB->add(TC->add(new Property(prop::sector, new SectionTerm(lower), new SectionTerm(upper))),
+		    "cell-bound");
+	  } break;
+	  case prop::leq: {
+	    SectionTermRef t0 = pt->getChild(0);
+	    SectionTermRef t1 = pt->getChild(1);
+	    if (t1->hasSectionVariable())
+	      Q->enqueue(new Property(prop::leq, t0, new SectionTerm(lower)));
+	    else
+	      Q->enqueue(new Property(prop::leq, new SectionTerm(upper), t1));
+
+	  } break;
+	  default:
+	    throw TarskiException("Error!  Don't know how to handle " + prop::name(pt->getProperty())
+				  + " containing section variables.");
+	    break;
+	  }
+	}
+	continue;
+      }
+      //--- END BIG DEAL
+
+      
+      switch(pt->getProperty())
+      {
+      case (prop::si): {
+	if (pt->getChild(0)->kind() == Term::factor)
+	{
+	  int level = pt->level(V);
+	  if (level < 1)
+	    TB->add(nextid,"level < 1 ==> si");
+	  else
+	  {
+	    FactRef f = pt->getChild(0)->getFactor();
+	    for(auto itr = f->factorBegin(); itr != f->factorEnd(); ++itr)
+	    {
+	      PropertyRef pnew = new Property(prop::si, new PolyTerm(itr->first));
+	      Q->enqueue(pnew);
+	    }
+	    TB->add(nextid,"si of factors implies si of product");
+	  }
+	}
+	else
+	{
+	  PolyTermRef polyterm = pt->getChild(0);
+	  PropertyRef pnew = new Property(prop::oi,polyterm);
+	  TB->add(nextid,"oi implies si");
+	  Q->enqueue(pnew);
+	}
+      }break;
+
+      case (prop::oi): {
+	if (pt->getChild(0)->kind() == Term::factor)
+	{
+	  int level = pt->level(V);
+	  if (level < 1)
+	    TB->add(nextid,"level < 1 ==> oi");
+	  else
+	  {
+	    FactRef f = pt->getChild(0)->getFactor();
+	    for(auto itr = f->factorBegin(); itr != f->factorEnd(); ++itr)
+	    {
+	      PropertyRef pnew = new Property(prop::oi, new PolyTerm(itr->first));
+	      Q->enqueue(pnew);
+	    }
+	    TB->add(nextid,"oi of factors implies oi of product");
+	  }
+	}
+	else
+	{
+	  PolyTermRef polyterm = pt->getChild(0);
+	  PropertyRef pnew = new Property(prop::oi,polyterm);
+	  IntPolyRef p = polyterm->getPoly();
+	  int k = V->level(p);
+	  std::pair<SectionRef,SectionRef> res = SM->boundingSections(sid,p);
+	  if (!res.second.is_null())
+	  {
+	    SectionTermRef secLower = new SectionTerm(res.first), secUpper = new SectionTerm(res.second);
+	    SectionTermRef secVar1 = new SectionVariable(nextSectionIdentifier++,k);
+	    SectionTermRef secVar2 = new SectionVariable(nextSectionIdentifier++,k);
+	    
+	    TermRef T0 = new Property(prop::sector, secVar1, secVar2);
+	    TermRef T1 = new Property(prop::leq, secLower, secVar1);
+	    TermRef T2 = new Property(prop::leq, secVar2, secUpper);
+	    TermRef T3 = new Property(prop::ana_delin, polyterm);
+
+	    TB->add(nextid,"sector free of sections of p");
+	    Q->enqueue(T0);
+	    Q->enqueue(T1);
+	    Q->enqueue(T2);
+	    Q->enqueue(T3);
+	  }
+	  else
+	    TB->add(nextid,"assumption (unhandled case when p(alpha) = 0)");
+	}
+      }break;
+
+
+      case (prop::ni): {
+	PolyTermRef polyterm = pt->getChild(0);
+	IntPolyRef p = polyterm->getPoly();
+	int k = V->level(p);
+	if (k < 3)
+	  TB->add(nextid,"level < 3 ==> ni");
+	else
+	  TB->add(nextid,"assumption (unhandled)");
+      }break;
+
+
+      case (prop::ana_delin): {
+	PolyManager* pPM = getPolyManagerPtr();
+	PolyTermRef polyterm = pt->getChild(0);
+	IntPolyRef p = polyterm->getPoly();
+	int k = V->level(p);
+	if (k < 2) { TB->add(nextid,"level < 2 ==> ana-delin"); }
+	else {
+	TermRef T0 = new Property(prop::nnull_alpha,polyterm);
+	int tid0 = TC->add(T0);	
+	int res0;
+	if (TB->isIn(tid0)) res0 = TRUE;
+	else { res0 = SM->check(sid,T0); if (res0 == TRUE) TB->add(tid0,"check"); }
+	if (res0 == TRUE)
+	{	
+	  int k = V->level(p);
+	  VarSet x = V->get(k);
+	  TermRef T1 = new Property(prop::si, new FactorTerm(pPM->ldcfFactors(p,x)));
+	  TermRef T2 = new Property(prop::oi, new FactorTerm(pPM->discriminantFactors(p,x)));
+	  TermRef T3 = new Property(prop::ni, polyterm);
+	  Q->enqueue(T1); Q->enqueue(T2); Q->enqueue(T3); 
+	  TB->add(nextid,"basic McCallum-Brown");
+	}
+	else
+	{
+	  TB->add(nextid,"assumption (unhandled)");
+	}
+	}
+      } break;
+
+      case (prop::sector): {
+	SectionTermRef t0 = pt->getChild(0); SectionRef s0 = t0->getSection();
+	SectionTermRef t1 = pt->getChild(1); SectionRef s1 = t1->getSection();
+	SectionTermRef secVar1 = new SectionVariable(nextSectionIdentifier++,currentLevel);
+	SectionTermRef secVar2 = new SectionVariable(nextSectionIdentifier++,currentLevel);
+	Q->enqueue(vector<TermRef>{
+	    new Property(prop::sector, secVar1, secVar2),
+	    new Property(prop::leq, t0, secVar1),
+	      new Property(prop::leq, secVar2, t1) });
+	TB->add(nextid,"sector surrounds cell");
+	    
+      } break;
+
+      case (prop::leq): {
+	SectionTermRef t0 = pt->getChild(0); SectionRef s0 = t0->getSection();
+	SectionTermRef t1 = pt->getChild(1); SectionRef s1 = t1->getSection();
+	if (s0->compare(s1) == 0)
+	  TB->add(nextid,"leq is reflexive");
+	else if (s0->getKind() == Section::negInfty && s1->getKind() == Section::posInfty)
+	  TB->add(nextid,"negInfty leq posInfty");
+	else if (s0->getKind() == Section::indexedRoot && s1->getKind() == Section::indexedRoot)
+	{
+	  IntPolyRef p0 = s0->getPoly();
+	  IntPolyRef p1 = s1->getPoly();
+	  if (pt->level(V) == 1)
+	  {
+	    Q->enqueue(new Property(prop::leq_alpha, t0, t1));
+	    TB->add(nextid,"at level 1 leq_alpha ==> leq");
+	  }
+	  else if (p0.identical(p1)) // NOTE: these are canonical polys!
+	  {
+	    Q->enqueue(vector<TermRef>{ new Property(prop::leq_alpha, t0, t1),
+		  new Property(prop::ana_delin, new PolyTerm(p0)) });
+	    TB->add(nextid,"ana-delin for single poly");
+	  }
+	  else
+	  {
+	    VarSet x = V->get(currentLevel);
+	    Q->enqueue(vector<TermRef>{
+		  new Property(prop::leq_alpha, t0, t1),
+		  new Property(prop::ana_delin, new PolyTerm(p0)),
+		  new Property(prop::ana_delin, new PolyTerm(p1)),
+                  new Property(prop::oi, new FactorTerm(getPolyManagerPtr()->resultantFactors(p0,p1,x)))
+		  });
+	    TB->add(nextid,"ana-delin for two polys");	    
+	  }
+	}	  
+      } break;
+
+
+	
+      default:
+	std::cout << "don't know how to handle this property! assuming true" << std::endl;
+	TB->add(nextid,"assumption (unhandled)");
+	break;
+      }
+    }
+    TB->dump(getPolyManagerPtr(),TC);
+      
+    
+
+    /* IntPolyRef p = getPolyManagerPtr()->getCannonicalCopy(H); */
+    /* int polySign = SM->polynomialSignAt(sid,p); */
+    /* std::cout << "polySign = " << polySign << std::endl; */
+
+    /* SM->roots(sid,p); // some test code */
+    /* std::pair<SectionRef,SectionRef> bs = SM->boundingSections(sid, p); */
+    /* std::vector<TermRef> T = { new Property(prop::nameToProp(sym->getVal()), new PolyTerm(p)), */
+    /* 			       new Property(prop::below_alpha, new SectionTerm(bs.first)), */
+    /* 			       new Property(prop::on_alpha, new SectionTerm(bs.first)) }; */
+    /* if (!bs.second.is_null()) */
+    /* { */
+    /*   T.push_back(new Property(prop::below_alpha, new SectionTerm(bs.second))); */
+    /*   T.push_back(new Property(prop::leq_alpha, new SectionTerm(bs.first),new SectionTerm(bs.second))); */
+    /*   T.push_back(new Property(prop::leq_alpha, new SectionTerm(bs.second),new SectionTerm(bs.first))); */
+    /* } */
+      
+    /* for(unsigned int i = 0; i < T.size(); i++) */
+    /* { */
+    /*   int res = SM->check(sid,T[i]); */
+    /*   std::cout << "Check of " << T[i]->toString(getPolyManagerPtr()) << " = " << res << std::endl; */
+    /* } */
+
+    /* // test term context */
+    /* TermContextRef TC = new SimpleTermContextObj(); */
+    /* TermId t0 = TC->add(T[0]); */
+    /* TermId t1 = TC->add(new Property(prop::below_alpha, new SectionTerm(bs.first))); */
+    /* std::cout << "t0 = " << t0 << " t1 = " << t1 << std::endl; */
+    /* std::cout << "Testing get " << TC->get(t0)->toString(getPolyManagerPtr()) << std::endl; */
+
+    /* TermBaseRef TB = new SimpleTermBase(); */
+    /* TB->add(t0,"Testing"); */
+    /* TermQueueRef TQ = new SimpleTermQueue(TC,TB); */
+    /* TQ->enqueue(t0); */
+    /* TQ->enqueue(t1); */
+    /* TQ->enqueue(new Property(prop::above_alpha, new SectionVariable())); */
+    /* while(!TQ->empty()) */
+    /* { */
+    /*   auto r = TQ->dequeue(); */
+    /*   if (r.second != 0) */
+    /* 	std::cout << "dequeue'd term is " << r.first->toString(getPolyManagerPtr()) << std::endl; */
+    /*   else */
+    /* 	std::cout << "dequeue'd term (with Section Variable) is " << r.first->toString(getPolyManagerPtr()) << std::endl; */
+    /* } */
+
+    
+    /* GoalContextRef G = new GoalContextObj(SM); */
+    /* prop::Tag prop = prop::nameToProp(sym->getVal()); */
+    /* FactRef F = makeFactor(*(getPolyManagerPtr()),p,1); */
+    /* cerr << "property: " << prop::name(prop) << endl; */
+    /* GoalId gid; */
+    /* if (prop::isCheck(prop)) */
+    /* { */
+    /*   gid = G->addCheck(prop,p); */
+    /*   int t_c = prop::check(G->getProp(gid),G->getPoly(gid),SM,sid); */
+    /*   cerr << "check returned " << t_c << endl; */
+    /* } */
+    /* else if (prop::isNirGoal(prop)) */
+    /* { */
+    /*   gid = G->addNirGoal(prop,F);  */
+    /*   int t_c = UNDET; */
+    /*   cerr << "NirGoal status is " << t_c << endl; */
+    /* } */
+    /* else */
+    /* { */
+    /*   gid = G->addIrrGoal(prop,p); */
+    /*   int t_c = UNDET; */
+    /*   cerr << "IrrGoal status is " << t_c << endl; */
+    /* } */
+    /* cerr << "gid = " << gid << endl; */
+    /* cerr << "goal: " << G->toString(gid) << endl; */
+    /* RuleRef r = generateRule(G,gid); */
+    /* cerr << "rule: " << (r.is_null() ? "<none>" : r->toString()) << endl; */
+

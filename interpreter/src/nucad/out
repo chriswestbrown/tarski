@@ -1,0 +1,52 @@
+table[14] = (si [ 1 ]) level < 1 ==> si
+table[20] = (ana-delin [ x + 1 ]) level < 2 ==> ana-delin
+table[21] = (ana-delin [ x - 1 ]) level < 2 ==> ana-delin
+table[22] = (leq (s neg-infty_1) (s [ x + 1 ] 1)) negInfty leq anything
+table[27] = (leq-alpha (s [ x - 1 ] 1) (s [ x - 1 ] 1)) check
+table[7] = (leq (s [ y^2 + x^2 - 1 ] 1) (s [ y^2 + x^2 - 1 ] 1)) ana-delin for single poly 12 5
+table[11] = (leq-alpha (s [ y^2 + x^2 - 1 ] 2) (s [ y^2 + x^2 - 1 ] 2)) check
+table[8] = (leq (s [ y^2 + x^2 - 1 ] 2) (s [ y^2 + x^2 - 1 ] 2)) ana-delin for single poly 11 5
+table[9] = (leq (s neg-infty_2) (s [ y^2 + x^2 - 1 ] 1)) negInfty leq anything
+table[10] = (leq (s [ y^2 + x^2 - 1 ] 2) (s pos-infty_2)) anything leq posInfty
+table[4] = (sector (s [ y^2 + x^2 - 1 ] 1) (s [ y^2 + x^2 - 1 ] 2)) cell-bound 5 5
+table[3] = (si [ y^2 + x^2 - 1 ]) oi implies si 6
+table[26] = (leq-alpha (s [ x + 1 ] 1) (s [ x + 1 ] 1)) check
+table[6] = (oi [ y^2 + x^2 - 1 ]) sector free of sections of p 4 7 8 5
+table[12] = (leq-alpha (s [ y^2 + x^2 - 1 ] 1) (s [ y^2 + x^2 - 1 ] 1)) check
+table[1] = (sector (s neg-infty_2) (s pos-infty_2)) sector surrounds cell 4 9 10
+table[24] = (leq (s [ x + 1 ] 1) (s [ x + 1 ] 1)) at level 1 leq_alpha ==> leq 26
+table[13] = (nnull-alpha [ y^2 + x^2 - 1 ]) check
+table[5] = (ana-delin [ y^2 + x^2 - 1 ]) basic McCallum-Brown 14 15 16
+table[16] = (ni [ y^2 + x^2 - 1 ]) level < 3 ==> ni
+table[15] = (oi [ -4(x + 1)(x - 1) ]) oi of factors implies oi of product 17 18
+table[19] = (sector (s [ x + 1 ] 1) (s [ x - 1 ] 1)) cell-bound 20 21
+table[18] = (oi [ x - 1 ]) sector free of sections of p 19 22 23 21
+table[17] = (oi [ x + 1 ]) sector free of sections of p 19 24 25 20
+table[2] = (sector (s neg-infty_1) (s pos-infty_1)) sector surrounds cell 19 22 25
+table[25] = (leq (s [ x - 1 ] 1) (s pos-infty_1)) anything leq posInfty
+table[23] = (leq (s [ x - 1 ] 1) (s [ x - 1 ] 1)) at level 1 leq_alpha ==> leq 27
+table[37] = (si [ 2 ]) level < 1 ==> si
+table[38] = (oi [ 1 ]) level < 1 ==> oi
+table[42] = (ana-delin [ 4 x^2 - 3 ]) level < 2 ==> ana-delin
+table[30] = (ana-delin [ 2 y - 1 ]) basic McCallum-Brown 37 38 39
+table[36] = (nnull-alpha [ 2 y - 1 ]) check
+table[35] = (leq-alpha (s [ y^2 + x^2 - 1 ] 1) (s [ 2 y - 1 ] 1)) check
+table[31] = (leq (s [ y^2 + x^2 - 1 ] 1) (s [ 2 y - 1 ] 1)) ana-delin for two polys 35 5 30 34
+table[33] = (leq-alpha (s [ 2 y - 1 ] 1) (s [ y^2 + x^2 - 1 ] 2)) check
+table[29] = (sector (s [ 2 y - 1 ] 1) (s [ 2 y - 1 ] 1)) cell-bound 30
+table[4] = (sector (s [ y^2 + x^2 - 1 ] 1) (s [ y^2 + x^2 - 1 ] 2)) sector surrounds cell 29 31 32
+table[50] = (leq-alpha (s [ 4 x^2 - 3 ] 1) (s [ 4 x^2 - 3 ] 1)) check
+table[39] = (ni [ 2 y - 1 ]) level < 3 ==> ni
+table[28] = (si [ 2 y - 1 ]) Cell is section of this poly 29
+table[32] = (leq (s [ 2 y - 1 ] 1) (s [ y^2 + x^2 - 1 ] 2)) ana-delin for two polys 33 30 5 34
+table[34] = (oi [ 4 x^2 - 3 ]) oi of factors implies oi of product 40
+table[41] = (sector (s [ 4 x^2 - 3 ] 1) (s [ 4 x^2 - 3 ] 2)) cell-bound 42 42
+table[40] = (oi [ 4 x^2 - 3 ]) sector free of sections of p 41 43 44 42
+table[19] = (sector (s [ x + 1 ] 1) (s [ x - 1 ] 1)) sector surrounds cell 41 45 46
+table[46] = (leq (s [ 4 x^2 - 3 ] 2) (s [ x - 1 ] 1)) at level 1 leq_alpha ==> leq 47
+table[47] = (leq-alpha (s [ 4 x^2 - 3 ] 2) (s [ x - 1 ] 1)) check
+table[45] = (leq (s [ x + 1 ] 1) (s [ 4 x^2 - 3 ] 1)) at level 1 leq_alpha ==> leq 48
+table[48] = (leq-alpha (s [ x + 1 ] 1) (s [ 4 x^2 - 3 ] 1)) check
+table[44] = (leq (s [ 4 x^2 - 3 ] 2) (s [ 4 x^2 - 3 ] 2)) at level 1 leq_alpha ==> leq 49
+table[49] = (leq-alpha (s [ 4 x^2 - 3 ] 2) (s [ 4 x^2 - 3 ] 2)) check
+table[43] = (leq (s [ 4 x^2 - 3 ] 1) (s [ 4 x^2 - 3 ] 1)) at level 1 leq_alpha ==> leq 50
