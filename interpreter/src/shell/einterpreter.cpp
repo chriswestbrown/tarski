@@ -811,6 +811,16 @@ public:
       else
       {
 	ostringstream sout;
+	try { 
+	  SRef comm = interp->eval(interp->rootFrame,args[0]); 
+	  FunRef f = comm->fun();
+	  if (!f.is_null() && f->builtin > 0) {
+	    sout << builtinFunctionsDoc;
+	    writeToFit(sout.str(),cout,getTermWidth());
+	    return new SObj();
+	  }
+	}catch(exception &e) { };
+	
 	int tindex = 0;
 	while(tindex < interp->typeCache.size() && 
 	      interp->typeCache[tindex]->name() != 

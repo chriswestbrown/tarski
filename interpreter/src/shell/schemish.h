@@ -489,5 +489,7 @@ public:
 inline bool sCast(SRef& rin, GC_Hand<StrObj>& rout) { return !(rout = rin->str()).is_null(); } 
 inline bool sCast(SRef& rin, GC_Hand<BooObj>& rout) { return !(rout = rin->boo()).is_null(); } 
 
+extern string builtinFunctionsDoc;
+ 
 }//end namespace tarski
 #endif
