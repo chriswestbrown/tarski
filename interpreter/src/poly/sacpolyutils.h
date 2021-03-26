@@ -53,7 +53,7 @@ class PCmp
 public: 
   int r; 
   PCmp(int x) : r(x) { } 
-  inline bool operator()(Word a, Word b) { return cmp(r,a,b) < 0; }
+  inline bool operator()(Word a, Word b) const { return cmp(r,a,b) < 0; }
 };
 
 Word LFS(const std::string &s);

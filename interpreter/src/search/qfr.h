@@ -29,7 +29,7 @@ private:
     MinFormFinder *_FG; 
   public:
     Cmp(MinFormFinder *FG) { _FG = FG; }
-    bool operator()(QAndRef a, QAndRef b) { return _FG->getMinGrade(a) < _FG->getMinGrade(b); }
+    bool operator()(QAndRef a, QAndRef b) const { return _FG->getMinGrade(a) < _FG->getMinGrade(b); }
   };
 
 public:

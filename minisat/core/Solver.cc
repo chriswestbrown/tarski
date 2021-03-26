@@ -569,7 +569,7 @@ CRef Solver::propagate()
 struct reduceDB_lt { 
   ClauseAllocator& ca;
   reduceDB_lt(ClauseAllocator& ca_) : ca(ca_) {}
-  bool operator () (CRef x, CRef y) { 
+  bool operator () (CRef x, CRef y) const { 
     return ca[x].size() > 2 && (ca[y].size() == 2 || ca[x].activity() < ca[y].activity()); } 
 };
 void Solver::reduceDB()

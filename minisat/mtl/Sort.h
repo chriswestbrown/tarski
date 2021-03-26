@@ -31,7 +31,7 @@ namespace Minisat {
 
 template<class T>
 struct LessThan_default {
-    bool operator () (T x, T y) { return x < y; }
+    bool operator () (T x, T y) const { return x < y; }
 };
 
 

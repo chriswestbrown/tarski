@@ -12,7 +12,7 @@
 namespace tarski {
 
   struct IntPolyComp {
-    bool operator() (const IntPolyRef& l, const IntPolyRef& r) {
+    bool operator() (const IntPolyRef& l, const IntPolyRef& r) const {
       return IntPolyObj::ipcmp(l, r);
     }
   };

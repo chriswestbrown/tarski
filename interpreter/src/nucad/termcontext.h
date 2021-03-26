@@ -54,7 +54,7 @@ namespace tarski {
     vector<TermRef> termBase;
     class TermRefCmp {
     public:
-      bool operator()(const TermRef &g1, const TermRef &g2) { return g1->comp(*g2) < 0; }
+      bool operator()(const TermRef &g1, const TermRef &g2) const { return g1->comp(*g2) < 0; }
     };
     map<TermRef,TermId,TermRefCmp> term2id;
   };

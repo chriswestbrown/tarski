@@ -1,6 +1,8 @@
 #include "nnet.h"
 #include <math.h>
+#ifndef __APPLE__
 #include <bits/stdc++.h>
+#endif
 using namespace std;
 namespace nnet_interpreter {
 

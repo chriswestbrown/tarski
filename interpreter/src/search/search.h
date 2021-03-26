@@ -336,7 +336,7 @@ template<class comp>
 class PrioritySearchQueueManager : public QueueManagerAndChooser
 {
 private:
-  class negcomp { public: comp F; bool operator()(QAndRef a, QAndRef b) { return !F(a,b); } };
+  class negcomp { public: comp F; bool operator()(QAndRef a, QAndRef b) const { return !F(a,b); } };
   priority_queue<QAndRef,std::vector<QAndRef>, negcomp> andsToExpand;
 
 public:
@@ -362,7 +362,7 @@ public:
 class FewestQuantifiedVariablesFirst
 {
 public:
-  bool operator()(QAndRef a, QAndRef b)
+  bool operator()(QAndRef a, QAndRef b) const
   {
     if (a->deadMark) return true;
     if (b->deadMark) return false;
@@ -381,7 +381,7 @@ public:
 class SmallestDimensionFirst
 {
 public:
-  bool operator()(QAndRef a, QAndRef b)
+  bool operator()(QAndRef a, QAndRef b) const
   {
     FindEquations Ea; Ea(a);
     FindEquations Eb; Eb(b);

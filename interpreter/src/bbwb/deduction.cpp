@@ -79,7 +79,7 @@ namespace tarski {
     return tand;
   }
 
-  bool DedManager::ManagerComp::operator()(const TAtomRef& A, const TAtomRef& B) {
+  bool DedManager::ManagerComp::operator()(const TAtomRef& A, const TAtomRef& B) const {
     return A->F->cmp(B->F) < 0;
   }
 

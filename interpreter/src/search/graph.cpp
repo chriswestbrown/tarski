@@ -12,7 +12,7 @@ namespace tarski {
   class fgcmp
   {
   public:
-    bool operator()(pair<TFormRef,double> a, pair<TFormRef,double> b)
+    bool operator()(pair<TFormRef,double> a, pair<TFormRef,double> b) const
     {
       return a.second < b.second;
     }

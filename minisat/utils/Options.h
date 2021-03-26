@@ -58,7 +58,7 @@ class Option
     static const char*&  getHelpPrefixString() { static const char* help_prefix_str = ""; return help_prefix_str; }
 
     struct OptionLt {
-        bool operator()(const Option* x, const Option* y) {
+        bool operator()(const Option* x, const Option* y) const {
             int test1 = strcmp(x->category, y->category);
             return test1 < 0 || (test1 == 0 && strcmp(x->type_name, y->type_name) < 0);
         }

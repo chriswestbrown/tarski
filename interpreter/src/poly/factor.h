@@ -58,7 +58,7 @@ public:
 
   class lt {
   public:
-    bool operator()(const tarski::FactRef &a, const tarski::FactRef &b) { return a->cmp(b) < 0; }
+    bool operator()(const tarski::FactRef &a, const tarski::FactRef &b) const { return a->cmp(b) < 0; }
   };
 };
 

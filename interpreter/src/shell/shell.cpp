@@ -241,6 +241,9 @@ void init_SIGINT_handler()
 
 int sendSignalAfterInterval(int seconds, int signum)
 {
+#ifdef __APPLE__
+  return 1;
+#else
   /* Create timer */
   timer_t timerid;
   struct sigevent sev;
@@ -260,6 +263,7 @@ int sendSignalAfterInterval(int seconds, int signum)
     return 2;
 
   return 0;
+#endif
 }
 }//end namespace tarski
 

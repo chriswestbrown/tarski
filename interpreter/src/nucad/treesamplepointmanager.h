@@ -34,7 +34,7 @@ namespace tarski {
 	if (a.second == b.second) return  a.first->compareTo(b.first);
 	return a.second < b.second ? -1 : +1;
       }
-      inline bool operator()(const std::pair<RealAlgNumRef,int> &a, const std::pair<RealAlgNumRef,int> &b )
+      inline bool operator()(const std::pair<RealAlgNumRef,int> &a, const std::pair<RealAlgNumRef,int> &b ) const
       {
 	return a.second < b.second || a.first->compareTo(b.first) < 0;
       }

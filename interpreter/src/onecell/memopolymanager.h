@@ -32,7 +32,7 @@ private:
   class MPMDcompare 
   { 
   public:
-    bool operator()(IntPolyRef p, IntPolyRef q) { return &(*p) < &(*q); }
+    bool operator()(IntPolyRef p, IntPolyRef q) const { return &(*p) < &(*q); }
   };
   VarKeyedMap< std::map<IntPolyRef,FactRef,MPMDcompare>  > MDisc;
   VarKeyedMap< std::map<IntPolyRef,FactRef,MPMDcompare>  > MLdcf;

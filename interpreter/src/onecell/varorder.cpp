@@ -196,7 +196,7 @@ int countUNSATStrictConjunctionAtPoint(VarOrderRef X, GCWord alpha, TAndRef C)
     VarOrderObj* p;
   public:
     TmpCmp(VarOrderObj* p) { this->p = p; }
-    bool operator()(const VarSet &a, const VarSet &b) { return p->getPosition(a) < p->getPosition(b); }
+    bool operator()(const VarSet &a, const VarSet &b) const { return p->getPosition(a) < p->getPosition(b); }
   };
   void VarOrderObj::sort(std::vector<VarSet> &vec)
   {

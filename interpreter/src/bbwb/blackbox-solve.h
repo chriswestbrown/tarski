@@ -107,7 +107,7 @@ namespace tarski{
     struct weightCompare {
       weightCompare(int i) : cutoff(i) {}
       int cutoff;
-      inline bool operator() (const AtomRow& l, const AtomRow& r) {
+      inline bool operator() (const AtomRow& l, const AtomRow& r) const {
         return BBDeducer::weight(l.vc, cutoff) < BBDeducer::weight(r.vc, cutoff);
       }
     };

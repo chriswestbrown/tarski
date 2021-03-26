@@ -173,7 +173,7 @@ namespace tarski {
   private:
     struct ManagerComp
     {
-      bool operator()(const TAtomRef &A, const TAtomRef &B);
+      bool operator()(const TAtomRef &A, const TAtomRef &B) const;
     };
     PolyManager * PM;
     bool unsat;

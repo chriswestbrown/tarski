@@ -11,7 +11,7 @@
 class CASComp 
 { 
 public: 
-   bool operator()(CAServer *p1, CAServer *p2) { return p1->name() < p2->name(); }
+   bool operator()(CAServer *p1, CAServer *p2) const { return p1->name() < p2->name(); }
 };
 
 typedef std::map<std::string,CAServer*> ServerBase;

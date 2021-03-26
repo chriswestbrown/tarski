@@ -62,7 +62,7 @@ class QAndGradeComp
   FormulaGrader *FG;
  public:
   QAndGradeComp(FormulaGrader &G) : FG(&G) { }
-  bool operator()(QAndRef A, QAndRef B) { return FG->grade(A->F,A->QVars) < FG->grade(B->F,B->QVars); }
+  bool operator()(QAndRef A, QAndRef B) const { return FG->grade(A->F,A->QVars) < FG->grade(B->F,B->QVars); }
    
 };
 }//end namespace tarski

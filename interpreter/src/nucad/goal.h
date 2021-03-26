@@ -57,7 +57,7 @@ private:
   IntPolyRef p; // this must be canonical!
 public:
   IrrGoal(prop::Tag prop, IntPolyRef p) : Goal(prop), p(p) { }
-  bool operator<(const Goal &g) const {
+  bool operator<(const Goal &g) {
     if (this->getProp() != g.getProp()) { return this->getProp() < g.getProp(); }
     const IrrGoal* ptr = dynamic_cast<const IrrGoal*>(&g);
     return IntPolyObj::ipcmp(p,ptr->p);
@@ -86,7 +86,7 @@ public:
     
   private:
     vector<GoalRef> goalBase;
-    class GoalRefCmp { public: bool operator()(const GoalRef &g1, const GoalRef &g2) { return *g1 < *g2; } };
+    class GoalRefCmp { public: bool operator()(const GoalRef &g1, const GoalRef &g2) const { return *g1 < *g2; } };
     map<GoalRef,GoalId,GoalRefCmp> goal2id;
     
     GoalId add(const GoalRef &g)
