@@ -46,3 +46,9 @@ interpreter/src/poly/go
 *.od
 *.or
 *depend.mk
+
+# QEPCAD/Saclib
+qesource/source/qepcad
+saclib2.2.7/include/sacproto.h
+saclib2.2.7/lib/objd/makefile
+saclib2.2.7/lib/objo/makefile
