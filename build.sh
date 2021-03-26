@@ -31,9 +31,11 @@ fi
 export saclib=$saclibRoot
 pushd $saclib
 echo "Making SACLIB..."
-check bin/sconf
-check bin/mkproto
-check bin/mkmake
+if [ ! -e include/sacproto.h -o ! -e lib/objd/makefile -o ! -e lib/objo/makefile ]; then
+    check bin/sconf
+    check bin/mkproto
+    check bin/mkmake
+fi
 check "bin/mklib all -fPIC"
 check
 echo "Saclib done"
