@@ -7,6 +7,17 @@ Outputs
   t :  the system clock time in millisecconds.
 ======================================================================*/
 #include "saclib.h"
+#ifdef __MINGW32__
+// #include <windows.h>
+Word CLOCK()
+{
+       return(0);
+//       SYSTEMTIME time;
+//       GetSystemTime(&time);
+//       Word t = (time.wSecond * 1000) + time.wMilliseconds;
+//       return(t);
+}
+#else
 #include <sys/resource.h>
 
 Word CLOCK()
@@ -24,3 +35,4 @@ Step1: /* Get the system time. */
 Return: /* Prepare for return. */
        return(t);
 }
+#endif

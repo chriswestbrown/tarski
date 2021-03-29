@@ -5,7 +5,7 @@
 if ($#ARGV == 0 && ($ARGV[0] eq "-h" || $ARGV[0] eq "--help"))
 {
     print "sconf/mksysdep.pl\n".
-"sconf [x86linux|sparcsolaris|x86_64linux|x86macos|x86_64macos]\n\n".
+"sconf [x86linux|sparcsolaris|x86_64linux|x86macos|x86_64macos|x86windows|x86_64windows]\n\n".
 "This script installs system dependent files for\n".
 "saclib.  It attempts to diagnose architecture and\n".
 "processor type and install the proper files.  You\n".
@@ -20,6 +20,21 @@ if (! $ENV{'saclib'})
     print "SACLIB Error: The saclib environment variable must be set!\n";
     exit(1);
 }
+
+if ($ENV{'CC'} eq "i686-w64-mingw32-gcc" || ($#ARGV == 1 && $ARGV[0] eq "x86windows"))
+{
+    print "SACLIB Warning: Cross compilation for Windows via i686-w64-mingw32. Installing x86windows system dependent files!\n";
+    system("bash -c \"pushd >/dev/null $ENV{'saclib'}/sysdep/windowsX86 ; ./install ; popd >/dev/null\"");
+    exit 0
+}
+
+if ($ENV{'CC'} eq "x86_64-w64-mingw32-gcc" || ($#ARGV == 1 && $ARGV[0] eq "x86_64windows"))
+{
+    print "SACLIB Warning: Cross compilation for Windows via x86_64-w64-mingw32. Installing x86_64windows system dependent files!\n";
+    system("bash -c \"pushd >/dev/null $ENV{'saclib'}/sysdep/windowsX86_64 ; ./install ; popd >/dev/null\"");
+    exit 0
+}
+
 
 ### Get architecture type
 $ptype = "unknown";
