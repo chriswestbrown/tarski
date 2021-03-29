@@ -69,6 +69,7 @@ void BEGINQEPCAD(int &argc, char**& argv)
   /* #cols for usage message output is 80 or terminal width if 
      stdout attached to a terminal*/
   int cols = 80;         /* number of columns for help output */
+#ifndef __MINGW32__
   int isStdoutTerm = system("test -t 1");
   isStdoutTerm = WEXITSTATUS(isStdoutTerm);
   if (isStdoutTerm == 0 && isatty(0))
@@ -78,6 +79,7 @@ void BEGINQEPCAD(int &argc, char**& argv)
     if (10 <= tmp <= 512)
       cols = tmp;
   }
+#endif
 
   /* LOOP OVER ARGUMENTS! */
   for(int i = 1; i < argc; ++i)

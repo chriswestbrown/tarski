@@ -34,7 +34,13 @@ Step1: /* Open the text file containing the helps. */
           strcpy(helppath,HELPPATH);
        else {
           strcpy(helppath,qepath);
-          strcat(helppath,"/bin/qepcad.help"); }
+#ifdef __MINGW32__
+          strcat(helppath,"\\bin\\qepcad.help");
+#else
+          strcat(helppath,"/bin/qepcad.help");
+#endif
+       }
+
        if (!(fp = fopen(helppath,"r"))) {
          fprintf(stderr,"Error HELPFRD: Could not open %s\n",helppath);
          exit(1); }
