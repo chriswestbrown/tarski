@@ -8,14 +8,13 @@ Outputs
 ======================================================================*/
 #include "saclib.h"
 #ifdef __MINGW32__
-// #include <windows.h>
+#include <sysinfoapi.h>
 Word CLOCK()
 {
-       return(0);
-//       SYSTEMTIME time;
-//       GetSystemTime(&time);
-//       Word t = (time.wSecond * 1000) + time.wMilliseconds;
-//       return(t);
+       SYSTEMTIME time;
+       GetSystemTime(&time);
+       Word t = (time.wSecond * 1000) + time.wMilliseconds;
+       return(t);
 }
 #else
 #include <sys/resource.h>
