@@ -9,10 +9,15 @@ SHELL = /bin/bash
 MAKE       =  make  # You must use gmake, but it may not be
                     # called gmake on your system, so change this
 
+ifneq ($(CPP),)
+CCo        = $(CPP)
+CCd        = $(CPP)
+else
 CCo        =  g++
+CCd        =  g++
+endif
 FLAGSo = -O4 -D__CORRECT_ISO_CPP_STRINGS_H_PROTO -fPIC
 
-CCd        =  g++
 FLAGSd = -g
 
 SUBMAKEFLAGS = -j1

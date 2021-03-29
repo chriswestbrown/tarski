@@ -9,12 +9,34 @@ already been initialized!
 #include "qepcad.h"
 #include "db/CAServer.h"
 #include "db/OriginalPolicy.h"
+#ifndef __MINGW32__
 #include "db/SingularPolicy.h"
 #include "db/SingSacPolicy.h"
+#endif
 #include "db/convenientstreams.h"
 #include "db/CAPolicy.h"
 #include <ctype.h>
+#ifdef __MINGW32__
+namespace
+	{
+	bool isatty(int)
+		{
+		return true;
+		}
+
+	bool WEXITSTATUS(int status)
+		{
+		return status == 0;
+		}
+
+	template<typename F>
+	void setlinebuf(F)
+		{
+		}
+	}
+#else
 #include <sys/wait.h>
+#endif
 
 void QEPCAD_ProcessRC(int argc, char **argv);
 void QEPCAD_Usage(int cols);
@@ -111,7 +133,8 @@ void BEGINQEPCAD(int &argc, char**& argv)
   
   /* Initialize the qepcad system globals. */
   INITSYS();
-  
+
+#ifndef __MINGW32__
   /* Launch CA Servers and set up CA Policy */
   if (GVContext->SingularPath == "")
     GVCAP = new OriginalPolicy;
@@ -121,6 +144,7 @@ void BEGINQEPCAD(int &argc, char**& argv)
     GVSB.insert(tp);
     GVCAP = new SingSacPolicy;
   }
+#endif
 
 }
 

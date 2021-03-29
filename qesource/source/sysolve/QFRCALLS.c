@@ -1,3 +1,4 @@
+#ifndef __MINGW32__
 #include "qepcad.h"
 #include <iostream>
 #include <sstream>
@@ -165,6 +166,7 @@ bool qfrCheckNonNullified(BDigit r, Word P, Word A, Word F, Word V)
 
 bool qfrFalseCheck(string qfrInputString)
 {
+ 
   UnnamedPipe intoQfr, outofQfr;
   if (PCVERBOSE) { cerr << "forking (" + qfrInputString + " )..." << endl; }
   int childpid = fork();
@@ -196,4 +198,4 @@ bool qfrFalseCheck(string qfrInputString)
   else
     return false;
 }
-
+#endif

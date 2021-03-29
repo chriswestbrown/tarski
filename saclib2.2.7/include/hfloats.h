@@ -24,6 +24,10 @@
 #include <fenv.h>
 #endif
 
+#ifdef __MINGW32__
+#include <fenv.h>
+#endif
+
 #include "sysdep.h"
 
 /* ----------------------------------------*/
@@ -83,6 +87,13 @@ typedef union {
 #define rounddown() fesetround(FE_DOWNWARD)
 #define roundup() fesetround(FE_UPWARD)
 #endif
+
+/* Windows */
+#ifdef __MINGW32__
+#define rounddown() fesetround(FE_DOWNWARD)
+#define roundup() fesetround(FE_UPWARD)
+#endif
+
 
 /* ----------------------------------------*/
 /*            Hardware intervals           */

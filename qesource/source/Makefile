@@ -42,20 +42,22 @@ EXTLIBS   =	${qe}/extensions/sfext/sfexto.a \
 		${qe}/extensions/lift2D/lift2Do.a \
 		${qe}/extensions/newadj/newadjo.a \
 		${qe}/extensions/adj2d/adj2do.a \
-		${qe}/extensions/rend/rendo.a \
 		${saclib}/lib/saclibo.a \
-		-lreadline -lrt \
 		${SPECLFLAGS}
+ifeq (${CC},)
+EXTLIBS += -lreadline -lrt ${qe}/extensions/rend/rendo.a
+endif
 
 
 EXTLIBSD  =	${qe}/extensions/sfext/sfextd.a \
 		${qe}/extensions/lift2D/lift2Dd.a \
 		${qe}/extensions/newadj/newadjd.a \
 		${qe}/extensions/adj2d/adj2dd.a \
-		${qe}/extensions/rend/rendd.a \
 		${saclib}/lib/saclibd.a \
-		-lreadline -lrt \
 		${SPECLFLAGS}
+ifeq (${CC},)
+EXTLIBSD += -lreadline -lrt ${qe}/extensions/rend/rendo.a
+endif
 
 NAME      =  qepcad
 LIB       =  $(NAME).a

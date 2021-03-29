@@ -42,6 +42,7 @@ Step1: /* Obtain coefficients. */
 	 Lh = NIL;
 	 t = 0;
 
+#ifndef __MINGW32__
 	 /*-- TEST NEW --*/
 	 if (experimentalExtensionFlag)
 	 {
@@ -49,6 +50,7 @@ Step1: /* Obtain coefficients. */
 	   if (qfc) continue;
 	 }
 	 /*-- END TEST NEW --*/
+#endif
 
 	 if (!VERIFYCONSTSIGN(r-1,IPIP(r-1,ISIGNF(PLBCF(r-1,L)),L),1,GVNA.W)) {
 	   W = MPOLY(L,NIL,LIST1(LIST3(PO_LCO,0,A1)),PO_OTHER,PO_KEEP);
@@ -58,7 +60,9 @@ Step1: /* Obtain coefficients. */
 	 
 	 /* If r = 2 OR r-1 is in free variable space, the leading coefficient is always enough! */
 	 if (t && (r == 2 || (PCMZERROR && r-1 <= GVNFV))
+#ifndef __MINGW32__
 	     || (experimentalExtensionFlag && qfrCheckNonNullified(r,Ap1,GVNA.W,GVNQFF.W,GVVL.W))
+#endif
 	     )
 	   t = 0;
 	 else if (t) {
@@ -81,9 +85,11 @@ Step1: /* Obtain coefficients. */
 	     PSIMREP(r-1,f,&rp,&fp);
 	     Word tf = 0;
 	     
+#ifndef __MINGW32__
 	     /* Test 1: identically non-zero */
 	     //--ORIGINAL-- tf = tf || VERIFYCONSTSIGN(r-1,f,1,GVNA.W);
 	     tf = tf || (experimentalExtensionFlag && qfrCheckNonVanishing(r-1,f,GVNA.W,GVNQFF.W,GVVL.W));
+#endif
 	     
 	     /* Test 2: of a level corresponding to a FULLDE or FULLDA quantifier */
 	     j = rp - GVNFV;

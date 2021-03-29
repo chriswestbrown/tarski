@@ -66,6 +66,7 @@ Step4: /* Factor. */
              /*Int*/ Ths = ACLOCK() - Ths;
              /*Int*/ TMIPLFAC[k - 1] = TMIPLFAC[k - 1] + Ths;
 
+#ifndef __MINGW32__
 StepX: /* Filter out factors that don't vanish given assumptions */
        if (experimentalExtensionFlag)
        {
@@ -108,6 +109,7 @@ StepX: /* Filter out factors that don't vanish given assumptions */
 	 }
 	 R = Rb;
        }
+#endif
 
 Step5: /* Append. */
              /*Int*/ Ths = ACLOCK();

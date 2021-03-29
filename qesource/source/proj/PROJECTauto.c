@@ -48,6 +48,7 @@ Step4: /* Factor. */
        R = IPLFAC(k - 1,J_k1);
 
 StepX: /* Filter out factors that don't vanish given assumptions */
+#ifndef __MINGW32__
        if (experimentalExtensionFlag)
        {
 	 Word Rb = NIL;
@@ -68,6 +69,7 @@ StepX: /* Filter out factors that don't vanish given assumptions */
 	 }
 	 R = Rb;
        }
+#endif
 
 Step5: /* Append. */
        if (PCPROPEC)

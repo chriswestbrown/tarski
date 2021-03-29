@@ -4,8 +4,10 @@
 #include <signal.h>
 #include "db/CAPolicy.h"
 
+#ifndef __MINGW32__
 static void SIGINT_handler(int i, siginfo_t *sip,void* uap);
 static void init_SIGINT_handler();
+#endif
 static int sendSignalAfterInterval(int seconds, int signum);
 extern int GVTIMEOUTLIMIT;
 
@@ -23,11 +25,13 @@ Step1: /* Set up the system. */
        ARGSACLIB(argc,argv,&ac,&av);
        BEGINSACLIB((Word *)topOfTheStack);
        BEGINQEPCAD(ac,av);
+#ifndef __MINGW32__
        init_SIGINT_handler(); /* A special handler for SIGINT is needed
                                  to shut down child processes. Also used
 			         for SIGTERM. */
        if (GVTIMEOUTLIMIT > 0)
 	 sendSignalAfterInterval(GVTIMEOUTLIMIT,SIGALRM);
+#endif
 
 Step2: /* Read input, create CAD, write result */
        PCCONTINUE = FALSE;
@@ -56,6 +60,7 @@ Return: /* Prepare for return. */
        return 0;
 }
 
+#ifndef __MINGW32__
 static void SIGINT_handler(int i, siginfo_t *sip,void* uap)
 {  
   if (sip->si_signo == SIGALRM)
@@ -78,9 +83,13 @@ static void init_SIGINT_handler()
   sigaction(SIGALRM,p,NULL);
   free(p);
 }
+#endif
 
 static int sendSignalAfterInterval(int seconds, int signum)
 {
+#if defined(__MINGW32__) || defined(__APPLE__)
+  return 1;
+#else
   /* Create timer */
   timer_t timerid;
   struct sigevent sev;
@@ -100,6 +109,7 @@ static int sendSignalAfterInterval(int seconds, int signum)
     return 2;
 
   return 0;
+#endif
 }
 
 int main(int argc, char **argv)
