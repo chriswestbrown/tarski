@@ -44,10 +44,10 @@ EXTLIBS   =	${qe}/extensions/sfext/sfexto.a \
 		${qe}/extensions/adj2d/adj2do.a \
 		${saclib}/lib/saclibo.a \
 		${SPECLFLAGS}
-ifeq (${CC},)
+ifneq (,$(findstring mingw,$(CXX)))
+else
 EXTLIBS += -lreadline -lrt ${qe}/extensions/rend/rendo.a
 endif
-
 
 EXTLIBSD  =	${qe}/extensions/sfext/sfextd.a \
 		${qe}/extensions/lift2D/lift2Dd.a \
@@ -55,8 +55,9 @@ EXTLIBSD  =	${qe}/extensions/sfext/sfextd.a \
 		${qe}/extensions/adj2d/adj2dd.a \
 		${saclib}/lib/saclibd.a \
 		${SPECLFLAGS}
-ifeq (${CC},)
-EXTLIBSD += -lreadline -lrt ${qe}/extensions/rend/rendo.a
+ifneq (,$(findstring mingw,$(CXX)))
+else
+EXTLIBSD += -lreadline -lrt ${qe}/extensions/rend/rendd.a
 endif
 
 NAME      =  qepcad
