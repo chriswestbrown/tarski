@@ -10,24 +10,6 @@ mkdir -p $saclib/lib/obj{o,d}
 MAKEFILE=$saclib/lib/objo/makefile
 
 #
-## Prepare tools (eventually for cross-compilation)
-#
-
-AS=as
-AR=ar
-RANLIB=ranlib
-if [ "$CC" = x86_64-w64-mingw32-gcc ]; then
- AS=x86_64-w64-mingw32-as
- AR=x86_64-w64-mingw32-ar
- RANLIB=x86_64-w64-mingw32-ranlib
- fi
-if [ "$CC" = i686-w64-mingw32-gcc ]; then
- AS=i686-w64-mingw32-as
- AR=i686-w64-mingw32-ar
- RANLIB=i686-w64-mingw32-ranlib
- fi
-
-#
 ## Write header
 #
 
@@ -54,14 +36,11 @@ SRCDIR   = ${saclib}/src
 TARGET   = ${saclib}/lib/saclib${EXTENSION}.a
 CFLAGS   = -I${saclib}/include -c ${SACFLAG}
 AFLAGS   = -I${saclib}/include -P
-EOF
-echo -n "AS       = $AS
-AR       = $AR
-RANLIB   = $RANLIB
 
 # Object files
 
-OBJS1 = " >> $MAKEFILE
+OBJS1 = \
+EOF
 
 #
 ## Write list of object files
