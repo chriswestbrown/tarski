@@ -21,6 +21,6 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: prerequisites
-      run: brew readline openssl
+      run: brew install readline openssl
     - name: build
       run: ./build.sh
