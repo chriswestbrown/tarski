@@ -27,9 +27,9 @@ LDFLAGS := -lssl -lcrypto -lreadline -lrt $(extLibSACLIB) $(extLibMINISAT)
 INC_DIRS := $(shell find $(SRC_DIRS) -type d)
 INC_FLAGS := $(addprefix -I,$(INC_DIRS)) $(extIncludesSACLIB) $(extIncludeMINISAT)
 
-CPPFLAGS ?= $(INC_FLAGS) -MMD -MP --std=c++11 -g
+# CPPFLAGS ?= $(INC_FLAGS) -MMD -MP --std=c++11 -g
 # On MSYS:
-# CPPFLAGS ?= $(INC_FLAGS) -MMD -MP -g
+CPPFLAGS ?= $(INC_FLAGS) -MMD -MP -g
 
 $(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
 	$(CXX) $(OBJS) -o $@ $(LDFLAGS)
