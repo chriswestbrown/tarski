@@ -115,7 +115,7 @@ namespace tarski {
           tmps += "/bin/qepcad";
 #endif
           }
-	int n = tmps.size();
+        int n = tmps.size();
 #ifdef __MSYS__
         n -= 15; // \\bin\\qepcad.exe
 #else
@@ -125,8 +125,8 @@ namespace tarski {
 	setenv("qe",qeroot.c_str(),1);
 	
         const char *arg1 = "+N10000000", *arg2 = "-t", *arg3 = "200";
-        execlp(pathToQepcad,
-               pathToQepcad,
+        execlp(tmps.c_str(),
+               tmps.c_str(),
                arg1,arg2,arg3,NULL);
         throw TarskiException("QepcadB startup failed!");
 
