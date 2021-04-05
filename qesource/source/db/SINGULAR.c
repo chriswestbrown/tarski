@@ -1,5 +1,3 @@
-#ifndef __MINGW32__
-
 #include "SINGULAR.h"
 #include <iostream>
 #include <string>
@@ -335,4 +333,3 @@ Word SingularServer::CONSTORDTEST(Word r, Word A, Word L)
   return GBi;
     
 }
-#endif

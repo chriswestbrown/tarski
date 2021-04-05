@@ -109,13 +109,9 @@ Step2: /* Get a new character. */
 Step3: /* End of file. */
        if (C == EOF)
        {
-#ifdef __MINGW32__
-	 PushInputContext(std::cin);
-#else
 	 cerr << "\007\007\007";
 	 int fd = open("/dev/tty",O_RDONLY);
 	 PushInputContext(*(new readlineIstream(fd)));
-#endif
          //C = (*currIn).get();
          return CREAD();
        }

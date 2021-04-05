@@ -17,14 +17,10 @@ void INITIO()
        Word i;
 
 Step1: /* Initialize Input. */	  
-#ifndef __MINGW32__
        if (isatty(0)) 
 	 InputContextInit(*(new readlineIstream()));
        else
 	 InputContextInit(std::cin);
-#else
-       InputContextInit(std::cin);
-#endif
        
 Step2: /* Initialize Output. */
        OutputContextInit(std::cout);

@@ -21,21 +21,6 @@ if (! $ENV{'saclib'})
     exit(1);
 }
 
-if ($ENV{'CC'} eq "i686-w64-mingw32-gcc" || ($#ARGV == 1 && $ARGV[0] eq "x86windows"))
-{
-    print "SACLIB Warning: Cross compilation for Windows via i686-w64-mingw32. Installing x86windows system dependent files!\n";
-    system("bash -c \"pushd >/dev/null $ENV{'saclib'}/sysdep/windowsX86 ; ./install ; popd >/dev/null\"");
-    exit 0
-}
-
-if ($ENV{'CC'} eq "x86_64-w64-mingw32-gcc" || ($#ARGV == 1 && $ARGV[0] eq "x86_64windows"))
-{
-    print "SACLIB Warning: Cross compilation for Windows via x86_64-w64-mingw32. Installing x86_64windows system dependent files!\n";
-    system("bash -c \"pushd >/dev/null $ENV{'saclib'}/sysdep/windowsX86_64 ; ./install ; popd >/dev/null\"");
-    exit 0
-}
-
-
 ### Get architecture type
 $ptype = "unknown";
 $uname = `uname -mp`;
@@ -74,6 +59,10 @@ elsif ($uname =~ /Darwin|darwin|DARWIN/)
     $macosKernelTest = `ioreg -l -p IODeviceTree | grep firmware-abi | grep EFI64`;
     if ($macosKernelTest) { $ptype = "x86_64"; } elsif ($ptype == "x86_64") { $ptype = "x86"; }
 }
+elsif ($uname =~ /MSYS/)
+{
+    $ostype = "windows";
+}
 else
 {
     print "SACLIB Warning: Could not determine OS type!\n";
@@ -105,6 +94,11 @@ elsif ($#ARGV == 1 && $ARGV[0] eq "sparcsolaris")
     print "SACLIB Warning: Installing sparcsolaris system dependent files!\n";
     system("bash -c \"pushd >/dev/null $ENV{'saclib'}/sysdep/solarisSparc ; ./install ; popd >/dev/null\"");
 }
+elsif ($#ARGV == 1 && $ARGV[0] eq "x86_64windows")
+{
+    print "SACLIB Warning: Installing x86_64windows system dependent files!\n";
+    system("bash -c \"pushd >/dev/null $ENV{'saclib'}/sysdep/windowsX86_64 ; ./install ; popd >/dev/null\"");
+}
 elsif ($ptype eq "x86" && $ostype eq "linux")
 {
     system("bash -c \"pushd >/dev/null $ENV{'saclib'}/sysdep/linuxX86 ; ./install ; popd >/dev/null\"");    
@@ -120,6 +114,10 @@ elsif ($ptype eq "x86_64" && $ostype eq "macos")
 elsif ($ptype eq "x86_64" && $ostype eq "linux")
 {
     system("bash -c \"pushd >/dev/null $ENV{'saclib'}/sysdep/linuxX86_64 ; ./install ; popd >/dev/null\"");    
+}
+elsif ($ptype eq "x86_64" && $ostype eq "windows")
+{
+    system("bash -c \"pushd >/dev/null $ENV{'saclib'}/sysdep/windowsX86_64 ; ./install ; popd >/dev/null\"");    
 }
 elsif ($ptype eq "sparc" && $ostype eq "solaris")
 {

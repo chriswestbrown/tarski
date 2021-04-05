@@ -1,4 +1,0 @@
-#!/bin/bash
-echo "Removing any windowsX86 system dependent files ..."
-'rm' -f $saclib/src/GC.c 
-'rm' -f $saclib/include/sysdep.h

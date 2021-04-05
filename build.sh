@@ -1,13 +1,5 @@
 #!/bin/bash
 
-### Use x86_64-w64-mingw32 or i686-w64-mingw32 as first argument
-### to start cross-compilation.
-if [[ $1 == *"mingw"* ]]; then
-    echo "Cross-compilation for Windows..."
-    export CC=$1-gcc
-    export CXX=$1-g++
-    fi
-
 ### To use an existing external Saclib and/or Qepcad
 ### replace the empty strings below with full paths.
 externalSaclibRoot=""

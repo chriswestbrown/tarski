@@ -2,8 +2,6 @@
 # Following the blog post by Job Vranish
 # https://spin.atomicobject.com/2016/08/26/makefile-c-projects/
 
-CXX=g++
-CC=g++
 MROOT=-I../minisat
 TMROOT=../minisat
 extIncludesSACLIB:=-I${saclib}/include
@@ -33,7 +31,7 @@ CPPFLAGS ?= $(INC_FLAGS) -MMD -MP --std=c++11 -g
 
 
 $(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
-	$(CC) $(OBJS) -o $@ $(LDFLAGS)
+	$(CXX) $(OBJS) -o $@ $(LDFLAGS)
 	mv build/tarski bin/tarski
 
 
