@@ -105,8 +105,23 @@ namespace tarski {
 
 	// Set the qe environment variable for the qe process
 	std::string tmps = pathToQepcad;
+
+        // Allow override of precompiled value for pathToQepcad by using the environment variable "qe":
+        if (getenv("qe") != NULL) {
+          tmps = getenv("qe");
+#ifdef __MSYS__
+          tmps += "\\bin\\qepcad.exe";
+#else
+          tmps += "/bin/qepcad";
+#endif
+          }
 	int n = tmps.size();
-	string qeroot = tmps.substr(0,n - 11);
+#ifdef __MSYS__
+        n -= 15; // \\bin\\qepcad.exe
+#else
+        n -= 11; // /bin/qepcad
+#endif
+	string qeroot = tmps.substr(0,n);
 	setenv("qe",qeroot.c_str(),1);
 	
         const char *arg1 = "+N10000000", *arg2 = "-t", *arg3 = "200";
