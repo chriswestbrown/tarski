@@ -13,7 +13,7 @@ class OCBuilderObj : public TypeExtensionObj
  public:
   BuilderRef B;
   OCBuilderObj() { }
-  OCBuilderObj(BuilderRef _B) { B = _B; }
+  OCBuilderObj(BuilderRef _b) { B = _b; }
   void initRec(VarOrderRef X, Word alpha, PolyManager *ptrPM, std::vector<IntPolyRef> &Lp)
   {
     FactRef f = new FactObj(*ptrPM);

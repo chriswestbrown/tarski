@@ -120,7 +120,7 @@ namespace tarski {
       // Send Qepcad the script & close unneeded pipes
       intoQepcad.closeIn();
       outofQepcad.closeOut();
-      //cerr << "qscript START>>\n" << qscript << "<<END qscript\n";      
+      //cerr << "qscript START>>\n" << qscript << "<<END qscript\n";
       intoQepcad.out() << qscript << flush;
       if (trackNumberOfLeafCells)
 	intoQepcad.out() << "d-number-leaf-cells\n" << flush;

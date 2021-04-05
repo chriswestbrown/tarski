@@ -121,9 +121,9 @@ Word OpenCellObj::moveSamplePoint(Word PT)
 }
 
 
-OpenCellObj::OpenCellObj(VarOrderRef _X, Word _alpha, int dim) : CB(dim+1)
+OpenCellObj::OpenCellObj(VarOrderRef _x, Word _alpha, int dim) : CB(dim+1)
 {
-  X = _X;
+  X = _x;
   alpha = _alpha;
   for(int i = 1; i <= dim; ++i) CB[i] = new CellBoundObj(LELTI(alpha,i));
 }
