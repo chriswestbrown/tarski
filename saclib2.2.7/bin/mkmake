@@ -92,7 +92,7 @@ new: ${OBJS1} ${OBJS2a} ${OBJS2b} ${OBJS3} ${OBJS4}
 #       Use "ar ts" if your system does not have "ranlib".
 #	${AR} ts ${TARGET}
 #       Use "ranlib" if your system's "ar" does not have the option "s".
-	${RANLIB} ${TARGET}
+#	${RANLIB} ${TARGET}
 	@echo "Created '${TARGET}'."
 
 EOF

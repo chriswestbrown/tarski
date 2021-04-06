@@ -23,7 +23,7 @@ MFlags	= "CCo=${CCo}" "FLAGSo=${FLAGSo}"\
 	  "SUBMAKEFLAGS=${SUBMAKEFLAGS}"
 MFlags += -j1
 
-ARFLAGS := crvU
+ARFLAGS := crv
 
 both:   opt deb
 

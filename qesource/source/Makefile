@@ -19,7 +19,7 @@ FLAGSo = -O4
 CCd        =  g++
 FLAGSd = -g
 
-ARFLAGS := crvU
+ARFLAGS := crv
 
 # ============================================================
 # The readline library is in different places on solaris, i.e.

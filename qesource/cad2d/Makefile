@@ -30,7 +30,7 @@ SPECIFLAGS =	-I/opt/sfw/include
 SPECLFLAGS =	-lcurses # on solaris you have to link curses to get readline!
 endif
 
-ARFLAGS := crvU
+ARFLAGS := crv
 
 # ============================================================
 #     Do not touch below unless you know what you are doing
