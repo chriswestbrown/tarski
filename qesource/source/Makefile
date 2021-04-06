@@ -43,21 +43,22 @@ EXTLIBS   =	${qe}/extensions/sfext/sfexto.a \
 		${qe}/extensions/newadj/newadjo.a \
 		${qe}/extensions/adj2d/adj2do.a \
 		${saclib}/lib/saclibo.a \
-		${SPECLFLAGS}
-ifneq (,$(findstring mingw,$(CXX)))
-else
-EXTLIBS += -lreadline -lrt ${qe}/extensions/rend/rendo.a
-endif
+		${SPECLFLAGS} \
+		-lreadline ${qe}/extensions/rend/rendo.a
 
 EXTLIBSD  =	${qe}/extensions/sfext/sfextd.a \
 		${qe}/extensions/lift2D/lift2Dd.a \
 		${qe}/extensions/newadj/newadjd.a \
 		${qe}/extensions/adj2d/adj2dd.a \
 		${saclib}/lib/saclibd.a \
-		${SPECLFLAGS}
-ifneq (,$(findstring mingw,$(CXX)))
-else
-EXTLIBSD += -lreadline -lrt ${qe}/extensions/rend/rendd.a
+		${SPECLFLAGS} \
+		-lreadline ${qe}/extensions/rend/rendd.a
+
+# On Mac the rt library is not present, but otherwise it is necessary.
+UNAME_S := $(shell uname -s)
+ifneq ($(UNAME_S),Darwin)
+EXTLIBS += -lrt
+EXTLIBSD += -lrt
 endif
 
 NAME      =  qepcad
