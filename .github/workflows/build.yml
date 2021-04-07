@@ -47,6 +47,7 @@ jobs:
           zlib-devel
     - name: print-uname
       run: uname
+      shell: bash
     - name: build
       run: ./build.sh
       shell: bash
