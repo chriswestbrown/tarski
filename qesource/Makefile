@@ -23,7 +23,11 @@ MFlags	= "CCo=${CCo}" "FLAGSo=${FLAGSo}"\
 	  "SUBMAKEFLAGS=${SUBMAKEFLAGS}"
 MFlags += -j1
 
+ARFLAGS := crvU
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
 ARFLAGS := crv
+endif
 
 both:   opt deb
 
@@ -44,3 +48,4 @@ clean:
 	pushd >/dev/null extensions ; 'rm' -f */*.a ; popd >/dev/null
 	pushd >/dev/null plot2d ; 'rm' -f ADJ_2D_plot ; popd >/dev/null
 	pushd >/dev/null cad2d ; 'rm' -f cad2d cad2dd cad2d.a cad2dd.a ; popd >/dev/null
+

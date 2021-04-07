@@ -19,7 +19,11 @@ endif
 #------------------
 ##################################################################
 
+ARFLAGS := crvU
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
 ARFLAGS := crv
+endif
 
 INCLUDES  = \
 		-I${saclib}/include \
@@ -241,6 +245,7 @@ sfext:		$(O_addpol) $(O_crcads) $(O_espcad) $(O_extlang) $(O_fewpol) $(O_formula
 %.o:		%.c
 		$(CC) $(FLAGS) $(INCLUDES) -c $?
 
+.PRECIOUS: %.o
 
 
 

@@ -19,8 +19,6 @@ FLAGSo = -O4
 CCd        =  g++
 FLAGSd = -g
 
-ARFLAGS := crv
-
 # ============================================================
 # The readline library is in different places on solaris, i.e.
 # not in /usr/lib ... also, it depends on curses.
@@ -54,11 +52,13 @@ EXTLIBSD  =	${qe}/extensions/sfext/sfextd.a \
 		${SPECLFLAGS} \
 		-lreadline ${qe}/extensions/rend/rendd.a
 
+ARFLAGS := crv
 # On Mac the rt library is not present, but otherwise it is necessary.
 UNAME_S := $(shell uname -s)
 ifneq ($(UNAME_S),Darwin)
 EXTLIBS += -lrt
 EXTLIBSD += -lrt
+ARFLAGS := crvU
 endif
 
 NAME      =  qepcad
@@ -822,3 +822,5 @@ deb:		$(DEPENDENCIESd)
 #.c.o:	
 %.o:	%.c
 		$(CC) $(INCLUDES) $(CFLAGS) -o $@ -c $<
+
+.PRECIOUS: %.o
