@@ -59,7 +59,7 @@ elsif ($uname =~ /Darwin|darwin|DARWIN/)
     $macosKernelTest = `ioreg -l -p IODeviceTree | grep firmware-abi | grep EFI64`;
     if ($macosKernelTest) { $ptype = "x86_64"; } elsif ($ptype == "x86_64") { $ptype = "x86"; }
 }
-elsif ($uname =~ /MSYS|NT/)
+elsif ($uname =~ /MSYS/)
 {
     $ostype = "windows";
 }
