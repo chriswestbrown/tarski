@@ -24,3 +24,27 @@ jobs:
       run: brew install readline openssl
     - name: build
       run: ./build.sh
+
+  windows:
+
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+    - uses: actions/checkout@v2
+    - name: prerequisites
+      uses: msys2/setup-msys2@v2
+      with:
+        update: true
+        install: >-
+          base-devel
+          git
+          gcc
+          g++
+          libreadline-devel
+          libcrypt-devel
+          openssl-devel
+          zlib-devel
+    - name: build
+      run: ./build.sh
