@@ -39,12 +39,11 @@ jobs:
         update: true
         install: >-
           base-devel
-          git
           gcc
-          g++
           libreadline-devel
           libcrypt-devel
           openssl-devel
           zlib-devel
     - name: build
       run: ./build.sh
+      shell: bash
