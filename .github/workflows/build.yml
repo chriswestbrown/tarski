@@ -44,6 +44,8 @@ jobs:
           libcrypt-devel
           openssl-devel
           zlib-devel
+    - name: print-uname
+      run: uname
     - name: build
       run: ./build.sh
       shell: bash
