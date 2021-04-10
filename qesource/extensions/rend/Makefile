@@ -10,11 +10,11 @@
 ifdef deb
 LIB = rendd.a
 CCpp = ${CCd}
-FLAGS = ${FLAGSd}
+FLAGS = ${FLAGSd} -Wno-narrowing
 else
 LIB = rendo.a
 CCpp = ${CCo}
-FLAGS = ${FLAGSo}
+FLAGS = ${FLAGSo} -Wno-narrowing
 endif
 #------------------
 ##################################################################

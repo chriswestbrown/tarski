@@ -5,7 +5,7 @@
 if ($#ARGV == 0 && ($ARGV[0] eq "-h" || $ARGV[0] eq "--help"))
 {
     print "sconf/mksysdep.pl\n".
-"sconf [x86linux|sparcsolaris|x86_64linux|x86macos|x86_64macos|x86windows|x86_64windows]\n\n".
+"sconf [x86linux|sparcsolaris|x86_64linux|x86macos|x86_64macos|x86_64windows|armv7llinux]\n\n".
 "This script installs system dependent files for\n".
 "saclib.  It attempts to diagnose architecture and\n".
 "processor type and install the proper files.  You\n".
@@ -35,6 +35,10 @@ elsif ($uname =~ /x86_64/)
 elsif ($uname =~ /Sun|sun|SUN|Sparc|sparc|SPARC/)
 {
     $ptype = "sparc";
+}
+elsif ($uname =~ /armv7l/)
+{
+    $ptype = "armv7l";
 }
 else
 {
@@ -89,6 +93,11 @@ elsif ($#ARGV == 1 && $ARGV[0] eq "x86_64linux")
     print "SACLIB Warning: Installing x86_64linux system dependent files!\n";
     system("bash -c \"pushd >/dev/null $ENV{'saclib'}/sysdep/linuxX86_64 ; ./install ; popd >/dev/null\"");
 }
+elsif ($#ARGV == 1 && $ARGV[0] eq "amrv7llinux")
+{
+    print "SACLIB Warning: Installing armv7llinux system dependent files!\n";
+    system("bash -c \"pushd >/dev/null $ENV{'saclib'}/sysdep/linuxArmv7l ; ./install ; popd >/dev/null\"");
+}
 elsif ($#ARGV == 1 && $ARGV[0] eq "sparcsolaris")
 {
     print "SACLIB Warning: Installing sparcsolaris system dependent files!\n";
@@ -114,6 +123,10 @@ elsif ($ptype eq "x86_64" && $ostype eq "macos")
 elsif ($ptype eq "x86_64" && $ostype eq "linux")
 {
     system("bash -c \"pushd >/dev/null $ENV{'saclib'}/sysdep/linuxX86_64 ; ./install ; popd >/dev/null\"");    
+}
+elsif ($ptype eq "armv7l" && $ostype eq "linux")
+{
+    system("bash -c \"pushd >/dev/null $ENV{'saclib'}/sysdep/linuxArmv7l ; ./install ; popd >/dev/null\"");    
 }
 elsif ($ptype eq "x86_64" && $ostype eq "windows")
 {

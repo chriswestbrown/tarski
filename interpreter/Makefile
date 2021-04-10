@@ -42,7 +42,7 @@ endif
 INC_DIRS := $(shell find $(SRC_DIRS) -type d)
 INC_FLAGS := $(addprefix -I,$(INC_DIRS)) $(extIncludesSACLIB) $(extIncludeMINISAT) $(extIncludesMD5)
 
-CPPFLAGS ?= $(INC_FLAGS) -MMD -MP -g
+CPPFLAGS ?= $(INC_FLAGS) -MMD -MP -g -Wno-narrowing
 # On Mac the C++11 dialect must be set, on Linux it is optional, on MSYS2 it should not be set.
 ifeq ($(UNAME_S),Darwin)
 CPPFLAGS += --std=c++11

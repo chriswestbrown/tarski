@@ -821,6 +821,6 @@ deb:		$(DEPENDENCIESd)
 
 #.c.o:	
 %.o:	%.c
-		$(CC) $(INCLUDES) $(CFLAGS) -o $@ -c $<
+		$(CC) $(INCLUDES) $(CFLAGS) -Wno-narrowing -o $@ -c $<
 
 .PRECIOUS: %.o
