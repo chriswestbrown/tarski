@@ -1,0 +1,25 @@
+#!/bin/sh
+
+set -e
+
+SACLIB=../../../saclib2.2.7
+JAVA=/usr/lib/jvm/java-11-openjdk-amd64
+
+echo "This is a minimal demo to compile QEPCAD as a dynamic library and use it in a Java program natively."
+
+swig -c++ -java qepcad.i
+
+gcc -c \
+ $SACLIB/src/SWRITE.c \
+ $SACLIB/src/CWRITE.c \
+ -I$SACLIB/include
+
+g++ -c ../main/PRINTBANNER.c  \
+ qepcad_wrap.cxx -I../main -I.. -I$SACLIB/include \
+ -I$JAVA/include -I/$JAVA/include/linux -fPIC
+
+g++ -shared PRINTBANNER.o SWRITE.o CWRITE.o qepcad_wrap.o -o libqepcad.so -fPIC
+
+javac main.java
+
+java -Djava.library.path=. main
