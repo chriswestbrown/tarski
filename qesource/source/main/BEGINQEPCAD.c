@@ -195,6 +195,5 @@ void BEGINQEPCADLIB(int timeout) {
   GVTIMEOUTLIMIT = timeout;
   NOECHOSWITCHSET = TRUE;
   QEGLOBALS();
-  SETUPSYS();
   INITSYS();
 }

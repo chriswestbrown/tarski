@@ -113,10 +113,36 @@ int main(int argc, char **argv)
   mainDUMMY(argc,argv,topOfTheStack);
 }
 
-void mainLIB(int timeout) {
+void mainLIB(int numcells, int timeout) {
   int dummy;
   void *topOfTheStack = &dummy;
-  // ARGSACLIB(argc,argv,&ac,&av);
+  Word ac;
+  char **av;
+  if (numcells == 0)
+    numcells = 20000000;
+  char argv1[20];
+  sprintf(argv1, "+N%d", numcells);
+  char* argv[1];
+  argv[0] = argv1;
+  int argc = 1;
+
+  ARGSACLIB(argc,argv,&ac,&av);
   BEGINSACLIB((Word *)topOfTheStack);
   BEGINQEPCADLIB(timeout);
+  }
+
+string PCLIB(string input) {
+  Word Fs,F_e,F_n,F_s,V,t;
+
+  istringstream iss(input);
+  istream& inputbuffer = iss;
+  stringstream outputbuffer;
+  INITIO(&inputbuffer,&outputbuffer);
+  INPUTRD(&Fs,&V);
+  QepcadCls Q(V,Fs);
+  FWRITE(V,Fs);
+  BTMQEPCAD = ACLOCK();
+  // Q.QEPCAD(Fs,&t,&F_e,&F_n,&F_s);
+  string output = outputbuffer.str();
+  return output;
   }
