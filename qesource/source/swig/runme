@@ -6,19 +6,14 @@ SACLIB=../../../saclib2.2.7
 JAVA=/usr/lib/jvm/java-11-openjdk-amd64
 
 echo "This is a minimal demo to compile QEPCAD as a dynamic library and use it in a Java program natively."
+echo "Make sure to run build.sh in the root folder of Tarski first."
 
 swig -c++ -java qepcad.i
 
-gcc -c \
- $SACLIB/src/SWRITE.c \
- $SACLIB/src/CWRITE.c \
- -I$SACLIB/include
-
-g++ -c ../main/PRINTBANNER.c  \
- qepcad_wrap.cxx -I../main -I.. -I$SACLIB/include \
+g++ -c qepcad_wrap.cxx -I../main -I.. -I$SACLIB/include \
  -I$JAVA/include -I/$JAVA/include/linux -fPIC
 
-g++ -shared PRINTBANNER.o SWRITE.o CWRITE.o qepcad_wrap.o -o libqepcad.so -fPIC
+g++ -shared qepcad_wrap.o ../qepcad.a $SACLIB/lib/saclibo.a -o libqepcad.so -lreadline -fPIC
 
 javac main.java
 

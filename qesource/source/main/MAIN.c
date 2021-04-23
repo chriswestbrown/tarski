@@ -112,3 +112,11 @@ int main(int argc, char **argv)
   void *topOfTheStack = &dummy;
   mainDUMMY(argc,argv,topOfTheStack);
 }
+
+void mainLIB(int timeout) {
+  int dummy;
+  void *topOfTheStack = &dummy;
+  // ARGSACLIB(argc,argv,&ac,&av);
+  BEGINSACLIB((Word *)topOfTheStack);
+  BEGINQEPCADLIB(timeout);
+  }

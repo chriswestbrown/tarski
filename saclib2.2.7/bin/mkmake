@@ -34,7 +34,7 @@ cat > $MAKEFILE <<\EOF
 
 SRCDIR   = ${saclib}/src
 TARGET   = ${saclib}/lib/saclib${EXTENSION}.a
-CFLAGS   = -I${saclib}/include -c ${SACFLAG}
+CFLAGS   = -I${saclib}/include -c ${SACFLAG} -fPIC
 AFLAGS   = -I${saclib}/include -P
 
 # Object files

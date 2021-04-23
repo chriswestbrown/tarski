@@ -41,6 +41,7 @@ void ATOMFLWR(Word N, Word V, Word A);
 void ATOMFRDR(Word V, Word *F_, Word *t_);
 void ATOMFWR(Word V, Word A);
 void BEGINQEPCAD(int &argc, char**& argv);
+void BEGINQEPCADLIB(int timeout);
 Word CAPTURE(Word P, Word M);
 Word CATOMQFF(Word F);
 void CATTRNRDR(Word *V_, Word *t_);
