@@ -194,6 +194,8 @@ Saclib options\n\
 void BEGINQEPCADLIB(int timeout) {
   GVTIMEOUTLIMIT = timeout;
   NOECHOSWITCHSET = TRUE;
+  GVContext = new QEPCADContext;
   QEGLOBALS();
   INITSYS();
+  GVCAP = new OriginalPolicy;
 }
