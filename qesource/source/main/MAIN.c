@@ -4,9 +4,11 @@
 #include <signal.h>
 #include "db/CAPolicy.h"
 
+#ifndef __MSYS__
 #include <execinfo.h>
 #include <signal.h>
 #include <unistd.h>
+#endif
 
 static void SIGINT_handler(int i, siginfo_t *sip,void* uap);
 static void init_SIGINT_handler();
@@ -117,6 +119,7 @@ int main(int argc, char **argv)
   mainDUMMY(argc,argv,topOfTheStack);
 }
 
+#ifndef __MSYS__
 // Taken from https://stackoverflow.com/a/77336/1044586
 void handler(int sig) {
   void *array[10];
@@ -130,9 +133,12 @@ void handler(int sig) {
   backtrace_symbols_fd(array, size, STDERR_FILENO);
   exit(1);
 }
+#endif
 
 void mainLIB(int numcells, int timeout) {
+#ifndef __MSYS__
   signal(SIGSEGV, handler);
+#endif
 
   int dummy;
   void *topOfTheStack = &dummy;
