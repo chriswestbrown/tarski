@@ -4,6 +4,10 @@
 #include <signal.h>
 #include "db/CAPolicy.h"
 
+#include <execinfo.h>
+#include <signal.h>
+#include <unistd.h>
+
 static void SIGINT_handler(int i, siginfo_t *sip,void* uap);
 static void init_SIGINT_handler();
 static int sendSignalAfterInterval(int seconds, int signum);
@@ -113,7 +117,23 @@ int main(int argc, char **argv)
   mainDUMMY(argc,argv,topOfTheStack);
 }
 
+// Taken from https://stackoverflow.com/a/77336/1044586
+void handler(int sig) {
+  void *array[10];
+  size_t size;
+
+  // get void*'s for all entries on the stack
+  size = backtrace(array, 10);
+
+  // print out all the frames to stderr
+  fprintf(stderr, "Error: signal %d:\n", sig);
+  backtrace_symbols_fd(array, size, STDERR_FILENO);
+  exit(1);
+}
+
 void mainLIB(int numcells, int timeout) {
+  signal(SIGSEGV, handler);
+
   int dummy;
   void *topOfTheStack = &dummy;
   Word ac;
@@ -142,7 +162,7 @@ string PCLIB(string input) {
   QepcadCls Q(V,Fs);
   FWRITE(V,Fs);
   BTMQEPCAD = ACLOCK();
-  // Q.QEPCAD(Fs,&t,&F_e,&F_n,&F_s);
+  Q.QEPCAD(Fs,&t,&F_e,&F_n,&F_s);
   string output = outputbuffer.str();
   return output;
   }

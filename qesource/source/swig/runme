@@ -13,7 +13,7 @@ swig -c++ -java qepcad.i
 g++ -c qepcad_wrap.cxx -I../main -I.. -I$SACLIB/include \
  -I$JAVA/include -I/$JAVA/include/linux -fPIC
 
-g++ -shared qepcad_wrap.o ../qepcad.a $SACLIB/lib/saclibo.a -o libqepcad.so -lreadline -fPIC
+g++ -shared qepcad_wrap.o ../qepcad.a $SACLIB/lib/saclibd.a -o libqepcad.so -lreadline -fPIC
 
 javac main.java
 
