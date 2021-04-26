@@ -149,18 +149,18 @@ void mainLIB(int numcells, int timeout) {
   ARGSACLIB(argc,argv,&ac,&av);
   BEGINSACLIB((Word *)topOfTheStack);
   BEGINQEPCADLIB(timeout);
+  HELPFRD();
   }
 
 string PCLIB(string input) {
   Word Fs,F_e,F_n,F_s,V,t;
 
+  stringstream outputbuffer;
   istringstream iss(input);
   istream& inputbuffer = iss;
-  stringstream outputbuffer;
   INITIO(&inputbuffer,&outputbuffer);
   INPUTRD(&Fs,&V);
   QepcadCls Q(V,Fs);
-  FWRITE(V,Fs);
   BTMQEPCAD = ACLOCK();
   Q.QEPCAD(Fs,&t,&F_e,&F_n,&F_s);
   string output = outputbuffer.str();
