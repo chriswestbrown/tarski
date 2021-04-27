@@ -172,3 +172,76 @@ string PCLIB(string input) {
   string output = outputbuffer.str();
   return output;
   }
+
+// Chris' method to obtain data...
+Word string2UnNormForm(const string &S, Word V)
+{
+  // Convert from string to QEPCAD Unnormalized Formula
+  Word F, t;
+  istringstream sin(S + ".\n");
+
+  PushInputContext(sin);
+  QFFRDR(V,&F,&t);
+  CREAD();
+  PopInputContext();
+
+  if (t == 0)
+  {
+    cerr << "QEPCADB could not understand the formula:" << endl
+      << sin.str() << endl;
+    exit(1);
+  }
+
+  return F;
+}
+
+string unNormForm2string(Word F, Word V)
+{
+  // Convert from Unnormalized QEPCAD formula to string
+  ostringstream OTS;
+  PushOutputContext(OTS);
+  QFFWR(V,F);
+  PopOutputContext();
+  return OTS.str();
+}
+
+string SLFQLIB(string str_formula, string str_assumptions)
+{
+  // Read input
+  Word Fs, V;
+  istringstream sin(str_formula);
+  ostringstream sout;
+  PushInputContext(sin);
+  PushOutputContext(sout);
+  INPUTRD(&Fs,&V);
+  PopOutputContext();
+  PopInputContext();
+
+  // Initialize QEPCAD problem
+  QepcadCls Q;
+  Q.SETINPUTFORMULA(V,Fs);
+
+  // Add assumptions if any
+  Word As = NIL;
+  if (str_assumptions != "")
+    Q.SETASSUMPTIONS(As = string2UnNormForm(str_assumptions,V));
+
+  // Create CAD & get simplified equivalent formula
+  Q.CADautoConst();
+  Word Fd = Q.GETDEFININGFORMULA('E'); // NOTE: The 'T' option won't work until I fix
+                                       // GETDEFININGFORMULA to return not only the formula
+                                       // but also the projection factor set, since it may be
+                                       // enlarged when the 'T' option is used.
+
+  // Translate to string and output
+  string OTS = unNormForm2string(Fd,V);
+  string ret = OTS + (As == NIL ? "" : " under assumption " + unNormForm2string(As,V));
+  return ret;
+}
+
+void ENDQEPCADLIB()
+{
+  // clean it all up
+  ENDQEPCAD();
+  ENDSACLIB(SAC_FREEMEM);
+}

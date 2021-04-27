@@ -21,5 +21,12 @@ public class main {
                         "finish\n";
      output = qepcad.PCLIB(input);
      System.out.println(output);
+     // Third example. Getting only the answer without the introductory questions.
+     String formula = "[]\n(x,y,z)\n2\n(Ez)[x^2 + y^2 + z^2 < 1 /\\ x + y + z > 0].\n";
+     String assumption = "[y > 0]";
+     System.out.println(qepcad.SLFQLIB(formula, ""));
+     System.out.println(qepcad.SLFQLIB(formula, assumption));
+
+     qepcad.ENDQEPCADLIB(); // not necessary
    }
  }
