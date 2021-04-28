@@ -43,7 +43,8 @@ Step1: /* Open the text file containing the helps. */
 
        if (!(fp = fopen(helppath,"r"))) {
          fprintf(stderr,"Error HELPFRD: Could not open %s\n",helppath);
-         exit(1); }
+         exit(1);
+       }
 
 Step2: /* Read in the main help text and echo it. */
        c = getc(fp);

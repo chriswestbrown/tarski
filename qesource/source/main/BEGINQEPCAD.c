@@ -189,3 +189,13 @@ Saclib options\n\
 	}
       }
 }
+
+/* Start QEPCAD as a library entry point. */
+void BEGINQEPCADLIB(int timeout) {
+  GVTIMEOUTLIMIT = timeout;
+  NOECHOSWITCHSET = TRUE;
+  GVContext = new QEPCADContext;
+  QEGLOBALS();
+  INITSYS();
+  GVCAP = new OriginalPolicy;
+}
