@@ -17,6 +17,9 @@
 #     files are in "saclib/lib/objo".
 #   - 'all' builds all three types of libraries.
 
+# Exit with an error if there is an error on building.
+set -e
+
 if [ $# -lt 1 ] 
 then
   echo "USAGE:"

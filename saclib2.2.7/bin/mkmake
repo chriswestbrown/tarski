@@ -34,6 +34,7 @@ cat > $MAKEFILE <<\EOF
 
 SRCDIR   = ${saclib}/src
 TARGET   = ${saclib}/lib/saclib${EXTENSION}.a
+# Adding -FPIC is required on some systems.
 CFLAGS   = -I${saclib}/include -c ${SACFLAG} -fPIC
 AFLAGS   = -I${saclib}/include -P
 
