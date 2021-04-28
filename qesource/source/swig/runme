@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 
 echo "This is a minimal demo to compile QEPCAD as a dynamic library and use it in a Java program natively."
@@ -39,21 +39,36 @@ if [ "$UNAME_S" = "Linux" ]; then
 
  fi
 
+if [[ "$UNAME_S" == *"MSYS"* ]]; then
+ JAVA=`find /c/Program\ Files\/OpenJDK/* | sort | head -1`
+ if [ "$JAVA" = "" ]; then
+  echo "No Java found. Consider installing it via choco (openjdk)."
+  exit 1
+  fi
+ LIBQEPCAD=qepcad.dll
+
+ which swig > /dev/null || {
+   echo "No swig found. Consider installing it via pacman (swig)."
+   exit 1
+   }
+
+ fi
+
+
 echo "Java is detected in $JAVA."
 
 swig -c++ -java qepcad.i
 
 g++ -c qepcad_wrap.cxx -I../main -I.. -I$SACLIB/include \
- -I$JAVA/include -I/$JAVA/include/linux -fPIC
+ -I"$JAVA/include" -I"$JAVA/include/linux" -I"$JAVA/include/win32" -fPIC
 
-g++ -shared qepcad_wrap.o ../qepcad.a\
+g++ -shared -Wl,--start-group qepcad_wrap.o ../qepcad.a\
  ../../extensions/sfext/sfexto.a\
- ../../extensions/adj2d/adj2do.a\
- ../../extensions/newadj/newadjo.a\
  ../../extensions/lift2D/lift2Do.a\
+ ../../extensions/adj2d/adj2do.a\
  ../../extensions/rend/rendo.a\
- $SACLIB/lib/saclibo.a -o $LIBQEPCAD -lreadline -fPIC
+ $SACLIB/lib/saclibo.a -Wl,--end-group -o $LIBQEPCAD -lreadline -fPIC
 
-$JAVA/bin/javac main.java
+"$JAVA/bin/javac" main.java
 
-qe=`pwd`/../.. $JAVA/bin/java -Djava.library.path=. main
+qe=`pwd`/../.. "$JAVA/bin/java" -Djava.library.path=. main
