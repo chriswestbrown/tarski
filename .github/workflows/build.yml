@@ -53,7 +53,13 @@ jobs:
           libcrypt-devel
           openssl-devel
           zlib-devel
+          swig
     - name: print-uname
       run: uname
     - name: build
       run: ./build.sh
+    - name: install-openjdk
+      run: choco install openjdk
+      shell: cmd
+    - name: dynamiclib-build
+      run: cd qesource/source/swig; ./runme
