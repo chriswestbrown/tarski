@@ -8,6 +8,8 @@ set -e
 
 SACLIB=../../../saclib2.2.7
 UNAME_S=`uname -s`
+START_GROUP="-Wl,--start-group"
+END_GROUP="-Wl,--end-group"
 
 if [ "$UNAME_S" = "Darwin" ]; then
  JAVA=`find /usr/local/Cellar/openjdk/*/ | sort | head -1`
@@ -16,7 +18,10 @@ if [ "$UNAME_S" = "Darwin" ]; then
   exit 1
   fi
  LIBQEPCAD=libqepcad.jnilib
- 
+ # These are unsupported on Mac:
+ START_GROUP=
+ END_GROUP=
+
  which swig > /dev/null || {
    echo "No swig found. Consider installing it via Homebrew (swig)."
    exit 1
@@ -62,12 +67,13 @@ swig -c++ -java qepcad.i
 g++ -c qepcad_wrap.cxx -I../main -I.. -I$SACLIB/include \
  -I"$JAVA/include" -I"$JAVA/include/linux" -I"$JAVA/include/win32" -fPIC
 
-g++ -shared -Wl,--start-group qepcad_wrap.o ../qepcad.a\
+
+g++ -shared $START_GROUP qepcad_wrap.o ../qepcad.a\
  ../../extensions/sfext/sfexto.a\
  ../../extensions/lift2D/lift2Do.a\
  ../../extensions/adj2d/adj2do.a\
  ../../extensions/rend/rendo.a\
- $SACLIB/lib/saclibo.a -Wl,--end-group -o $LIBQEPCAD -lreadline -fPIC
+ $SACLIB/lib/saclibo.a $END_GROUP -o $LIBQEPCAD -lreadline -fPIC
 
 "$JAVA/bin/javac" main.java
 
