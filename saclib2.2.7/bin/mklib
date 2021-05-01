@@ -31,32 +31,18 @@ if [ $1 = "clean" ]
 then
   ### remove .o and .a and makefiles
   echo "Removing object files, libraries and makefiles ..."
-  pushd >/dev/null $saclib/lib/objo
-  'rm' -f *
-  popd >/dev/null
-  pushd >/dev/null $saclib/lib/objd
-  'rm' -f *
-  popd >/dev/null
-  pushd >/dev/null $saclib/lib/
-  'rm' -f *.a
-  popd >/dev/null
+  for i in lib/objo lib/objd lib; do
+   pushd >/dev/null $saclib/$i
+   'rm' -f *
+   popd >/dev/null
+   done
   ### do sysdep cleanup
   echo "Removing system-dependent files ..."
-  pushd >/dev/null $saclib/sysdep/linuxX86
-  ./cleanup
-  popd >/dev/null
-  pushd >/dev/null $saclib/sysdep/linuxX86_64
-  ./cleanup
-  popd >/dev/null
-  pushd >/dev/null $saclib/sysdep/solarisSparc
-  ./cleanup
-  popd >/dev/null
-  pushd >/dev/null $saclib/sysdep/macosX86
-  ./cleanup
-  popd >/dev/null
-  pushd >/dev/null $saclib/sysdep/macosX86_64
-  ./cleanup
-  popd >/dev/null
+  for i in linuxX86 linuxX86_64 solarisSparc macosX86 macosX86_64 windowsX86_64 wasm; do
+   pushd >/dev/null $saclib/sysdep/$i
+   ./cleanup
+   popd >/dev/null
+   done
   exit
 fi
 
@@ -66,25 +52,31 @@ then
   CC=cc
 fi
 
+if [ ! -n "${MAKE+1}" ] 
+then
+  MAKE=make
+fi
+
 echo "Compiling with" $CC
+echo "Making with" $MAKE
 
 if [ $1 = "std" ]
 then
   echo "This option no longer exists!"
 elif [ $1 = "deb" ]; then
   pushd >/dev/null  $saclib/lib/objd
-  make  CC=$CC "SACFLAG=-g -DNO_SACLIB_MACROS" EXTENSION=d
+  $MAKE CC=$CC "SACFLAG=-g -DNO_SACLIB_MACROS" EXTENSION=d
   popd >/dev/null
 elif [ $1 = "opt" ]; then
   pushd >/dev/null  $saclib/lib/objo
-  make  CC=$CC "SACFLAG=" EXTENSION=o
+  $MAKE CC=$CC "SACFLAG=" EXTENSION=o
   popd >/dev/null
 elif [ $1 = "all" ]; then
   pushd >/dev/null  $saclib/lib/objd
-  make  CC=$CC "SACFLAG=-g -DNO_SACLIB_MACROS" EXTENSION=d
+  $MAKE CC=$CC "SACFLAG=-g -DNO_SACLIB_MACROS" EXTENSION=d
   popd >/dev/null
   pushd >/dev/null  $saclib/lib/objo
-  make  CC=$CC "SACFLAG=" EXTENSION=o
+  $MAKE CC=$CC "SACFLAG=" EXTENSION=o
   popd >/dev/null
 else
   echo "USAGE:"
