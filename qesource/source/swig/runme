@@ -77,4 +77,4 @@ g++ -shared $START_GROUP qepcad_wrap.o ../qepcad.a\
 
 "$JAVA/bin/javac" main.java
 
-qe=`pwd`/../.. "$JAVA/bin/java" -Djava.library.path=. main
+"$JAVA/bin/java" -Djava.library.path=. main

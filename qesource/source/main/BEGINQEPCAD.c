@@ -127,8 +127,9 @@ void BEGINQEPCAD(int &argc, char**& argv)
 void QEPCAD_ProcessRC(int argc, char **argv)
 {
   char *qepath = getenv("qe");
-  if (qepath == NULL) { FAIL("QEPCAD_ProcessRC","Environment variable qe not defined!"); }
-  string rcFileName = qepath + string("/default.qepcadrc");
+  string rcFileName = ".";
+  if (qepath != NULL) { rcFileName = qepath; }
+  rcFileName += string("/default.qepcadrc");
   ifstream rcin(rcFileName.c_str());
   if (!rcin) { return; }
   string name, tmp;
