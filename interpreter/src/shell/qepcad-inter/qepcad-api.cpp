@@ -57,7 +57,11 @@ namespace tarski {
       else { 
 	Word Fd = Q.GETDEFININGFORMULA(formType,1);
 	res = unNormForm2string(Fd,V);
-	if (res.length() > 0 && res[0] != '[') { res = "[" + res + "]"; }
+	if (res.length() > 0 && res[0] != '[') {
+	  if (res == "0 = 0") { res = "[true]"; }
+	  else if (res == "0 /= 0") { res = "[false]"; }
+	  else { res = "[" + res + "]"; }
+	}
 	Word Ad = Q.GETASSUMPTIONS();
 	if (Ad == NIL) { // No assumptions used
 	  assumptionsAsUsed = "[true]";
