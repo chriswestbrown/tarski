@@ -1,8 +1,8 @@
 #include "qepcad.h"
 #include <iostream>
-#include "db/convenientstreams.h"
+#include "caserver/convenientstreams.h"
 #include <signal.h>
-#include "db/CAPolicy.h"
+#include "caserver/CAPolicy.h"
 
 #ifndef __MSYS__
 #include <execinfo.h>
@@ -45,7 +45,7 @@ Step2: /* Read input, create CAD, write result */
 	   INITSYS();
 	   PCCONTINUE = FALSE;
 	 }
-	 INPUTRD(&Fs,&V);
+	 INPUTRD(&Fs,&V,1); // errMode 1 is print and continue
 	 QepcadCls Q(V,Fs);
 	 BTMQEPCAD = ACLOCK();
 	 Q.QEPCAD(Fs,&t,&F_e,&F_n,&F_s);
@@ -227,7 +227,7 @@ string SLFQLIB(string str_formula, string str_assumptions)
     Q.SETASSUMPTIONS(As = string2UnNormForm(str_assumptions,V));
 
   // Create CAD & get simplified equivalent formula
-  Q.CADautoConst();
+  Q.CADautoConst("");
   Word Fd = Q.GETDEFININGFORMULA('E'); // NOTE: The 'T' option won't work until I fix
                                        // GETDEFININGFORMULA to return not only the formula
                                        // but also the projection factor set, since it may be

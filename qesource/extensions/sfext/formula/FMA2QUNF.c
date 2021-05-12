@@ -32,6 +32,7 @@ Word FMA2QUNF(Word F, Word P)
   if (ISLIST(T)) {
     Word S = SECOND(F),i,j;
     FIRST2(T,&i,&j);
+    j = POLINDEX2SIGINDEX(LELTI(P,i),j); // Chris added 2021
     Word p = LELTI(LELTI(LELTI(P,i),j),PO_POLY);
     if (ISATOM(S))
       Fs = LIST4(S,p,i,NIL);

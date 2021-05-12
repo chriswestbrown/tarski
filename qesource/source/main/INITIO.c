@@ -7,7 +7,7 @@ Initialize Input/Output.
 #include <stdlib.h>
 #include <unistd.h>
 #include <iostream>
-#include "db/readlineistream.h"
+#include "caserver/readlineistream.h"
 
 void InputContextInit(istream&);
 void OutputContextInit(ostream&);

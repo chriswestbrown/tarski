@@ -29,7 +29,6 @@ void FAIL(algName,msg)
 #endif
 {
        va_list argPtr;
-       //       extern int strcmp();
 
 Step0: /* Shutdown child processes! This is the QEPCAD-specific step. */
        ENDQEPCAD();
@@ -43,8 +42,7 @@ Step2: /* Failures from the SACLIB library. */
        va_start(argPtr,msg);
 
        /* GCSI marking stack */
-       if (!strcmp(algName,"GCSI (marking stack)"))
-         {
+       if (!strcmp(algName,"GCSI (marking stack)")) {
          /*  Note that this step is NOT portable since we are assuming that
              pointers fit into integers. */
 	   SWRITE("BACSTACK = "); fprintf(stderr,"%p\n",va_arg(argPtr,char *));
@@ -198,15 +196,31 @@ Step2: /* Failures from the SACLIB library. */
        if (!strcmp(algName,"TIMEOUT")) {
 	 goto Exit;
        }
+
+Step3: /* Failures from the qepcad system. */
+
+       /* CONSTRUCT. */
+       if (!strcmp(algName,"CONSTRUCT")) {
+         int k;
+         k = va_arg(argPtr,int);
+         SWRITE("k  = "); OWRITE(k); SWRITE("\n");
+         SWRITE("M  = "); IPDWRITE(1,va_arg(argPtr,int),LIST1(LFS("a"))); SWRITE("\n");
+         SWRITE("b  = "); LWRITE(va_arg(argPtr,int)); SWRITE("\n");
+         OWRITE(va_arg(argPtr,int));
+         SWRITE("S  = "); LWRITE(va_arg(argPtr,int)); SWRITE("\n");
+         goto Exit;
+         }
        
 Abort: /* Prepare for abort. */
        SWRITE("\n\nNow the FAIL handler is aborting the program ...\n");
        va_end(argPtr);
        //abort();
-       exit(2);
+       throw QepcadException(string("Qepcad aborting from ") + algName );	 
+       //exit(2);
 
 Exit:  /* Prepare for exit. */
        SWRITE("\n\nNow the FAIL handler is exiting the program ...\n");
        va_end(argPtr);
-       exit(1);
+       throw QepcadException(string("Qepcad exiting from ") + algName );	 
+       //exit(1);
 }

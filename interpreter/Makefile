@@ -6,12 +6,22 @@ UNAME_S := $(shell uname -s)
 
 MROOT=-I../minisat
 TMROOT=../minisat
-extIncludesSACLIB:=-I${saclib}/include
+extIncludesSACLIB:=-I${saclib}/include -I${qe}/source
 extLibSACLIB:=${saclib}/lib/saclibo.a
 extLibMINISAT:=../minisat/core/lib.a
 extIncludeMINISAT:=-I${TMROOT}/core
 extIncludesMD5:=
 extLibMD5:=-lssl  -lcrypto
+
+saclibOverrides:=$(shell find ${qe}/source/saclib/ | grep -E '[.]o' | grep -Ev 'CSSP.o|IPIIS.o|CREAD.o|CWRITE.o|GCSI.o|gcword.o' | xargs)
+
+extLibQEPCAD:=  ${qe}/source/qepcad.a \
+		${qe}/extensions/sfext/sfexto.a \
+		${qe}/extensions/lift2D/lift2Do.a \
+		${qe}/extensions/adj2d/adj2do.a \
+		${qe}/extensions/rend/rendo.a \
+		${qe}/extensions/sfext/sfexto.a \
+		${qe}/source/qepcad.a
 
 # Find the openssl include/lib folders automatically. We assume that Homebrew is already installed.
 ifeq ($(UNAME_S),Darwin)
@@ -33,7 +43,7 @@ OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)
 AOBJ := $(ASRC:%=$(BUILD_DIR)/%.o)
 DEPS := $(OBJS:.o=.d)
 
-LDFLAGS := -lreadline $(extLibSACLIB) $(extLibMINISAT) $(extLibMD5)
+LDFLAGS :=  $(saclibOverrides) $(extLibQEPCAD) -lreadline $(extLibSACLIB) $(extLibMINISAT) $(extLibMD5)
 # On Mac the rt library is not present, but otherwise it is necessary.
 ifneq ($(UNAME_S),Darwin)
 LDFLAGS += -lrt

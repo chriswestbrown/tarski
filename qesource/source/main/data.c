@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include "qepcad.h"
 
-#include "db/SINGULAR.h"
+#include "caserver/SINGULAR.h"
 SingularServer *GVpSingularServer = 0;
 
 /* -----------------------------------------------*/

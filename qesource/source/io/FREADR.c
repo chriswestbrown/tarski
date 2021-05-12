@@ -17,7 +17,7 @@ Formula read, robust.
 ======================================================================*/
 #include "qepcad.h"
 
-void FREADR(Word V, Word f, Word *Fs_, Word *t_)
+void FREADR(Word V, Word f, Word *Fs_, Word *t_,int errMode)
 {
        Word C,F,Fs,Q,i,q,r,t,v;
        /* hide C,i,q,r,t; */
@@ -28,16 +28,21 @@ Step1: /* Read quantifier list. */
          {
          C = CREADB();
          if (C != '(')
-           { SWRITE("Error FREADR: '(' was expected.\n"); goto Step3; }
-         QFRDR(&q,&t); if (t == 0) goto Return;
+	 { INPUTRD_ERROR("Error FREADR: '(' was expected.\n",errMode); goto Step3; }
+         QFRDR(&q,&t,errMode); if (t == 0) goto Return;
          Q = COMP(q,Q);
          VREADR(&v,&t); if (t == 0) goto Return;
          if (!EQUAL(v,LELTI(V,i)))
-           { SWRITE("Error FREADR: Variable '"); VWRITE(LELTI(V,i));
-            SWRITE("' was expected.\n"); goto Step3; }
+	 {
+	   // TODO: fix this to use INPUTRD_ERROR!!!
+	   SWRITE("Error FREADR: Variable '");
+	   VWRITE(LELTI(V,i));
+	   SWRITE("' was expected.\n");
+	   goto Step3;
+	 }
          C = CREADB();
          if (C != ')')
-           { SWRITE("Error FREADR: '(' was expected.\n"); goto Step3; }
+	 { INPUTRD_ERROR("Error FREADR: '(' was expected.\n",errMode); goto Step3; }
          }
        Q = INV(Q);
 
