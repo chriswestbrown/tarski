@@ -31,16 +31,19 @@ fi
 export saclib=$saclibRoot
 pushd $saclib
 echo "Making SACLIB..."
+
+# Create the makefiles only when this is a fresh build.
+# Otherwise avoid rebuilding the whole system from scratch.
+# (Recreating the makefiles results in a full rebuild.)
 if [ ! -e include/sacproto.h -o ! -e lib/objd/makefile -o ! -e lib/objo/makefile ]; then
     check bin/sconf
     check bin/mkproto
     check bin/mkmake
 fi
-check "bin/mklib all -fPIC"
+check "bin/mklib all"
 check
 echo "Saclib done"
 popd
-
 
 ### QEPCAD
 if [ "$externalQepcadRoot" = "" ]

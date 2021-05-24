@@ -48,4 +48,4 @@ clean:
 	pushd >/dev/null extensions ; 'rm' -f */*.a ; popd >/dev/null
 	pushd >/dev/null plot2d ; 'rm' -f ADJ_2D_plot ; popd >/dev/null
 	pushd >/dev/null cad2d ; 'rm' -f cad2d cad2dd cad2d.a cad2dd.a ; popd >/dev/null
-
+	find . -name '*.o' -delete
