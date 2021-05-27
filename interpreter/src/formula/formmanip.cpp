@@ -475,7 +475,7 @@ public:
   TFormRef res;
   VarSet X;
   GCWord val;
-  EvalFormulaAtRational(VarSet _x, Word _val) : X(_x), val(_val) { } 
+  EvalFormulaAtRational(VarSet X, Word _val) : X(X), val(_val) { } 
   virtual void action(TConstObj* p) { res =  new TConstObj(p->value); }
   virtual void action(TAtomObj* p) 
   {
@@ -853,27 +853,35 @@ TFormRef makePrenex(TFormRef F)
   return H.getResult();
 }
 
-  TFormRef exclose(TFormRef T)
-  {
-    VarSet FVars = getFreeVars(T);
-    TFormRef res;
-    if (FVars.none()) 
-      res = T;
-    else {
-      TQBRef Tp = dynamic_cast<TQBObj*>(&*T);
-      if (Tp.is_null())
-	res = new TQBObj(FVars, EXIST, T, T->getPolyManagerPtr());
-      else
-      {
-	Tp->add(FVars,EXIST);
-	res = Tp;
-      }
-    }
-    return res;
+TFormRef exclose(TFormRef T)
+{
+  { // Deal properly with edge cases like T := [true] / [false] / [ex x[true]] / [ex x[false]]
+    int k = T->constValue();
+    if (k == 0 || k == 1) { return new TConstObj(k); }
   }
+  VarSet FVars = getFreeVars(T);
+  TFormRef res;
+  if (FVars.none()) 
+    res = T;
+  else {
+    TQBRef Tp = dynamic_cast<TQBObj*>(&*T);
+    if (Tp.is_null())
+      res = new TQBObj(FVars, EXIST, T, T->getPolyManagerPtr());
+    else
+    {
+      Tp->add(FVars,EXIST);
+      res = Tp;
+    }
+  }
+  return res;
+}
 
 TFormRef exclose(TFormRef T, const vector<string> &holdout)
 {
+  { // Deal properly with edge cases like T := [true] / [false] / [ex x[true]] / [ex x[false]]
+    int k = T->constValue();
+    if (k == 0 || k == 1) { return new TConstObj(k); }
+  }
   VarSet HVars = 0;
   PolyManager *p = T->getPolyManagerPtr();
   for(int i = 0; i < holdout.size(); i++)

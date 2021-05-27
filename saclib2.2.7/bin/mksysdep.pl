@@ -1,11 +1,12 @@
 ################################################
 # mksysdep.pl V 0.0
-# Created by Chris Brown, 20 May, 208
+# Created by Chris Brown, 20 May, 2008
 ################################################
+
 if ($#ARGV == 0 && ($ARGV[0] eq "-h" || $ARGV[0] eq "--help"))
 {
     print "sconf/mksysdep.pl\n".
-"sconf [x86linux|sparcsolaris|x86_64linux|x86macos|x86_64macos|x86_64windows|armv7llinux]\n\n".
+"sconf [x86linux|sparcsolaris|x86_64linux|x86macos|x86_64macos|x86_64windows|armv7llinux|wasm]\n\n".
 "This script installs system dependent files for\n".
 "saclib.  It attempts to diagnose architecture and\n".
 "processor type and install the proper files.  You\n".
@@ -73,37 +74,42 @@ else
 }
 
 ### Call appropriate install script
-if ($#ARGV == 1 && $ARGV[0] eq "x86linux")
+if ($#ARGV == 0 && $ARGV[0] eq "x86linux")
 {
     print "SACLIB Warning: Installing x86linux system dependent files!\n";
     system("bash -c \"pushd >/dev/null $ENV{'saclib'}/sysdep/linuxX86 ; ./install ; popd >/dev/null\"");
 }
-elsif ($#ARGV == 1 && $ARGV[0] eq "x86macos")
+elsif ($#ARGV == 0 && $ARGV[0] eq "x86macos")
 {
     print "SACLIB Warning: Installing x86macos system dependent files!\n";
     system("bash -c \"pushd >/dev/null $ENV{'saclib'}/sysdep/macosX86 ; ./install ; popd >/dev/null\"");
 }
-elsif ($#ARGV == 1 && $ARGV[0] eq "x86_64macos")
+elsif ($#ARGV == 0 && $ARGV[0] eq "x86_64macos")
 {
     print "SACLIB Warning: Installing x86_64macos system dependent files!\n";
     system("bash -c \"pushd >/dev/null $ENV{'saclib'}/sysdep/macosX86_64 ; ./install ; popd >/dev/null\"");
 }
-elsif ($#ARGV == 1 && $ARGV[0] eq "x86_64linux")
+elsif ($#ARGV == 0 && $ARGV[0] eq "x86_64linux")
 {
     print "SACLIB Warning: Installing x86_64linux system dependent files!\n";
     system("bash -c \"pushd >/dev/null $ENV{'saclib'}/sysdep/linuxX86_64 ; ./install ; popd >/dev/null\"");
 }
-elsif ($#ARGV == 1 && $ARGV[0] eq "amrv7llinux")
+elsif ($#ARGV == 0 && $ARGV[0] eq "amrv7llinux")
 {
     print "SACLIB Warning: Installing armv7llinux system dependent files!\n";
     system("bash -c \"pushd >/dev/null $ENV{'saclib'}/sysdep/linuxArmv7l ; ./install ; popd >/dev/null\"");
 }
-elsif ($#ARGV == 1 && $ARGV[0] eq "sparcsolaris")
+elsif ($#ARGV == 0 && $ARGV[0] eq "wasm")
+{
+    print "SACLIB Warning: Installing wasm system dependent files!\n";
+    system("bash -c \"pushd >/dev/null $ENV{'saclib'}/sysdep/wasm ; ./install ; popd >/dev/null\"");
+}
+elsif ($#ARGV == 0 && $ARGV[0] eq "sparcsolaris")
 {
     print "SACLIB Warning: Installing sparcsolaris system dependent files!\n";
     system("bash -c \"pushd >/dev/null $ENV{'saclib'}/sysdep/solarisSparc ; ./install ; popd >/dev/null\"");
 }
-elsif ($#ARGV == 1 && $ARGV[0] eq "x86_64windows")
+elsif ($#ARGV == 0 && $ARGV[0] eq "x86_64windows")
 {
     print "SACLIB Warning: Installing x86_64windows system dependent files!\n";
     system("bash -c \"pushd >/dev/null $ENV{'saclib'}/sysdep/windowsX86_64 ; ./install ; popd >/dev/null\"");

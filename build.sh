@@ -4,7 +4,7 @@
 ### replace the empty strings below with full paths.
 externalSaclibRoot=""
 externalQepcadRoot=""
-
+### Add "wasm" as parameter if you intend to start a WebAssembly build.
 
 trap "exit 1" TERM
 export TOP_PID=$$
@@ -36,9 +36,12 @@ echo "Making SACLIB..."
 # Otherwise avoid rebuilding the whole system from scratch.
 # (Recreating the makefiles results in a full rebuild.)
 if [ ! -e include/sacproto.h -o ! -e lib/objd/makefile -o ! -e lib/objo/makefile ]; then
-    check bin/sconf
+    check "bin/sconf $1"
     check bin/mkproto
     check bin/mkmake
+fi
+if [ "$1" = wasm ]; then
+   export TOOLCHAIN=emmake
 fi
 check "bin/mklib all"
 check
@@ -57,7 +60,7 @@ export qe=$qepcadRoot
 export PATH=$qe/bin:$PATH
 pushd $qe
 echo "Making QEPCAD..."
-check "make opt"
+check "$TOOLCHAIN make opt"
 echo "QEPCAD done"
 popd
 

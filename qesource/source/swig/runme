@@ -1,26 +1,80 @@
-#!/bin/sh
+#!/bin/bash
 
-set -e
-
-SACLIB=../../../saclib2.2.7
-JAVA=/usr/lib/jvm/java-11-openjdk-amd64
 
 echo "This is a minimal demo to compile QEPCAD as a dynamic library and use it in a Java program natively."
 echo "Make sure to run build.sh in the root folder of Tarski first."
 
+set -e
+
+SACLIB=../../../saclib2.2.7
+UNAME_S=`uname -s`
+START_GROUP="-Wl,--start-group"
+END_GROUP="-Wl,--end-group"
+
+if [ "$UNAME_S" = "Darwin" ]; then
+ JAVA=`find /usr/local/Cellar/openjdk/*/ | sort | head -1`
+ if [ "$JAVA" = "" ]; then
+  echo "No Java found. Consider installing it via Homebrew (openjdk)."
+  exit 1
+  fi
+ LIBQEPCAD=libqepcad.jnilib
+ # These are unsupported on Mac:
+ START_GROUP=
+ END_GROUP=
+
+ which swig > /dev/null || {
+   echo "No swig found. Consider installing it via Homebrew (swig)."
+   exit 1
+ }
+ 
+ fi
+ 
+if [ "$UNAME_S" = "Linux" ]; then
+ JAVA=`find /usr/lib/jvm/* | sort | head -1`
+ if [ "$JAVA" = "" ]; then
+  echo "No Java found. This demo requires a working JDK installation."
+  exit 1
+  fi
+ LIBQEPCAD=libqepcad.so
+
+ which swig > /dev/null || {
+   echo "No swig found. This demo requires it."
+   exit 1
+   }
+
+ fi
+
+if [[ "$UNAME_S" == *"MSYS"* ]]; then
+ JAVA=`find /c/Program\ Files\/OpenJDK/* | sort | head -1`
+ if [ "$JAVA" = "" ]; then
+  echo "No Java found. Consider installing it via choco (openjdk)."
+  exit 1
+  fi
+ LIBQEPCAD=qepcad.dll
+
+ which swig > /dev/null || {
+   echo "No swig found. Consider installing it via pacman (swig)."
+   exit 1
+   }
+
+ fi
+
+
+echo "Java is detected in $JAVA."
+
 swig -c++ -java qepcad.i
 
 g++ -c qepcad_wrap.cxx -I../main -I.. -I$SACLIB/include \
- -I$JAVA/include -I/$JAVA/include/linux -fPIC
+ -I"$JAVA/include" -I"$JAVA/include/linux" -I"$JAVA/include/win32" -fPIC
 
-g++ -shared qepcad_wrap.o ../qepcad.a\
+
+g++ -shared $START_GROUP qepcad_wrap.o ../qepcad.a\
  ../../extensions/sfext/sfexto.a\
- ../../extensions/adj2d/adj2do.a\
- ../../extensions/newadj/newadjo.a\
  ../../extensions/lift2D/lift2Do.a\
+ ../../extensions/adj2d/adj2do.a\
  ../../extensions/rend/rendo.a\
- $SACLIB/lib/saclibo.a -o libqepcad.so -lreadline -fPIC
+ $SACLIB/lib/saclibo.a $END_GROUP -o $LIBQEPCAD -lreadline -fPIC
 
-javac main.java
+"$JAVA/bin/javac" main.java
 
-qe=`pwd`/../.. java -Djava.library.path=. main
+"$JAVA/bin/java" -Djava.library.path=. main

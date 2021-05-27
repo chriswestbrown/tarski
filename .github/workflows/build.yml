@@ -13,6 +13,10 @@ jobs:
       run: sudo apt update && sudo apt install build-essential libreadline-dev libssl-dev
     - name: build
       run: ./build.sh
+    - name: dynamiclib-prerequisites
+      run: sudo apt update && sudo apt install openjdk-11-jdk swig
+    - name: dynamiclib-build
+      run: cd qesource/source/swig; ./runme
 
   mac:
 
@@ -24,6 +28,10 @@ jobs:
       run: brew install readline openssl
     - name: build
       run: ./build.sh
+    - name: dynamiclib-prerequisites
+      run: brew install openjdk swig
+    - name: dynamiclib-build
+      run: cd qesource/source/swig; ./runme
 
   windows:
 
@@ -45,7 +53,13 @@ jobs:
           libcrypt-devel
           openssl-devel
           zlib-devel
+          swig
     - name: print-uname
       run: uname
     - name: build
       run: ./build.sh
+    - name: install-openjdk
+      run: choco install openjdk
+      shell: cmd
+    - name: dynamiclib-build
+      run: cd qesource/source/swig; ./runme

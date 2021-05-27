@@ -31,60 +31,50 @@ if [ $1 = "clean" ]
 then
   ### remove .o and .a and makefiles
   echo "Removing object files, libraries and makefiles ..."
-  pushd >/dev/null $saclib/lib/objo
-  'rm' -f *
-  popd >/dev/null
-  pushd >/dev/null $saclib/lib/objd
-  'rm' -f *
-  popd >/dev/null
-  pushd >/dev/null $saclib/lib/
-  'rm' -f *.a
-  popd >/dev/null
+  for i in lib/objo lib/objd lib; do
+   pushd >/dev/null $saclib/$i
+   'rm' -f *
+   popd >/dev/null
+   done
   ### do sysdep cleanup
   echo "Removing system-dependent files ..."
-  pushd >/dev/null $saclib/sysdep/linuxX86
-  ./cleanup
-  popd >/dev/null
-  pushd >/dev/null $saclib/sysdep/linuxX86_64
-  ./cleanup
-  popd >/dev/null
-  pushd >/dev/null $saclib/sysdep/solarisSparc
-  ./cleanup
-  popd >/dev/null
-  pushd >/dev/null $saclib/sysdep/macosX86
-  ./cleanup
-  popd >/dev/null
-  pushd >/dev/null $saclib/sysdep/macosX86_64
-  ./cleanup
-  popd >/dev/null
+  for i in linuxX86 linuxX86_64 solarisSparc macosX86 macosX86_64 windowsX86_64 wasm; do
+   pushd >/dev/null $saclib/sysdep/$i
+   ./cleanup
+   popd >/dev/null
+   done
   exit
 fi
 
 
-if [ ! -n "${CC+1}" ] 
+if [ "$CC" != "" ] 
 then
-  CC=cc
+  CC_OPTION="CC=$CC"
+  echo "Compiling with" $CC
 fi
 
-echo "Compiling with" $CC
+if [ "$TOOLCHAIN" != "" ]
+then
+  echo "Using toolchain" $TOOLCHAIN
+fi
 
 if [ $1 = "std" ]
 then
   echo "This option no longer exists!"
 elif [ $1 = "deb" ]; then
   pushd >/dev/null  $saclib/lib/objd
-  make  CC=$CC "SACFLAG=-g -DNO_SACLIB_MACROS" EXTENSION=d
+  $TOOLCHAIN make $CC_OPTION "SACFLAG=-g -DNO_SACLIB_MACROS" EXTENSION=d
   popd >/dev/null
 elif [ $1 = "opt" ]; then
   pushd >/dev/null  $saclib/lib/objo
-  make  CC=$CC "SACFLAG=" EXTENSION=o
+  $TOOLCHAIN make $CC_OPTION "SACFLAG=" EXTENSION=o
   popd >/dev/null
 elif [ $1 = "all" ]; then
   pushd >/dev/null  $saclib/lib/objd
-  make  CC=$CC "SACFLAG=-g -DNO_SACLIB_MACROS" EXTENSION=d
+  $TOOLCHAIN make $CC_OPTION "SACFLAG=-g -DNO_SACLIB_MACROS" EXTENSION=d
   popd >/dev/null
   pushd >/dev/null  $saclib/lib/objo
-  make  CC=$CC "SACFLAG=" EXTENSION=o
+  $TOOLCHAIN make $CC_OPTION "SACFLAG=" EXTENSION=o
   popd >/dev/null
 else
   echo "USAGE:"

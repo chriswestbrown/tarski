@@ -836,7 +836,12 @@ deb:		$(DEPENDENCIESd)
 			 $(LIBD) $(EXTLIBSD) $(LIBD)  $(EXTLIBSD) -o $(EXED) #\
 			#/home/wcbrown/Downloads/duma_2_4_27/libduma.a -lpthread
 
-#.c.o:	
+#.c.o:
+userint/HELPFRD.c:	userint/qepcad_help_string.h
+
+userint/qepcad_help_string.h:	
+	xxd -i qepcad.help userint/qepcad_help_string.h
+
 %.o:	%.c
 		$(CC) $(INCLUDES) $(CFLAGS) -o $@ -c $<
 
