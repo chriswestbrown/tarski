@@ -171,7 +171,7 @@ public:
     IWRITE(rootIndex);
     SWRITE(" "); 
     F->write(); 
-    if (flag) { SWRITE("["); }
+    if (flag) { SWRITE("]"); }
   }
 
   std::map<IntPolyRef,int>::iterator factorsBegin() { return F->MultiplicityMap.begin(); }

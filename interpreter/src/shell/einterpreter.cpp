@@ -21,6 +21,7 @@
 #include "../smtsolver/box-solver-comm.h"
 #include "../smtsolver/qep-solver-comm.h"
 #include "../nucad/TestComm.h"
+#include "qepcad-inter/qepcad-api.h"  
 
 using namespace std;
 
@@ -1304,14 +1305,73 @@ public:
   string name() { return "get-2var-features"; }
 };
 
+//////////////////////////////////////////////////////////////
 
-
+  
 class CommChristest : public EICommand
 {
 public:
   CommChristest(NewEInterpreter* ptr) : EICommand(ptr) { }
   SRef execute(SRef input, vector<SRef> &args) 
   {
+    // Word r = 2, A = LIST4(2,LIST2(0,1),0,LIST2(1,3));
+    // Word V = LIST2(LFS("y"),LFS("x"));
+    // IntPolyRef p = IntPolyObj::saclibToNonCanonical(r,A,V,*getPolyManagerPtr());
+    // return new AlgObj(p,*getPolyManagerPtr());
+    
+    SRef res;
+    try {
+      TFormRef T = args[0]->tar()->val;
+      char formType = 'E'; // Default!
+      if (args.size() > 1) {
+	SymRef s = args[1]->sym();
+	if (!s.is_null()) {
+	  switch(s->val[0]) {
+	  case 'T': case 'E': formType = s->val[0]; break;
+	  default: throw TarskiException("Invalid option \"" + s->val + "\".");
+	  }
+	}
+      }
+      TFormRef assumptions;
+      std::string script = naiveButCompleteWriteForQepcad(T,assumptions);
+      SRef qres = qepcadAPICall(script,formType);
+      if (qres->type() == _err) { return qres; }
+      LisRef qepcadOutput = qres;
+      string tmp = "[ " + qepcadOutput->get(0)->str()->getVal() + " /\\ "
+	+ qepcadOutput->get(1)->str()->getVal() + " ]";
+      //      istringstream sin(qepcadOutput->str()->getVal());
+      istringstream sin(tmp);
+      {
+	TarskiRef T;
+	LexContext LC(sin);
+	algparse(&LC,T);
+	if (T.is_null() || asa<AlgebraicObj>(T)) 
+	{ 
+	  throw TarskiException("Could not parse formula returned by qepcad!");
+	}
+	
+	// Interpret as formula and return TFormRef
+	try 
+	{ 
+	  MapToTForm MF(*getPolyManagerPtr());
+	  T->apply(MF);
+	  res =  new TarObj(MF.res);
+	}
+	catch(TarskiException &e) { 
+	  throw TarskiException(string("Could not interpret as Tarski Formula! ") + e.what());
+	}
+      }
+
+      return res;
+    }
+    catch(TarskiException e)
+    {
+      return new ErrObj(e.what());
+    }
+    return new SObj();
+
+    /////////////////////////////////////////////////////
+    
     PolyManager* pPM = getPolyManagerPtr();
     TFormRef F = args[0]->tar()->val;
     TAndRef G = asa<TAndObj>(F);
@@ -1353,13 +1413,13 @@ public:
   }
   string testArgs(vector<SRef> &args)
   {
-    return require(args,_tar);
+    return require(args,_tar) == "" ? "" :  require(args,_tar,_sym);
   }
   string doc() 
   {
     return "(christest F), where F is a Tarski formula does some test stuff.";
   }
-  string usage() { return "(christest <tarski formula>)"; }
+  string usage() { return "(christest <tarski formula> ['T | 'E])"; }
   string name() { return "christest"; }
 };
 
@@ -1401,6 +1461,7 @@ void NewEInterpreter::init()
   add(new CommSuggQepcad(this));
   add(new CommQepcadQE(this));
   add(new CommQepcadSat(this));
+  add(new CommQepcadAPICall(this));
   add(new CommSyntax(this));
   
   add(new NewOCBuilderComm(this));

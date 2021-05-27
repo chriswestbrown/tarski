@@ -9,7 +9,7 @@ Quantifier Read, robust.
 ======================================================================*/
 #include "qepcad.h"
 
-void QFRDR(Word *q_, Word *t_)
+void QFRDR(Word *q_, Word *t_, int errMode)
 {
        Word C,q,t,k;
        /* hide C,q,t; */
@@ -31,11 +31,11 @@ Step1: /* Read in. */
        {
 	 GREADR(&k,&t);
 	 if (!t || k <= 0)
-	   { SWRITE("Error QFRDR: Positive integer expected.\n"); goto Step2; }
+	 { INPUTRD_ERROR("Error QFRDR: Positive integer expected.\n",errMode); goto Step2; }
 	 q = LIST2(EXISTk,k);
        }
        else
-         { SWRITE("Error QFRDR: Quantifier was expected.\n"); goto Step2; }
+       { INPUTRD_ERROR("Error QFRDR: Quantifier was expected.\n",errMode); goto Step2; }
        goto Return;
 
 Step2: /* Error exit. */

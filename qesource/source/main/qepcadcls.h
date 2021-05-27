@@ -5,6 +5,21 @@
 #define MNV    30  /* Maximum Number of Variables = 30 */
 #define MNV1   31  /* One more for C arrary. */
 
+/*******************************************************************
+ * QepcadException - This is the basic exception class for all
+ * exceptions thrown by qepcad
+ *******************************************************************/
+class QepcadException : public std::exception
+{
+private:
+  std::string msg;
+public:
+  QepcadException(const std::string &msg) throw() : msg(msg) { }
+  ~QepcadException() throw() { }
+  virtual const char* what() const throw() { return msg.c_str(); }
+};
+
+
 class QEPCADContext
 {
 public:
@@ -178,12 +193,18 @@ UnsatCore UNSATCORE;
 
   // Noninteractively constructs a CAD.  This assumes that the input formula and
   // any assumptions have already been set.
-  void CADautoConst();
+  void CADautoConst(const string& instructions = "");
 
   // Returns a defining formula for the set represented by the CAD in
   // the QEPCAD unnormalized formula format.  You can print such formulas
   // with the QFFWR function.
-  Word GETDEFININGFORMULA(char opt='T');
+  Word GETDEFININGFORMULA(char opt='T', Word outFlag = 0);
+
+  // Returns the formula for the ASSUMPTIONS used in the qepcad computation in
+  // the QEPCAD unnormalized formula format.  You can print such formulas
+  // with the QFFWR function. NOTE: if no assumptions are set, NIL is returned,
+  // not [ 0 = 0 ] as would be more correct!
+  Word GETASSUMPTIONS();
   /*********************************************************************************
    ************ END USER's QEPCADB "API" *******************************************
    *********************************************************************************/
@@ -244,6 +265,7 @@ UnsatCore UNSATCORE;
   Word IPPSCT(Word r, Word A, Word B, Word S);
 
   /* USERINT */
+  void ASSUME();
   Word GETCID(Word P, Word W);
   void GFPCSTAT(Word c, Word *p1_, Word *p0_, Word *t1_, Word *t0_, Word *l_);
   void PRAFUPBRI();
@@ -306,7 +328,7 @@ UnsatCore UNSATCORE;
   void SFC1(Word D, Word P, Word J, Word n, Word sfm);
   void SFC2(Word D, Word P, Word J, Word n, Word sfm);
   void SFC3(Word D, Word P, Word J, Word n, Word L);
-  Word SFC3f(Word D, Word P, Word J, Word n, Word L);
+  Word SFC3f(Word D, Word P, Word J, Word n, Word L, Word outFlag = 0);
   void SFC4(Word D, Word P, Word J, Word n, Word L);
   void SFCFULLD(Word D, Word P, Word J, Word n);
   Word SFCFULLDf(Word D, Word P, Word J, Word n);

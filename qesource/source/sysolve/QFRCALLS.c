@@ -4,8 +4,8 @@
 #include <cstdlib>
 using namespace std;
 
-#include "db/unnamedpipe.h"
-#include "db/CAServer.h"
+#include "caserver/unnamedpipe.h"
+#include "caserver/CAServer.h"
 #include <sstream>
 #include <signal.h>
 

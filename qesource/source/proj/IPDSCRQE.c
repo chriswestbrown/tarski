@@ -17,7 +17,7 @@ Note:  The method used to compute the resultant is defined by the
 ===========================================================================*/
 #include "qepcad.h"
 
-#include "db/CAPolicy.h"
+#include "caserver/CAPolicy.h"
 
 Word IPDSCRQE(Word r, Word A)
 {

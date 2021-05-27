@@ -6,7 +6,7 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <signal.h>
-#include "../../poly/caserver/unnamedpipe.h"
+#include <caserver/unnamedpipe.h>
 #include "../../tarskisysdep.h"
 #include "../../formula/writeForQE.h"
 

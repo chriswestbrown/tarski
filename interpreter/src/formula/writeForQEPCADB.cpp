@@ -46,7 +46,7 @@ public:
 };
   
   string writeForQEPCADBQFF(TFormRef F, bool endWithQuit, char solFormType, VarOrderRef ord);
-  
+
 // This function is really only intended for existentially quantified conjunctions
 string writeForQEPCADB(TFormRef F, TFormRef &introducedAssumptions, bool endWithQuit,
 		       bool trackUnsatCore, char solFormType, VarOrderRef ord)
@@ -88,7 +88,12 @@ string writeForQEPCADB(TFormRef F, TFormRef &introducedAssumptions, bool endWith
   for(TAndObj::conjunct_iterator itr = tmpA->conjuncts.begin(); itr != tmpA->conjuncts.end(); ++itr)
   {
     TAtomRef ta = asa<TAtomObj>(*itr);
-    ta->F->varStats(M);
+    if (!ta.is_null()) { ta->F->varStats(M); }
+    else {
+      // THROW ERROR 
+      throw TarskiException("Error in writeForQEPCADB! Inputs in the language of extended Tarski formulas not yet handled.");
+      asa<TExtAtomObj>(*itr)->F->varStats(M);
+    }
   }
 
   // Get free var and quantified var orderings in vfv and vqv respectively
@@ -226,7 +231,12 @@ string writeForQEPCADB(TFormRef F, TFormRef &introducedAssumptions, bool endWith
   for(TAndObj::conjunct_iterator itr = tmpA->conjuncts.begin(); itr != tmpA->conjuncts.end(); ++itr)
   {
     TAtomRef ta = asa<TAtomObj>(*itr);
-    ta->F->varStats(M);
+    if (!ta.is_null()) { ta->F->varStats(M); }
+    else {
+      // THROW ERROR 
+      throw TarskiException("Error in writeForQEPCADBQFF! Inputs in the language of extended Tarski formulas not yet handled.");
+      asa<TExtAtomObj>(*itr)->F->varStats(M);
+    }
   }
 
   // Get  var orderings in vqv respectively
@@ -297,6 +307,11 @@ public:
   CollectFactors(set<IntPolyRef> &polys) { ppolys = &polys; }
   virtual void action(TConstObj* p) { }
   virtual void action(TAtomObj* p) 
+  {
+    for(map<IntPolyRef,int>::iterator itrF = p->factorsBegin(); itrF != p->factorsEnd(); ++itrF)
+      ppolys->insert(itrF->first);
+  }
+  virtual void action(TExtAtomObj* p) 
   {
     for(map<IntPolyRef,int>::iterator itrF = p->factorsBegin(); itrF != p->factorsEnd(); ++itrF)
       ppolys->insert(itrF->first);

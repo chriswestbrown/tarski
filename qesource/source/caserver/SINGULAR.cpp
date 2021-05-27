@@ -1,12 +1,14 @@
 #include "SINGULAR.h"
+#include "io/iocontexts.h"
 #include <iostream>
 #include <string>
 using namespace std;
 
 
-SingularServer::SingularServer(string SingularBase)
+SingularServer::SingularServer(string dirPath)
 {
-  string SingularCall = SingularBase + "/Singular";
+  string SingularBase = dirPath;
+  string SingularCall = SingularBase;
   
   // Fork
   childpid = fork();
@@ -17,8 +19,8 @@ SingularServer::SingularServer(string SingularBase)
     outofSingular.setStdoutToPipe();
 
     // Begin: Just for debug!!
-    //system("/home/wcbrown/bin/Singular -q --no-warn --min-time=0.001 --ticks-per-sec=1000 | tee /tmp/SingOutLog");
-    //exit(0);
+    //    system("/home/wcbrown/bin/Singular -q --no-warn --min-time=0.001 --ticks-per-sec=1000 | tee /tmp/SingOutLog");
+    //    exit(0);
     // End:   Just for debug!!
 
 
@@ -37,7 +39,7 @@ SingularServer::SingularServer(string SingularBase)
 
 SingularServer::~SingularServer()
 {
-  intoSingular.out() << endl << "quit;" << endl << flush;
+  intoSingular.out() << endl << "quit;" << endl;
 }
 
 int SingularServer::serverTime()
@@ -56,18 +58,18 @@ void SingularServer::reportStats(ostream &out)
 }
 
 
-char peekNonWS(istream &in) 
+static char peekNonWS(istream &in) 
 { 
-  char c; while((c = in.peek()) && c == ' ' || c == '\t' || c == '\n') in.get(); return c; 
+  char c; while(((c = in.peek()) && c == ' ') || c == '\t' || c == '\n') in.get(); return c; 
 }
 
 
-Word readSingularPoly(Word r, Word V, istream &in)
+static Word readSingularPoly(Word r, Word V, istream &in)
 {
   Word A, t;
   string s;
   in >> s;
-  for(int i = 0; i < s.length(); ++i)
+  for(unsigned int i = 0; i < s.length(); ++i)
     if (s[i] == '*') s[i] = ' ';
   s += ".\n";
   istringstream si(s);
@@ -84,7 +86,7 @@ Word readSingularPoly(Word r, Word V, istream &in)
   return A;
 }
 
-Word CreateVariableList(Word r)
+static Word CreateVariableList(Word r)
 {
   Word V = NIL;
   char s[] = {'a','\0'};
@@ -96,7 +98,7 @@ Word CreateVariableList(Word r)
   return V;
 }
 
-string WritePolyForSingular(Word r, Word P, Word V)
+static string WritePolyForSingular(Word r, Word P, Word V)
 {
   //write poly to string
   string out;
@@ -108,7 +110,7 @@ string WritePolyForSingular(Word r, Word P, Word V)
     out = sout.str();
   }
   // Put in * symbols
-  for(int i = 1; i < out.length() - 1; ++i)
+  for(unsigned int i = 1; i < out.length() - 1; ++i)
     if (out[i] == ' ' && out[i+1] != '+' && out[i+1] != '-'
 	&& out[i-1] != '+' && out[i-1] != '-'
 	)
@@ -117,12 +119,12 @@ string WritePolyForSingular(Word r, Word P, Word V)
   return out;
 }
 
-void DefineRing(ostream &out, const string &name, Word r, const string &order="lp")
+static void DefineRing(ostream &out, const string &name, Word r, const string &order="lp")
 {
   out << "ring " << name << " = 0, (";
   for(int i = r-1; i > 0; --i)
-    out << char('a' + i) << ',';
-  out << "a), " << order << ";" << endl;
+    out << char('a' + (r-1) - i) << ',';
+  out << char('a' + r-1) << "), " << order << ";" << endl;
   out << "short = 0;" << endl;
 }
 
@@ -266,70 +268,71 @@ Word TDEG(Word r, Word A)
   return M;
 }
 
-Word SingularServer::CONSTORDTEST(Word r, Word A, Word L)
-{
-  // SINGULAR INPUT: Define Ideal A + L & compute groebner basis G
-  DefineRing(intoSingular.out(),"myring",r,"dp");
-  Word V = CreateVariableList(r);
-  intoSingular.out() << "ideal I = ";
-  for(Word Lp = L; Lp != NIL; Lp = RED(Lp))
-    intoSingular.out() << WritePolyForSingular(r,FIRST(Lp),V) << ", ";
-  intoSingular.out() 
-    << WritePolyForSingular(r,A,V) << ";" << endl
-    << "ideal G = std(I);" << endl
-    << "G;" << endl
-    << "\"[end]:\";" << endl;
+ Word SingularServer::CONSTORDTEST(Word r, Word A, Word L)
+ {
+   return 0;
+//   // SINGULAR INPUT: Define Ideal A + L & compute groebner basis G
+//   DefineRing(intoSingular.out(),"myring",r,"dp");
+//   Word V = CreateVariableList(r);
+//   intoSingular.out() << "ideal I = ";
+//   for(Word Lp = L; Lp != NIL; Lp = RED(Lp))
+//     intoSingular.out() << WritePolyForSingular(r,FIRST(Lp),V) << ", ";
+//   intoSingular.out() 
+//     << WritePolyForSingular(r,A,V) << ";" << endl
+//     << "ideal G = std(I);" << endl
+//     << "G;" << endl
+//     << "\"[end]:\";" << endl;
 
-  // SINGULAR OUTPUT: Read G
-  Word G = NIL;
-  while(peekNonWS(outofSingular.in()) == 'G')
-  {
-    while(outofSingular.in().get() != '=');
-    Word p = readSingularPoly(r,V,outofSingular.in());
-    G = COMP(p,G);      
-  }
-  { string em; while(outofSingular.in() >> em && em != "[end]:"); }
-  G = CINV(G);
+//   // SINGULAR OUTPUT: Read G
+//   Word G = NIL;
+//   while(peekNonWS(outofSingular.in()) == 'G')
+//   {
+//     while(outofSingular.in().get() != '=');
+//     Word p = readSingularPoly(r,V,outofSingular.in());
+//     G = COMP(p,G);      
+//   }
+//   { string em; while(outofSingular.in() >> em && em != "[end]:"); }
+//   G = CINV(G);
 
-  // SINGULAR INPUT: Find lowest order partials that are not all reduced to 0 by G
-  Word M = NIL, k;
-  for(k = 1; M == NIL; k++)
-  {
-    for(Word P = IPALLPARTIALS(r,A,k,1); P != NIL; P = RED(P))
-    {
-      intoSingular.out() 
-	<< "reduce(" << WritePolyForSingular(r,FIRST(P),V) << ",G);" << endl;
-      Word p = readSingularPoly(r,V,outofSingular.in());
-      if (p != 0)
-	M = COMP(p,M);
-    }    
-  }
+//   // SINGULAR INPUT: Find lowest order partials that are not all reduced to 0 by G
+//   Word M = NIL, k;
+//   for(k = 1; M == NIL; k++)
+//   {
+//     for(Word P = IPALLPARTIALS(r,A,k,1); P != NIL; P = RED(P))
+//     {
+//       intoSingular.out() 
+// 	<< "reduce(" << WritePolyForSingular(r,FIRST(P),V) << ",G);" << endl;
+//       Word p = readSingularPoly(r,V,outofSingular.in());
+//       if (p != 0)
+// 	M = COMP(p,M);
+//     }    
+//   }
   
-  // SINGULAR INPUT: Compute groebner basis for G + all partials
-  intoSingular.out() << "ideal J = ";
-  for(Word Lp = G; Lp != NIL; Lp = RED(Lp))
-    intoSingular.out() << WritePolyForSingular(r,FIRST(Lp),V) << ", ";
-  for(Word Lp = M; Lp != NIL; Lp = RED(Lp))
-    intoSingular.out() << WritePolyForSingular(r,FIRST(Lp),V) << (RED(Lp) != NIL ? ", " : ";\n");
-  intoSingular.out() << "std(J);" << endl;
-  intoSingular.out() << "\"[end]:\";" << endl;
+//   // SINGULAR INPUT: Compute groebner basis for G + all partials
+//   intoSingular.out() << "ideal J = ";
+//   for(Word Lp = G; Lp != NIL; Lp = RED(Lp))
+//     intoSingular.out() << WritePolyForSingular(r,FIRST(Lp),V) << ", ";
+//   for(Word Lp = M; Lp != NIL; Lp = RED(Lp))
+//     intoSingular.out() << WritePolyForSingular(r,FIRST(Lp),V) << (RED(Lp) != NIL ? ", " : ";\n");
+//   intoSingular.out() << "std(J);" << endl;
+//   intoSingular.out() << "\"[end]:\";" << endl;
 
-  // SINGULAR OUTPUT:
-  Word GBi = NIL;
-  while(peekNonWS(outofSingular.in()) == '_')
-  {
-    while(outofSingular.in().get() != '=');
-    Word p = readSingularPoly(r,V,outofSingular.in());
-    GBi = COMP(p,GBi);      
-  }
-  { string em; while(outofSingular.in() >> em && em != "[end]:"); }
-  GBi = CINV(GBi);
+//   // SINGULAR OUTPUT:
+//   Word GBi = NIL;
+//   while(peekNonWS(outofSingular.in()) == '_')
+//   {
+//     while(outofSingular.in().get() != '=');
+//     Word p = readSingularPoly(r,V,outofSingular.in());
+//     GBi = COMP(p,GBi);      
+//   }
+//   { string em; while(outofSingular.in() >> em && em != "[end]:"); }
+//   GBi = CINV(GBi);
   
-  if (LENGTH(GBi) == 1) 
-  { 
-    Word rs,ps; PSIMREP(r,FIRST(GBi),&rs,&ps); 
-    if (rs == 0) return TRUE;
-  }
-  return GBi;
+//   if (LENGTH(GBi) == 1) 
+//   { 
+//     Word rs,ps; PSIMREP(r,FIRST(GBi),&rs,&ps); 
+//     if (rs == 0) return TRUE;
+//   }
+//   return GBi;
     
-}
+ }

@@ -5,7 +5,7 @@ IPFAC with Database.
 ======================================================================*/
 #include "qepcad.h"
 
-#include "db/CAPolicy.h"
+#include "caserver/CAPolicy.h"
 
 void IPFACDB(Word r, Word P, Word *s_, Word *c_, Word *L_)
 {

@@ -14,7 +14,7 @@ not propogate!
   \parm{P} is the "safe" half-way improved McCallum's projection of $A$.
 ======================================================================*/
 #include "qepcad.h"
-#include "db/CAPolicy.h"
+#include "caserver/CAPolicy.h"
 
 Word QepcadCls::PROJMCECmod(Word r, Word A)
 {

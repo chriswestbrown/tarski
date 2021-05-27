@@ -18,7 +18,6 @@
 #include <cstring>
 #include <iostream>
 #include <streambuf>
-using namespace std;
 
 /**************************************************
 See "The C++ Standard Library", by Nicolai M. Josuttis
@@ -26,7 +25,7 @@ Chapter 13 for info on how fd(in|out)(buff|stream)
 works.  This code is based on that stuff.
 **************************************************/
 
-class fdoutbuff : public streambuf
+class fdoutbuff : public std::streambuf
 {
 public:
   int fileDes;
@@ -35,20 +34,20 @@ public:
     char cp = c;
     return (c == EOF || write(fileDes,&cp,1) != 1) ? EOF : c; 
   }
-  streamsize xsputn (const char* s, streamsize n) { return write(fileDes,s,n); }
+  std::streamsize xsputn (const char* s, std::streamsize n) { return write(fileDes,s,n); }
 };
 
-class fdostream : public ostream
+class fdostream : public std::ostream
 {
 public:
   fdoutbuff buff;
-  fdostream(int fd) : buff(fd), ostream(&buff) { }
+  fdostream(int fd) : std::ostream(&buff), buff(fd) { }
 };
 
 static const int unpbuffSize = 10;
 static const int unpextra = 4;
 
-class fdinbuff : public streambuf
+class fdinbuff : public std::streambuf
 {
 
 public:
@@ -59,20 +58,20 @@ public:
   {
     if (gptr() >= egptr())
     {
-      int leftover = min((long int)unpextra, (long int)(gptr() - eback())), readSize;
+      int leftover = std::min((long int)unpextra, (long int)(gptr() - eback())), readsize;
       memmove(buff + (unpextra-leftover), gptr() - leftover, leftover);
-      if ((readSize=read(fileDes, buff + unpextra, unpbuffSize - unpextra)) <= 0) return EOF;
-      setg(buff + (unpextra-leftover), buff + unpextra, buff + (4+readSize));
+      if ((readsize=read(fileDes, buff + unpextra, unpbuffSize - unpextra)) <= 0) return EOF;
+      setg(buff + (unpextra-leftover), buff + unpextra, buff + (4+readsize));
     }
     return *gptr();
   }
 };
 
-class fdistream : public istream
+class fdistream : public std::istream
 {
 public:
   fdinbuff buff;
-  fdistream(int fd) : buff(fd), istream(&buff) { }
+  fdistream(int fd) : std::istream(&buff), buff(fd)  { }
 };
 
 /***************************************************************

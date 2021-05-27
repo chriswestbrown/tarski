@@ -10,7 +10,7 @@ Variable list read, robust.
 ======================================================================*/
 #include "qepcad.h"
 
-void VLREADR(Word *V_, Word *t_)
+void VLREADR(Word *V_, Word *t_, int errMode)
 {
        Word C,V,t,v;
        /* hide C,t; */
@@ -19,14 +19,14 @@ Step1: /* Read variables. */
        t = 1; V = NIL;
        C = CREADB();
        if (C != '(')
-         { SWRITE("Error VLREADR: '(' was expected.\n"); goto Step2; }
+       { INPUTRD_ERROR("Error VLREADR: '(' was expected.\n",errMode); goto Step2; }
        C = CREADB(); if (C == ')') goto Return; else BKSP();
        do
          {
          VREADR(&v,&t); if (t == 0) goto Return; V = COMP(v,V);
          C = CREADB();
          if (C == ')') { V = INV(V); goto Return; }
-         if (C != ',') { SWRITE("Error VLREADR: ',' was expected.\n"); goto Step2; }
+         if (C != ',') { INPUTRD_ERROR("Error VLREADR: ',' was expected.\n",errMode); goto Step2; }
          } while (1);
 
 Step2: /* Error. */

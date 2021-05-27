@@ -1,7 +1,8 @@
 #ifndef _SINGULAR_POLICY_
 #define _SINGULAR_POLICY_
-#include "db/CAPolicy.h"
-#include "db/SINGULAR.h"
+#include "CAPolicy.h"
+#include "SINGULAR.h"
+
 
 class SingularPolicy : public CAPolicy
 {
@@ -16,9 +17,19 @@ public:
     return GVSB["Singular"]->IPRES(r,A,B);
   }
 
+  void IPFACRES(Word r, Word A, Word B, Word *s_, Word *c_, Word *L_)
+  {
+    return GVSB["Singular"]->IPFACRES(r,A,B,s_,c_,L_);
+  }
+
   Word IPDSCR(Word r, Word A)
   {
     return GVSB["Singular"]->IPDSCR(r,A);
+  }
+
+  void IPFACDSCR(Word r, Word P, Word *s_, Word *c_, Word *L_)
+  {
+    return GVSB["Singular"]->IPFACDSCR(r,P,s_,c_,L_);
   }
 
   Word IPFACTGB(Word r, Word I, Word N)  
@@ -29,11 +40,11 @@ public:
   {
     return GVSB["Singular"]->CONSTORDTEST(r,A,L);
   }
-  const string name() { return "SingularPolicy"; }
+  const std::string name() { return "SingularPolicy"; }
 
-  bool supports(const string &s)
+  bool supports(const std::string &s)
   {
-    return s == "IPFAC" || s == "IPRES" || s == "IPDSCR" || s == "IPFACTGB" || s == "CONSTORDTEST"; 
+    return s == "IPFAC" || "IPRES" || "IPDSCR" || "IPFACTGB" || "CONSTORDTEST"; 
   }
 };
 

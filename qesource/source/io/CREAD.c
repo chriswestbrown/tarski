@@ -19,8 +19,8 @@ Side effects
 #include <stack>
 #include <fstream>
 #include <iostream>
-#include "db/readlineistream.h"
-#include "db/convenientstreams.h"
+#include "caserver/readlineistream.h"
+#include "caserver/convenientstreams.h"
 using namespace std;
 
 static istream *currIn = 0;

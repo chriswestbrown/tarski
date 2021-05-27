@@ -7,12 +7,12 @@ already been initialized!
 #include <fstream>
 #include <sstream>
 #include "qepcad.h"
-#include "db/CAServer.h"
-#include "db/OriginalPolicy.h"
-#include "db/SingularPolicy.h"
-#include "db/SingSacPolicy.h"
-#include "db/convenientstreams.h"
-#include "db/CAPolicy.h"
+#include "caserver/CAServer.h"
+#include "caserver/OriginalPolicy.h"
+#include "caserver/SingularPolicy.h"
+#include "caserver/SingSacPolicy.h"
+#include "caserver/convenientstreams.h"
+#include "caserver/CAPolicy.h"
 #include <ctype.h>
 #include <sys/wait.h>
 
@@ -28,6 +28,7 @@ int experimentalExtensionFlag = 0;
 
 ServerBase GVSB;
 CAPolicy *GVCAP = 0;
+bool useExistingCAServer = false;
 QEPCADContext* GVContext = 0;
 
 int GVTIMEOUTLIMIT = -1;
@@ -198,5 +199,8 @@ void BEGINQEPCADLIB(int timeout) {
   GVContext = new QEPCADContext;
   QEGLOBALS();
   INITSYS();
-  GVCAP = new OriginalPolicy;
+  if (GVCAP != 0)
+    useExistingCAServer = true;
+  else
+    GVCAP = new OriginalPolicy;
 }
