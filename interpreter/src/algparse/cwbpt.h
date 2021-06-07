@@ -180,8 +180,14 @@ public:
   {     
     if (!asa<Var>(L)) { throw TarskiException("LHS of an Extended Tarski Atom must be a variable!"); }
     var = asa<Var>(L)->value;
-    if (!asa<Num>(I)) { throw TarskiException("RootIndex of an Extended Tarski Atom must be a number!"); }
-    rootIndexAsInt = atoi(asa<Num>(I)->value.c_str());
+    AlgebraicRef Ip = I;
+    char op = '+';
+    if (asa<UnaryOp>(I)) {
+      Ip = asa<UnaryOp>(I)->arg;
+      op = asa<UnaryOp>(I)->op;
+    }
+    if (!asa<Num>(Ip)) { throw TarskiException("RootIndex of an Extended Tarski Atom must be a number!"); }
+    rootIndexAsInt = (op == '-' ? -1 : 1) * atoi(asa<Num>(Ip)->value.c_str());
     int i = 1;
     while(i < 7 && sigma != relopStrings[i]) ++i;
     if (i == 7) { std::cerr << "Error in TarskiAtom!" << std::endl; exit(1); }
