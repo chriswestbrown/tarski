@@ -445,7 +445,7 @@ public:
   LisRef L; // The lambda expression
   Frame* env;
   short int markVal;
-  CloObj(Interpreter *pint, LisRef _L, Frame* _env);
+  CloObj(Interpreter *pint, LisRef _l, Frame* _env);
   virtual int type() { return _clo; }
   CloRef clo() { return this; }
   std::string toStr() { return "?:clo"; }

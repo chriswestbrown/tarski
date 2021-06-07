@@ -1,4 +1,3 @@
-#ifndef __MINGW32__
 #include "qepcad.h"
 #include <iostream>
 #include <sstream>
@@ -198,4 +197,3 @@ bool qfrFalseCheck(string qfrInputString)
   else
     return false;
 }
-#endif

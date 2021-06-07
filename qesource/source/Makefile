@@ -17,9 +17,7 @@ CCo        =  g++
 FLAGSo = -O4
 
 CCd        =  g++
-FLAGSd = -g
-
-ARFLAGS := crvU
+FLAGSd = -g -rdynamic
 
 # ============================================================
 # The readline library is in different places on solaris, i.e.
@@ -43,21 +41,24 @@ EXTLIBS   =	${qe}/extensions/sfext/sfexto.a \
 		${qe}/extensions/newadj/newadjo.a \
 		${qe}/extensions/adj2d/adj2do.a \
 		${saclib}/lib/saclibo.a \
-		${SPECLFLAGS}
-ifneq (,$(findstring mingw,$(CXX)))
-else
-EXTLIBS += -lreadline -lrt ${qe}/extensions/rend/rendo.a
-endif
+		${SPECLFLAGS} \
+		-lreadline ${qe}/extensions/rend/rendo.a
 
 EXTLIBSD  =	${qe}/extensions/sfext/sfextd.a \
 		${qe}/extensions/lift2D/lift2Dd.a \
 		${qe}/extensions/newadj/newadjd.a \
 		${qe}/extensions/adj2d/adj2dd.a \
 		${saclib}/lib/saclibd.a \
-		${SPECLFLAGS}
-ifneq (,$(findstring mingw,$(CXX)))
-else
-EXTLIBSD += -lreadline -lrt ${qe}/extensions/rend/rendd.a
+		${SPECLFLAGS} \
+		-lreadline ${qe}/extensions/rend/rendd.a
+
+ARFLAGS := crv
+# On Mac the rt library is not present, but otherwise it is necessary.
+UNAME_S := $(shell uname -s)
+ifneq ($(UNAME_S),Darwin)
+EXTLIBS += -lrt
+EXTLIBSD += -lrt
+ARFLAGS := crvU
 endif
 
 NAME      =  qepcad
@@ -818,6 +819,13 @@ deb:		$(DEPENDENCIESd)
 			 $(LIBD) $(EXTLIBSD) $(LIBD)  $(EXTLIBSD) -o $(EXED) #\
 			#/home/wcbrown/Downloads/duma_2_4_27/libduma.a -lpthread
 
-#.c.o:	
+#.c.o:
+userint/HELPFRD.c:	userint/qepcad_help_string.h
+
+userint/qepcad_help_string.h:	
+	xxd -i qepcad.help userint/qepcad_help_string.h
+
 %.o:	%.c
 		$(CC) $(INCLUDES) $(CFLAGS) -o $@ -c $<
+
+.PRECIOUS: %.o

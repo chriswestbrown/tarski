@@ -1,18 +1,10 @@
 #!/bin/bash
 
-### Use x86_64-w64-mingw32 or i686-w64-mingw32 as first argument
-### to start cross-compilation.
-if [[ $1 == *"mingw"* ]]; then
-    echo "Cross-compilation for Windows..."
-    export CC=$1-gcc
-    export CXX=$1-g++
-    fi
-
 ### To use an existing external Saclib and/or Qepcad
 ### replace the empty strings below with full paths.
 externalSaclibRoot=""
 externalQepcadRoot=""
-
+### Add "wasm" as parameter if you intend to start a WebAssembly build.
 
 trap "exit 1" TERM
 export TOP_PID=$$
@@ -39,16 +31,22 @@ fi
 export saclib=$saclibRoot
 pushd $saclib
 echo "Making SACLIB..."
+
+# Create the makefiles only when this is a fresh build.
+# Otherwise avoid rebuilding the whole system from scratch.
+# (Recreating the makefiles results in a full rebuild.)
 if [ ! -e include/sacproto.h -o ! -e lib/objd/makefile -o ! -e lib/objo/makefile ]; then
-    check bin/sconf
+    check "bin/sconf $1"
     check bin/mkproto
     check bin/mkmake
 fi
-check "bin/mklib all -fPIC"
+if [ "$1" = wasm ]; then
+   export TOOLCHAIN=emmake
+fi
+check "bin/mklib all"
 check
 echo "Saclib done"
 popd
-
 
 ### QEPCAD
 if [ "$externalQepcadRoot" = "" ]
@@ -62,7 +60,7 @@ export qe=$qepcadRoot
 export PATH=$qe/bin:$PATH
 pushd $qe
 echo "Making QEPCAD..."
-check "make opt"
+check "$TOOLCHAIN make opt"
 echo "QEPCAD done"
 popd
 
@@ -93,9 +91,9 @@ echo -e "######################################################"
 echo -e "There are several environment variables that should be"
 echo -e "set in order to use or recompile Tarski.  So it is"
 echo -e "strongly recommended that the lines:\n"
-echo -e "export \$saclib=$saclibRoot"
-echo -e "export \$qe=$qepcadRoot\n"
-echo -e "PATH=\$PATH:$qepcadRoot/bin\n"
+echo -e "export saclib=$saclibRoot"
+echo -e "export qe=$qepcadRoot\n"
+echo -e "PATH=PATH:$qepcadRoot/bin\n"
 echo -e "are added to your .profile (or .bash_profile, depending"
 echo -e "on which you use) or whichever the equivalent file is on"
 echo -e "your system."

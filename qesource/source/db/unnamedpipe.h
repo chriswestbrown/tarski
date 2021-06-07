@@ -118,7 +118,7 @@ public:
     if (openmask[0]) { close(fd[0]); openmask[0] = false; } 
   }
   void closeOut() { 
-    const char ts[2] = {EOF,'\n'};
+    const signed char ts[2] = {EOF,'\n'};
     if (_out) { delete _out; _out = 0; }
     if (openmask[1]) { 
       //      write(fd[1],ts,2); 

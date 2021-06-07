@@ -10,7 +10,7 @@ void SETUPSYS()
 {
 
 Step1: /* Initialize IO. */
-       INITIO();
+       INITIO(NULL, NULL);
 
 Step2: /* Read in Help file. */
        HELPFRD();

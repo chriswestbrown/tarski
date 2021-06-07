@@ -12,22 +12,24 @@ Initialize Input/Output.
 void InputContextInit(istream&);
 void OutputContextInit(ostream&);
 
-void INITIO()
+void INITIO(istream *is, ostream *os)
 {
        Word i;
 
 Step1: /* Initialize Input. */	  
-#ifndef __MINGW32__
-       if (isatty(0)) 
-	 InputContextInit(*(new readlineIstream()));
-       else
-	 InputContextInit(std::cin);
-#else
-       InputContextInit(std::cin);
-#endif
+       if (is == NULL) {
+         if (isatty(0)) 
+	   InputContextInit(*(new readlineIstream()));
+         else
+	   InputContextInit(std::cin);
+       } else
+           InputContextInit(*is);
        
 Step2: /* Initialize Output. */
-       OutputContextInit(std::cout);
+       if (os == NULL)
+         OutputContextInit(std::cout);
+       else
+         OutputContextInit(*os);
 
 Step3: /* Control Echo. */
        if (!isatty(0) && !NOECHOSWITCHSET)

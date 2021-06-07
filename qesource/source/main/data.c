@@ -4,10 +4,8 @@
 #include <stdio.h>
 #include "qepcad.h"
 
-#ifndef __MINGW32__
 #include "db/SINGULAR.h"
 SingularServer *GVpSingularServer = 0;
-#endif
 
 /* -----------------------------------------------*/
 /*            Data-bases                          */

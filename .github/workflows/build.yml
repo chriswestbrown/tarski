@@ -1,0 +1,65 @@
+name: build test
+
+on: [push]
+
+jobs:
+  linux:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: prerequisites
+      run: sudo apt update && sudo apt install build-essential libreadline-dev libssl-dev
+    - name: build
+      run: ./build.sh
+    - name: dynamiclib-prerequisites
+      run: sudo apt update && sudo apt install openjdk-11-jdk swig
+    - name: dynamiclib-build
+      run: cd qesource/source/swig; ./runme
+
+  mac:
+
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: prerequisites
+      run: brew install readline openssl
+    - name: build
+      run: ./build.sh
+    - name: dynamiclib-prerequisites
+      run: brew install openjdk swig
+    - name: dynamiclib-build
+      run: cd qesource/source/swig; ./runme
+
+  windows:
+
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+    - uses: actions/checkout@v2
+    - name: prerequisites
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: MSYS
+        update: true
+        install: >-
+          base-devel
+          gcc
+          libreadline-devel
+          libcrypt-devel
+          openssl-devel
+          zlib-devel
+          swig
+    - name: print-uname
+      run: uname
+    - name: build
+      run: ./build.sh
+    - name: install-openjdk
+      run: choco install openjdk
+      shell: cmd
+    - name: dynamiclib-build
+      run: cd qesource/source/swig; ./runme

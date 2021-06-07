@@ -97,9 +97,7 @@ Step2: /* Process the command. */
        case 63: TRUECELLWRITE(GVPC); break;
        case 64: FALSECELLWRITE(GVPC); break;
        case 69: PRDSTACK(); break;
-#ifndef __MINGW32__
        case 71: DISP2DCAD(GVPC,GVPF,GVPJ); break;
-#endif
        case 72: /*ADJ_2D_TEST(GVPC,GVPF,GVPJ); */ /* HATEST(GVPC,GVPF,GVPJ); */ break;
        case 73: PCCHFLAG = 1; break;
        case 74: PCVERBOSE = (CREADB() == 'y') ? 1 : 0; break;
@@ -214,11 +212,9 @@ Step2: /* Process the command. */
 	 PRINTBORDERPOLS(GVPC);
 	 break;
 
-#ifndef __MINGW32__
        case 96: /* p-2d-cad : "print 2d cad as eps-file" */
 	 PLOT2DCAD2FILE(GVPC,GVPF,GVPJ);
 	 break;
-#endif
 
        case 97: /* measure-zero-error */
 	 if (PCFULL == 'y')
