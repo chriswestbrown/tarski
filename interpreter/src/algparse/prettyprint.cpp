@@ -97,11 +97,13 @@ void PrettyPrint::operator()(BinaryOp* p)
       std::string msg = "Only constants are allowed in denominators!";
       throw TarskiException(msg);
     }
-    if (p1n) { (*pout) << "("; } opBefore = false; p->arg1->apply(*this); if (p1n) { (*pout) << ")"; }
-    (*pout) << optrans(oform,'*');
-    (*pout) << "1/"; 
-    opBefore = false;
-    p->arg2->apply(*this);
+    else { 
+      if (p1n) { (*pout) << "("; } opBefore = false; p->arg1->apply(*this); if (p1n) { (*pout) << ")"; }
+      (*pout) << optrans(oform,'*');
+      (*pout) << "1/"; 
+      opBefore = false;
+      p->arg2->apply(*this);
+    }
   }
   else if (oform == qepcad && p->op == '/')
   {

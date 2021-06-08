@@ -194,6 +194,7 @@ inline int char2sym(char c)
 	 * formula using the value that F has globally at the time of reading the lambda 
 	 * expression.
 	 */
+	/* T = clearDenominators(T); */
 	MapToTFormWithInterpolation MTTF(this);
 	T->apply(MTTF);
 	return new TarObj(MTTF.res);
