@@ -94,6 +94,8 @@ namespace tarski {
     SRef res;
     try {
       TFormRef T = args[0]->tar()->val;
+      // Bail out if this is already a constant
+      { int tmp = T->constValue(); if (tmp != -1) { return new TarObj(new TConstObj(tmp)); } }
       char formType = 'E'; // Default!
       if (args.size() > 1) {
 	SymRef s = args[1]->sym();
