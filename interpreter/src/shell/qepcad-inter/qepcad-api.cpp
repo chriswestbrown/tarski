@@ -94,6 +94,13 @@ namespace tarski {
     SRef res;
     try {
       TFormRef T = args[0]->tar()->val;
+
+      // Do basic normalization to get rid of boolean constants, which qepcad
+      // doesn't understand.
+      RawNormalizer R(defaultNormalizer);
+      R(T);
+      T = R.getRes();
+
       // Bail out if this is already a constant
       { int tmp = T->constValue(); if (tmp != -1) { return new TarObj(new TConstObj(tmp)); } }
       char formType = 'E'; // Default!
