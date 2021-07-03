@@ -33,7 +33,7 @@ class TFormObj : public GC_Obj
 {
 public:
   virtual ~TFormObj() { }
-  virtual PolyManager* getPolyManagerPtr() { return 0; }
+  virtual PolyManager* getPolyManagerPtr() { return NULL; }
   virtual void write(bool flag = false) = 0; // writes to the current saclib context!
   virtual void apply(TFPolyFun &F) = 0;
   virtual VarSet getVars() = 0;
@@ -171,7 +171,7 @@ public:
     IWRITE(rootIndex);
     SWRITE(" "); 
     F->write(); 
-    if (flag) { SWRITE("["); }
+    if (flag) { SWRITE("]"); }
   }
 
   std::map<IntPolyRef,int>::iterator factorsBegin() { return F->MultiplicityMap.begin(); }
@@ -259,7 +259,10 @@ public:
   int size() const { return conjuncts.size(); }
   PolyManager* getPolyManagerPtr()
   {
-    return conjuncts.empty() ? NULL : (*conjuncts.begin())->getPolyManagerPtr();
+    PolyManager* res = NULL;
+    for(auto itr = conjuncts.begin(); res == NULL && itr != conjuncts.end(); ++itr)
+      res = (*itr)->getPolyManagerPtr();
+    return res;
   }
   VarSet getVars();
   TFormRef negate();
@@ -300,7 +303,10 @@ public:
   VarSet getVars();
   PolyManager* getPolyManagerPtr()
   {
-    return disjuncts.empty() ? NULL : (*disjuncts.begin())->getPolyManagerPtr();
+    PolyManager* res = NULL;
+    for(auto itr = disjuncts.begin(); res == NULL && itr != disjuncts.end(); ++itr)
+      res = (*itr)->getPolyManagerPtr();
+    return res;
   }
   TFormRef negate();
   int constValue() { return size() == 0 ? FALSE : -1; }

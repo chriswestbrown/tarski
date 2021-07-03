@@ -1,15 +1,17 @@
 /*======================================================================
-                      INPUTRD(; Fs,V)
+                      INPUTRD(; Fs,V, errMode)
 
 Input formula read.
 
 \Output
    \parm{F*} is a formula.
    \parm(V)  is a variable list.
+   \parm{errMode} is 0->throw Exception, 1->write error message and return.
+
 ======================================================================*/
 #include "qepcad.h"
 
-void INPUTRD(Word *Fs_,Word *V_)
+void INPUTRD(Word *Fs_,Word *V_, int errMode)
 {
        Word C,Fs,V,f,r,t;
        /* hide C,r,t; */
@@ -21,9 +23,8 @@ Step1: /* Read in a description. */
          SWRITE(" between '[' and ']':\n"); 
          C = CREADB();
          if (C != '[')
-           {
-           SWRITE("Error INPUTRD: '[' was expected.\n");
-           FILINE();
+	 {
+           INPUTRD_ERROR("Error INPUTRD: '[' was expected.\n",errMode);
            t = 0;
            }
          else
@@ -38,8 +39,8 @@ Step2: /* Read a variable list. */
          PROMPT(); SWRITE("Enter a variable list:\n"); FILINE();
          VLREADR(&V,&t);
          if (t == 1 && ISNIL(V))
-           {
-           SWRITE("Error INPUTRD: There should be at least one variable.\n");
+	 {
+           INPUTRD_ERROR("Error INPUTRD: There should be at least one variable.\n",errMode);
            t = 0;
            }
          }
@@ -52,16 +53,17 @@ Step3: /* Read in the number of free variables. */
          PROMPT(); SWRITE("Enter the number of free variables:\n"); FILINE();
          GREADR(&f,&t);
          if (t == 1 && f < 0)
-           {
-           SWRITE("Error INPUTRD: the number of free variables must be non-negative.\n");
+	 {
+	   INPUTRD_ERROR("Error INPUTRD: the number of free variables must be non-negative.\n",errMode);
            t = 0;
            }
          if (t == 1 && f > r)
-           {
-           SWRITE("Error INPUTRD: the number of free variables must be <= ");
-           GWRITE(r); SWRITE(".\n");
+	 {
+	   char emsg[128] = {'\0'};
+	   sprintf(emsg,"Error INPUTRD: the number of free variables must be <= %d\n",r);
+	   INPUTRD_ERROR(emsg,errMode);
            t = 0;
-           }
+	 }
          }
        while (!(t == 1));
 

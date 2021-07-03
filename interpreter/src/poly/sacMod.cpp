@@ -6,14 +6,16 @@
 
 using namespace std;
 
-extern void InputContextInit();
-extern void OutputContextInit();
-extern void PushInputContext(istream &in);
-extern void PopInputContext();
+// extern void InputContextInit();
+// extern void OutputContextInit();
+// extern void PushInputContext(istream &in);
+// extern void PopInputContext();
 
+// CHRIS TEMP
+#include "../../../qesource/source/qepcad.h"
 
-ServerBase GVSB;
-CAPolicy *GVCAP = 0;
+//ServerBase GVSB;
+//CAPolicy *GVCAP = 0;
 void serverPrep(string policy, string server, string dirPath) 
 { 
   if (GVCAP == 0) 
@@ -77,7 +79,7 @@ void SacModEnd()
   for(ServerBase::iterator p = GVSB.begin(); p != GVSB.end(); ++p)    
     delete p->second;
   GVSB.clear();
-  delete GVCAP;
+  if (GVCAP != 0) { delete GVCAP; GVCAP = 0; }
 
   ENDSACLIB(SAC_FREEMEM);
 }

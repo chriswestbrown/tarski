@@ -34,7 +34,8 @@ cat > $MAKEFILE <<\EOF
 
 SRCDIR   = ${saclib}/src
 TARGET   = ${saclib}/lib/saclib${EXTENSION}.a
-CFLAGS   = -I${saclib}/include -c ${SACFLAG}
+# Adding -FPIC is required on some systems.
+CFLAGS   = -I${saclib}/include -c ${SACFLAG} -fPIC
 AFLAGS   = -I${saclib}/include -P
 
 # Object files
@@ -92,7 +93,7 @@ new: ${OBJS1} ${OBJS2a} ${OBJS2b} ${OBJS3} ${OBJS4}
 #       Use "ar ts" if your system does not have "ranlib".
 #	${AR} ts ${TARGET}
 #       Use "ranlib" if your system's "ar" does not have the option "s".
-	${RANLIB} ${TARGET}
+#	${RANLIB} ${TARGET}
 	@echo "Created '${TARGET}'."
 
 EOF

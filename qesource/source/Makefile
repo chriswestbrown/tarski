@@ -17,9 +17,7 @@ CCo        =  g++
 FLAGSo = -O4
 
 CCd        =  g++
-FLAGSd = -g
-
-ARFLAGS := crvU
+FLAGSd = -g -rdynamic
 
 # ============================================================
 # The readline library is in different places on solaris, i.e.
@@ -43,21 +41,24 @@ EXTLIBS   =	${qe}/extensions/sfext/sfexto.a \
 		${qe}/extensions/newadj/newadjo.a \
 		${qe}/extensions/adj2d/adj2do.a \
 		${saclib}/lib/saclibo.a \
-		${SPECLFLAGS}
-ifneq (,$(findstring mingw,$(CXX)))
-else
-EXTLIBS += -lreadline -lrt ${qe}/extensions/rend/rendo.a
-endif
+		${SPECLFLAGS} \
+		-lreadline ${qe}/extensions/rend/rendo.a
 
 EXTLIBSD  =	${qe}/extensions/sfext/sfextd.a \
 		${qe}/extensions/lift2D/lift2Dd.a \
 		${qe}/extensions/newadj/newadjd.a \
 		${qe}/extensions/adj2d/adj2dd.a \
 		${saclib}/lib/saclibd.a \
-		${SPECLFLAGS}
-ifneq (,$(findstring mingw,$(CXX)))
-else
-EXTLIBSD += -lreadline -lrt ${qe}/extensions/rend/rendd.a
+		${SPECLFLAGS} \
+		-lreadline ${qe}/extensions/rend/rendd.a
+
+ARFLAGS := crv
+# On Mac the rt library is not present, but otherwise it is necessary.
+UNAME_S := $(shell uname -s)
+ifneq ($(UNAME_S),Darwin)
+EXTLIBS += -lrt
+EXTLIBSD += -lrt
+ARFLAGS := crvU
 endif
 
 NAME      =  qepcad
@@ -69,6 +70,12 @@ EXED      =  $(NAME)d
 # ============================================================
 #     Files from the primary QEPCAD program
 # ============================================================
+
+OBJS_CA = \
+$(LIB)(caserver/COCOA.o) \
+$(LIB)(caserver/MAPLE.o) \
+$(LIB)(caserver/MATHEMATICA.o) \
+$(LIB)(caserver/SINGULAR.o)
 
 OBJS_DB = \
 $(LIB)(db/AFCSBMDB.o) \
@@ -82,8 +89,7 @@ $(LIB)(db/FNDTSDB.o) \
 $(LIB)(db/GETRPDB.o) \
 $(LIB)(db/IPFACDB.o) \
 $(LIB)(db/MODCRDB.o) \
-$(LIB)(db/SUBSTDB.o) \
-$(LIB)(db/SINGULAR.o)
+$(LIB)(db/SUBSTDB.o)
 
 OBJS_IO = \
 $(LIB)(io/OW.o) \
@@ -119,6 +125,7 @@ $(LIB)(io/FREADR.o) \
 $(LIB)(io/FWRITE.o) \
 $(LIB)(io/GETWORD.o) \
 $(LIB)(io/GREADR.o) \
+$(LIB)(io/INPUTRD_ERROR.o) \
 $(LIB)(io/IPLDWR.o) \
 $(LIB)(io/IPLLDWR.o) \
 $(LIB)(io/IPLLDWRMOD.o) \
@@ -166,7 +173,6 @@ $(LIB)(main/MAIN.o) \
 $(LIB)(main/PRINTBANNER.o) \
 $(LIB)(main/QEPCAD.o) \
 $(LIB)(main/SETUPSYS.o) \
-$(LIB)(main/FAIL.o) \
 $(LIB)(main/data.o) \
 $(LIB)(main/QEPCADauto.o) \
 $(LIB)(main/qepcadcls.o) \
@@ -322,6 +328,7 @@ $(LIB)(ticad/TICAD.o) \
 $(LIB)(ticad/TICADauto.o)
 
 OBJS_USERINT = \
+$(LIB)(userint/ASSUME.o) \
 $(LIB)(userint/CELLFIDX.o) \
 $(LIB)(userint/ESPIWR.o) \
 $(LIB)(userint/ESPORD.o) \
@@ -406,6 +413,7 @@ $(LIB)(util/VALIDLBL.o)
 
 #  To replace saclib routines. 
 OBJS_SACLIB = \
+$(LIB)(saclib/FAIL.o) \
 $(LIB)(saclib/GCSI.o) \
 $(LIB)(saclib/gcword.o) \
 $(LIB)(saclib/IPFZT.o) \
@@ -417,6 +425,12 @@ $(LIB)(saclib/SOSRSUBS.o) \
 $(LIB)(saclib/SOSRSUPS.o) \
 $(LIB)(saclib/SUBSET.o)
 
+
+OBJS_CAd = \
+$(LIBD)(caserver/COCOA.o) \
+$(LIBD)(caserver/MAPLE.o) \
+$(LIBD)(caserver/MATHEMATICA.o) \
+$(LIBD)(caserver/SINGULAR.o)
 
 OBJS_DBd = \
 $(LIBD)(db/AFCSBMDB.o) \
@@ -467,6 +481,7 @@ $(LIBD)(io/FREADR.o) \
 $(LIBD)(io/FWRITE.o) \
 $(LIBD)(io/GETWORD.o) \
 $(LIBD)(io/GREADR.o) \
+$(LIBD)(io/INPUTRD_ERROR.o) \
 $(LIBD)(io/IPLDWR.o) \
 $(LIBD)(io/IPLLDWR.o) \
 $(LIBD)(io/IPLLDWRMOD.o) \
@@ -514,7 +529,6 @@ $(LIBD)(main/MAIN.o) \
 $(LIBD)(main/PRINTBANNER.o) \
 $(LIBD)(main/QEPCAD.o) \
 $(LIBD)(main/SETUPSYS.o) \
-$(LIBD)(main/FAIL.o) \
 $(LIBD)(main/data.o) \
 $(LIBD)(main/QEPCADauto.o) \
 $(LIBD)(main/qepcadcls.o) \
@@ -670,6 +684,7 @@ $(LIBD)(ticad/TICAD.o) \
 $(LIBD)(ticad/TICADauto.o)
 
 OBJS_USERINTd = \
+$(LIBD)(userint/ASSUME.o) \
 $(LIBD)(userint/CELLFIDX.o) \
 $(LIBD)(userint/ESPIWR.o) \
 $(LIBD)(userint/ESPORD.o) \
@@ -754,6 +769,7 @@ $(LIBD)(util/VALIDLBL.o)
 
 #  To replace saclib routines. 
 OBJS_SACLIBd = \
+$(LIBD)(saclib/FAIL.o) \
 $(LIBD)(saclib/GCSI.o) \
 $(LIBD)(saclib/gcword.o) \
 $(LIBD)(saclib/IPFZT.o) \
@@ -770,6 +786,7 @@ $(LIBD)(saclib/SUBSET.o)
 # ============================================================
 
 DEPENDENCIESo =    $(OBJS_DB) \
+$(OBJS_CA) \
 $(OBJS_IO) \
 $(OBJS_MAIN) \
 $(OBJS_NORMQFF) \
@@ -782,6 +799,7 @@ $(OBJS_UTIL) \
 $(OBJS_SACLIB)
 
 DEPENDENCIESd =    $(OBJS_DBd) \
+$(OBJS_CAd) \
 $(OBJS_IOd) \
 $(OBJS_MAINd) \
 $(OBJS_NORMQFFd) \
@@ -818,6 +836,16 @@ deb:		$(DEPENDENCIESd)
 			 $(LIBD) $(EXTLIBSD) $(LIBD)  $(EXTLIBSD) -o $(EXED) #\
 			#/home/wcbrown/Downloads/duma_2_4_27/libduma.a -lpthread
 
-#.c.o:	
+#.c.o:
+userint/HELPFRD.c:	userint/qepcad_help_string.h
+
+userint/qepcad_help_string.h:	
+	xxd -i qepcad.help userint/qepcad_help_string.h
+
 %.o:	%.c
 		$(CC) $(INCLUDES) $(CFLAGS) -o $@ -c $<
+
+%.o:	%.cpp
+		$(CC) $(INCLUDES) $(CFLAGS) -o $@ -c $<
+
+.PRECIOUS: %.o

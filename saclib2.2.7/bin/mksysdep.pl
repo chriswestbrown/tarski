@@ -1,11 +1,12 @@
 ################################################
 # mksysdep.pl V 0.0
-# Created by Chris Brown, 20 May, 208
+# Created by Chris Brown, 20 May, 2008
 ################################################
+
 if ($#ARGV == 0 && ($ARGV[0] eq "-h" || $ARGV[0] eq "--help"))
 {
     print "sconf/mksysdep.pl\n".
-"sconf [x86linux|sparcsolaris|x86_64linux|x86macos|x86_64macos|x86windows|x86_64windows]\n\n".
+"sconf [x86linux|sparcsolaris|x86_64linux|x86macos|x86_64macos|x86_64windows|armv7llinux|wasm]\n\n".
 "This script installs system dependent files for\n".
 "saclib.  It attempts to diagnose architecture and\n".
 "processor type and install the proper files.  You\n".
@@ -21,21 +22,6 @@ if (! $ENV{'saclib'})
     exit(1);
 }
 
-if ($ENV{'CC'} eq "i686-w64-mingw32-gcc" || ($#ARGV == 1 && $ARGV[0] eq "x86windows"))
-{
-    print "SACLIB Warning: Cross compilation for Windows via i686-w64-mingw32. Installing x86windows system dependent files!\n";
-    system("bash -c \"pushd >/dev/null $ENV{'saclib'}/sysdep/windowsX86 ; ./install ; popd >/dev/null\"");
-    exit 0
-}
-
-if ($ENV{'CC'} eq "x86_64-w64-mingw32-gcc" || ($#ARGV == 1 && $ARGV[0] eq "x86_64windows"))
-{
-    print "SACLIB Warning: Cross compilation for Windows via x86_64-w64-mingw32. Installing x86_64windows system dependent files!\n";
-    system("bash -c \"pushd >/dev/null $ENV{'saclib'}/sysdep/windowsX86_64 ; ./install ; popd >/dev/null\"");
-    exit 0
-}
-
-
 ### Get architecture type
 $ptype = "unknown";
 $uname = `uname -mp`;
@@ -50,6 +36,10 @@ elsif ($uname =~ /x86_64/)
 elsif ($uname =~ /Sun|sun|SUN|Sparc|sparc|SPARC/)
 {
     $ptype = "sparc";
+}
+elsif ($uname =~ /armv7l/)
+{
+    $ptype = "armv7l";
 }
 else
 {
@@ -74,36 +64,55 @@ elsif ($uname =~ /Darwin|darwin|DARWIN/)
     $macosKernelTest = `ioreg -l -p IODeviceTree | grep firmware-abi | grep EFI64`;
     if ($macosKernelTest) { $ptype = "x86_64"; } elsif ($ptype == "x86_64") { $ptype = "x86"; }
 }
+elsif ($uname =~ /MSYS|NT/)
+{
+    $ostype = "windows";
+}
 else
 {
     print "SACLIB Warning: Could not determine OS type!\n";
 }
 
 ### Call appropriate install script
-if ($#ARGV == 1 && $ARGV[0] eq "x86linux")
+if ($#ARGV == 0 && $ARGV[0] eq "x86linux")
 {
     print "SACLIB Warning: Installing x86linux system dependent files!\n";
     system("bash -c \"pushd >/dev/null $ENV{'saclib'}/sysdep/linuxX86 ; ./install ; popd >/dev/null\"");
 }
-elsif ($#ARGV == 1 && $ARGV[0] eq "x86macos")
+elsif ($#ARGV == 0 && $ARGV[0] eq "x86macos")
 {
     print "SACLIB Warning: Installing x86macos system dependent files!\n";
     system("bash -c \"pushd >/dev/null $ENV{'saclib'}/sysdep/macosX86 ; ./install ; popd >/dev/null\"");
 }
-elsif ($#ARGV == 1 && $ARGV[0] eq "x86_64macos")
+elsif ($#ARGV == 0 && $ARGV[0] eq "x86_64macos")
 {
     print "SACLIB Warning: Installing x86_64macos system dependent files!\n";
     system("bash -c \"pushd >/dev/null $ENV{'saclib'}/sysdep/macosX86_64 ; ./install ; popd >/dev/null\"");
 }
-elsif ($#ARGV == 1 && $ARGV[0] eq "x86_64linux")
+elsif ($#ARGV == 0 && $ARGV[0] eq "x86_64linux")
 {
     print "SACLIB Warning: Installing x86_64linux system dependent files!\n";
     system("bash -c \"pushd >/dev/null $ENV{'saclib'}/sysdep/linuxX86_64 ; ./install ; popd >/dev/null\"");
 }
-elsif ($#ARGV == 1 && $ARGV[0] eq "sparcsolaris")
+elsif ($#ARGV == 0 && $ARGV[0] eq "amrv7llinux")
+{
+    print "SACLIB Warning: Installing armv7llinux system dependent files!\n";
+    system("bash -c \"pushd >/dev/null $ENV{'saclib'}/sysdep/linuxArmv7l ; ./install ; popd >/dev/null\"");
+}
+elsif ($#ARGV == 0 && $ARGV[0] eq "wasm")
+{
+    print "SACLIB Warning: Installing wasm system dependent files!\n";
+    system("bash -c \"pushd >/dev/null $ENV{'saclib'}/sysdep/wasm ; ./install ; popd >/dev/null\"");
+}
+elsif ($#ARGV == 0 && $ARGV[0] eq "sparcsolaris")
 {
     print "SACLIB Warning: Installing sparcsolaris system dependent files!\n";
     system("bash -c \"pushd >/dev/null $ENV{'saclib'}/sysdep/solarisSparc ; ./install ; popd >/dev/null\"");
+}
+elsif ($#ARGV == 0 && $ARGV[0] eq "x86_64windows")
+{
+    print "SACLIB Warning: Installing x86_64windows system dependent files!\n";
+    system("bash -c \"pushd >/dev/null $ENV{'saclib'}/sysdep/windowsX86_64 ; ./install ; popd >/dev/null\"");
 }
 elsif ($ptype eq "x86" && $ostype eq "linux")
 {
@@ -120,6 +129,14 @@ elsif ($ptype eq "x86_64" && $ostype eq "macos")
 elsif ($ptype eq "x86_64" && $ostype eq "linux")
 {
     system("bash -c \"pushd >/dev/null $ENV{'saclib'}/sysdep/linuxX86_64 ; ./install ; popd >/dev/null\"");    
+}
+elsif ($ptype eq "armv7l" && $ostype eq "linux")
+{
+    system("bash -c \"pushd >/dev/null $ENV{'saclib'}/sysdep/linuxArmv7l ; ./install ; popd >/dev/null\"");    
+}
+elsif ($ptype eq "x86_64" && $ostype eq "windows")
+{
+    system("bash -c \"pushd >/dev/null $ENV{'saclib'}/sysdep/windowsX86_64 ; ./install ; popd >/dev/null\"");    
 }
 elsif ($ptype eq "sparc" && $ostype eq "solaris")
 {

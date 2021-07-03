@@ -475,7 +475,7 @@ public:
   TFormRef res;
   VarSet X;
   GCWord val;
-  EvalFormulaAtRational(VarSet _X, Word _val) : X(_X), val(_val) { } 
+  EvalFormulaAtRational(VarSet X, Word _val) : X(X), val(_val) { } 
   virtual void action(TConstObj* p) { res =  new TConstObj(p->value); }
   virtual void action(TAtomObj* p) 
   {

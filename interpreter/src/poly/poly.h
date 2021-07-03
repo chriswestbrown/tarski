@@ -61,6 +61,13 @@ public:
   int signDeduce(const VarKeyedMap<int> &varSign); // varSign[x] = sigma means that "x sigma 0" holds.
   void write(VarContext &C); // Write to the current Saclib Output Context
   int read(VarContext &C, VarSet S); // Read from current saclib input context
+
+  // r : level
+  // A : saclib poly
+  // V : saclib variable set with respect to which A is an r-level poly
+  // C : variable context
+  static IntPolyRef saclibToNonCanonical(Word r, Word A, Word V, VarContext &C);
+  
   void writeSMTLIB(VarContext &C, ostream& out);
   void writeMAPLE(VarContext &C, ostream& out);
   void writeMATHEMATICA(VarContext &C, ostream& out);

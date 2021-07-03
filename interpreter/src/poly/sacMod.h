@@ -1,16 +1,16 @@
 extern "C" {
 #include "saclib.h"
 };
-#include "caserver/CAPolicy.h"
+#include <caserver/CAPolicy.h>
 #include <iostream>
 #include <sstream>
 
 //-- I/O Context operations
-extern void InputContextInit();
+extern void InputContextInit(std::istream& defaultin);
 extern void PushInputContext(std::istream &in);
 extern void PopInputContext();
 
-extern void OutputContextInit();
+extern void OutputContextInit(std::ostream& defaultout);
 extern void PushOutputContext(std::ostream &out);
 std::ostream& TopOutputContext();
 extern void PopOutputContext();

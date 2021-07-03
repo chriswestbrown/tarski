@@ -7,7 +7,7 @@
 #include <sys/types.h>
 #include <signal.h>
 #include <chrono>
-#include "../../poly/caserver/unnamedpipe.h"
+#include <caserver/unnamedpipe.h>
 #include "../../tarskisysdep.h"
 #include "../../formula/writeForQE.h"
 #include "../einterpreter.h"

@@ -38,9 +38,10 @@ void AFUPSFNDB(Word M, Word B, Word *t_, Word *Bt_, Word *F_);
 Word APPEND(Word P, Word k, Word R);
 void APPENDEC(Word P, Word k, Word R, Word *Ps_, Word *F_);
 void ATOMFLWR(Word N, Word V, Word A);
-void ATOMFRDR(Word V, Word *F_, Word *t_);
+void ATOMFRDR(Word V, Word *F_, Word *t_,int errMode=0);
 void ATOMFWR(Word V, Word A);
 void BEGINQEPCAD(int &argc, char**& argv);
+void BEGINQEPCADLIB(int timeout);
 Word CAPTURE(Word P, Word M);
 Word CATOMQFF(Word F);
 void CATTRNRDR(Word *V_, Word *t_);
@@ -101,7 +102,7 @@ void FIRSTPRD(Word n, Word *v_, Word *S_r_, Word *S_s_, Word *R_c_, Word *R_s_);
 void FNDTS(Word M, Word N, Word *t_, Word *S_, Word *U_);
 void FNDTSDB(Word Mb, Word Nb, Word *t_, Word *S_, Word *U_);
 void FPSIGTBL(Word c, Word f, Word T_t, Word T_f, Word *Tp_t_, Word *Tp_f_);
-void FREADR(Word V, Word f, Word *Fs_, Word *t_);
+void FREADR(Word V, Word f, Word *Fs_, Word *t_,int errMode=0);
 void FSIGTBL(Word c, Word f, Word T_t, Word T_f, Word *Tp_t_, Word *Tp_f_);
 void FWRITE(Word V, Word Fs);
 void GADJINF(Word c, Word *S_, Word *Ns_, Word *s_, Word *n_);
@@ -109,16 +110,17 @@ Word GENPIMP(Word H_t, Word H_f);
 void GETRP(Word S1, Word t, Word U, Word *Ms_, Word *Ns_);
 void GETRPDB(Word S1, Word t, Word U, Word *Ms_, Word *Ns_);
 Word GETWORD();
-void GREADR(Word *a_, Word *t_);
+void GREADR(Word *a_, Word *t_,int errMode=0);
 Word GROUPSAMEPJ(Word r, Word J);
 void HELPFRD();
 void HELPWR(Word I);
 void INITCTRL();
 void INITDB();
-void INITIO();
+void INITIO(istream *is, ostream *os);
 void INITSTAT();
 void INITSYS();
-void INPUTRD(Word *Fs_, Word *V_);
+void INPUTRD(Word *Fs_, Word *V_,int errMode = 0);
+void INPUTRD_ERROR(const char* msg, int errMode);
 Word IPDSCRQE(Word r,Word A);
 Word IPFZT(Word r, Word A);
 Word IPRESQE(Word r,Word A,Word B);
@@ -221,11 +223,11 @@ const char* QEPCADBVersion();
 Word QFFFSOP(Word H, Word P, Word f);
 void QFFLPWR(Word N, Word V, Word F);
 void QFFLWR(Word N, Word V, Word F);
-void QFFRDR(Word V, Word *F_, Word *t_);
+void QFFRDR(Word V, Word *F_, Word *t_,int errMode=0);
 void QFFWR(Word V, Word F);
 bool qfrCheckNonVanishing(BDigit r, Word P, Word A, Word F, Word V);
 bool qfrCheckNonNullified(BDigit r, Word P, Word A, Word F, Word V);
-void QFRDR(Word *q_, Word *t_);
+void QFRDR(Word *q_, Word *t_,int errMode=0);
 void QFWR(Word q);
 Word RCFAFC(Word b);
 Word REPLACE(Word f, Word F, Word Fp);
@@ -289,7 +291,7 @@ void TRXPROJ(Word Ths, Word k, Word P_k, Word J);
 Word TYPEAF(Word A);
 Word TYPEQFF(Word F);
 Word VALIDLBL(Word L, Word P);
-void VLREADR(Word *V_, Word *t_);
+void VLREADR(Word *V_, Word *t_,int errMode=0);
 void VREADR(Word *v_, Word *t_);
 void VWRITE(Word v);
 void XREADR(Word *L_, Word *t_);
@@ -600,16 +602,7 @@ extern string *OUTSTRING;    /* Output string. */
 extern Word OPOS;            /* The position of the last character written. */
 extern Word NOECHOSWITCHSET; /* Set to true if command-line switch */
 
-void PushInputContext(istream &in);
-void PopInputContext();
-void InputContextInit(istream& defaultin);
-Word setECHO(Word k);
-Word setWASBKSP(Word k);
-void PushOutputContext(ostream &out);
-void PopOutputContext();
-ostream& TopOutputContext();
-void OutputContextInit();
-
+#include "io/iocontexts.h"
 
 /* -------------------------------------------------------------------------*/
 

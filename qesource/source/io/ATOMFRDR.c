@@ -13,9 +13,9 @@ Atomic Formula Read, robust.
 ======================================================================*/
 #include "qepcad.h"
 Word RPONE(Word r, Word A); /* This should be part of saclib! */
-void ETFATOMRDR(Word V, Word P1, BDigit R, Word *F_, Word *t_);
+void ETFATOMRDR(Word V, Word P1, BDigit R, Word *F_, Word *t_, int errMode=0);
 
-void ATOMFRDR(Word V, Word *F_, Word *t_)
+void ATOMFRDR(Word V, Word *F_, Word *t_, int errMode)
 {
        Word F,P,P1,P2,R,a,r,s,t;
        /* hide r,s,t; */
@@ -71,7 +71,7 @@ Outputs
   is a saclib k-variate polynomial of level k
 
 ======================================================================*/
-void ETFATOMRDR(Word V, Word P1, BDigit R, Word *F_, Word *t_)
+void ETFATOMRDR(Word V, Word P1, BDigit R, Word *F_, Word *t_, int errMode)
 {
         Word t, F, r, j, P2, P2p, r1, r2, a, P, s;
 
@@ -83,7 +83,7 @@ Step2: /* Read "_root_" */
         if (CREADB() != '_' || CREADB() != 'r' ||  CREADB() != 'o' ||  
 	    CREADB() != 'o' ||  CREADB() != 't' ||  CREADB() != '_') 
 	{
-	  SWRITE("_root_ expected!\n");
+	  INPUTRD_ERROR("_root_ expected!\n",errMode);
 	  DIELOC(); t = 0; goto Return; 
 	}
 	
@@ -91,7 +91,7 @@ Step3: /* Read index j */
 	GREADR(&j,&t);
 	if (!t || j == 0)
 	{
-	  SWRITE("nonzero index for _root_ expected!\n");
+	  INPUTRD_ERROR("nonzero index for _root_ expected!\n",errMode);
 	  DIELOC(); t = 0; goto Return; 
 	}
       
@@ -103,7 +103,7 @@ Step5: /* Ensure the this ETF formula is proper */
 	PSIMREP(r,P2,&r2,&P2p);
 	if (PRED(P1) != 0 || !RPONE(r1,RPDMV(r1,P1)) || r1 != r2)
 	{
-	  SWRITE("Not a *proper* Extended Tarski Formula!\n");
+	  INPUTRD_ERROR("Not a *proper* Extended Tarski Formula!\n",errMode);
 	  DIELOC(); t = 0; goto Return; 
 	}
 

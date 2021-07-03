@@ -1,12 +1,11 @@
-#ifndef __MINGW32__
 #include "qepcad.h"
 #include <iostream>
 #include <sstream>
 #include <cstdlib>
 using namespace std;
 
-#include "db/unnamedpipe.h"
-#include "db/CAServer.h"
+#include "caserver/unnamedpipe.h"
+#include "caserver/CAServer.h"
 #include <sstream>
 #include <signal.h>
 
@@ -198,4 +197,3 @@ bool qfrFalseCheck(string qfrInputString)
   else
     return false;
 }
-#endif

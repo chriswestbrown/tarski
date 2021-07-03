@@ -2032,7 +2032,7 @@ class EntangleMeasure
   VarOrderRef ord;
   OpenCellRef C;
 public:
-  EntangleMeasure(OpenCellRef _C) : ord(_C->getVarOrder()), C(_C) { } 
+  EntangleMeasure(OpenCellRef _c) : ord(_c->getVarOrder()), C(_c) { } 
 
   static void add(const PseudoPF &V, vector<vector<PseudoPF> > &S, const VarOrderRef &ord)
   {

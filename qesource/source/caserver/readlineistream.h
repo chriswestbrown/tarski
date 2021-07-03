@@ -6,15 +6,15 @@
  * but uses the readline library, so the user sees emacs-style
  * editing, history and, eventually, tab-completion.
  ***************************************************************/
-#ifndef __MINGW32__
 #include <iostream>
 #include <readline/readline.h>
 #include <readline/history.h>
 #include <cstring>
-using namespace std;
+#include <string>
 
-class readlineInBuff : public streambuf
+class readlineInBuff : public std::streambuf
 {
+  std::string prompt;
 protected:
   char *buff;
   int buffSize;  
@@ -22,17 +22,19 @@ protected:
 public:
   inline readlineInBuff();
   inline readlineInBuff(int fd);
+  void setPrompt(std::string prompt) { this->prompt = prompt; }
   inline virtual int_type underflow();
   inline ~readlineInBuff() { free(buff); }
 };
 
-class readlineIstream : public istream
+class readlineIstream : public std::istream
 {
 protected:
   readlineInBuff buff;
 public:
-  inline readlineIstream() : buff(), istream(&buff) { }
-  inline readlineIstream(int fd) : buff(fd), istream(&buff) { }
+  inline readlineIstream() : std::istream(&buff), buff() { }
+  inline readlineIstream(int fd) : std::istream(&buff), buff(fd) { }
+  void setPrompt(std::string prompt) { buff.setPrompt(prompt); }
 };
 
 /***************************************************************
@@ -58,7 +60,7 @@ readlineInBuff::int_type readlineInBuff::underflow()
 {
   if (gptr() >= egptr())
   {
-    char *s = readline("");    //would like some way to check if \n was read in or not!
+    char *s = readline(prompt.c_str());    //would like some way to check if \n was read in or not!
     if (s == NULL) return EOF;
     add_history(s);
     int ls = strlen(s);
@@ -76,4 +78,3 @@ readlineInBuff::int_type readlineInBuff::underflow()
   }
   return *gptr();
 }
-#endif

@@ -77,6 +77,7 @@ class ClearDenoms : public TarskiApply
 public:
   MRes res;
   std::ostringstream sout;
+
 public:
 
   virtual void operator()(TarskiConst* p)
@@ -150,20 +151,20 @@ public:
     p->arg1->apply(*this); MRes A = res; 
     p->arg2->apply(*this); MRes B = res; 
     char op = p->op;
-    if (op == '+' || op == '-')
-    {
+    switch(op) {
+    case '+': case '-': {
       res.f = SExpObj::mkBinOp(SExpObj::MULT,A.f,B.f);
       res.e = SExpObj::mkBinOp((op == '+' ? SExpObj::PLUS : SExpObj::MINUS),
 			       SExpObj::mkBinOp(SExpObj::MULT,B.f,A.e),
 			       SExpObj::mkBinOp(SExpObj::MULT,A.f,B.e));
+      break;
     }
-    else if (op == '*')
-    {
+    case '*': {
       res.f = SExpObj::mkBinOp(SExpObj::MULT,A.f,B.f);
       res.e = SExpObj::mkBinOp(SExpObj::MULT,A.e,B.e);
+      break;
     }
-    else if (op == '/')
-    {
+    case '/': {
       // res.f = SExpObj::mkBinOp(SExpObj::MULT,
       // 			       SExpObj::mkBinOp(SExpObj::MULT,A.f,B.f),
       // 			       SExpObj::mkBinOp(SExpObj::MULT,B.e,B.e)  );
@@ -172,6 +173,27 @@ public:
       // 			       SExpObj::mkBinOp(SExpObj::MULT,B.f,B.f)  );
       res.f = SExpObj::mkBinOp(SExpObj::MULT,A.f,B.e);
       res.e = SExpObj::mkBinOp(SExpObj::MULT,A.e,B.f);
+      break;
+    }
+    case '^': {
+      int e = atoi(B.e->rep().c_str());
+      if (e == 0) { res.f = A.f; res.e = SExpObj::mkNum("1"); }
+      else {
+	MRes col;
+	col.f = A.f;
+	col.e = A.e;
+	for(int i = 1; i < e; i++) {
+	  col.f = SExpObj::mkBinOp(SExpObj::MULT,col.f,A.f);
+	  col.e = SExpObj::mkBinOp(SExpObj::MULT,col.e,A.e);
+	}
+	res = col;
+      }
+      break;
+    }
+    default: {
+      throw TarskiException(string("Unknown binary operator '") + op + "'!");
+      break;
+    }
     }
   }
 };
@@ -183,7 +205,7 @@ TarskiRef clearDenominators(TarskiRef T)
   T->apply(CD);
   CD.sout << ']';
 
-  // std::cerr << CD.sout.str() << std::endl;
+   std::cerr << CD.sout.str() << std::endl;
     
   std::istringstream sin(CD.sout.str());
   LexContext LCs(sin);

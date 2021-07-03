@@ -17,7 +17,7 @@ Note:  The method used to compute the resultant is defined by the
 ===========================================================================*/
 #include "qepcad.h"
 
-#include "db/CAPolicy.h"
+#include "caserver/CAPolicy.h"
 
 Word IPRESQE(Word r, Word A, Word B)
 {

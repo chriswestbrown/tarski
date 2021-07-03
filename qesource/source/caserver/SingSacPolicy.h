@@ -1,7 +1,8 @@
 #ifndef _SINGSAC_POLICY_
 #define _SINGSAC_POLICY_
-#include "db/OriginalPolicy.h"
-#include "db/SingularPolicy.h"
+#include "OriginalPolicy.h"
+#include "SingularPolicy.h"
+
 
 class SingSacPolicy : public CAPolicy
 {
@@ -11,11 +12,6 @@ public:
   {
     sac = new OriginalPolicy;
     sing = new SingularPolicy;
-  }
-  ~SingSacPolicy() 
-  {
-    delete sing;
-    delete sac;
   }
   void IPFAC(Word r, Word P, Word *s_, Word *c_, Word *L_)
   {
@@ -28,17 +24,17 @@ public:
   Word IPRES(Word r, Word A, Word B)
   {
     if (r > 2)
-      sing->IPRES(r,A,B);
+      return sing->IPRES(r,A,B);
     else
-      sac ->IPRES(r,A,B);
+      return sac ->IPRES(r,A,B);
   }
 
   Word IPDSCR(Word r, Word A)
   {
     if (r > 2)
-      sing->IPDSCR(r,A);
+      return sing->IPDSCR(r,A);
     else
-      sac ->IPDSCR(r,A);
+      return sac ->IPDSCR(r,A);
   }
 
   Word IPFACTGB(Word r, Word I, Word N)  
@@ -51,10 +47,10 @@ public:
     return sing->CONSTORDTEST(r,A,L);
   }
 
-  const string name() { return "SingSacPolicy"; }
-  bool supports(const string &s)
+  const std::string name() { return "SingSacPolicy"; }
+  bool supports(const std::string &s)
   {
-      return s == "IPFAC" || s == "IPRES" || s == "IPDSCR" || s == "IPFACTGB" || s == "CONSTORDTEST"; 
+      return s == "IPFAC" || "IPRES" || "IPDSCR" || "IPFACTGB" || "CONSTORDTEST"; 
   }
   
 };

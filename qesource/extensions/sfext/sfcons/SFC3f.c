@@ -8,15 +8,18 @@ J : the projection polynomial set for D, or possibly a superset
 n : the level of the CAD (note that this can be less than the true level)
 L : a list of options of the form (e,s,m), where e in {0,1}, s in {0,1}
     and m in {0,1,2}
+outFlag : 0 or 1
 
-Side Effects:
-SF : a solution formula (in the format outlined in the solution
-     extensions) is returned.
+Output:
+SF : if outFlag == 0 then SF is a solution formula (in the format 
+     outlined in the solution extensions).  If outFlag == 1 then
+     SF is a pair (F,Pp) where F is the formula and Pp is the projection
+     factor data structure the formula refers to.
 
 ======================================================================*/
 #include "qepcad.h"
 
-Word QepcadCls::SFC3f(Word D, Word P, Word J, Word n, Word L)
+Word QepcadCls::SFC3f(Word D, Word P, Word J, Word n, Word L, Word outFlag)
 {
       Word t,SF,e,s,m,Dp,Pp,Lt,Lf,LA,Q,D1,P1,D0,P0,J0,i,Lp,pflag;
 
@@ -117,5 +120,5 @@ Step4: /* Massage the formula. */
 	} }
 	
 Return: /* Prepare to return. */
-      return SF;
+      return outFlag == 1 ? LIST2(SF,Pp) : SF;
 }

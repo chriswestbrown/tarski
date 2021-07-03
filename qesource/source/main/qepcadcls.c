@@ -27,17 +27,21 @@ void QepcadCls::SETASSUMPTIONS(Word F)
   GVUA = Fp;
 }
 
-Word QepcadCls::GETDEFININGFORMULA(char opt)
+Word QepcadCls::GETDEFININGFORMULA(char opt, Word outFlag)
 {
   Word SF;
   switch(opt)
   {
   case 'T': /* Tarski formula */
-    SF = SFC3f(GVPC,GVPF,GVPJ,GVNFV,LIST10(0,0,0,1,0,3,2,4,1,5));
+    SF = SFC3f(GVPC,GVPF,GVPJ,GVNFV,LIST10(0,0,0,1,0,3,2,4,1,5),outFlag);
     break;
   case 'E': /* Extended Language Formula */
-    SF = SFC3f(GVPC,GVPF,GVPJ,GVNFV,CCONC(LIST10(1,0,0,1,0,3,2,4,1,5),LIST1(-1)));
-    break;
+    SF = SFC3f(GVPC,GVPF,GVPJ,GVNFV,CCONC(LIST10(1,0,0,1,0,3,2,4,1,5),LIST1(-1)),outFlag);
+    break;  
+  case 'G': /* "Geometry-based" Formula */
+    SFC3f(GVPC,GVPF,GVPJ,GVNFV,
+	  CCONC(LIST4(1,0,2,1),LIST4(3,2,0,-4)),outFlag); 
+    break;  
   case 'F': /* Full Dim only Formula */
     SF = SFCFULLDf(GVPC,GVPF,GVPJ,GVNFV);
     break;
@@ -45,9 +49,15 @@ Word QepcadCls::GETDEFININGFORMULA(char opt)
     FAIL("GETDEFININGFORMULA","Error!  Unknown option!\n");
     break;
   }
-  Word SFp = FMA2QUNF(SF,GVPF);
+  Word SFp = outFlag == 1 ? FMA2QUNF(FIRST(SF),SECOND(SF)) : FMA2QUNF(SF,GVPF);
   return SFp;
 }
+
+Word QepcadCls::GETASSUMPTIONS()
+{
+  return GVUA;
+}
+
 
 void QepcadCls::UnsatCore::FactorInfo::WRITEFULL(Word V)
 {

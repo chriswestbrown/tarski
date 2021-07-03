@@ -120,7 +120,7 @@ class PAllInequationsObj : public ParentageObj
   QAndRef Fp; // Parent formula
   VarSet X; // the quantified variables eliminated
 public:
-  PAllInequationsObj(QAndRef _Fp, VarSet _X) : Fp(_Fp), X(_X) { }
+  PAllInequationsObj(QAndRef _Fp, VarSet _x) : Fp(_Fp), X(_x) { }
   void write()
   {
     std::cout << "existentially quantified conjunction of inequations is true when none of the LHS's are nullifiable over the free variables.";
