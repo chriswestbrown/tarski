@@ -19,9 +19,13 @@ extLibQEPCAD:=  ${qe}/source/qepcad.a \
 		${qe}/extensions/sfext/sfexto.a \
 		${qe}/extensions/lift2D/lift2Do.a \
 		${qe}/extensions/adj2d/adj2do.a \
-		${qe}/extensions/rend/rendo.a \
 		${qe}/extensions/sfext/sfexto.a \
 		${qe}/source/qepcad.a
+
+# The rend extension will not be built on Windows MSYS2/CLANG64, otherwise always.
+ifeq (,$(findstring MINGW64,$(UNAME_S)))
+extLibQEPCAD += ${qe}/extensions/rend/rendo.a
+endif
 
 # Find the openssl include/lib folders automatically. We assume that Homebrew is already installed.
 ifeq ($(UNAME_S),Darwin)
@@ -44,16 +48,18 @@ AOBJ := $(ASRC:%=$(BUILD_DIR)/%.o)
 DEPS := $(OBJS:.o=.d)
 
 LDFLAGS :=  $(saclibOverrides) $(extLibQEPCAD) -lreadline $(extLibSACLIB) $(extLibMINISAT) $(extLibMD5)
-# On Mac the rt library is not present, but otherwise it is necessary.
+# On Mac and Windows MSYS2/CLANG64 the rt library is not present, but otherwise it is necessary.
 ifneq ($(UNAME_S),Darwin)
+ifeq (,$(findstring MINGW64,$(UNAME_S)))
 LDFLAGS += -lrt
+endif
 endif
 
 INC_DIRS := $(shell find $(SRC_DIRS) -type d)
 INC_FLAGS := $(addprefix -I,$(INC_DIRS)) $(extIncludesSACLIB) $(extIncludeMINISAT) $(extIncludesMD5)
 
 CPPFLAGS ?= $(INC_FLAGS) -MMD -MP -g
-# On Mac the C++11 dialect must be set, on Linux it is optional, on MSYS2 it should not be set.
+# On Mac the C++11 dialect must be set, on Linux it is optional, on Windows MSYS2/CLANG64 it should not be set.
 ifeq ($(UNAME_S),Darwin)
 CPPFLAGS += --std=c++11
 endif

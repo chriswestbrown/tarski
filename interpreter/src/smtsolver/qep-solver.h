@@ -1,3 +1,4 @@
+#ifndef __MINGW32__
 #ifndef QEPSOLVER_H
 #define QEPSOLVER_H
 #include "box-solver.h"
@@ -63,4 +64,5 @@ namespace tarski {
 
 }
 
+#endif
 #endif

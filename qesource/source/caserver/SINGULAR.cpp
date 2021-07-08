@@ -1,3 +1,4 @@
+#ifndef __MINGW32__
 #include "SINGULAR.h"
 #include "io/iocontexts.h"
 #include <iostream>
@@ -336,3 +337,4 @@ Word TDEG(Word r, Word A)
 //   return GBi;
     
  }
+#endif

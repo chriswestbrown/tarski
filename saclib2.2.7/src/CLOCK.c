@@ -7,14 +7,23 @@ Outputs
   t :  the system clock time in millisecconds.
 ======================================================================*/
 #include "saclib.h"
+#ifdef __MINGW32__
+#include <sysinfoapi.h>
+#else
 #include <sys/resource.h>
+#endif
 
 Word CLOCK()
 {
+#ifdef __MINGW32__
+       SYSTEMTIME time;
+       GetSystemTime(&time);
+       Word t = (time.wSecond * 1000) + time.wMilliseconds;
+       return(t);
+#else
        Word t;
        struct rusage r;
        struct timeval v;
-
 
 Step1: /* Get the system time. */
        getrusage(RUSAGE_SELF, &r);
@@ -23,4 +32,6 @@ Step1: /* Get the system time. */
 
 Return: /* Prepare for return. */
        return(t);
+#endif
 }
+

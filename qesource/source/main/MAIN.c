@@ -5,13 +5,17 @@
 #include "caserver/CAPolicy.h"
 
 #ifndef __MSYS__
+#ifndef __MINGW32__
 #include <execinfo.h>
 #include <signal.h>
 #include <unistd.h>
 #endif
+#endif
 
+#ifndef __MINGW32__
 static void SIGINT_handler(int i, siginfo_t *sip,void* uap);
 static void init_SIGINT_handler();
+#endif
 static int sendSignalAfterInterval(int seconds, int signum);
 extern int GVTIMEOUTLIMIT;
 
@@ -29,11 +33,13 @@ Step1: /* Set up the system. */
        ARGSACLIB(argc,argv,&ac,&av);
        BEGINSACLIB((Word *)topOfTheStack);
        BEGINQEPCAD(ac,av);
+#ifndef __MINGW32__
        init_SIGINT_handler(); /* A special handler for SIGINT is needed
                                  to shut down child processes. Also used
 			         for SIGTERM. */
        if (GVTIMEOUTLIMIT > 0)
 	 sendSignalAfterInterval(GVTIMEOUTLIMIT,SIGALRM);
+#endif
 
 Step2: /* Read input, create CAD, write result */
        PCCONTINUE = FALSE;
@@ -62,6 +68,7 @@ Return: /* Prepare for return. */
        return 0;
 }
 
+#ifndef __MINGW32__
 static void SIGINT_handler(int i, siginfo_t *sip,void* uap)
 {  
   if (sip->si_signo == SIGALRM)
@@ -84,10 +91,11 @@ static void init_SIGINT_handler()
   sigaction(SIGALRM,p,NULL);
   free(p);
 }
+#endif
 
 static int sendSignalAfterInterval(int seconds, int signum)
 {
-#ifdef __APPLE__
+#if defined(__APPLE__) || defined(__MINGW32__)
   return 1;
 #else
   /* Create timer */
@@ -120,6 +128,7 @@ int main(int argc, char **argv)
 }
 
 #ifndef __MSYS__
+#ifndef __MINGW32__
 // Taken from https://stackoverflow.com/a/77336/1044586
 void handler(int sig) {
   void *array[10];
@@ -134,10 +143,13 @@ void handler(int sig) {
   exit(1);
 }
 #endif
+#endif
 
 void mainLIB(int numcells, int timeout) {
 #ifndef __MSYS__
+#ifndef __MINGW32__
   signal(SIGSEGV, handler);
+#endif
 #endif
 
   int dummy;

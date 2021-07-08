@@ -1,3 +1,4 @@
+#ifndef __MINGW32__
 /***************************************************************
  * This file SINGULAR.h and SINGULAR.cpp define a CAServer based
  * on the Singular system.
@@ -30,4 +31,5 @@ public:
 };
 
 
+#endif
 #endif

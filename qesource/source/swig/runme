@@ -11,6 +11,9 @@ UNAME_S=`uname -s`
 START_GROUP="-Wl,--start-group"
 END_GROUP="-Wl,--end-group"
 
+REND=../../extensions/rend/rendo.a
+qe=
+
 if [ "$UNAME_S" = "Darwin" ]; then
  JAVA=`find /usr/local/Cellar/openjdk/*/ | sort | head -1`
  if [ "$JAVA" = "" ]; then
@@ -44,13 +47,15 @@ if [ "$UNAME_S" = "Linux" ]; then
 
  fi
 
-if [[ "$UNAME_S" == *"MSYS"* ]]; then
+if [[ "$UNAME_S" == *"MINGW"* ]]; then
  JAVA=`find /c/Program\ Files\/OpenJDK/* | sort | head -1`
  if [ "$JAVA" = "" ]; then
   echo "No Java found. Consider installing it via choco (openjdk)."
   exit 1
   fi
  LIBQEPCAD=qepcad.dll
+ REND=
+ qe=..\\..
 
  which swig > /dev/null || {
    echo "No swig found. Consider installing it via pacman (swig)."
@@ -72,9 +77,10 @@ g++ -shared $START_GROUP qepcad_wrap.o ../qepcad.a\
  ../../extensions/sfext/sfexto.a\
  ../../extensions/lift2D/lift2Do.a\
  ../../extensions/adj2d/adj2do.a\
- ../../extensions/rend/rendo.a\
+ $REND\
  $SACLIB/lib/saclibo.a $END_GROUP -o $LIBQEPCAD -lreadline -fPIC
 
 "$JAVA/bin/javac" main.java
 
+export qe
 "$JAVA/bin/java" -Djava.library.path=. main

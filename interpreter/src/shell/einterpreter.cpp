@@ -1459,8 +1459,10 @@ void NewEInterpreter::init()
 
   add(new CommSuggestVarOrder(this));
   add(new CommSuggQepcad(this));
+#ifndef __MINGW32__
   add(new CommQepcadQE(this));
   add(new CommQepcadSat(this));
+#endif
   add(new CommQepcadAPICall(this));
   add(new CommSyntax(this));
   
@@ -1501,7 +1503,9 @@ void NewEInterpreter::init()
   add(new WBTesterComm(this));
   add(new BBWBComm(this));
   add(new BoxSolverComm(this));
+#ifndef __MINGW32__
   add(new QepSolverComm(this));
+#endif
   add(new CommChristest(this));
 
   // add extended types

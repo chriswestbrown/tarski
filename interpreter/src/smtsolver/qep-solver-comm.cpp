@@ -1,3 +1,4 @@
+#ifndef __MINGW32__
 #include "qep-solver-comm.h"
 #include "qep-solver.h"
 #include "../../../minisat/core/Solver.h"
@@ -61,3 +62,4 @@ namespace tarski{
   }
 
 }
+#endif

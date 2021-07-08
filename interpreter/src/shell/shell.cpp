@@ -27,7 +27,8 @@ extern void RRIS_summary();
 Tracker compTracker;
 
 
-  
+
+#ifndef __MINGW32__
 /**************************************************************
  * I'm keeping this bit in my hip pocket in case I need to add
  * helper files that the executable accesses for, for example,
@@ -62,13 +63,16 @@ string pathToCurrentExecutable()
   buff[s+1] = '\0';
   return buff;
 }
+#endif
 
 void help(ostream& out);
 void printVersion(ostream& out);
 
 void nln() { cout << endl; } // just to help with using gdb
+#ifndef __MINGW32__
 void SIGINT_handler(int i, siginfo_t *sip,void* uap);
 void init_SIGINT_handler();
+#endif
 int sendSignalAfterInterval(int seconds, int signum);
 
   
@@ -96,8 +100,10 @@ int mainDUMMY(int argc, char **argv, void* topOfTheStack)
       else if (argv[i] == string("-t")) {
 	int tout = -1;
 	if (i + 1 < argc && (tout = atoi(argv[i+1])) && tout > 0) {
+#ifndef __MINGW32__
 	  init_SIGINT_handler();
 	  sendSignalAfterInterval(tout,SIGALRM);
+#endif
 	  i++;
 	}
 	else {
@@ -217,6 +223,7 @@ Options:\n\
       << flush;
 }
 
+#ifndef __MINGW32__
 void SIGINT_handler(int i, siginfo_t *sip,void* uap)
 {  
   if (sip->si_signo == SIGALRM)
@@ -238,10 +245,11 @@ void init_SIGINT_handler()
   sigaction(SIGALRM,p,NULL);
   free(p);
 }
+#endif
 
 int sendSignalAfterInterval(int seconds, int signum)
 {
-#ifdef __APPLE__
+#if defined(__APPLE__) || defined(__MINGW32__)
   return 1;
 #else
   /* Create timer */
@@ -272,7 +280,9 @@ int main(int argc, char **argv)
 {
   int dummy = 0;
   void *topOfTheStack = &dummy;
+#ifndef __MINGW32__
   if (strcmp(tarski::pathToQepcad, "") == 0) throw tarski::TarskiException("Invalid location for QEPCAD");
+#endif
   tarski::mainDUMMY(argc,argv,topOfTheStack);
 }
 

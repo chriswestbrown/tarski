@@ -2,7 +2,11 @@
 #include <sstream>
 #include <cstdlib>
 #include <vector>
+#ifndef __MINGW32__
 #include <sys/ioctl.h>
+#else
+#include <windows.h>
+#endif
 #include <stdio.h>
 #include <unistd.h>
 using namespace std;
@@ -11,10 +15,16 @@ namespace tarski {
   
 int getTermWidth()
 {
+#ifndef __MINGW32__
   struct winsize w;
   ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
   int cols = w.ws_col;
   int rows = w.ws_row;
+#else
+  CONSOLE_SCREEN_BUFFER_INFO csbi;
+  GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
+  int cols = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+#endif
   return cols;
 }
 

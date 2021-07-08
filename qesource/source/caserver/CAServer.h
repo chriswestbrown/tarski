@@ -103,8 +103,10 @@ public:
   virtual const std::string name() { return "Empty"; }
   virtual int kill() // Should kill the server, ungracefully if need be!
   {
+#ifndef __MINGW32__
     if (childpid != 0)
       ::kill(childpid,SIGKILL);
+#endif
     return 0;
   }
 };

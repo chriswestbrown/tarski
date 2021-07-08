@@ -24,7 +24,7 @@
 #include <fenv.h>
 #endif
 
-#ifdef __MSYS__
+#if defined(__MSYS__) || defined(__MINGW32__)
 #include <fenv.h>
 #endif
 
@@ -94,7 +94,7 @@ typedef union {
 #endif
 
 /* Windows */
-#ifdef __MSYS__
+#if defined(__MSYS__) || defined(__MINGW32__)
 #define rounddown() fesetround(FE_DOWNWARD)
 #define roundup() fesetround(FE_UPWARD)
 #endif

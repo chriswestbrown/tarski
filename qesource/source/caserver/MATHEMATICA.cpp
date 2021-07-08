@@ -1,3 +1,5 @@
+#ifndef __MINGW32__
+
 #include "MATHEMATICA.h"
 #include "io/iocontexts.h"
 #include <iostream>
@@ -217,3 +219,4 @@ void MathematicaServer::IPFAC(Word r, Word P, Word *s_, Word *c_, Word *L_)
   return;
 }
 
+#endif

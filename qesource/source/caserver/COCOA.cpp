@@ -1,3 +1,5 @@
+#ifndef __MINGW32__
+
 #include "COCOA.h"
 #include "io/iocontexts.h"
 #include <iostream>
@@ -334,3 +336,4 @@ static Word TDEG(Word r, Word A)
 //   return GBi;
     
  }
+#endif

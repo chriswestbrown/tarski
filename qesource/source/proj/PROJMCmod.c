@@ -43,11 +43,13 @@ Step1: /* Obtain coefficients. */
 	 t = 0;
 
 	 /*-- TEST NEW --*/
+#ifndef __MINGW32__
 	 if (experimentalExtensionFlag)
 	 {
 	   bool qfc = qfrCheckNonVanishing(r-1,L,GVNA.W,GVNQFF.W,GVVL.W);
 	   if (qfc) continue;
 	 }
+#endif
 	 /*-- END TEST NEW --*/
 
 	 if (!VERIFYCONSTSIGN(r-1,IPIP(r-1,ISIGNF(PLBCF(r-1,L)),L),1,GVNA.W)) {
@@ -58,7 +60,9 @@ Step1: /* Obtain coefficients. */
 	 
 	 /* If r = 2 OR r-1 is in free variable space, the leading coefficient is always enough! */
 	 if (t && (r == 2 || (PCMZERROR && r-1 <= GVNFV))
+#ifndef __MINGW32__
 	     || (experimentalExtensionFlag && qfrCheckNonNullified(r,Ap1,GVNA.W,GVNQFF.W,GVVL.W))
+#endif
 	     )
 	   t = 0;
 	 else if (t) {
@@ -83,7 +87,9 @@ Step1: /* Obtain coefficients. */
 	     
 	     /* Test 1: identically non-zero */
 	     //--ORIGINAL-- tf = tf || VERIFYCONSTSIGN(r-1,f,1,GVNA.W);
+#ifndef __MINGW32__
 	     tf = tf || (experimentalExtensionFlag && qfrCheckNonVanishing(r-1,f,GVNA.W,GVNQFF.W,GVVL.W));
+#endif
 	     
 	     /* Test 2: of a level corresponding to a FULLDE or FULLDA quantifier */
 	     j = rp - GVNFV;

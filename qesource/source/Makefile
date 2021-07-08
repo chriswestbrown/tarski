@@ -42,7 +42,7 @@ EXTLIBS   =	${qe}/extensions/sfext/sfexto.a \
 		${qe}/extensions/adj2d/adj2do.a \
 		${saclib}/lib/saclibo.a \
 		${SPECLFLAGS} \
-		-lreadline ${qe}/extensions/rend/rendo.a
+		-lreadline
 
 EXTLIBSD  =	${qe}/extensions/sfext/sfextd.a \
 		${qe}/extensions/lift2D/lift2Dd.a \
@@ -50,15 +50,18 @@ EXTLIBSD  =	${qe}/extensions/sfext/sfextd.a \
 		${qe}/extensions/adj2d/adj2dd.a \
 		${saclib}/lib/saclibd.a \
 		${SPECLFLAGS} \
-		-lreadline ${qe}/extensions/rend/rendd.a
+		-lreadline
 
 ARFLAGS := crv
 # On Mac the rt library is not present, but otherwise it is necessary.
+# Also, on Windows MSYS2/CLANG64 we do not compile and use the rend extension.
 UNAME_S := $(shell uname -s)
 ifneq ($(UNAME_S),Darwin)
-EXTLIBS += -lrt
-EXTLIBSD += -lrt
 ARFLAGS := crvU
+ifeq (,$(findstring MINGW64,$(UNAME_S)))
+EXTLIBS += -lrt ${qe}/extensions/rend/rendo.a
+EXTLIBSD += -lrt ${qe}/extensions/rend/rendd.a
+endif
 endif
 
 NAME      =  qepcad

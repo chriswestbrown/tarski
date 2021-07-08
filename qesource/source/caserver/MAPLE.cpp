@@ -1,3 +1,4 @@
+#ifndef __MINGW32__
 #include "MAPLE.h"
 #include "io/iocontexts.h"
 #include <iostream>
@@ -505,3 +506,4 @@ void MapleServer::IPFACRES(Word r, Word A, Word B, Word *s_, Word *c_, Word *L_)
   *L_ = L;
   return;
 }
+#endif

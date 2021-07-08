@@ -67,6 +67,7 @@ Step4: /* Factor. */
              /*Int*/ TMIPLFAC[k - 1] = TMIPLFAC[k - 1] + Ths;
 
 StepX: /* Filter out factors that don't vanish given assumptions */
+#ifndef __MINGW32__
        if (experimentalExtensionFlag)
        {
 	 Word Rb = NIL;
@@ -87,6 +88,7 @@ StepX: /* Filter out factors that don't vanish given assumptions */
 	 }
 	 R = Rb;
        }
+#endif
        if (false)
        {
 	 Word AssTmp = (GVNA == NIL) ? TRUE : CHANGEASSUMPTIONSLEVEL(GVNA.W,k-1,1);

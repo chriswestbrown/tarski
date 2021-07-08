@@ -14,7 +14,9 @@ not propogate!
   \parm{P} is the "safe" half-way improved McCallum's projection of $A$.
 ======================================================================*/
 #include "qepcad.h"
+#ifndef __MINGW32__
 #include "caserver/CAPolicy.h"
+#endif
 
 Word QepcadCls::PROJMCECmod(Word r, Word A)
 {
@@ -53,11 +55,13 @@ Step1: /* Obtain coefficients. */
 	 t = 0;
 
 	 /*-- TEST NEW --*/
+#ifndef __MINGW32__
 	 if (experimentalExtensionFlag)
 	 {
 	   bool qfc = qfrCheckNonVanishing(r-1,L,GVNA.W,GVNQFF.W,GVVL.W);
 	   if (qfc) continue;
 	 }
+#endif
 	 /*-- END TEST NEW --*/
 
 	 if (!VERIFYCONSTSIGN(r-1,IPIP(r-1,ISIGNF(PLBCF(r-1,L)),L),1,GVNA.W)) {
@@ -68,7 +72,9 @@ Step1: /* Obtain coefficients. */
 	 
 	 /* If r = 2 OR r-1 is in free variable space, the leading coefficient is always enough! */
 	 if (t && (r == 2 || (PCMZERROR && r-1 <= GVNFV)) 
+#ifndef __MINGW32__
 	     || (experimentalExtensionFlag && qfrCheckNonNullified(r,Ap1,GVNA.W,GVNQFF.W,GVVL.W))
+#endif
 	     )
 	   t = 0;
 	 else if (t) {
@@ -93,7 +99,9 @@ Step1: /* Obtain coefficients. */
 	     
 	     /* Test 1: identically non-zero */
 	     //--ORIGINAL-- tf = tf || VERIFYCONSTSIGN(r-1,f,1,GVNA.W);
+#ifndef __MINGW32__
 	     tf = tf || (experimentalExtensionFlag && qfrCheckNonVanishing(r-1,f,GVNA.W,GVNQFF.W,GVVL.W));
+#endif
 	     
 	     /* Test 2: of a level corresponding to a FULLDE or FULLDA quantifier */
 	     j = rp - GVNFV;
@@ -197,6 +205,7 @@ Step2: /* Obtain discriminants. */
 	 {
 	   if (r <= 2) continue;
 	   if (!PFPRDQ(A1)) continue;
+#ifndef __MINGW32__
 	   if (GVCAP->supports("CONSTORDTEST"))
 	   {
 	     /* Checks that Ap1 has constant order in V(Ap1,cq) for each
@@ -220,6 +229,7 @@ Step2: /* Obtain discriminants. */
 	       continue;
 	     }
 	   }
+#endif
 	   if (PCVERBOSE) {
 	     SWRITE("Unable to determine that discriminant of non-pivot polynomial ");
 	     IPDWRITE(r,Ap1,GVVL);

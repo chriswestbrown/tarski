@@ -1,3 +1,4 @@
+#ifndef __MINGW32__
 #ifndef _QEPCAD_SESSION_
 #define _QEPCAD_SESSION_
 
@@ -261,4 +262,5 @@ namespace tarski {
   };
 }; // END namespace tarski
 
+#endif
 #endif

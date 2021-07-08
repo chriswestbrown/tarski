@@ -1,3 +1,4 @@
+#ifndef __MINGW32__
 #ifndef _QEPCAD_INTER_
 #define _QEPCAD_INTER_
 
@@ -202,4 +203,5 @@ public:
 
 }//end namespace tarski
 
+#endif
 #endif

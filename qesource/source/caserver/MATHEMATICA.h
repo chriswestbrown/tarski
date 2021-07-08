@@ -1,3 +1,4 @@
+#ifndef __MINGW32__
 /***************************************************************
  * This file MATHEMATICA.h and MATHEMATICA.cpp define a CAServer based
  * on the Mathematica system.
@@ -27,4 +28,5 @@ public:
 };
 
 
+#endif
 #endif

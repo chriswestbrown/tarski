@@ -1,8 +1,12 @@
 #include "sacMod.h"
+#ifndef __MINGW32__
 #include "caserver/SingSacPolicy.h"
 #include "caserver/CocoaSacPolicy.h"
 #include "caserver/MathematicaSacPolicy.h"
 #include "caserver/MapleSacPolicy.h"
+#else
+#include "caserver/OriginalPolicy.h"
+#endif
 
 using namespace std;
 
@@ -22,6 +26,7 @@ void serverPrep(string policy, string server, string dirPath)
   {
     if (server == "")
       ; // in this case, the policy must be "Saclib"!
+#ifndef __MINGW32__
     else if (server == "Maple")       
       GVSB.insert(pair<string,CAServer*>(server,new MapleServer(dirPath)));
     else if (server == "Mathematica") 
@@ -30,6 +35,7 @@ void serverPrep(string policy, string server, string dirPath)
       GVSB.insert(pair<string,CAServer*>(server,new SingularServer(dirPath)));
     else if (server == "Cocoa")       
       GVSB.insert(pair<string,CAServer*>(server,new CocoaServer(dirPath)));
+#endif
     else 
     {
       cerr << "Unknown CASSever '" << server << "'!" <<endl; 
@@ -38,6 +44,7 @@ void serverPrep(string policy, string server, string dirPath)
 
     if (policy == "Saclib")   
       GVCAP = new OriginalPolicy;
+#ifndef __MINGW32__
     else if (policy == "Singular") 
       GVCAP = new SingularPolicy;
     else if (policy == "SingSac")  
@@ -48,6 +55,7 @@ void serverPrep(string policy, string server, string dirPath)
       GVCAP = new MapleSacPolicy;
     else if (policy == "Maple")
       GVCAP = new MaplePolicy;
+#endif
     else
     {
       cerr << "Unknown CAPolicy '" << policy << "'!" << endl; 
@@ -68,7 +76,9 @@ void SacModInit(int argc, char **argv, int &ac, char** &av,
   InputContextInit();
   OutputContextInit();
   serverPrep(policy,server,dirPath);
+#ifndef __MINGW32__
   init_SIGINT_handler();
+#endif
 }
 
 
@@ -99,6 +109,7 @@ void CAStats()
     itr->second->reportStats(cout);
 }
 
+#ifndef __MINGW32__
 static void SIGINT_handler(int i, siginfo_t *sip,void* uap)
 {
   SacModEnd();
@@ -117,4 +128,5 @@ static void init_SIGINT_handler()
   sigaction(SIGTERM,p,NULL);
   free(p);
 }
+#endif
 

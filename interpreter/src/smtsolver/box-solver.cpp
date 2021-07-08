@@ -182,6 +182,7 @@ bool BoxSolver::directSolve()
     else return false;
   }
   //writeSimpToFile(t, t3);
+#ifndef __MINGW32__
   TFormRef res;
   try  {
     QepcadConnection q;
@@ -193,6 +194,9 @@ bool BoxSolver::directSolve()
   }
   if (res->constValue() == 0) return false;
   else return true;
+#else
+  throw TarskiException("QEPCAD is not available");
+#endif
 }
 
 /*
@@ -508,7 +512,6 @@ void BoxSolver::getFinalClause(vec<Lit>& lits, bool& conf)
   }
   //Only if BB/WB cannot detect unsat do we need to call QEPCAD"
   if (conf == false) {
-    QepcadConnection q;
     TAndRef tsimp = SM->simplify();
 
     // strip out any atoms that we eliminated by substitutions
@@ -552,6 +555,8 @@ void BoxSolver::getFinalClause(vec<Lit>& lits, bool& conf)
       }
     }
     //END NUCAD, START QEPCAD
+#ifndef __MINGW32__
+    QepcadConnection q;
     TFormRef res;
     try {
       res = q.basicQepcadCall(exclose(tand), true);
@@ -560,6 +565,7 @@ void BoxSolver::getFinalClause(vec<Lit>& lits, bool& conf)
       throw TarskiException("QEPCAD failure on "  + toString(tand) +  \
                             ".\nErr: " + e.what());
     }
+
     std::set<TAtomRef> allAtoms;
     if (res->constValue() == 0) {
       conf = true;
@@ -587,6 +593,10 @@ void BoxSolver::getFinalClause(vec<Lit>& lits, bool& conf)
       }
       if (verbose) { cout << "QEPCADB found UNSAT! core : "; F_core->write(true); cout << endl; }
     }
+#else
+    throw TarskiException("QEPCAD is not available");
+#endif
+
   }
 }
 

@@ -1,3 +1,4 @@
+#ifndef __MINGW32__
 /***************************************************************
  * This file MAPLE.h and MAPLE.cpp define a CAServer based
  * on the Maple system.
@@ -30,4 +31,5 @@ public:
 };
 
 
+#endif
 #endif

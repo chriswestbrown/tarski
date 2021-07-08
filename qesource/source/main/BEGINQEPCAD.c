@@ -7,14 +7,36 @@ already been initialized!
 #include <fstream>
 #include <sstream>
 #include "qepcad.h"
-#include "caserver/CAServer.h"
-#include "caserver/OriginalPolicy.h"
+#ifndef __MINGW32__
 #include "caserver/SingularPolicy.h"
 #include "caserver/SingSacPolicy.h"
-#include "caserver/convenientstreams.h"
+#endif
+#include "caserver/CAServer.h"
+#include "caserver/OriginalPolicy.h"
 #include "caserver/CAPolicy.h"
+#include "caserver/convenientstreams.h"
 #include <ctype.h>
+#ifdef __MINGW32__
+namespace
+    {
+    bool isatty(int)
+        {
+        return true;
+        }
+
+    bool WEXITSTATUS(int status)
+        {
+        return status == 0;
+        }
+
+    template<typename F>
+    void setlinebuf(F)
+        {
+        }
+    }
+#else
 #include <sys/wait.h>
+#endif
 
 void QEPCAD_ProcessRC(int argc, char **argv);
 void QEPCAD_Usage(int cols);
@@ -48,6 +70,7 @@ void BEGINQEPCAD(int &argc, char**& argv)
   /* #cols for usage message output is 80 or terminal width if 
      stdout attached to a terminal*/
   int cols = 80;         /* number of columns for help output */
+#ifndef __MINGW32__
   int isStdoutTerm = system("test -t 1");
   isStdoutTerm = WEXITSTATUS(isStdoutTerm);
   if (isStdoutTerm == 0 && isatty(0))
@@ -57,6 +80,7 @@ void BEGINQEPCAD(int &argc, char**& argv)
     if (10 <= tmp <= 512)
       cols = tmp;
   }
+#endif
 
   /* LOOP OVER ARGUMENTS! */
   for(int i = 1; i < argc; ++i)
@@ -113,6 +137,7 @@ void BEGINQEPCAD(int &argc, char**& argv)
   /* Initialize the qepcad system globals. */
   INITSYS();
 
+#ifndef __MINGW32__
   /* Launch CA Servers and set up CA Policy */
   if (GVContext->SingularPath == "")
     GVCAP = new OriginalPolicy;
@@ -122,6 +147,7 @@ void BEGINQEPCAD(int &argc, char**& argv)
     GVSB.insert(tp);
     GVCAP = new SingSacPolicy;
   }
+#endif
 
 }
 
@@ -199,8 +225,10 @@ void BEGINQEPCADLIB(int timeout) {
   GVContext = new QEPCADContext;
   QEGLOBALS();
   INITSYS();
+#ifndef __MINGW32__
   if (GVCAP != 0)
     useExistingCAServer = true;
   else
     GVCAP = new OriginalPolicy;
+#endif
 }
