@@ -44,7 +44,7 @@ jobs:
     - name: prerequisites
       uses: msys2/setup-msys2@v2
       with:
-        msystem: MSYS
+        msystem: CLANG64
         update: true
         install: >-
           base-devel
