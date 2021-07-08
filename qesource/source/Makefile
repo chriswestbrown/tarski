@@ -57,11 +57,17 @@ ARFLAGS := crv
 # Also, on Windows MSYS2/CLANG64 we do not compile and use the rend extension.
 UNAME_S := $(shell uname -s)
 ifneq ($(UNAME_S),Darwin)
+# On non-Mac systems:
 ARFLAGS := crvU
+# On Linux:
 ifeq (,$(findstring MINGW64,$(UNAME_S)))
 EXTLIBS += -lrt ${qe}/extensions/rend/rendo.a
 EXTLIBSD += -lrt ${qe}/extensions/rend/rendd.a
 endif
+else
+# On Mac:
+EXTLIBS += ${qe}/extensions/rend/rendo.a
+EXTLIBSD += ${qe}/extensions/rend/rendd.a
 endif
 
 NAME      =  qepcad

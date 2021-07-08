@@ -348,9 +348,11 @@ UnsatCore UNSATCORE;
   void CLOSURE2D(Word D, Word P, Word J);
   void BOUNDARY2D(Word D, Word P, Word J);
 
+#ifndef __MINGW32__
   /* rend */
   void PLOT2DCAD2FILE(Word D, Word P, Word J);
   void DISP2DCAD(Word D, Word P, Word J);
+#endif
 
   /* new */
   void QEPCADauto(Word Fs, Word *t_, Word *F_e_, Word *F_n_, Word *F_s_);
