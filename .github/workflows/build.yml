@@ -54,6 +54,8 @@ jobs:
           openssl-devel
           zlib-devel
           swig
+          mingw-w64-clang-x86_64-toolchain
+          mingw-w64-clang-x86_64-swig
     - name: print-uname
       run: uname
     - name: build
