@@ -95,7 +95,7 @@ clean:
 depend.mk: $(CSRCS) $(CHDRS)
 	@echo Making dependencies
 	@$(CXX) $(CFLAGS) -I$(TMROOT) \
-	   $(CSRCS) -MM | sed 's|\(.*\):|$(PWD)/\1 $(PWD)/\1r $(PWD)/\1d $(PWD)/\1p:|' > depend.mk
+	   $(CSRCS) -MM | sed 's|\(.*\).o:|$(PWD)/\1.o $(PWD)/\1.or $(PWD)/\1.od $(PWD)/\1.op:|' > depend.mk
 	@for dir in $(DEPDIR); do \
 	      if [ -r $(TMROOT)/$${dir}/depend.mk ]; then \
 		  echo Depends on: $${dir}; \
