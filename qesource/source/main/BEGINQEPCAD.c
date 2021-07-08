@@ -137,17 +137,17 @@ void BEGINQEPCAD(int &argc, char**& argv)
   /* Initialize the qepcad system globals. */
   INITSYS();
 
-#ifndef __MINGW32__
   /* Launch CA Servers and set up CA Policy */
   if (GVContext->SingularPath == "")
     GVCAP = new OriginalPolicy;
   else
   {
+#ifndef __MINGW32__
     pair<string,CAServer*> tp(string("Singular"),new SingularServer(GVContext->SingularPath));
     GVSB.insert(tp);
     GVCAP = new SingSacPolicy;
-  }
 #endif
+  }
 
 }
 
@@ -225,10 +225,8 @@ void BEGINQEPCADLIB(int timeout) {
   GVContext = new QEPCADContext;
   QEGLOBALS();
   INITSYS();
-#ifndef __MINGW32__
   if (GVCAP != 0)
     useExistingCAServer = true;
   else
     GVCAP = new OriginalPolicy;
-#endif
 }

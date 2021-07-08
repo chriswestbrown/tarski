@@ -12,7 +12,6 @@ START_GROUP="-Wl,--start-group"
 END_GROUP="-Wl,--end-group"
 
 REND=../../extensions/rend/rendo.a
-qe=
 
 if [ "$UNAME_S" = "Darwin" ]; then
  JAVA=`find /usr/local/Cellar/openjdk/*/ | sort | head -1`
@@ -55,7 +54,7 @@ if [[ "$UNAME_S" == *"MINGW"* ]]; then
   fi
  LIBQEPCAD=qepcad.dll
  REND=
- qe=..\\..
+ export qe=..\\..
 
  which swig > /dev/null || {
    echo "No swig found. Consider installing it via pacman (swig)."
@@ -72,7 +71,6 @@ swig -c++ -java qepcad.i
 g++ -c qepcad_wrap.cxx -I../main -I.. -I$SACLIB/include \
  -I"$JAVA/include" -I"$JAVA/include/linux" -I"$JAVA/include/win32" -fPIC
 
-
 g++ -shared $START_GROUP qepcad_wrap.o ../qepcad.a\
  ../../extensions/sfext/sfexto.a\
  ../../extensions/lift2D/lift2Do.a\
@@ -82,5 +80,4 @@ g++ -shared $START_GROUP qepcad_wrap.o ../qepcad.a\
 
 "$JAVA/bin/javac" main.java
 
-export qe
 "$JAVA/bin/java" -Djava.library.path=. main
