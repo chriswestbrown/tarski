@@ -44,6 +44,31 @@ jobs:
     - name: prerequisites
       uses: msys2/setup-msys2@v2
       with:
+        msystem: MSYS
+        update: true
+        install: >-
+          base-devel
+          gcc
+          libreadline-devel
+          libcrypt-devel
+          openssl-devel
+          zlib-devel
+    - name: print-uname
+      run: uname
+    - name: build
+      run: ./build.sh
+
+  windows-dll:
+
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+    - uses: actions/checkout@v2
+    - name: prerequisites
+      uses: msys2/setup-msys2@v2
+      with:
         msystem: CLANG64
         update: true
         install: >-
