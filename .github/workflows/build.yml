@@ -6,7 +6,6 @@ jobs:
   linux:
 
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v1
     - name: prerequisites
@@ -21,7 +20,6 @@ jobs:
   mac:
 
     runs-on: macos-latest
-
     steps:
     - uses: actions/checkout@v1
     - name: prerequisites
@@ -33,7 +31,7 @@ jobs:
     - name: dynamiclib-build
       run: cd qesource/source/swig; ./runme
 
-  windows:
+  windows-msys-nojni:
 
     runs-on: windows-latest
     defaults:
@@ -58,7 +56,7 @@ jobs:
     - name: build
       run: ./build.sh
 
-  windows-dll:
+  windows-clang64:
 
     runs-on: windows-latest
     defaults:
