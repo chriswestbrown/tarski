@@ -13,13 +13,32 @@
 3. Building Tarski
 
    Tarski should build pretty easily on Linux systems.
+   The latest version should compile on Mac and Windows systems too.
 
-   a. Dependencies
+   a. Dependencies on Linux
       The following external packages must be installed for Tarski
       to build (e.g. sudo apt-get install <name>):
       - libz-dev (for MiniSAT)
       - libssl-dev (for the Tarski Interpreter)
       - libreadline-dev (for the Tarski Interpreter)
+
+      Dependencies on Mac
+      After installing homebrew you need the following libraries
+      (e.g. sudo brew install <name>):
+      - openssl
+      - readline
+
+      Dependencies on Windows
+      After installation of MSYS2 you have two options, either
+      the CLANG64 (preferred) or the MSYS environment should be used,
+      with the following packages (e.g. pacman -S <name>):
+      - base-devel
+      - gcc
+      - zlib-devel
+      - openssl-devel
+      - libreadline-devel
+      - libcrypt-devel
+      - mingw-w64-clang-x86_64-toolchain (only for CLANG64)
 
    b. Build
       From the root directory, building Tarski should be as simple
