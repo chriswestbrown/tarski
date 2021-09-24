@@ -286,3 +286,61 @@ int main(int argc, char **argv)
   tarski::mainDUMMY(argc,argv,topOfTheStack);
 }
 
+void mainLIB(int numcells, int timeout) {
+  // FIXME: Input parameters are not yet handled. Only ignored.
+  int dummy = 0;
+  void *topOfTheStack = &dummy;
+#ifndef __MINGW32__
+  if (strcmp(tarski::pathToQepcad, "") == 0) throw tarski::TarskiException("Invalid location for QEPCAD");
+#endif
+  // Get the CA Server up and running!
+  int ac = 0; char **av = NULL;
+  SacModInit(0,NULL,ac,av,"Saclib","","",topOfTheStack);
+
+  srand(time(0));
+  }
+
+string PCLIB(string input) {
+    string output;
+    istringstream iss(input);
+
+    istream &iin = iss;
+    tarski::LexContext LC(iin,';');
+    tarski::defaultNormalizer = new tarski::Level3and4(7,7);
+
+    tarski::MemoizedPolyManager PM;
+    tarski::NewEInterpreter I(&PM);
+    I.init();
+
+    (*I.rootFrame)["%"] = new tarski::SObj(); // Seed the % variable with a void value;
+    (*I.rootFrame)["%e"] = new tarski::SObj(); // Seed the %e variable with a void value;
+    (*I.rootFrame)["%E"] = new tarski::SObj(); // Seed the %E variable with a void value;
+    bool explicitQuit = false;
+    while(iin)
+    {
+      tarski::SRef x = I.next(iin);
+      if (x.is_null()) continue;
+      tarski::SRef res = I.eval(I.rootFrame,x);
+      if (res->type() == tarski::_err && res->err()->msg == "INTERPRETER:quit") { explicitQuit = true; break; }
+      output += res->toStr() + "\n";
+      if (res->type() != tarski::_err && res->type() != tarski::_void) { I.rootFrame->set("%",res); }
+      if (res->type() == tarski::_err) { I.rootFrame->set("%E",new tarski::StrObj(res->err()->getMsg())); }
+      I.rootFrame->set("%e",res);
+      I.markAndSweep();
+    }
+    // if (!explicitQuit) { output += "\n"; } // seems to be unnecessary to add another \n
+
+    if (tarski::verbose)
+    {
+      tarski::compTracker.report();
+      tarski::compTracker.clear();
+    }
+
+    return output;
+}
+
+void ENDTARSKILIB() {
+    delete tarski::defaultNormalizer;
+    SacModEnd();
+    tarski::finalcleanup = true;
+}

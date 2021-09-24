@@ -87,6 +87,7 @@ $(BUILD_DIR)/%.c.o: %.c
 	$(MKDIR_P) $(dir $@)
 	$(CXX) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
+CXXFLAGS += -fPIC
 # c++ source
 $(BUILD_DIR)/%.cpp.o: %.cpp
 	$(MKDIR_P) $(dir $@)

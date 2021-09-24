@@ -70,7 +70,7 @@ void SacModInit(int argc, char **argv, int &ac, char** &av,
 		string policy, string server, string dirPath,
 		void* topOfTheStack)
 {
-  ARGSACLIB(argc,argv,&ac,&av);
+  if (argc!=0) ARGSACLIB(argc,argv,&ac,&av);
   //  BEGINSACLIB((Word *)&argc);
   BEGINSACLIB((Word *)topOfTheStack);
   InputContextInit();
