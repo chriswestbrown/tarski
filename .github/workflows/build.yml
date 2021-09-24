@@ -15,7 +15,7 @@ jobs:
     - name: dynamiclib-prerequisites
       run: sudo apt update && sudo apt install openjdk-11-jdk swig
     - name: dynamiclib-build
-      run: cd qesource/source/swig; ./runme
+      run: cd qesource/source/swig; ./runme; cd ../../../interpreter/src/swig; ./runme
 
   mac:
 
