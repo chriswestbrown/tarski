@@ -3,6 +3,7 @@
 # https://spin.atomicobject.com/2016/08/26/makefile-c-projects/
 
 UNAME_S := $(shell uname -s)
+JAVA := ${JAVA}
 
 MROOT=-I../minisat
 TMROOT=../minisat
@@ -75,6 +76,20 @@ lib: tarski.a
 tarski.a: $(AOBJ)
 	$(AR) r $@ $(AOBJ)
 	mv tarski.a ../lib/tarski.a
+
+dll: libtarski.so
+src/swig/tarski_wrap.cxx:
+	cd src/swig; swig -c++ -java tarski.i
+src/swig/tarski_wrap.o: src/swig/tarski_wrap.cxx
+	$(CXX) -c src/swig/tarski_wrap.cxx -Isrc/main -Isrc -I$(SACLIB)/include \
+        -I"$(JAVA)/include" -I"$(JAVA)/include/linux" -I"$(JAVA)/include/win32" -fPIC
+	mv tarski_wrap.o src/swig/
+libtarski.so: $(OBJS) src/swig/tarski_wrap.o
+	$(CXX) -shared src/swig/tarski_wrap.o $(OBJS) -o $@ $(LDFLAGS) -fPIC
+src/swig/main.class: src/swig/main.java
+	cd src/swig; $(JAVA)/bin/javac main.java
+dlltest: src/swig/main.class libtarski.so
+	cd src/swig; $(JAVA)/bin/java -Djava.library.path=../.. main
 
 
 # assembly

@@ -83,6 +83,51 @@ popd
 check make
 popd
 
+### LIBTARSKI
+UNAME_S=`uname -s`
+
+if [ "$UNAME_S" = "Darwin" ]; then
+ JAVA=`find /usr/local/Cellar/openjdk/*/ | sort | head -1`
+ if [ "$JAVA" = "" ]; then
+  echo "No Java found. Consider installing it via Homebrew (openjdk)."
+  fi
+ which swig > /dev/null || {
+   echo "No swig found. Consider installing it via Homebrew (swig)."
+ }
+ fi
+
+if [ "$UNAME_S" = "Linux" ]; then
+ JAVA=`find /usr/lib/jvm/* | sort | head -1`
+ if [ "$JAVA" = "" ]; then
+  echo "No Java found. To compile libtarski you need a working JDK installation."
+  fi
+ which swig > /dev/null || {
+   echo "No swig found. To compile libtarski you need it."
+   }
+ fi
+
+if [[ "$UNAME_S" == *"MINGW"* ]]; then
+ JAVA=`find /c/Program\ Files\/OpenJDK/* | sort | head -1`
+ if [ "$JAVA" = "" ]; then
+  echo "No Java found. Consider installing it via choco (openjdk)."
+  fi
+ which swig > /dev/null || {
+   echo "No swig found. Consider installing it via pacman (swig)."
+   }
+ fi
+
+if [ "$JAVA" != "" ]; then
+ which swig > /dev/null && {
+  pushd interpreter
+  echo "Making libtarski..."
+  export JAVA
+  check "make dll dlltest"
+  popd
+  }
+ fi
+
+
+
 ### FINAL MESSAGE
 echo -e "\nTarski done!"
 echo -e "######################################################"
