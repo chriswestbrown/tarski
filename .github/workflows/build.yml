@@ -9,13 +9,9 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: prerequisites
-      run: sudo apt update && sudo apt install build-essential libreadline-dev libssl-dev
+      run: sudo apt update && sudo apt install build-essential libreadline-dev libssl-dev openjdk-11-jdk swig
     - name: build
       run: ./build.sh
-    - name: dynamiclib-prerequisites
-      run: sudo apt update && sudo apt install openjdk-11-jdk swig
-    - name: dynamiclib-build
-      run: cd qesource/source/swig; ./runme; cd ../../../interpreter/src/swig; ./runme
 
   mac:
 
@@ -51,8 +47,6 @@ jobs:
           libcrypt-devel
           openssl-devel
           zlib-devel
-    - name: print-uname
-      run: uname
     - name: build
       run: ./build.sh
 
@@ -79,12 +73,8 @@ jobs:
           swig
           mingw-w64-clang-x86_64-toolchain
           mingw-w64-clang-x86_64-swig
-    - name: print-uname
-      run: uname
-    - name: build
-      run: ./build.sh
     - name: install-openjdk
       run: choco install openjdk
       shell: cmd
-    - name: dynamiclib-build
-      run: cd qesource/source/swig; ./runme
+    - name: build
+      run: ./build.sh

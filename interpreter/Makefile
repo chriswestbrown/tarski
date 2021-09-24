@@ -77,19 +77,34 @@ tarski.a: $(AOBJ)
 	$(AR) r $@ $(AOBJ)
 	mv tarski.a ../lib/tarski.a
 
-dll: libtarski.so
-src/swig/tarski_wrap.cxx:
-	cd src/swig; swig -c++ -java tarski.i
+
+LIBTARSKI:=libtarski.so
+
+ifeq ($(UNAME_S),Darwin)
+LIBTARSKI:=libtarski.jnilib
+endif
+
+ifeq (,$(findstring MINGW64,$(UNAME_S)))
+else
+LIBTARSKI:=tarski.dll
+endif
+
+
+SWIG := src/swig
+
+dll: $(LIBTARSKI)
+$(SWIG)/tarski_wrap.cxx:
+	cd $(SWIG); swig -c++ -java tarski.i
 src/swig/tarski_wrap.o: src/swig/tarski_wrap.cxx
-	$(CXX) -c src/swig/tarski_wrap.cxx -Isrc/main -Isrc -I$(SACLIB)/include \
+	$(CXX) -c $(SWIG)/tarski_wrap.cxx -Isrc/main -Isrc -I$(SACLIB)/include \
         -I"$(JAVA)/include" -I"$(JAVA)/include/linux" -I"$(JAVA)/include/win32" -fPIC
-	mv tarski_wrap.o src/swig/
-libtarski.so: $(OBJS) src/swig/tarski_wrap.o
-	$(CXX) -shared src/swig/tarski_wrap.o $(OBJS) -o $@ $(LDFLAGS) -fPIC
-src/swig/main.class: src/swig/main.java
-	cd src/swig; $(JAVA)/bin/javac main.java
-dlltest: src/swig/main.class libtarski.so
-	cd src/swig; $(JAVA)/bin/java -Djava.library.path=../.. main
+	mv tarski_wrap.o $(SWIG)/
+$(LIBTARSKI): $(OBJS) $(SWIG)/tarski_wrap.o
+	$(CXX) -shared $(SWIG)/tarski_wrap.o $(OBJS) -o $@ $(LDFLAGS) -fPIC
+$(SWIG)/main.class: $(SWIG)/main.java
+	cd $(SWIG); $(JAVA)/bin/javac main.java
+dlltest: $(SWIG)/main.class $(LIBTARSKI)
+	cd $(SWIG); $(JAVA)/bin/java -Djava.library.path=../.. main
 
 
 # assembly
