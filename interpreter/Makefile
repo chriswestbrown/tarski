@@ -102,9 +102,9 @@ src/swig/tarski_wrap.o: src/swig/tarski_wrap.cxx
 $(LIBTARSKI): $(OBJS) $(SWIG)/tarski_wrap.o
 	$(CXX) -shared $(SWIG)/tarski_wrap.o $(OBJS) -o $@ $(LDFLAGS) -fPIC
 $(SWIG)/main.class: $(SWIG)/main.java
-	cd $(SWIG); $(JAVA)/bin/javac main.java
+	cd $(SWIG); "$(JAVA)/bin/javac" main.java
 dlltest: $(SWIG)/main.class $(LIBTARSKI)
-	cd $(SWIG); $(JAVA)/bin/java -Djava.library.path=../.. main
+	cd $(SWIG); "$(JAVA)/bin/java" -Djava.library.path=../.. main
 
 
 # assembly
