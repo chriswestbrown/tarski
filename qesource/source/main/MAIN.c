@@ -151,7 +151,7 @@ void handler(int sig) {
 
 void mainLIB(int numcells, int timeout) {
 #ifndef __MSYS__
-#ifndef __MINGW32_
+#ifndef __MINGW32__
 #ifndef _EMCC2_
   signal(SIGSEGV, handler);
 #endif
