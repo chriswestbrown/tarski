@@ -53,6 +53,9 @@ LDFLAGS :=  $(saclibOverrides) $(extLibQEPCAD) -lreadline $(extLibSACLIB) $(extL
 ifneq ($(UNAME_S),Darwin)
 ifeq (,$(findstring MINGW64,$(UNAME_S)))
 LDFLAGS += -lrt
+ifdef STATIC
+LDFLAGS += -lpthread -ltinfo -static
+endif
 endif
 endif
 

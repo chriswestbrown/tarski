@@ -63,6 +63,10 @@ ARFLAGS := crvU
 ifeq (,$(findstring MINGW64,$(UNAME_S)))
 EXTLIBS += -lrt ${qe}/extensions/rend/rendo.a
 EXTLIBSD += -lrt ${qe}/extensions/rend/rendd.a
+ifdef STATIC
+EXTLIBS += -lpthread -ltinfo
+EXTLIBSD += -lpthread -ltinfo
+endif
 endif
 else
 # On Mac:

@@ -1,5 +1,11 @@
 #!/bin/bash
 
+### Use "TOOLCHAIN=emmake ./build.sh" if you intend to start a WebAssembly build.
+### Use "STATIC=1 ./build.sh" if you want to compile the tarski executable statically.
+
+export STATIC
+
+
 ### To use an existing external Saclib and/or Qepcad
 ### replace the empty strings below with full paths.
 externalSaclibRoot=""
@@ -39,9 +45,6 @@ if [ ! -e include/sacproto.h -o ! -e lib/objd/makefile -o ! -e lib/objo/makefile
     check "bin/sconf $1"
     check bin/mkproto
     check bin/mkmake
-fi
-if [ "$1" = wasm ]; then
-   export TOOLCHAIN=emmake
 fi
 check "bin/mklib all"
 check

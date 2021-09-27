@@ -15,6 +15,11 @@ FLAGSo = -g -D__CORRECT_ISO_CPP_STRINGS_H_PROTO -fPIC
 
 FLAGSd = -g
 
+ifdef STATIC
+FLAGSo += -static
+FLAGSd += -static
+endif
+
 SUBMAKEFLAGS = -j1
 
 MFlags	= "CCo=${CCo}" "FLAGSo=${FLAGSo}"\
