@@ -294,9 +294,20 @@ void mainLIB(int numcells, int timeout) {
   if (strcmp(tarski::pathToQepcad, "") == 0) throw tarski::TarskiException("Invalid location for QEPCAD");
 #endif
   // Get the CA Server up and running!
-  int ac = 0; char **av = NULL;
-  SacModInit(0,NULL,ac,av,"Saclib","","",topOfTheStack);
-
+  // I'm sure there's a nicer way to trick SacModInit, but ... this will do for now!
+  // I'm creating a face argc and argv to pass into SacModInit.
+  int argc = 3;
+  const char *argvt[3] = { "+N", "20000000", NULL };
+  char **argv = new char*[3];
+  char s0[20]; strcpy(s0,argvt[0]);
+  char s1[20]; strcpy(s1,argvt[1]);
+  char s2[20]; strcpy(s2,argvt[2]);
+  argv[0] = s0; argv[1] = s1; argv[2] = s2;
+  int ac;
+  char **av;
+  SacModInit(argc,argv,ac,av,"Saclib","","",topOfTheStack);
+  delete [] argv;
+  
   srand(time(0));
   }
 
