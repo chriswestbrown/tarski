@@ -302,7 +302,7 @@ void mainLIB(int numcells, int timeout) {
   char s1[20]; sprintf(s1, "%d", numcells);
   char s2[20]; strcpy(s2, "-t");
   char s3[20]; sprintf(s3, "%d", timeout);
-  char s4[20]; strcpy(s4, NULL);
+  char s4[20]; strcpy(s4, "");
   char **argv = new char*[5];
   argv[0] = s0; argv[1] = s1; argv[2] = s2; argv[3] = s3; argv[4] = s4;
   int ac;
