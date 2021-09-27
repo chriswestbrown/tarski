@@ -78,21 +78,27 @@ tarski.a: $(AOBJ)
 	mv tarski.a ../lib/tarski.a
 
 
+### DLL related code ###
+
+# Output file on Linux:
 LIBTARSKI:=libtarski.so
 
+# Output file on Mac:
 ifeq ($(UNAME_S),Darwin)
 LIBTARSKI:=libtarski.jnilib
 endif
 
+# Output file on Windows:
 ifeq (,$(findstring MINGW64,$(UNAME_S)))
 else
 LIBTARSKI:=tarski.dll
 endif
 
+dll: $(LIBTARSKI)
 
 SWIG := src/swig
+LDFLAGS_SHARED = $(filter-out -static, $(LDFLAGS))
 
-dll: $(LIBTARSKI)
 $(SWIG)/tarski_wrap.cxx:
 	cd $(SWIG); swig -c++ -java tarski.i
 src/swig/tarski_wrap.o: src/swig/tarski_wrap.cxx
@@ -100,12 +106,13 @@ src/swig/tarski_wrap.o: src/swig/tarski_wrap.cxx
         -I"$(JAVA)/include" -I"$(JAVA)/include/linux" -I"$(JAVA)/include/win32" -fPIC
 	mv tarski_wrap.o $(SWIG)/
 $(LIBTARSKI): $(OBJS) $(SWIG)/tarski_wrap.o
-	$(CXX) -shared $(SWIG)/tarski_wrap.o $(OBJS) -o $@ $(LDFLAGS) -fPIC
+	$(CXX) -shared $(SWIG)/tarski_wrap.o $(OBJS) -o $@ $(LDFLAGS_SHARED) -fPIC
 $(SWIG)/main.class: $(SWIG)/main.java
 	cd $(SWIG); "$(JAVA)/bin/javac" main.java
 dlltest: $(SWIG)/main.class $(LIBTARSKI)
 	cd $(SWIG); "$(JAVA)/bin/java" -Djava.library.path=../.. main
 
+### End of DLL related code ###
 
 # assembly
 $(BUILD_DIR)/%.s.o: %.s
