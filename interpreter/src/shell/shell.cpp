@@ -287,7 +287,6 @@ int main(int argc, char **argv)
 }
 
 void mainLIB(int numcells, int timeout) {
-  // FIXME: Input parameters are not yet handled. Only ignored.
   int dummy = 0;
   void *topOfTheStack = &dummy;
 #ifndef __MINGW32__
@@ -296,18 +295,21 @@ void mainLIB(int numcells, int timeout) {
   // Get the CA Server up and running!
   // I'm sure there's a nicer way to trick SacModInit, but ... this will do for now!
   // I'm creating a face argc and argv to pass into SacModInit.
-  int argc = 3;
-  const char *argvt[3] = { "+N", "20000000", NULL };
-  char **argv = new char*[3];
-  char s0[20]; strcpy(s0,argvt[0]);
-  char s1[20]; strcpy(s1,argvt[1]);
-  char s2[20]; strcpy(s2,argvt[2]);
-  argv[0] = s0; argv[1] = s1; argv[2] = s2;
+  int argc = 5;
+  if (numcells == 0) numcells = 20000000;
+  if (timeout == 0) timeout = 200;
+  char s0[20]; strcpy(s0, "+N");
+  char s1[20]; sprintf(s1, "%d", numcells);
+  char s2[20]; strcpy(s2, "-t");
+  char s3[20]; sprintf(s3, "%d", timeout);
+  char s4[20]; strcpy(s4, NULL);
+  char **argv = new char*[5];
+  argv[0] = s0; argv[1] = s1; argv[2] = s2; argv[3] = s3; argv[4] = s4;
   int ac;
   char **av;
   SacModInit(argc,argv,ac,av,"Saclib","","",topOfTheStack);
   delete [] argv;
-  
+
   srand(time(0));
   }
 
