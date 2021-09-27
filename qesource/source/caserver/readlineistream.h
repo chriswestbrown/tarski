@@ -6,6 +6,7 @@
  * but uses the readline library, so the user sees emacs-style
  * editing, history and, eventually, tab-completion.
  ***************************************************************/
+#ifndef _EMCC2_
 #include <iostream>
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -78,3 +79,4 @@ readlineInBuff::int_type readlineInBuff::underflow()
   }
   return *gptr();
 }
+#endif

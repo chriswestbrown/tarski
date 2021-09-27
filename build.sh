@@ -4,7 +4,7 @@
 ### Use "STATIC=1 ./build.sh" if you want to compile the tarski executable statically.
 
 export STATIC
-
+export TOOLCHAIN
 
 ### To use an existing external Saclib and/or Qepcad
 ### replace the empty strings below with full paths.
@@ -42,7 +42,11 @@ echo "Making SACLIB..."
 # Otherwise avoid rebuilding the whole system from scratch.
 # (Recreating the makefiles results in a full rebuild.)
 if [ ! -e include/sacproto.h -o ! -e lib/objd/makefile -o ! -e lib/objo/makefile ]; then
-    check "bin/sconf $1"
+    if [ "$TOOLCHAIN" = emmake ]; then
+        check "bin/sconf wasm"
+    else
+        check bin/sconf
+    fi
     check bin/mkproto
     check bin/mkmake
 fi
@@ -72,7 +76,7 @@ minisatRoot="$tarskiRoot/minisat"
 export TMROOT=$minisatRoot
 pushd $TMROOT/core
 echo "Making Minisat..."
-check "make libr"
+check "$TOOLCHAIN make libr"
 echo "Minisat Done"
 popd
 
@@ -83,7 +87,7 @@ pushd ./src
 check ./mksysdep.sh
 popd
 
-check make
+check "$TOOLCHAIN make"
 popd
 
 ### LIBTARSKI

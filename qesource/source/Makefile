@@ -41,16 +41,19 @@ EXTLIBS   =	${qe}/extensions/sfext/sfexto.a \
 		${qe}/extensions/newadj/newadjo.a \
 		${qe}/extensions/adj2d/adj2do.a \
 		${saclib}/lib/saclibo.a \
-		${SPECLFLAGS} \
-		-lreadline
+		${SPECLFLAGS}
 
 EXTLIBSD  =	${qe}/extensions/sfext/sfextd.a \
 		${qe}/extensions/lift2D/lift2Dd.a \
 		${qe}/extensions/newadj/newadjd.a \
 		${qe}/extensions/adj2d/adj2dd.a \
 		${saclib}/lib/saclibd.a \
-		${SPECLFLAGS} \
-		-lreadline
+		${SPECLFLAGS}
+
+ifneq ($(TOOLCHAIN),emmake)
+EXTLIBS += -lreadline
+EXTLIBSD += -lreadline
+endif
 
 ARFLAGS := crv
 # On Mac the rt library is not present, but otherwise it is necessary.

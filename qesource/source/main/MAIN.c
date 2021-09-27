@@ -6,7 +6,9 @@
 
 #ifndef __MSYS__
 #ifndef __MINGW32__
+#ifndef _EMCC2_
 #include <execinfo.h>
+#endif
 #include <signal.h>
 #include <unistd.h>
 #endif
@@ -95,7 +97,7 @@ static void init_SIGINT_handler()
 
 static int sendSignalAfterInterval(int seconds, int signum)
 {
-#if defined(__APPLE__) || defined(__MINGW32__)
+#if defined(__APPLE__) || defined(__MINGW32__) || defined(_EMCC2_)
   return 1;
 #else
   /* Create timer */
@@ -129,6 +131,7 @@ int main(int argc, char **argv)
 
 #ifndef __MSYS__
 #ifndef __MINGW32__
+#ifndef _EMCC2_
 // Taken from https://stackoverflow.com/a/77336/1044586
 void handler(int sig) {
   void *array[10];
@@ -144,11 +147,14 @@ void handler(int sig) {
 }
 #endif
 #endif
+#endif
 
 void mainLIB(int numcells, int timeout) {
 #ifndef __MSYS__
-#ifndef __MINGW32__
+#ifndef __MINGW32_
+#ifndef _EMCC2_
   signal(SIGSEGV, handler);
+#endif
 #endif
 #endif
 

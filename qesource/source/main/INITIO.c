@@ -17,6 +17,7 @@ void INITIO(istream *is, ostream *os)
        Word i;
 
 Step1: /* Initialize Input. */	  
+#ifndef _EMCC2_
        if (is == NULL) {
          if (isatty(0)) 
 	   InputContextInit(*(new readlineIstream()));
@@ -24,6 +25,9 @@ Step1: /* Initialize Input. */
 	   InputContextInit(std::cin);
        } else
            InputContextInit(*is);
+#else
+       InputContextInit(std::cin);
+#endif
        
 Step2: /* Initialize Output. */
        if (os == NULL)
