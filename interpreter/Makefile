@@ -117,6 +117,7 @@ dlltest: $(SWIG)/main.class $(LIBTARSKI)
 
 ### End of DLL related code ###
 
+
 # assembly
 $(BUILD_DIR)/%.s.o: %.s
 	$(MKDIR_P) $(dir $@)
@@ -132,6 +133,10 @@ CXXFLAGS += -fPIC
 $(BUILD_DIR)/%.cpp.o: %.cpp
 	$(MKDIR_P) $(dir $@)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
+
+ifeq ($(TOOLCHAIN),emmake)
+CXXFLAGS += -s USE_ZLIB=1 -D_EMCC2_
+endif
 
 .PHONY: clean
 
