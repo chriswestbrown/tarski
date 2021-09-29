@@ -114,6 +114,10 @@ $(SWIG)/main.class: $(SWIG)/main.java
 	cd $(SWIG); "$(JAVA)/bin/javac" main.java
 dlltest: $(SWIG)/main.class $(LIBTARSKI)
 	cd $(SWIG); "$(JAVA)/bin/java" -Djava.library.path=../.. main
+$(SWIG)/JTarski.class: $(SWIG)/JTarski.java
+	cd $(SWIG); "$(JAVA)/bin/javac" JTarski.java
+jtarski: $(SWIG)/JTarski.class $(LIBTARSKI)
+	cd $(SWIG); "$(JAVA)/bin/java" -Djava.library.path=../.. JTarski
 
 ### End of DLL related code ###
 
