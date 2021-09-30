@@ -36,6 +36,13 @@ extIncludesMD5:=-I$(MAC_OPENSSL_INCLUDE)
 extLibMD5:=$(MAC_OPENSSL_LIB)/libssl.a $(MAC_OPENSSL_LIB)/libcrypto.a
 endif
 
+# For wasm we need to have openssl preinstalled
+ifeq ($(TOOLCHAIN),emmake)
+WASM_OPENSSL_INCLUDE=$(EMSDK)/upstream/emscripten/system/include
+WASM_OPENSSL_LIB=$(EMSDK)/upstream/emscripten/system/lib
+extIncludesMd5:=-I$(WASM_OPENSSL_INCLUDE)
+extLibMD5:=$(WASM_OPENSSL_LIB)/libssl.a $(WASM_OPENSSL_LIB)/libcrypto.a
+endif
 
 TARGET_EXEC ?= tarski
 
@@ -48,7 +55,7 @@ OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)
 AOBJ := $(ASRC:%=$(BUILD_DIR)/%.o)
 DEPS := $(OBJS:.o=.d)
 
-LDFLAGS :=  $(saclibOverrides) $(extLibQEPCAD) -lreadline $(extLibSACLIB) $(extLibMINISAT) $(extLibMD5)
+LDFLAGS :=  $(saclibOverrides) $(extLibQEPCAD) $(extLibSACLIB) $(extLibMINISAT) $(extLibMD5)
 # On Mac and Windows MSYS2/CLANG64 the rt library is not present, but otherwise it is necessary.
 ifneq ($(UNAME_S),Darwin)
 ifeq (,$(findstring MINGW64,$(UNAME_S)))
@@ -58,6 +65,11 @@ LDFLAGS += -lpthread -ltinfo -static
 endif
 endif
 endif
+# On non-wasm we always need readline:
+ifneq ($(TOOLCHAIN),emmake)
+LDFLAGS += -lreadline
+endif
+
 
 INC_DIRS := $(shell find $(SRC_DIRS) -type d)
 INC_FLAGS := $(addprefix -I,$(INC_DIRS)) $(extIncludesSACLIB) $(extIncludeMINISAT) $(extIncludesMD5)
@@ -133,14 +145,15 @@ $(BUILD_DIR)/%.c.o: %.c
 	$(CXX) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
 CXXFLAGS += -fPIC
+ifeq ($(TOOLCHAIN),emmake)
+CXXFLAGS += -s USE_ZLIB=1 -D_EMCC2_ $(extIncludesMd5)
+endif
+
 # c++ source
 $(BUILD_DIR)/%.cpp.o: %.cpp
 	$(MKDIR_P) $(dir $@)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
 
-ifeq ($(TOOLCHAIN),emmake)
-CXXFLAGS += -s USE_ZLIB=1 -D_EMCC2_
-endif
 
 .PHONY: clean
 

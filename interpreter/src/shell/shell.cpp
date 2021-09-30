@@ -10,7 +10,9 @@
 #include "linearSubs.h"
 #include <algorithm>
 #include "einterpreter.h"
+#ifndef _EMCC2_
 #include "readlineistream.h"
+#endif
 #include "../onecell/memopolymanager.h"
 #include "../tarskisysdep.h" /* defines pathToMaple variable */
 #include <signal.h>
@@ -130,7 +132,8 @@ int mainDUMMY(int argc, char **argv, void* topOfTheStack)
     free(av);
 
     srand(time(0));
-    
+
+#ifndef _EMCC2_
     //  istream *inptr = new readlineIstream();
     readlineIstream isin;
     if (!quiet) { isin.setPrompt("> "); }
@@ -141,6 +144,9 @@ int mainDUMMY(int argc, char **argv, void* topOfTheStack)
       (istream*)&fin :
       (quiet && !isatty(fileno(stdin)) ? (istream*)&cin : (istream*)&isin);
     istream &iin = *piin;
+#else
+    istream &iin = cin;
+#endif
     LexContext LC(iin,';');
     defaultNormalizer = new Level3and4(7,7);
 
@@ -249,7 +255,7 @@ void init_SIGINT_handler()
 
 int sendSignalAfterInterval(int seconds, int signum)
 {
-#if defined(__APPLE__) || defined(__MINGW32__)
+#if defined(__APPLE__) || defined(__MINGW32__) || defined(_EMCC2_)
   return 1;
 #else
   /* Create timer */

@@ -123,7 +123,7 @@ if [[ "$UNAME_S" == *"MINGW"* ]]; then
    }
  fi
 
-if [ "$JAVA" != "" ]; then
+if [ "$TOOLCHAIN" != emmake -a "$JAVA" != "" ]; then
  which swig > /dev/null && {
   pushd interpreter
   echo "Making libtarski..."
