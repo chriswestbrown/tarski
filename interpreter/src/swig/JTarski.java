@@ -42,7 +42,7 @@ public class JTarski extends JPanel implements ActionListener {
 
     public void actionPerformed(ActionEvent evt) {
         String text = textField.getText();
-        String output = tarski.PCLIB(text);
+        String output = tarski.TARSKIEVAL(text);
 
         textArea.append("> " + text + newline);
         textArea.append(output);
@@ -75,7 +75,7 @@ public class JTarski extends JPanel implements ActionListener {
 
     public static void main(String[] args) {
         System.loadLibrary("tarski");
-        tarski.mainLIB(numcells, timeout);
+        tarski.TARSKIINIT(numcells, timeout);
 
         //Schedule a job for the event dispatch thread:
         //creating and showing this application's GUI.

@@ -296,11 +296,12 @@ int main(int argc, char **argv)
 }
 #endif
 
-void
 #ifdef _EMCC2_
-EMSCRIPTEN_KEEPALIVE
+extern "C" void EMSCRIPTEN_KEEPALIVE
+#else
+void
 #endif
-mainLIB(int numcells, int timeout) {
+TARSKIINIT(int numcells, int timeout) {
   int dummy = 0;
   void *topOfTheStack = &dummy;
 #ifndef __MINGW32__
@@ -329,7 +330,7 @@ mainLIB(int numcells, int timeout) {
   srand(time(0));
   }
 
-string PCLIB(string input) {
+string TARSKIEVAL(string input) {
     string output;
     istringstream iss(input);
 
@@ -369,26 +370,33 @@ string PCLIB(string input) {
 }
 
 #ifdef _EMCC2_
-extern "C" const char* EMSCRIPTEN_KEEPALIVE PCLIB(char *input) {
-    return PCLIB(string(input)).c_str();
+extern "C" const char* EMSCRIPTEN_KEEPALIVE TARSKIEVAL(char *input) {
+    return TARSKIEVAL(string(input)).c_str();
+}
+
+// Override starting QEPCAD by doing nothing (it also has a main() function):
+int main() {
 }
 #endif
 
-void
 #ifdef _EMCC2_
-EMSCRIPTEN_KEEPALIVE
+extern "C" void EMSCRIPTEN_KEEPALIVE
+#else
+void
 #endif
-ENDTARSKILIB() {
+TARSKIEND() {
     delete tarski::defaultNormalizer;
     SacModEnd();
     tarski::finalcleanup = true;
 }
 
-#ifdef _EMCC2_
-int EMSCRIPTEN_KEEPALIVE main() {
-    mainLIB(50000000, 5);
-    std::cout << PCLIB("(qepcad-api-call [ex x [x>0]])") << "\n";
-    // ENDTARSKILIB();
-    return 0;
-}
-#endif
+/* This is how to use the WebAssembly port (after compilation and installation):
+   1. Load the .html file.
+   2. In the JavaScript console type:
+      TARSKIINIT = Module.cwrap("TARSKIINIT", 'void', ['number', 'number']);
+      TARSKIEVAL = Module.cwrap("TARSKIEVAL", "string", ["string"]);
+   3. To initialize Tarski, use:
+      TARSKIINIT(50000000,3);
+   4. To compute something useful, type:
+      TARSKIEVAL("(qepcad-api-call [ex x [x>0]])");
+ */
