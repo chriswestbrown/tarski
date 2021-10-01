@@ -12,6 +12,8 @@
 #include "einterpreter.h"
 #ifndef _EMCC2_
 #include "readlineistream.h"
+#else
+#include <emscripten/emscripten.h>
 #endif
 #include "../onecell/memopolymanager.h"
 #include "../tarskisysdep.h" /* defines pathToMaple variable */
@@ -282,6 +284,7 @@ int sendSignalAfterInterval(int seconds, int signum)
 }//end namespace tarski
 
 
+#ifndef _EMCC2_
 int main(int argc, char **argv)
 {
   int dummy = 0;
@@ -291,12 +294,19 @@ int main(int argc, char **argv)
 #endif
   tarski::mainDUMMY(argc,argv,topOfTheStack);
 }
+#endif
 
-void mainLIB(int numcells, int timeout) {
+void
+#ifdef _EMCC2_
+EMSCRIPTEN_KEEPALIVE
+#endif
+mainLIB(int numcells, int timeout) {
   int dummy = 0;
   void *topOfTheStack = &dummy;
 #ifndef __MINGW32__
+#ifndef _EMCC2_
   if (strcmp(tarski::pathToQepcad, "") == 0) throw tarski::TarskiException("Invalid location for QEPCAD");
+#endif
 #endif
   // Get the CA Server up and running!
   // I'm sure there's a nicer way to trick SacModInit, but ... this will do for now!
@@ -358,8 +368,27 @@ string PCLIB(string input) {
     return output;
 }
 
-void ENDTARSKILIB() {
+#ifdef _EMCC2_
+extern "C" const char* EMSCRIPTEN_KEEPALIVE PCLIB(char *input) {
+    return PCLIB(string(input)).c_str();
+}
+#endif
+
+void
+#ifdef _EMCC2_
+EMSCRIPTEN_KEEPALIVE
+#endif
+ENDTARSKILIB() {
     delete tarski::defaultNormalizer;
     SacModEnd();
     tarski::finalcleanup = true;
 }
+
+#ifdef _EMCC2_
+int EMSCRIPTEN_KEEPALIVE main() {
+    mainLIB(50000000, 5);
+    std::cout << PCLIB("(qepcad-api-call [ex x [x>0]])") << "\n";
+    // ENDTARSKILIB();
+    return 0;
+}
+#endif

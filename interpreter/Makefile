@@ -71,6 +71,7 @@ LDFLAGS += -lreadline
 else
 # Otherwise we use a different target suffix:
 TARGET_EXEC := tarski.html
+LDFLAGS += -s "EXTRA_EXPORTED_RUNTIME_METHODS=['cwrap']"
 endif
 
 
@@ -150,7 +151,9 @@ $(BUILD_DIR)/%.c.o: %.c
 
 CXXFLAGS += -fPIC
 ifeq ($(TOOLCHAIN),emmake)
-CXXFLAGS += -s USE_ZLIB=1 -D_EMCC2_ $(extIncludesMd5)
+CXXFLAGS += -s USE_ZLIB=1 -D_EMCC2_ -s EXPORTED_FUNCTIONS=[_PCLIB,_mainLIB,_ENDTARSKILIB,_main] $(extIncludesMd5)
+CXXFLAGS += -s "EXPORTED_RUNTIME_METHODS=['PCLIB,mainlib,ENDTARSKILIB,main']"
+CXXFLAGS += -s "EXTRA_EXPORTED_RUNTIME_METHODS=['cwrap']"
 endif
 
 # c++ source
