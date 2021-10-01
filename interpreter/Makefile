@@ -68,6 +68,9 @@ endif
 # On non-wasm we always need readline:
 ifneq ($(TOOLCHAIN),emmake)
 LDFLAGS += -lreadline
+else
+# Otherwise we use a different target suffix:
+TARGET_EXEC := tarski.html
 endif
 
 
@@ -83,8 +86,9 @@ endif
 
 $(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
 	$(CXX) $(OBJS) -o $@ $(LDFLAGS)
+ifneq ($(TOOLCHAIN),emmake)
 	mv build/tarski bin/tarski
-
+endif
 
 lib: tarski.a
 
