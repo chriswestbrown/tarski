@@ -49,7 +49,7 @@
       - a Java Development Kit (e.g. default-jdk on Linux)
 
       Dependencies for a WebAssembly build
-      - Emscripten (version 2.0.14 is known to work)
+      - Emscripten (versions 2.0.14, 2.0.20 and 2.0.22 are known to work)
       - openssl (built with Emscripten)
 
    b. Build

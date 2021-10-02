@@ -365,13 +365,22 @@ string TARSKIEVAL(string input) {
       tarski::compTracker.report();
       tarski::compTracker.clear();
     }
-
     return output;
 }
 
 #ifdef _EMCC2_
-extern "C" const char* EMSCRIPTEN_KEEPALIVE TARSKIEVAL(char *input) {
-    return TARSKIEVAL(string(input)).c_str();
+// Taken from https://github.com/emscripten-core/emscripten/issues/6433
+extern "C" {
+    inline const char* cstr(const std::string& message) {
+        auto buffer = (char*) malloc(message.length() + 1);
+        buffer[message.length()] = '\0';
+        memcpy(buffer, message.data(), message.length());
+        return buffer;
+    }
+    EMSCRIPTEN_KEEPALIVE const char* TARSKIEVAL(char *input) {
+    string output = TARSKIEVAL(string(input));
+    return cstr(output);
+    }
 }
 
 // Override starting QEPCAD by doing nothing (it also has a main() function):
