@@ -14,8 +14,10 @@
 
    Tarski should build pretty easily on Linux systems.
    The latest version should compile on Mac and Windows systems too.
+   Also, a Java Native Interface (JNI) library can be built.
+   Alternatively, Tarski can run in a web browser as well.
 
-   a. Dependencies on Linux
+   a. Dependencies on Linux (on Debian based systems)
       The following external packages must be installed for Tarski
       to build (e.g. sudo apt-get install <name>):
       - libz-dev (for MiniSAT)
@@ -40,6 +42,16 @@
       - libcrypt-devel
       - mingw-w64-clang-x86_64-toolchain (only for CLANG64)
 
+      Dependencies for a JNI build
+      - Either a Linux, a Mac or a Windows MSYS2/CLANG64 platform
+      - Everything from the list above for the given platform
+      - swig
+      - a Java Development Kit (e.g. default-jdk on Linux)
+
+      Dependencies for a WebAssembly build
+      - Emscripten (version 2.0.14 is known to work)
+      - openssl (built with Emscripten)
+
    b. Build
       From the root directory, building Tarski should be as simple
       as running ./build.sh  .... and then getting a cup of coffee.
@@ -48,11 +60,14 @@
       Saclib and/or Qepcad that you want to use in place of those
       packaged with Tarski, read the first few lines of build.sh.
 
+      To build a static version of the executable or build
+      the WebAssembly version, please read the top comments of build.sh.
+
    c. Run
       From the tarski root directory, Tarski can be run as:
 
       ./bin/tarski
-      
+
       It is strongly suggested to add that bin directory to your
       shell PATH variable.
 

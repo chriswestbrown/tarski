@@ -1,17 +1,18 @@
 #!/bin/bash
 
-### Use "TOOLCHAIN=emmake ./build.sh" if you intend to start a WebAssembly build.
-### Use "STATIC=1 ./build.sh" if you want to compile the tarski executable statically.
-### Use "./build.sh clean" to clean up and remove objects that are already built.
-
-export STATIC
-export TOOLCHAIN
-
 ### To use an existing external Saclib and/or Qepcad
 ### replace the empty strings below with full paths.
 externalSaclibRoot=""
 externalQepcadRoot=""
-### Add "wasm" as parameter if you intend to start a WebAssembly build.
+
+### Use "TOOLCHAIN=emmake ./build.sh" if you intend to start a WebAssembly build.
+### Use "STATIC=1 ./build.sh" if you want to compile the tarski executable statically.
+### Use "./build.sh clean" to clean up and remove objects that are already built.
+
+######################################################################################
+
+export STATIC
+export TOOLCHAIN
 
 trap "exit 1" TERM
 export TOP_PID=$$
