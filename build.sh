@@ -2,6 +2,7 @@
 
 ### Use "TOOLCHAIN=emmake ./build.sh" if you intend to start a WebAssembly build.
 ### Use "STATIC=1 ./build.sh" if you want to compile the tarski executable statically.
+### Use "./build.sh clean" to clean up and remove objects that are already built.
 
 export STATIC
 export TOOLCHAIN
@@ -35,6 +36,25 @@ else
 fi
 
 export saclib=$saclibRoot
+if [ "$externalQepcadRoot" = "" ]
+then
+    qepcadRoot="$tarskiRoot/qesource"
+else
+    qepcadRoot=$externalQepcadRoot
+fi
+
+export qe=$qepcadRoot
+
+if [ "$1" = "clean" ]; then
+ pushd interpreter
+ check "make clean"
+ popd
+ pushd saclib2.2.7
+ rm -fr lib
+ popd
+ exit 0
+ fi
+
 pushd $saclib
 echo "Making SACLIB..."
 
@@ -56,14 +76,6 @@ echo "Saclib done"
 popd
 
 ### QEPCAD
-if [ "$externalQepcadRoot" = "" ]
-then
-    qepcadRoot="$tarskiRoot/qesource"
-else
-    qepcadRoot=$externalQepcadRoot
-fi
-
-export qe=$qepcadRoot
 export PATH=$qe/bin:$PATH
 pushd $qe
 echo "Making QEPCAD..."
