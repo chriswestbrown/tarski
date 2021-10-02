@@ -176,13 +176,17 @@ int mainDUMMY(int argc, char **argv, void* topOfTheStack)
       if (x.is_null()) continue;
       SRef res = I.eval(I.rootFrame,x);
       if (res->type() == _err && res->err()->msg == "INTERPRETER:quit") { explicitQuit = true; break; }
+#ifndef _EMCC2_
       if (!quiet) { cout << res->toStr() << endl; }
+#endif
       if (res->type() != _err && res->type() != _void) { I.rootFrame->set("%",res); }
       if (res->type() == _err) { I.rootFrame->set("%E",new StrObj(res->err()->getMsg())); }
       I.rootFrame->set("%e",res);
       I.markAndSweep();
     }      
+#ifndef _EMCC2_
     if (!quiet && !explicitQuit) { cout << endl; }
+#endif
 
     if (verbose)
     {
