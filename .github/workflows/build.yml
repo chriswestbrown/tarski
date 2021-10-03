@@ -92,10 +92,10 @@ jobs:
         cd emsdk
         ./emsdk install 2.0.22
         ./emsdk activate 2.0.22
-        . emsdk_env.sh
         cd ..
     - name: openssl-wasm
       run: |
+        . emsdk/emsdk_env.sh
         wget https://www.openssl.org/source/openssl-1.1.0h.tar.gz
         tar xf openssl-1.1.0h.tar.gz
         cd openssl-1.1.0h
