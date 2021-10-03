@@ -99,7 +99,7 @@ jobs:
         wget https://www.openssl.org/source/openssl-1.1.0h.tar.gz
         tar xf openssl-1.1.0h.tar.gz
         cd openssl-1.1.0h
-        emconfigure ./Configure linux-generic64
+        emconfigure ./Configure linux-generic64 --prefix=$EMSDK/system
         sed -i 's|^CROSS_COMPILE.*$|CROSS_COMPILE=|g' Makefile
         emmake make build_generated libssl.a libcrypto.a
         cp -R include/openssl $EMSDK/system/include
