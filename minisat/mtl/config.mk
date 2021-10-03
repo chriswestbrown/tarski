@@ -4,3 +4,7 @@
 ##
 ##  CFLAGS += -I/usr/local/include
 ##  LFLAGS += -L/usr/local/lib
+
+ifeq ($(TOOLCHAIN),emmake)
+CXXFLAGS += -s USE_ZLIB=1
+endif
