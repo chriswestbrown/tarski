@@ -107,4 +107,5 @@ jobs:
         cd ..
     - name: build
       run: |
+        . emsdk/emsdk_env.sh
         yes | TOOLCHAIN=emmake ./build.sh
