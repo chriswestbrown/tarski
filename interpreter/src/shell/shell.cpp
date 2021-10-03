@@ -300,6 +300,10 @@ int main(int argc, char **argv)
 }
 #endif
 
+tarski::MemoizedPolyManager PM;
+tarski::NewEInterpreter I(&PM);
+
+
 #ifdef _EMCC2_
 extern "C" void EMSCRIPTEN_KEEPALIVE
 #else
@@ -332,6 +336,15 @@ TARSKIINIT(int numcells, int timeout) {
   delete [] argv;
 
   srand(time(0));
+
+  tarski::defaultNormalizer = new tarski::Level3and4(7,7);
+
+  I.init();
+
+  (*I.rootFrame)["%"] = new tarski::SObj(); // Seed the % variable with a void value;
+  (*I.rootFrame)["%e"] = new tarski::SObj(); // Seed the %e variable with a void value;
+  (*I.rootFrame)["%E"] = new tarski::SObj(); // Seed the %E variable with a void value;
+
   }
 
 string TARSKIEVAL(string input) {
@@ -340,16 +353,8 @@ string TARSKIEVAL(string input) {
 
     istream &iin = iss;
     tarski::LexContext LC(iin,';');
-    tarski::defaultNormalizer = new tarski::Level3and4(7,7);
-
-    tarski::MemoizedPolyManager PM;
-    tarski::NewEInterpreter I(&PM);
-    I.init();
-
-    (*I.rootFrame)["%"] = new tarski::SObj(); // Seed the % variable with a void value;
-    (*I.rootFrame)["%e"] = new tarski::SObj(); // Seed the %e variable with a void value;
-    (*I.rootFrame)["%E"] = new tarski::SObj(); // Seed the %E variable with a void value;
     bool explicitQuit = false;
+
     while(iin)
     {
       tarski::SRef x = I.next(iin);
