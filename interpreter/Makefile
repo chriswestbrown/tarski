@@ -56,6 +56,15 @@ AOBJ := $(ASRC:%=$(BUILD_DIR)/%.o)
 DEPS := $(OBJS:.o=.d)
 
 LDFLAGS :=  $(saclibOverrides) $(extLibQEPCAD) $(extLibSACLIB) $(extLibMINISAT) $(extLibMD5)
+# On non-wasm we always need readline (and the order matters, it must precede -lrt):
+ifneq ($(TOOLCHAIN),emmake)
+LDFLAGS += -lreadline
+else
+# Otherwise we use a different target suffix:
+TARGET_EXEC := tarski.html
+LDFLAGS += -s "EXTRA_EXPORTED_RUNTIME_METHODS=['cwrap']" -fexceptions
+endif
+
 # On Mac and Windows MSYS2/CLANG64 the rt library is not present, but otherwise it is necessary.
 ifneq ($(UNAME_S),Darwin)
 ifeq (,$(findstring MINGW64,$(UNAME_S)))
@@ -64,14 +73,6 @@ ifdef STATIC
 LDFLAGS += -lpthread -ltinfo -static
 endif
 endif
-endif
-# On non-wasm we always need readline:
-ifneq ($(TOOLCHAIN),emmake)
-LDFLAGS += -lreadline
-else
-# Otherwise we use a different target suffix:
-TARGET_EXEC := tarski.html
-LDFLAGS += -s "EXTRA_EXPORTED_RUNTIME_METHODS=['cwrap']" -fexceptions
 endif
 
 
@@ -87,9 +88,7 @@ endif
 
 $(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
 	$(CXX) $(OBJS) -o $@ $(LDFLAGS)
-ifneq ($(TOOLCHAIN),emmake)
-	mv build/tarski bin/tarski
-endif
+	test -r build/tarski && cp build/tarski bin/tarski || true
 
 lib: tarski.a
 
