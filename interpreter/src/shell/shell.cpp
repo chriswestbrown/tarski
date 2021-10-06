@@ -323,16 +323,18 @@ TARSKIINIT(int numcells, int timeout) {
   int argc = 5;
   if (numcells == 0) numcells = 20000000;
   if (timeout == 0) timeout = 200;
-  char s0[20]; strcpy(s0, "+N");
-  char s1[20]; sprintf(s1, "%d", numcells);
+  char s0[20]; strcpy(s0, "tarski"); // dummy
+  char s1[20]; sprintf(s1, "+N%d", numcells);
   char s2[20]; strcpy(s2, "-t");
   char s3[20]; sprintf(s3, "%d", timeout);
   char s4[20]; strcpy(s4, "");
-  char **argv = new char*[5];
+  char **argv = new char*[6];
   argv[0] = s0; argv[1] = s1; argv[2] = s2; argv[3] = s3; argv[4] = s4;
   int ac;
   char **av;
+  cout << "Tarski initializing with numcells " << numcells << " and timeout " << timeout << "." << endl;
   SacModInit(argc,argv,ac,av,"Saclib","","",topOfTheStack);
+  cout << "Successful initialization" << endl;
   delete [] argv;
 
   srand(time(0));
@@ -413,8 +415,8 @@ TARSKIEND() {
    2. In the JavaScript console type:
       TARSKIINIT = Module.cwrap("TARSKIINIT", 'void', ['number', 'number']);
       TARSKIEVAL = Module.cwrap("TARSKIEVAL", "string", ["string"]);
-   3. To initialize Tarski, use:
-      TARSKIINIT(50000000,3);
+   3. To initialize Tarski, use (the timeout is still ignored):
+      TARSKIINIT(1500000,3);
    4. To compute something useful, type:
       TARSKIEVAL("(qepcad-api-call [ex x [x>0]])");
  */
