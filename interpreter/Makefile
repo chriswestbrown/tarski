@@ -62,7 +62,7 @@ LDFLAGS += -lreadline
 else
 # Otherwise we use a different target suffix:
 TARGET_EXEC := tarski.html
-LDFLAGS += -s "EXTRA_EXPORTED_RUNTIME_METHODS=['cwrap']" -fexceptions
+LDFLAGS += -s "EXTRA_EXPORTED_RUNTIME_METHODS=['cwrap']" -fexceptions -s ALLOW_MEMORY_GROWTH=1
 endif
 
 # On Mac and Windows MSYS2/CLANG64 the rt library is not present, but otherwise it is necessary.
@@ -151,7 +151,7 @@ $(BUILD_DIR)/%.c.o: %.c
 CXXFLAGS += -fPIC
 ifeq ($(TOOLCHAIN),emmake)
 CXXFLAGS += -s USE_ZLIB=1 -D_EMCC2_ -s EXPORTED_FUNCTIONS=[_TARSKIINIT,_TARSKIEVAL,_TARSKIEND] $(extIncludesMd5)
-CXXFLAGS += -s "EXTRA_EXPORTED_RUNTIME_METHODS=['cwrap']" -fexceptions
+CXXFLAGS += -s "EXTRA_EXPORTED_RUNTIME_METHODS=['cwrap']" -fexceptions -s ALLOW_MEMORY_GROWTH=1
 endif
 
 # c++ source
