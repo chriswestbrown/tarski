@@ -144,7 +144,7 @@ if [ "$TOOLCHAIN" != emmake -a "$JAVA" != "" ]; then
   echo "Making libtarski..."
   export JAVA
   check "make dll"
-  make dlltest || echo "The Java Native Interface seems unstable."
+  timeout 60 make dlltest || echo "The Java Native Interface seems unstable."
   popd
   }
  fi
