@@ -53,6 +53,8 @@ if [ "$1" = "clean" ]; then
  pushd saclib2.2.7
  rm -fr lib
  popd
+ # Final cleanup
+ find \( -name '*.o' -or -name '*.or' -or -name '*.a' -or -name '.exe' -or -name '*.wasm' \) -delete
  exit 0
  fi
 
