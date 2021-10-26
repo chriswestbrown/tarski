@@ -3,83 +3,131 @@
 
 #include "../shell/einterpreter.h"
 #include "readSMTRetFormula.h"
+#include <map>
 
 namespace tarski {
   
-class SMTLibLoad : public EICommand
-{
-public:
-  SMTLibLoad(NewEInterpreter* ptr) : EICommand(ptr) { }
-  SRef execute(SRef input, std::vector<SRef> &args)
+  class SMTLibLoad : public EICommand
   {
-    // must have arguments
-    int N = args.size();
-    if (N < 1) { return new ErrObj("smt-load requires an argument (the file to load)."); }
+  public:
+    SMTLibLoad(NewEInterpreter* ptr) : EICommand(ptr) { }
+    SRef execute(SRef input, std::vector<SRef> &args)
+    {
+      // must have arguments
+      int N = args.size();
+      if (N < 1) { return new ErrObj("smt-load requires an argument (the file to load)."); }
 
-    // last argument must be file to load
-    StrRef path = args[N-1]->str();
-    if (path.is_null()) { return new ErrObj("smt-load requires its last argument to be of type std::string."); }
-    ifstream fin(path->val.c_str());
-    if (!fin) { return new ErrObj("file '" + path->val + "' not found in smt-load."); }            
+      // last argument must be file to load
+      StrRef path = args[N-1]->str();
+      if (path.is_null()) { return new ErrObj("smt-load requires its last argument to be of type std::string."); }
+      ifstream fin(path->val.c_str());
+      if (!fin) { return new ErrObj("file '" + path->val + "' not found in smt-load."); }            
     
-    // process other arguments
-    bool clearDenominators = false;
-    for(int i = 0; i < N-1; i++)
-    {
-      SymRef opt = args[i]->sym();
-      if (!opt.is_null() && opt->val == "clear")
-	clearDenominators = true;
-      else
-	return new ErrObj("smt-load optional argument '" + args[i]->toStr() +"' not understood.");
-    }
+      // process other arguments
+      bool clearDenominators = false;
+      for(int i = 0; i < N-1; i++)
+      {
+	SymRef opt = args[i]->sym();
+	if (!opt.is_null() && opt->val == "clear")
+	  clearDenominators = true;
+	else
+	  return new ErrObj("smt-load optional argument '" + args[i]->toStr() +"' not understood.");
+      }
     
-    try 
-    {
-      std::ostringstream sout;
-      readSMTRetTarskiString(fin,sout);
-      fin.close();
-      /* std::cerr << "TEST" << std::endl; */
-      /* std::cerr << sout.str(); */
-      /* std::cerr << "TEST" << std::endl; */
-      TFormRef F;
-      if (!clearDenominators)
-	F = processExpFormula(sout.str(),getPolyManagerPtr());
-      else
-	F = processExpFormulaClearDenominators(sout.str(),getPolyManagerPtr());
-      return new TarObj(F);
-    } 
-    catch(TarskiException &e) 
-    {
-      return new ErrObj(e.what());
+      try 
+      {
+	std::ostringstream sout;
+	readSMTRetTarskiString(fin,sout);
+	fin.close();
+	/* std::cerr << "TEST" << std::endl; */
+	/* std::cerr << sout.str(); */
+	/* std::cerr << "TEST" << std::endl; */
+	TFormRef F;
+	if (!clearDenominators)
+	  F = processExpFormula(sout.str(),getPolyManagerPtr());
+	else
+	  F = processExpFormulaClearDenominators(sout.str(),getPolyManagerPtr());
+	return new TarObj(F);
+      } 
+      catch(TarskiException &e) 
+      {
+	return new ErrObj(e.what());
+      }
     }
-  }
-  std::string testArgs(std::vector<SRef> &args) { return ""; /* require(args,_str); */ }
-  std::string doc() { return "\
+    std::string testArgs(std::vector<SRef> &args) { return ""; /* require(args,_str); */ }
+    std::string doc() { return "\
 (smt-load [switch] <std::string>) where <std::string> is a filename, reads file <std::string> of smtlib input and attempts to interpret it as a Tarski formula.  When smtlib's (checksat) expression is encountered, the current formula is returned.  Note that at present very little syntax checking on the input is done.  By default, smtlib-load will not process inputs with non-constant denominators.  However, with the optional switch 'clear, smtlib-load will allow them, and clear them in the usual way but, and this is important, under the assumption that the formula \"guards\" denominators, i.e. that any branch of the formula with a denominator includes already implies the non-vanishing of that denominator."; }
-  std::string usage() { return "(smtlib-load [switch] <std::string>)"; }
-  std::string name() { return "smtlib-load"; }
-};
+    std::string usage() { return "(smtlib-load [switch] <std::string>)"; }
+    std::string name() { return "smtlib-load"; }
+  };
 
 
-class SMTLibStore : public EICommand
-{
-public:
-  SMTLibStore(NewEInterpreter* ptr) : EICommand(ptr) { }
-  SRef execute(SRef input, std::vector<SRef> &args)
+  class SMTLibStore : public EICommand
   {
-    TarRef F = args[0]->tar();
-    StrRef path = args[1]->str();
-    ofstream fout(path->val.c_str());
-    if (!fout) { return new ErrObj("file '" + path->val + "' not found in smt-store."); }            
-    writeSMTLIB(F->val, fout);
-    return new SObj();
-  }
-  std::string testArgs(std::vector<SRef> &args) { return require(args,_tar,_str); }
-  std::string doc() { return "\
+  public:
+    SMTLibStore(NewEInterpreter* ptr) : EICommand(ptr) { }
+    SRef execute(SRef input, std::vector<SRef> &args)
+    {
+      std::map<string,string> fields =
+	{
+	 {"by", ""},
+	 {"on", ""},
+	 {"tool",""},
+	 {"app",""},
+	 {"solver",""},
+	 {"pubs",""},
+	 {"license","\"https://creativecommons.org/licenses/by/4.0/\""},
+	 {"cat","\"crafted\""},
+	 {"status","unknown"}
+	};
+      TarRef F = args[0]->tar();
+      StrRef path = args[1]->str();
+      ofstream fout(path->val.c_str());
+      if (!fout) { return new ErrObj("file '" + path->val + "' not found in smt-store."); }            
+
+      if (args.size() > 2) {
+	LisRef L = args[2]->lis();
+	for(int i = 0; i < L->length(); i++) {
+	  LisRef nvp = L->get(i)->lis();
+	  if (nvp.is_null() || nvp->length() != 2) {
+	    return new ErrObj("smtlib-store third argument must be list of lists (name-value pairs).");
+	  }
+	  SymRef name = nvp->get(0);
+	  StrRef value = nvp->get(1);
+	  if (name.is_null() || value.is_null()) {
+	    return new ErrObj("smtlib-store third argument must be list of lists (sym-string pairs).");
+	  }
+	  auto itr = fields.find(name->getVal());
+	  if (itr == fields.end()) { return new ErrObj("smtlib-store: unkown name '" + name->getVal() + "'"); }
+	  itr->second = value->getVal();
+	}
+      }
+    
+      writeSMTLIB(F->val, fout, fields);
+      return new SObj();
+    }
+    std::string testArgs(std::vector<SRef> &args) {
+      string s = require(args,_tar,_str);
+      return s == "" ? s : require(args,_tar,_str,_lis);
+    }
+    std::string doc() { return "\
 (smt-store <tarski formula> <std::string>), where <std::string> is a filename, creates a new file named\
-<std::string> and writes into in in SMT-LIB to satisfiability problem for the given formula."; }
-  std::string usage() { return "(smtlib-store <tarski formula> <std::string>)"; }
-  std::string name() { return "smtlib-store"; }
-};
+<std::string> and writes into in in SMT-LIB to satisfiability problem for the given formula.\n\
+\n\
+An optional third argument is a list of name-value pairs defining some or all of the following names:\n\
+'by - Generated by: the name(s) of those who generated the benchmark;\n\
+'on - Generated on: generation date with format YYYY-MM-DD;\n\
+'tool - Generator: tool which generated the benchmark (if any);\n\
+'app - Application: the general goal;\n\
+'solver - Target solver: the solvers that were initially used to check the benchmarks;\n\
+'pubs - Publications: references to related publications. This can be followed by any other useful information in free text.\n\
+'license - defaults to https://creativecommons.org/licenses/by/4.0/\n\
+'cat - <category> is either \"crafted\", indicating that it was hand-made, \"random\", indicating that it was generated randomly, or \"industrial\" (everything else). Note that the category should be in quotes.  Default is \"crafted\"\n\
+'status - <status> is either sat or unsat according to the status of the benchmark, or unknown if not known.  Default is unkown.\n\
+If you want to submit to the SMT-LIB, all of these should be filled.  Example:\n\
+(smtlib-store [ x^2 + y^2 < 0 ] \"ex.stm2\" '((by \"C. Brown\") (on \"2021-10-20\") (tool \"N/A\") (app \"Geometry Solving\") (pubs \"N/A\") (cat \"\\\"crafted\\\"\") (status \"unsat\")))"; }
+    std::string usage() { return "(smtlib-store <tarski formula> <std::string>)"; }
+    std::string name() { return "smtlib-store"; }
+  };
 }//end namespace tarski
 #endif
