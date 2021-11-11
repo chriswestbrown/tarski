@@ -19,7 +19,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: prerequisites
-      run: brew install readline openssl
+      run: brew install readline openssl coreutils
     - name: build
       run: ./build.sh
     - name: dynamiclib-prerequisites
