@@ -118,22 +118,22 @@ dll: $(LIBTARSKI)
 SWIG := src/swig
 LDFLAGS_SHARED = $(filter-out -static, $(LDFLAGS))
 
-$(SWIG)/tarski_wrap.cxx:
-	cd $(SWIG); swig -c++ -java tarski.i
-src/swig/tarski_wrap.o: src/swig/tarski_wrap.cxx
+$(SWIG)/tarski_wrap.cxx $(SWIG)/tarski.java $(SWIG)/tarskiJNI.java:
+	cd $(SWIG); swig -c++ -java -package tarski tarski.i
+$(SWIG)/tarski_wrap.o: src/swig/tarski_wrap.cxx
 	$(CXX) -c $(SWIG)/tarski_wrap.cxx -Isrc/main -Isrc -I$(SACLIB)/include \
         -I"$(JAVA)/include" -I"$(JAVA)/include/linux" -I"$(JAVA)/include/win32" -fPIC
 	mv tarski_wrap.o $(SWIG)/
 $(LIBTARSKI): $(OBJS) $(SWIG)/tarski_wrap.o
 	$(CXX) -shared $(SWIG)/tarski_wrap.o $(OBJS) -o $@ $(LDFLAGS_SHARED) -fPIC
-$(SWIG)/main.class: $(SWIG)/main.java
-	cd $(SWIG); "$(JAVA)/bin/javac" main.java
+$(SWIG)/main.class: $(SWIG)/main.java $(SWIG)/tarski.java $(SWIG)/tarskiJNI.java
+	cd $(SWIG); "$(JAVA)/bin/javac" -d . main.java tarski.java tarskiJNI.java
 dlltest: $(SWIG)/main.class $(LIBTARSKI)
-	cd $(SWIG); "$(JAVA)/bin/java" -Djava.library.path=../.. main
-$(SWIG)/JTarski.class: $(SWIG)/JTarski.java
-	cd $(SWIG); "$(JAVA)/bin/javac" JTarski.java
+	cd $(SWIG); "$(JAVA)/bin/java" -Djava.library.path=../.. tarski.main
+$(SWIG)/JTarski.class: $(SWIG)/JTarski.java $(SWIG)/tarski.java $(SWIG)/tarskiJNI.java
+	cd $(SWIG); "$(JAVA)/bin/javac" -d . JTarski.java tarski.java tarskiJNI.java
 jtarski: $(SWIG)/JTarski.class $(LIBTARSKI)
-	cd $(SWIG); "$(JAVA)/bin/java" -Djava.library.path=../.. JTarski
+	cd $(SWIG); "$(JAVA)/bin/java" -Djava.library.path=../.. tarski.JTarski
 
 ### End of DLL related code ###
 

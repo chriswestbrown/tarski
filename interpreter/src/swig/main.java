@@ -1,3 +1,5 @@
+package tarski;
+
 public class main {
    public static void main(String argv[]) {
      System.out.println("Loading library...");
@@ -19,4 +21,4 @@ public class main {
      System.out.println(output);
      tarski.TARSKIEND(); // not necessary
    }
- }
+}
