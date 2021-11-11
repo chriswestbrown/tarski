@@ -61,8 +61,8 @@ ifneq ($(TOOLCHAIN),emmake)
 LDFLAGS += -lreadline
 else
 # Otherwise we use a different target suffix:
-TARGET_EXEC := tarski.html
-LDFLAGS += -s "EXTRA_EXPORTED_RUNTIME_METHODS=['cwrap']" -fexceptions -s ALLOW_MEMORY_GROWTH=1
+TARGET_EXEC := tarski.js
+LDFLAGS += -s "EXTRA_EXPORTED_RUNTIME_METHODS=['cwrap']" -fexceptions -s ALLOW_MEMORY_GROWTH=1 -s SINGLE_FILE=1 -s MODULARIZE=1 -s EXPORT_NAME=Tarski
 endif
 
 # On Mac and Windows MSYS2/CLANG64 the rt library is not present, but otherwise it is necessary.

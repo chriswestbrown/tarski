@@ -1,0 +1,37 @@
+<html>
+    <script src="tarski.js"></script>
+    <script src="tarski-loader.js"></script>
+
+    <title>Tarski</title>
+    <body>
+         <center>
+             <textarea id="outputtext" name="outputtext" rows=15 cols=80 style="background-color: #d0d0ff"></textarea>
+             <form>
+                 <input id="inputtext" name="inputtext" size=80 style="font-family: monospace; background-color: #ffd0d0">
+             </form>
+         </center>
+
+         <script type="text/javascript">
+         sampleinput = "(qepcad-api-call [ex x [x>0] ])";
+         function myinit() {
+             document.getElementById('inputtext').addEventListener('keypress', function(event) {
+                 if (event.keyCode == 13) {
+                     event.preventDefault();
+                     compute();
+                     }
+                 });
+             var outputtext = document.getElementById("outputtext");
+             outputtext.innerHTML += "Welcome to the web version of Tarski!\n";
+             var input = document.getElementById("inputtext");
+             input.value = sampleinput;
+             }
+         function compute() {
+             var input = document.getElementById("inputtext").value;
+             output = TARSKIEVAL(input);
+             var outputtext = document.getElementById("outputtext");
+             outputtext.innerHTML += "&gt; " + input + "\n" + output;
+             outputtext.scrollTop = 99999;
+             }
+         </script>
+    </body>
+</html>
