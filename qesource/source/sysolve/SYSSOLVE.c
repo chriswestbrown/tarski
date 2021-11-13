@@ -41,7 +41,7 @@ Word SYSSOLVECAD(BDigit r, Word L, Word A, Word Vp, QepcadCls &Q)
   F = SYSTOUNNORMFORMULA(r,L);
   Q.SETINPUTFORMULA(V,LIST4(r,r,NIL,F));
   Q.SETASSUMPTIONS(A);
-  Q.CADautoConst();
+  Q.CADautoConst(string(""));
 
   /* List solution points */
   S = NIL;

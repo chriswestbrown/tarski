@@ -16,7 +16,8 @@ TFormRef processExpFormula(const std::string& instr, PolyManager* PM);
 
 TFormRef processExpFormulaClearDenominators(const std::string& instr, PolyManager* PM);
 
-void writeSMTLIB(TFormRef F, std::ostream& out);
+void writeSMTLIB(TFormRef F, ostream& out);
+void writeSMTLIB(TFormRef F, ostream& out, std::map<string,string> &fields);
 
 }//end namespace tarski
 #endif

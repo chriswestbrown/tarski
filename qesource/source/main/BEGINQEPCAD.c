@@ -7,33 +7,33 @@ already been initialized!
 #include <fstream>
 #include <sstream>
 #include "qepcad.h"
-#include "db/CAServer.h"
-#include "db/OriginalPolicy.h"
 #ifndef __MINGW32__
-#include "db/SingularPolicy.h"
-#include "db/SingSacPolicy.h"
+#include "caserver/SingularPolicy.h"
+#include "caserver/SingSacPolicy.h"
 #endif
-#include "db/convenientstreams.h"
-#include "db/CAPolicy.h"
+#include "caserver/CAServer.h"
+#include "caserver/OriginalPolicy.h"
+#include "caserver/CAPolicy.h"
+#include "caserver/convenientstreams.h"
 #include <ctype.h>
 #ifdef __MINGW32__
 namespace
-	{
-	bool isatty(int)
-		{
-		return true;
-		}
+    {
+    bool isatty(int)
+        {
+        return true;
+        }
 
-	bool WEXITSTATUS(int status)
-		{
-		return status == 0;
-		}
+    bool WEXITSTATUS(int status)
+        {
+        return status == 0;
+        }
 
-	template<typename F>
-	void setlinebuf(F)
-		{
-		}
-	}
+    template<typename F>
+    void setlinebuf(F)
+        {
+        }
+    }
 #else
 #include <sys/wait.h>
 #endif
@@ -50,6 +50,7 @@ int experimentalExtensionFlag = 0;
 
 ServerBase GVSB;
 CAPolicy *GVCAP = 0;
+bool useExistingCAServer = false;
 QEPCADContext* GVContext = 0;
 
 int GVTIMEOUTLIMIT = -1;
@@ -136,25 +137,26 @@ void BEGINQEPCAD(int &argc, char**& argv)
   /* Initialize the qepcad system globals. */
   INITSYS();
 
-#ifndef __MINGW32__
   /* Launch CA Servers and set up CA Policy */
   if (GVContext->SingularPath == "")
     GVCAP = new OriginalPolicy;
   else
   {
+#ifndef __MINGW32__
     pair<string,CAServer*> tp(string("Singular"),new SingularServer(GVContext->SingularPath));
     GVSB.insert(tp);
     GVCAP = new SingSacPolicy;
-  }
 #endif
+  }
 
 }
 
 void QEPCAD_ProcessRC(int argc, char **argv)
 {
   char *qepath = getenv("qe");
-  if (qepath == NULL) { FAIL("QEPCAD_ProcessRC","Environment variable qe not defined!"); }
-  string rcFileName = qepath + string("/default.qepcadrc");
+  string rcFileName = ".";
+  if (qepath != NULL) { rcFileName = qepath; }
+  rcFileName += string("/default.qepcadrc");
   ifstream rcin(rcFileName.c_str());
   if (!rcin) { return; }
   string name, tmp;
@@ -214,4 +216,17 @@ Saclib options\n\
 	  i = j;
 	}
       }
+}
+
+/* Start QEPCAD as a library entry point. */
+void BEGINQEPCADLIB(int timeout) {
+  GVTIMEOUTLIMIT = timeout;
+  NOECHOSWITCHSET = TRUE;
+  GVContext = new QEPCADContext;
+  QEGLOBALS();
+  INITSYS();
+  if (GVCAP != 0)
+    useExistingCAServer = true;
+  else
+    GVCAP = new OriginalPolicy;
 }

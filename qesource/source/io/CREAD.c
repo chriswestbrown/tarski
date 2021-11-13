@@ -19,8 +19,8 @@ Side effects
 #include <stack>
 #include <fstream>
 #include <iostream>
-#include "db/readlineistream.h"
-#include "db/convenientstreams.h"
+#include "caserver/readlineistream.h"
+#include "caserver/convenientstreams.h"
 using namespace std;
 
 static istream *currIn = 0;
@@ -109,7 +109,7 @@ Step2: /* Get a new character. */
 Step3: /* End of file. */
        if (C == EOF)
        {
-#ifdef __MINGW32__
+#ifdef _EMCC2_
 	 PushInputContext(std::cin);
 #else
 	 cerr << "\007\007\007";

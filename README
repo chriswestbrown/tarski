@@ -13,13 +13,44 @@
 3. Building Tarski
 
    Tarski should build pretty easily on Linux systems.
+   The latest version should compile on Mac and Windows systems too.
+   Also, a Java Native Interface (JNI) library can be built.
+   Alternatively, Tarski can run in a web browser as well.
 
-   a. Dependencies
+   a. Dependencies on Linux (on Debian based systems)
       The following external packages must be installed for Tarski
       to build (e.g. sudo apt-get install <name>):
       - libz-dev (for MiniSAT)
       - libssl-dev (for the Tarski Interpreter)
       - libreadline-dev (for the Tarski Interpreter)
+
+      Dependencies on Mac
+      After installing homebrew you need the following libraries
+      (e.g. sudo brew install <name>):
+      - openssl
+      - readline
+
+      Dependencies on Windows
+      After installation of MSYS2 you have two options, either
+      the CLANG64 (preferred) or the MSYS environment should be used,
+      with the following packages (e.g. pacman -S <name>):
+      - base-devel
+      - gcc
+      - zlib-devel
+      - openssl-devel
+      - libreadline-devel
+      - libcrypt-devel
+      - mingw-w64-clang-x86_64-toolchain (only for CLANG64)
+
+      Dependencies for a JNI build
+      - Either a Linux, a Mac or a Windows MSYS2/CLANG64 platform
+      - Everything from the list above for the given platform
+      - swig
+      - a Java Development Kit (e.g. default-jdk on Linux)
+
+      Dependencies for a WebAssembly build
+      - Emscripten (versions 2.0.14, 2.0.20 and 2.0.22 are known to work)
+      - openssl (built with Emscripten)
 
    b. Build
       From the root directory, building Tarski should be as simple
@@ -29,11 +60,14 @@
       Saclib and/or Qepcad that you want to use in place of those
       packaged with Tarski, read the first few lines of build.sh.
 
+      To build a static version of the executable or build
+      the WebAssembly version, please read the top comments of build.sh.
+
    c. Run
       From the tarski root directory, Tarski can be run as:
 
       ./bin/tarski
-      
+
       It is strongly suggested to add that bin directory to your
       shell PATH variable.
 

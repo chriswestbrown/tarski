@@ -43,7 +43,7 @@ namespace tarski {
     
     SamplePointManagerRef getSamplePointManager() { return SM; }
     VarOrderRef getVarOrder() { return SM->getVarOrder(); }
-    PolyManager* getPolyManager() { SM->getPolyManager(); }
+    PolyManager* getPolyManager() { return SM->getPolyManager(); }
 
     SamplePointId getSamplePointId();
     bool isSamplePointUnfinished() { return samplePointIsUnfinished; }

@@ -30,7 +30,6 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "Solver.h"
 #include "CallBack.h"
 
-
 using namespace Minisat;
 
 //=================================================================================================
@@ -72,11 +71,12 @@ static void SIGINT_exit(int signum) {
 
 int main(int argc, char** argv)
 {
+#ifndef __MINGW32__
     try {
         setUsageHelp("USAGE: %s [options] <input-file> <result-output-file>\n\n  where input may be either in plain or gzipped DIMACS.\n");
         // printf("This is MiniSat 2.0 beta\n");
         
-#if defined(__linux__)
+#if defined(__linux__) && !defined(__arm__)
         fpu_control_t oldcw, newcw;
         _FPU_GETCW(oldcw); newcw = (oldcw & ~_FPU_EXTENDED) | _FPU_DOUBLE; _FPU_SETCW(newcw);
         printf("WARNING: for repeatability, setting FPU to use double precision\n");
@@ -198,4 +198,5 @@ int main(int argc, char** argv)
         printf("INDETERMINATE\n");
         exit(0);
     }
+#endif // __MINGW32__
 }

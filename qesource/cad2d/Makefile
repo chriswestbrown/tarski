@@ -31,6 +31,10 @@ SPECLFLAGS =	-lcurses # on solaris you have to link curses to get readline!
 endif
 
 ARFLAGS := crvU
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
+ARFLAGS := crv
+endif
 
 # ============================================================
 #     Do not touch below unless you know what you are doing
@@ -113,3 +117,4 @@ deb:		$(DEPENDENCIESd)
 .c.o:	
 		$(CC) $(INCLUDES) $(CFLAGS) -o $@ -c $<
 
+.PRECIOUS: %.o

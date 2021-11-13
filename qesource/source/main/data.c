@@ -5,7 +5,7 @@
 #include "qepcad.h"
 
 #ifndef __MINGW32__
-#include "db/SINGULAR.h"
+#include "caserver/SINGULAR.h"
 SingularServer *GVpSingularServer = 0;
 #endif
 

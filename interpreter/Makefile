@@ -2,16 +2,47 @@
 # Following the blog post by Job Vranish
 # https://spin.atomicobject.com/2016/08/26/makefile-c-projects/
 
-CXX=g++
-CC=g++
+UNAME_S := $(shell uname -s)
+JAVA := ${JAVA}
+
 MROOT=-I../minisat
 TMROOT=../minisat
-extIncludesSACLIB:=-I${saclib}/include
+extIncludesSACLIB:=-I${saclib}/include -I${qe}/source
 extLibSACLIB:=${saclib}/lib/saclibo.a
 extLibMINISAT:=../minisat/core/lib.a
 extIncludeMINISAT:=-I${TMROOT}/core
 extIncludesMD5:=
 extLibMD5:=-lssl  -lcrypto
+
+saclibOverrides:=$(shell find ${qe}/source/saclib/ | grep -E '[.]o' | grep -Ev 'CSSP.o|IPIIS.o|CREAD.o|CWRITE.o|GCSI.o|gcword.o' | xargs)
+
+extLibQEPCAD:=  ${qe}/source/qepcad.a \
+		${qe}/extensions/sfext/sfexto.a \
+		${qe}/extensions/lift2D/lift2Do.a \
+		${qe}/extensions/adj2d/adj2do.a \
+		${qe}/extensions/sfext/sfexto.a \
+		${qe}/source/qepcad.a
+
+# The rend extension will not be built on Windows MSYS2/CLANG64, otherwise always.
+ifeq (,$(findstring MINGW64,$(UNAME_S)))
+extLibQEPCAD += ${qe}/extensions/rend/rendo.a
+endif
+
+# Find the openssl include/lib folders automatically. We assume that Homebrew is already installed.
+ifeq ($(UNAME_S),Darwin)
+MAC_OPENSSL_INCLUDE := $(shell find /usr/local/Cellar/openssl*/* -name include | sort | tail -1)
+MAC_OPENSSL_LIB := $(shell find /usr/local/Cellar/openssl*/* -name lib | sort | tail -1)
+extIncludesMD5:=-I$(MAC_OPENSSL_INCLUDE)
+extLibMD5:=$(MAC_OPENSSL_LIB)/libssl.a $(MAC_OPENSSL_LIB)/libcrypto.a
+endif
+
+# For wasm we need to have openssl preinstalled
+ifeq ($(TOOLCHAIN),emmake)
+WASM_OPENSSL_INCLUDE=$(EMSDK)/upstream/emscripten/system/include
+WASM_OPENSSL_LIB=$(EMSDK)/upstream/emscripten/system/lib
+extIncludesMd5:=-I$(WASM_OPENSSL_INCLUDE)
+extLibMD5:=$(WASM_OPENSSL_LIB)/libssl.a $(WASM_OPENSSL_LIB)/libcrypto.a
+endif
 
 TARGET_EXEC ?= tarski
 
@@ -24,24 +55,87 @@ OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)
 AOBJ := $(ASRC:%=$(BUILD_DIR)/%.o)
 DEPS := $(OBJS:.o=.d)
 
-LDFLAGS := -lssl -lcrypto -lreadline -lrt $(extLibSACLIB) $(extLibMINISAT) 
+LDFLAGS :=  $(saclibOverrides) $(extLibQEPCAD) $(extLibSACLIB) $(extLibMINISAT) $(extLibMD5)
+# On non-wasm we always need readline (and the order matters, it must precede -lrt):
+ifneq ($(TOOLCHAIN),emmake)
+LDFLAGS += -lreadline
+else
+# Otherwise we use a different target suffix:
+TARGET_EXEC := tarski.js
+LDFLAGS += -s "EXTRA_EXPORTED_RUNTIME_METHODS=['cwrap']" -fexceptions -s ALLOW_MEMORY_GROWTH=1 -s SINGLE_FILE=1 -s MODULARIZE=1 -s EXPORT_NAME=Tarski
+endif
+
+# On Mac and Windows MSYS2/CLANG64 the rt library is not present, but otherwise it is necessary.
+ifneq ($(UNAME_S),Darwin)
+ifeq (,$(findstring MINGW64,$(UNAME_S)))
+LDFLAGS += -lrt
+ifdef STATIC
+LDFLAGS += -lpthread -ltinfo -static
+endif
+endif
+endif
+
 
 INC_DIRS := $(shell find $(SRC_DIRS) -type d)
-INC_FLAGS := $(addprefix -I,$(INC_DIRS)) $(extIncludesSACLIB) $(extIncludeMINISAT)
+INC_FLAGS := $(addprefix -I,$(INC_DIRS)) $(extIncludesSACLIB) $(extIncludeMINISAT) $(extIncludesMD5)
 
-CPPFLAGS ?= $(INC_FLAGS) -MMD -MP --std=c++11 -g
+CPPFLAGS ?= $(INC_FLAGS) -MMD -MP -g
+# On Mac the C++11 dialect must be set, on Linux it is optional, on Windows MSYS2/CLANG64 it should not be set.
+ifeq ($(UNAME_S),Darwin)
+CPPFLAGS += --std=c++11
+endif
 
 
 $(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
-	$(CC) $(OBJS) -o $@ $(LDFLAGS)
-	mv build/tarski bin/tarski
-
+	$(CXX) $(OBJS) -o $@ $(LDFLAGS)
+	test -r build/tarski && cp build/tarski bin/tarski || true
 
 lib: tarski.a
 
 tarski.a: $(AOBJ)
 	$(AR) r $@ $(AOBJ)
 	mv tarski.a ../lib/tarski.a
+
+
+### DLL related code ###
+
+# Output file on Linux:
+LIBTARSKI:=libtarski.so
+
+# Output file on Mac:
+ifeq ($(UNAME_S),Darwin)
+LIBTARSKI:=libtarski.jnilib
+endif
+
+# Output file on Windows:
+ifeq (,$(findstring MINGW64,$(UNAME_S)))
+else
+LIBTARSKI:=tarski.dll
+endif
+
+dll: $(LIBTARSKI)
+
+SWIG := src/swig
+LDFLAGS_SHARED = $(filter-out -static, $(LDFLAGS))
+
+$(SWIG)/tarski_wrap.cxx $(SWIG)/tarski.java $(SWIG)/tarskiJNI.java:
+	cd $(SWIG); swig -c++ -java -package tarski tarski.i
+$(SWIG)/tarski_wrap.o: src/swig/tarski_wrap.cxx
+	$(CXX) -c $(SWIG)/tarski_wrap.cxx -Isrc/main -Isrc -I$(SACLIB)/include \
+        -I"$(JAVA)/include" -I"$(JAVA)/include/linux" -I"$(JAVA)/include/win32" -fPIC
+	mv tarski_wrap.o $(SWIG)/
+$(LIBTARSKI): $(OBJS) $(SWIG)/tarski_wrap.o
+	$(CXX) -shared $(SWIG)/tarski_wrap.o $(OBJS) -o $@ $(LDFLAGS_SHARED) -fPIC
+$(SWIG)/main.class: $(SWIG)/main.java $(SWIG)/tarski.java $(SWIG)/tarskiJNI.java
+	cd $(SWIG); "$(JAVA)/bin/javac" -d . main.java tarski.java tarskiJNI.java
+dlltest: $(SWIG)/main.class $(LIBTARSKI)
+	cd $(SWIG); "$(JAVA)/bin/java" -Djava.library.path=../.. tarski.main
+$(SWIG)/JTarski.class: $(SWIG)/JTarski.java $(SWIG)/tarski.java $(SWIG)/tarskiJNI.java
+	cd $(SWIG); "$(JAVA)/bin/javac" -d . JTarski.java tarski.java tarskiJNI.java
+jtarski: $(SWIG)/JTarski.class $(LIBTARSKI)
+	cd $(SWIG); "$(JAVA)/bin/java" -Djava.library.path=../.. tarski.JTarski
+
+### End of DLL related code ###
 
 
 # assembly
@@ -54,10 +148,17 @@ $(BUILD_DIR)/%.c.o: %.c
 	$(MKDIR_P) $(dir $@)
 	$(CXX) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
+CXXFLAGS += -fPIC
+ifeq ($(TOOLCHAIN),emmake)
+CXXFLAGS += -s USE_ZLIB=1 -D_EMCC2_ -s EXPORTED_FUNCTIONS=[_TARSKIINIT,_TARSKIEVAL,_TARSKIEND] $(extIncludesMd5)
+CXXFLAGS += -s "EXTRA_EXPORTED_RUNTIME_METHODS=['cwrap']" -fexceptions -s ALLOW_MEMORY_GROWTH=1
+endif
+
 # c++ source
 $(BUILD_DIR)/%.cpp.o: %.cpp
 	$(MKDIR_P) $(dir $@)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
+
 
 .PHONY: clean
 

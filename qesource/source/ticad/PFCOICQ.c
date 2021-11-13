@@ -20,7 +20,7 @@ Otherwise returns a GB for A,L and all k-order partials of A s.t.
 some of the partials are not identical zero on V(L,A).
 ======================================================================*/
 #include "qepcad.h"
-#include "db/CAPolicy.h"
+#include "caserver/CAPolicy.h"
 
 Word PFCOICQ(Word r, Word A, Word c, Word P, Word D)
 {

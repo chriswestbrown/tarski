@@ -42,15 +42,15 @@ Step1: /* Obtain coefficients. */
 	 Lh = NIL;
 	 t = 0;
 
-#ifndef __MINGW32__
 	 /*-- TEST NEW --*/
+#ifndef __MINGW32__
 	 if (experimentalExtensionFlag)
 	 {
 	   bool qfc = qfrCheckNonVanishing(r-1,L,GVNA.W,GVNQFF.W,GVVL.W);
 	   if (qfc) continue;
 	 }
-	 /*-- END TEST NEW --*/
 #endif
+	 /*-- END TEST NEW --*/
 
 	 if (!VERIFYCONSTSIGN(r-1,IPIP(r-1,ISIGNF(PLBCF(r-1,L)),L),1,GVNA.W)) {
 	   W = MPOLY(L,NIL,LIST1(LIST3(PO_LCO,0,A1)),PO_OTHER,PO_KEEP);
@@ -85,9 +85,9 @@ Step1: /* Obtain coefficients. */
 	     PSIMREP(r-1,f,&rp,&fp);
 	     Word tf = 0;
 	     
-#ifndef __MINGW32__
 	     /* Test 1: identically non-zero */
 	     //--ORIGINAL-- tf = tf || VERIFYCONSTSIGN(r-1,f,1,GVNA.W);
+#ifndef __MINGW32__
 	     tf = tf || (experimentalExtensionFlag && qfrCheckNonVanishing(r-1,f,GVNA.W,GVNQFF.W,GVVL.W));
 #endif
 	     

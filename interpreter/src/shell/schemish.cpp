@@ -194,6 +194,8 @@ inline int char2sym(char c)
 	 * formula using the value that F has globally at the time of reading the lambda 
 	 * expression.
 	 */
+	/* NOTE: uncommenting the line below allows non-constant denominators and automatically clears them. */
+	/* T = clearDenominators(T); */
 	MapToTFormWithInterpolation MTTF(this);
 	T->apply(MTTF);
 	return new TarObj(MTTF.res);
@@ -660,7 +662,7 @@ SRef Interpreter::eval(Frame* env, SRef input)
 
 Frame::Frame(Interpreter *pint, Frame *_parent) : parent(_parent), markVal(-1) { pint->GCFcreated.push_back(this); }
 
-CloObj::CloObj(Interpreter *pint, LisRef _L, Frame* _env) : L(_L), env(_env), markVal(-1) 
+CloObj::CloObj(Interpreter *pint, LisRef _l, Frame* _env) : L(_l), env(_env), markVal(-1) 
 { 
   pint->GCCcreated.push_back(this); 
 }

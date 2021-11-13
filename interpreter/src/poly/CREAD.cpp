@@ -9,6 +9,7 @@ Outputs
 Side effects
   LASTCHAR : set to the character C, for backspacing.
 ======================================================================*/
+#ifdef asdfasdfasdf
 extern "C" {
 #include "saclib.h"
 };
@@ -159,3 +160,5 @@ Step1: /* Put back. */
 Return: /* Prepare for return. */
        return;
 }
+#endif
+

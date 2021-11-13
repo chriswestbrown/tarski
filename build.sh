@@ -1,18 +1,18 @@
 #!/bin/bash
 
-### Use x86_64-w64-mingw32 or i686-w64-mingw32 as first argument
-### to start cross-compilation.
-if [[ $1 == *"mingw"* ]]; then
-    echo "Cross-compilation for Windows..."
-    export CC=$1-gcc
-    export CXX=$1-g++
-    fi
-
 ### To use an existing external Saclib and/or Qepcad
 ### replace the empty strings below with full paths.
 externalSaclibRoot=""
 externalQepcadRoot=""
 
+### Use "TOOLCHAIN=emmake ./build.sh" if you intend to start a WebAssembly build.
+### Use "STATIC=1 ./build.sh" if you want to compile the tarski executable statically.
+### Use "./build.sh clean" to clean up and remove objects that are already built.
+
+######################################################################################
+
+export STATIC
+export TOOLCHAIN
 
 trap "exit 1" TERM
 export TOP_PID=$$
@@ -37,20 +37,6 @@ else
 fi
 
 export saclib=$saclibRoot
-pushd $saclib
-echo "Making SACLIB..."
-if [ ! -e include/sacproto.h -o ! -e lib/objd/makefile -o ! -e lib/objo/makefile ]; then
-    check bin/sconf
-    check bin/mkproto
-    check bin/mkmake
-fi
-check "bin/mklib all -fPIC"
-check
-echo "Saclib done"
-popd
-
-
-### QEPCAD
 if [ "$externalQepcadRoot" = "" ]
 then
     qepcadRoot="$tarskiRoot/qesource"
@@ -59,10 +45,44 @@ else
 fi
 
 export qe=$qepcadRoot
+
+if [ "$1" = "clean" ]; then
+ pushd interpreter
+ check "make clean"
+ popd
+ pushd saclib2.2.7
+ rm -fr lib
+ popd
+ # Final cleanup
+ find \( -name '*.o' -or -name '*.or' -or -name '*.a' -or -name '.exe' -or -name '*.wasm' \) -delete
+ exit 0
+ fi
+
+pushd $saclib
+echo "Making SACLIB..."
+
+# Create the makefiles only when this is a fresh build.
+# Otherwise avoid rebuilding the whole system from scratch.
+# (Recreating the makefiles results in a full rebuild.)
+if [ ! -e include/sacproto.h -o ! -e lib/objd/makefile -o ! -e lib/objo/makefile ]; then
+    if [ "$TOOLCHAIN" = emmake ]; then
+        check "bin/sconf wasm"
+    else
+        check bin/sconf
+    fi
+    check bin/mkproto
+    check bin/mkmake
+fi
+check "bin/mklib all"
+check
+echo "Saclib done"
+popd
+
+### QEPCAD
 export PATH=$qe/bin:$PATH
 pushd $qe
 echo "Making QEPCAD..."
-check "make opt"
+check "$TOOLCHAIN make opt"
 echo "QEPCAD done"
 popd
 
@@ -71,7 +91,7 @@ minisatRoot="$tarskiRoot/minisat"
 export TMROOT=$minisatRoot
 pushd $TMROOT/core
 echo "Making Minisat..."
-check "make libr"
+check "$TOOLCHAIN make libr"
 echo "Minisat Done"
 popd
 
@@ -82,8 +102,54 @@ pushd ./src
 check ./mksysdep.sh
 popd
 
-check make
+check "$TOOLCHAIN make"
 popd
+
+### LIBTARSKI
+UNAME_S=`uname -s`
+
+if [ "$UNAME_S" = "Darwin" ]; then
+ JAVA=`find /usr/local/Cellar/openjdk/*/ | sort | head -1`
+ if [ "$JAVA" = "" ]; then
+  echo "No Java found. Consider installing it via Homebrew (openjdk)."
+  fi
+ which swig > /dev/null || {
+   echo "No swig found. Consider installing it via Homebrew (swig)."
+ }
+ fi
+
+if [ "$UNAME_S" = "Linux" ]; then
+ JAVA=`find /usr/lib/jvm/* | sort | head -1`
+ if [ "$JAVA" = "" ]; then
+  echo "No Java found. To compile libtarski you need a working JDK installation."
+  fi
+ which swig > /dev/null || {
+   echo "No swig found. To compile libtarski you need it."
+   }
+ fi
+
+if [[ "$UNAME_S" == *"MINGW"* ]]; then
+ JAVA=`find /c/Program\ Files\/OpenJDK/* | sort | head -1`
+ if [ "$JAVA" = "" ]; then
+  echo "No Java found. Consider installing it via choco (openjdk)."
+  fi
+ which swig > /dev/null || {
+   echo "No swig found. Consider installing it via pacman (swig)."
+   }
+ fi
+
+if [ "$TOOLCHAIN" != emmake -a "$JAVA" != "" ]; then
+ which swig > /dev/null && {
+  pushd interpreter
+  echo "Making libtarski..."
+  export JAVA
+  check "make dll"
+  timeout 60 make dlltest || echo "The Java Native Interface seems unstable."
+  popd
+  }
+ fi
+
+
 
 ### FINAL MESSAGE
 echo -e "\nTarski done!"
@@ -93,9 +159,9 @@ echo -e "######################################################"
 echo -e "There are several environment variables that should be"
 echo -e "set in order to use or recompile Tarski.  So it is"
 echo -e "strongly recommended that the lines:\n"
-echo -e "export \$saclib=$saclibRoot"
-echo -e "export \$qe=$qepcadRoot\n"
-echo -e "PATH=\$PATH:$qepcadRoot/bin\n"
+echo -e "export saclib=$saclibRoot"
+echo -e "export qe=$qepcadRoot\n"
+echo -e "export PATH=\$PATH:$qepcadRoot/bin\n"
 echo -e "are added to your .profile (or .bash_profile, depending"
 echo -e "on which you use) or whichever the equivalent file is on"
 echo -e "your system."

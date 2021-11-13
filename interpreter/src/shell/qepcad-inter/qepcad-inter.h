@@ -1,3 +1,4 @@
+#ifndef __MINGW32__
 #ifndef _QEPCAD_INTER_
 #define _QEPCAD_INTER_
 
@@ -7,7 +8,7 @@
 #include <sys/types.h>
 #include <signal.h>
 #include <chrono>
-#include "../../poly/caserver/unnamedpipe.h"
+#include <caserver/unnamedpipe.h>
 #include "../../tarskisysdep.h"
 #include "../../formula/writeForQE.h"
 #include "../einterpreter.h"
@@ -202,4 +203,5 @@ public:
 
 }//end namespace tarski
 
+#endif
 #endif

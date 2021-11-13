@@ -48,6 +48,7 @@ std::string Store::getString(const std::vector<int> &q)
   return sout.str();
 }
 
+#ifndef __MINGW32__
 int Store::isSAT(const std::vector<int> &q, string &witness)
 {
   using namespace tarski;
@@ -108,7 +109,7 @@ int Store::isSATUC(const std::vector<int> &q, std::string &witness, std::vector<
   }
   return out;
 }
-
+#endif
 
 std::vector<int> Store::registerAtom(const string &smtlibPoly, int sigma)
 {

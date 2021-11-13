@@ -23,7 +23,7 @@ class OpenCellObj : public GC_Obj
   std::vector<CellBoundRef> CB;
 
  public:
-  OpenCellObj(VarOrderRef _X, Word _alpha, int dim);
+  OpenCellObj(VarOrderRef _x, Word _alpha, int dim);
   int dimension() { return CB.size() - 1; }
   void setBound(int i, CellBoundRef b) { CB[i] = b; }
   CellBoundRef& get(int i) { return CB[i]; } // returns the bounds for that level

@@ -10,7 +10,7 @@ Gamma-integer read, robust.
 ======================================================================*/
 #include "qepcad.h"
 
-void GREADR(Word *a_, Word *t_)
+void GREADR(Word *a_, Word *t_,int errMode)
 {
        Word C,S,a,t;
        /* hide algorithm */
@@ -23,7 +23,7 @@ Step1: /* Skip blanks and read sign, if any. */
        else if (C == '-')
          { C = CREADB(); S = -1; }
        if (DIGIT(C) == 0)
-         { SWRITE("Error GREADR: A digit was expected.\n"); goto Step3; }
+       { INPUTRD_ERROR("Error GREADR: A digit was expected.\n",errMode); goto Step3; }
 
 Step2: /* Read digits and convert. */
        a = 0;

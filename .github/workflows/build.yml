@@ -1,0 +1,111 @@
+name: build test
+
+on: [push]
+
+jobs:
+  linux:
+
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: prerequisites
+      run: sudo apt update && sudo apt install build-essential libreadline-dev libssl-dev openjdk-11-jdk swig
+    - name: build
+      run: ./build.sh
+
+  mac:
+
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: prerequisites
+      run: brew install readline openssl coreutils
+    - name: build
+      run: ./build.sh
+    - name: dynamiclib-prerequisites
+      run: brew install openjdk swig
+    - name: dynamiclib-build
+      run: cd qesource/source/swig; ./runme
+
+  windows-msys-nojni:
+
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+    - uses: actions/checkout@v2
+    - name: prerequisites
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: MSYS
+        update: true
+        install: >-
+          base-devel
+          gcc
+          libreadline-devel
+          libcrypt-devel
+          openssl-devel
+          zlib-devel
+    - name: build
+      run: ./build.sh
+
+  windows-clang64:
+
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+    - uses: actions/checkout@v2
+    - name: prerequisites
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: CLANG64
+        update: true
+        install: >-
+          base-devel
+          gcc
+          libreadline-devel
+          libcrypt-devel
+          openssl-devel
+          zlib-devel
+          swig
+          mingw-w64-clang-x86_64-toolchain
+          mingw-w64-clang-x86_64-swig
+    - name: install-openjdk
+      run: choco install openjdk
+      shell: cmd
+    - name: build
+      run: ./build.sh
+
+  wasm:
+
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: prerequisites
+      run: sudo apt update && sudo apt install build-essential
+    - name: emscripten
+      run: |
+        git clone https://github.com/emscripten-core/emsdk.git
+        cd emsdk
+        ./emsdk install 2.0.22
+        ./emsdk activate 2.0.22
+        cd ..
+    - name: openssl-wasm
+      run: |
+        . emsdk/emsdk_env.sh
+        wget https://www.openssl.org/source/openssl-1.1.0h.tar.gz
+        tar xf openssl-1.1.0h.tar.gz
+        cd openssl-1.1.0h
+        emconfigure ./Configure linux-generic64 --prefix=$EMSDK/upstream/emscripten/system
+        sed -i 's|^CROSS_COMPILE.*$|CROSS_COMPILE=|g' Makefile
+        emmake make build_generated libssl.a libcrypto.a
+        cp -R include/openssl $EMSDK/upstream/emscripten/system/include
+        cp libcrypto.a libssl.a $EMSDK/upstream/emscripten/system/lib
+        cd ..
+    - name: build
+      run: |
+        . emsdk/emsdk_env.sh
+        yes | TOOLCHAIN=emmake ./build.sh

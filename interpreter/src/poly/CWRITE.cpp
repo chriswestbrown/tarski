@@ -4,6 +4,7 @@
 Character write.  C is written to the output stream.
 This version replaces the saclib CWRITE.
 ======================================================================*/
+#ifdef asdfasdfasdf
 extern "C" {
 #include "saclib.h"
 };
@@ -70,3 +71,5 @@ Step1: /* Write. */
 Return: /* Prepare for return. */
        return;
 }
+#endif
+

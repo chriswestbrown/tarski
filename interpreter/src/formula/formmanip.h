@@ -45,6 +45,8 @@ VarSet getFreeVars(TFormRef F);
 
 bool isQuantifiedConjunctionOfAtoms(TFormRef F);
 
+bool isQuantifierFree(TFormRef F);
+
 bool isAndAndAtoms(TFormRef F);
 
 bool isConjunctionOfAtoms(TFormRef F);

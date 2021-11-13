@@ -7,27 +7,33 @@ Initialize Input/Output.
 #include <stdlib.h>
 #include <unistd.h>
 #include <iostream>
-#include "db/readlineistream.h"
+#include "caserver/readlineistream.h"
 
 void InputContextInit(istream&);
 void OutputContextInit(ostream&);
 
-void INITIO()
+void INITIO(istream *is, ostream *os)
 {
        Word i;
 
 Step1: /* Initialize Input. */	  
-#ifndef __MINGW32__
-       if (isatty(0)) 
-	 InputContextInit(*(new readlineIstream()));
-       else
-	 InputContextInit(std::cin);
+#ifndef _EMCC2_
+       if (is == NULL) {
+         if (isatty(0)) 
+	   InputContextInit(*(new readlineIstream()));
+         else
+	   InputContextInit(std::cin);
+       } else
+           InputContextInit(*is);
 #else
        InputContextInit(std::cin);
 #endif
        
 Step2: /* Initialize Output. */
-       OutputContextInit(std::cout);
+       if (os == NULL)
+         OutputContextInit(std::cout);
+       else
+         OutputContextInit(*os);
 
 Step3: /* Control Echo. */
        if (!isatty(0) && !NOECHOSWITCHSET)

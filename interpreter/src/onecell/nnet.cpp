@@ -1,7 +1,11 @@
 #include "nnet.h"
 #include <math.h>
 #ifndef __APPLE__
+#ifndef __MINGW32__
+#ifndef _EMCC2_
 #include <bits/stdc++.h>
+#endif
+#endif
 #endif
 using namespace std;
 namespace nnet_interpreter {

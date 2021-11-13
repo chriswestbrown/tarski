@@ -61,11 +61,11 @@ public:
  * Note: this may include divisions, which Tarski parses, but then
  * refuses to interpret as a Tarski formula.
  *****************************************************************/
-void write(ExpRef e, ostream& out, std::map<string,string>& varTranslationMap, LetDictionary& D);
+  void write(ExpRef e, ostream& out, std::map<string,string>& varTranslationMap, int& mcount, LetDictionary& D);
 
-void write(ExpRef e, ostream& out, std::map<string,string>& varTranslationMap) { LetDictionary D; write(e,out,varTranslationMap,D); }
+  void write(ExpRef e, ostream& out, std::map<string,string>& varTranslationMap, int& mcount) { LetDictionary D; write(e,out,varTranslationMap,mcount,D); }
 
-void write(ExpRef e, ostream& out, std::map<string,string>& varTranslationMap, LetDictionary& D)
+void write(ExpRef e, ostream& out, std::map<string,string>& varTranslationMap, int& mcount, LetDictionary& D)
 {
   Token &lt = e->getLeadTok();
   const string& lv = lt.getValue();
@@ -94,10 +94,13 @@ void write(ExpRef e, ostream& out, std::map<string,string>& varTranslationMap, L
     ExpRef letValue = D.get(lv);
     if (letValue.is_null()) {
       //out << lv;
-      out << varTranslationMap[lv];
+      auto itr = varTranslationMap.find(lv);
+      if (itr == varTranslationMap.end()) { throw TarskiException("Undeclared variable '" + lv + "' in SMTLIB input."); }
+      out << itr->second;
+      //out << varTranslationMap[lv];
     }
     else
-      write(letValue,out,varTranslationMap,D);
+      write(letValue,out,varTranslationMap,mcount,D);
     return; 
   }
 
@@ -134,20 +137,20 @@ void write(ExpRef e, ostream& out, std::map<string,string>& varTranslationMap, L
     // push the new variable bindings to D, write valueExp, pop the new variable bindings
     for(unsigned int i = 0; i < names.size(); i++)
       D.push(names[i]->getLeadTok().getValue(),values[i]);
-    write(valueExp,out,varTranslationMap,D);
+    write(valueExp,out,varTranslationMap,mcount,D);
     for(int i = names.size()-1; i >= 0; i--)
       D.pop(names[i]->getLeadTok().getValue());
   }
-  else if (v == "not") { out << "~("; write(e->get(1),out,varTranslationMap,D); out << ")"; }
+  else if (v == "not") { out << "~("; write(e->get(1),out,varTranslationMap,mcount,D); out << ")"; }
   else if (v == "-" && N == 2) 
   {
     // NOTE: I'm operating under the assumption that in smtlib (- 3) should be -3.
-    out << "(-("; write(e->get(1),out,varTranslationMap,D); out << "))"; 
+    out << "(-("; write(e->get(1),out,varTranslationMap,mcount,D); out << "))"; 
   } 
   else if (v == "/" && N == 2) 
   {
     // NOTE: I'm operating under the assumption that in smtlib (/ 3) should be 1/3.
-    out << "(1/("; write(e->get(1),out,varTranslationMap,D); out << "))"; 
+    out << "(1/("; write(e->get(1),out,varTranslationMap,mcount,D); out << "))"; 
   }
   else if (v == "+" || 
 	   v == "-" || 
@@ -168,24 +171,33 @@ void write(ExpRef e, ostream& out, std::map<string,string>& varTranslationMap, L
     else if (v == "and") { op = "/\\"; }
     else if (v == "or") { op = "\\/"; }
     for(int i = 1; i < N; i++)
-    { out << (i > 1 ? op : string("")) << "("; write(e->get(i),out,varTranslationMap,D); out << ")"; }
+    { out << (i > 1 ? op : string("")) << "("; write(e->get(i),out,varTranslationMap,mcount,D); out << ")"; }
   }
   else if (v == "=>")
   {
-    out << "~("; write(e->get(1),out,varTranslationMap,D); out << ")\\/("; write(e->get(2),out,varTranslationMap,D); out << ")";
+    out << "~("; write(e->get(1),out,varTranslationMap,mcount,D); out << ")\\/("; write(e->get(2),out,varTranslationMap,mcount,D); out << ")";
   }
   else if (v == "exists" || v == "forall")
   {
     out << "[" << (v == "exists" ? "ex" : "all") << " ";
     ExpRef varlist = e->get(1);
-    int N = varlist->size();    
+    int N = varlist->size();
     for(int i = 0; i < N; i++)
     {
       if (i > 0 ) out << ", ";
-      write(varlist->get(i)->get(0),out,varTranslationMap,D);
+      ExpRef nvpair = varlist->get(i); // should be a name-value pair
+      if (nvpair->size() != 2
+	  || nvpair->get(0)->getLeadTok().getType() != SMTLib::SYM
+	  || nvpair->get(1)->getLeadTok().getType() != SMTLib::SYM)
+      { throw TarskiException("SMT-Lib exists/forall must be followed by a list of name-value pairs!");  }
+      const string& varName = nvpair->get(0)->getLeadTok().getValue();
+      string& mapvar = varTranslationMap[varName];
+      if (mapvar == "")
+	mapvar = "x" + std::to_string(mcount++);
+      out << mapvar;
     }
     out << "[ ";
-    write(e->get(2),out,varTranslationMap,D);
+    write(e->get(2),out,varTranslationMap,mcount,D);
     out << "]]";
   }
   else
@@ -201,7 +213,6 @@ void write(ExpRef e, ostream& out, std::map<string,string>& varTranslationMap, L
 
 TFormRef processExpFormula(const string& instr, PolyManager* PM)
 {
-  cerr << "instr: " << instr << endl << endl;
   // Parse
   istringstream sin(instr);
   TarskiRef T;
@@ -293,7 +304,7 @@ void readSMTRetTarskiString(std::istream& in, ostream& out)
 	if (previousAsserts) { out << " /\\ "; }
 	SMTLib::ExpRef formula = e->get(1);
 	out << "[";
-	write(formula,out,varTranslationMap);
+	write(formula,out,varTranslationMap,mcount);
 	out << "]";
 	previousAsserts = true;
       }
@@ -307,7 +318,6 @@ void readSMTRetTarskiString(std::istream& in, ostream& out)
 		))
       {
 	string& mapvar = varTranslationMap[e->get(1)->getLeadTok().getValue()];
-	cerr << "seeing: " << mapvar << ", looking up : " << e->get(1)->getLeadTok().getValue() << endl;
 	if (mapvar == "")
 	  mapvar = "x" + std::to_string(mcount++);
       }
@@ -411,7 +421,22 @@ public:
     }
     out << ")";
   }
-  void action(TQBObj* p) { throw TarskiException("TFPolyFun: action unimplemented for TQBObj!"); }
+  void action(TQBObj* p)
+  {
+    PolyManager* ptrPM = p->getPolyManagerPtr();
+    for(int i = p->numBlocks()-1; i >= 0 ; i--) {
+      out << "(" << (p->blockType(i) == EXIST ? "exists" : "forall") << " (";
+      VarSet V = p->blockVars(i);
+      for(auto itr = V.begin(); itr != V.end(); ++itr) {
+	if (itr != V.begin()) out << " ";
+	out << "(" << ptrPM->getName(*itr) << " Real)";
+      }
+      out << ") ";
+    }
+    actOn(p->getFormulaPart());
+    for(int i = 0; i < p->numBlocks(); i++)
+      out << ")";
+  }
 };
 
 
@@ -419,17 +444,49 @@ public:
 
 void writeSMTLIB(TFormRef F, ostream& out)
 {
+      std::map<string,string> fields =
+	{
+	 {"by", ""},
+	 {"on", ""},
+	 {"tool",""},
+	 {"app",""},
+	 {"solver",""},
+	 {"pubs",""},
+	 {"license","\"https://creativecommons.org/licenses/by/4.0/\""},
+	 {"cat","\"crafted\""},
+	 {"status","unknown"}
+	};
+  writeSMTLIB(F,out,fields);
+}
+
+void writeSMTLIB(TFormRef F, ostream& out, std::map<string,string> &fields)
+{
   // write header
-  out << "(set-logic QF_NRA)" << endl;
-  out << "(set-info :source | Produced by tarski version " << tarskiVersion << "  |)" << endl;
   out << "(set-info :smt-lib-version 2.0)" << endl;
+  out << "(set-logic " << (isQuantifierFree(F) ? "QF_NRA" : "NRA") << ")" << endl;
+
+  std::string description = "";
+  int ct = 0;
+  if (fields["by"] != "") { description += "\nGenerated by: " + fields["by"]; ++ct; }
+  if (fields["on"] != "") { description += "\nGenerated on: " + fields["on"]; ++ct; }
+  if (fields["tool"] != "") { description += "\nGenerator: " + fields["tool"]; ++ct; }
+  if (fields["app"] != "") { description += "\nApplication: " + fields["app"]; ++ct; }
+  if (fields["solver"] != "") { description += "\nTarget solver: " + fields["solver"]; ++ct; }
+  if (fields["pubs"] != "") { description += "\nPublications: " + fields["pubs"]; ++ct; }  
+  out << "(set-info :source |"
+      << (ct == 0 ? string("Produced by tarski version ") + tarskiVersion : (description + "\n"))
+      << "|)" << endl;
+
+  out << "(set-info :license " << fields["license"] << ")" << endl;
+  out << "(set-info :category " << fields["cat"] << ")" << endl;
+  out << "(set-info :status " << fields["status"] << ")" << endl;
   
   // declare variables
   PolyManager* ptrPM = F->getPolyManagerPtr();
-  VarSet V = F->getVars();
+  VarSet V = getFreeVars(F); //F->getVars();
   for(VarSet::iterator itr = V.begin(); itr != V.end(); ++itr)
     out << "(declare-fun " << ptrPM->getName(*itr) << " () Real)" << endl;
-
+  
   // write assert
   out << "(assert ";
   SMTWriter W(out);

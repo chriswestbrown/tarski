@@ -479,4 +479,32 @@ int IntPolyObj::sizeStats(int &numTerms, int &sotd, int &maxCeffBitlength) const
   return t;
 }
 
+std::string invLFS(Word V) {
+  ostringstream sout;
+  for(Word Vp = V; Vp != NIL; Vp = RED(Vp)) {
+    sout << char(FIRST(Vp));
+  }
+  return sout.str();
+}
+
+IntPolyRef IntPolyObj::saclibToNonCanonical(Word r, Word A, Word V, VarContext &C) {
+  VarSet W;
+  vector<VarSet> ord;
+  VarKeyedMap<int> M;
+  int i = 0;
+  for(Word Vp = V; Vp != NIL; Vp = RED(Vp)) {
+    VarSet x = C.addVar(invLFS(FIRST(Vp)));
+    M[x] = ++i;
+    ord.push_back(x);
+    W = W + x;
+  }
+
+  Word P = NIL;
+  for(VarSet::iterator itr = W.begin(); itr != W.end(); ++itr)
+    P = COMP(M[*itr],P);
+  
+  Word Ap = PPERMV(r,A,P);
+  return new IntPolyObj(r,Ap,W);  
+}
+
 }//end namespace tarski

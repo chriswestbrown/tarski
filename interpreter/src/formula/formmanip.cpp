@@ -287,6 +287,25 @@ public:
   void action(TExtAtomObj* p) {  }
 };
 
+class IsQuantifierFree : public TFPolyFun
+{
+public:
+  bool res;
+  IsQuantifierFree() : res(true) { }
+  void action(TAndObj* p) {
+    for(auto itr = p->conjuncts.begin(); res && itr != p->conjuncts.end(); ++itr) { actOn(*itr); }
+  }
+  void action(TOrObj* p) {
+    for(auto itr = p->disjuncts.begin(); res && itr != p->disjuncts.end(); ++itr) { actOn(*itr); }
+  }
+  void action(TQBObj* p) { res = false;  }  
+  void action(TConstObj* p) {  }
+  void action(TAtomObj* p) {  }
+  void action(TExtAtomObj* p) {  }
+};
+bool isQuantifierFree(TFormRef F) {IsQuantifierFree IQF; IQF(F); return IQF.res; }
+
+
 bool isAndAndAtoms(TFormRef F) { AndsAndAtoms A; A(F); return A.res == 1; }
 
 bool isQuantifiedConjunctionOfAtoms(TFormRef F)
@@ -475,7 +494,7 @@ public:
   TFormRef res;
   VarSet X;
   GCWord val;
-  EvalFormulaAtRational(VarSet _X, Word _val) : X(_X), val(_val) { } 
+  EvalFormulaAtRational(VarSet X, Word _val) : X(X), val(_val) { } 
   virtual void action(TConstObj* p) { res =  new TConstObj(p->value); }
   virtual void action(TAtomObj* p) 
   {

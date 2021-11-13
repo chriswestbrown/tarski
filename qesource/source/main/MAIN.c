@@ -1,8 +1,18 @@
 #include "qepcad.h"
 #include <iostream>
-#include "db/convenientstreams.h"
+#include "caserver/convenientstreams.h"
 #include <signal.h>
-#include "db/CAPolicy.h"
+#include "caserver/CAPolicy.h"
+
+#ifndef __MSYS__
+#ifndef __MINGW32__
+#ifndef _EMCC2_
+#include <execinfo.h>
+#endif
+#include <signal.h>
+#include <unistd.h>
+#endif
+#endif
 
 #ifndef __MINGW32__
 static void SIGINT_handler(int i, siginfo_t *sip,void* uap);
@@ -43,7 +53,7 @@ Step2: /* Read input, create CAD, write result */
 	   INITSYS();
 	   PCCONTINUE = FALSE;
 	 }
-	 INPUTRD(&Fs,&V);
+	 INPUTRD(&Fs,&V,1); // errMode 1 is print and continue
 	 QepcadCls Q(V,Fs);
 	 BTMQEPCAD = ACLOCK();
 	 Q.QEPCAD(Fs,&t,&F_e,&F_n,&F_s);
@@ -87,7 +97,7 @@ static void init_SIGINT_handler()
 
 static int sendSignalAfterInterval(int seconds, int signum)
 {
-#if defined(__MINGW32__) || defined(__APPLE__)
+#if defined(__APPLE__) || defined(__MINGW32__) || defined(_EMCC2_)
   return 1;
 #else
   /* Create timer */
@@ -117,4 +127,139 @@ int main(int argc, char **argv)
   int dummy;
   void *topOfTheStack = &dummy;
   mainDUMMY(argc,argv,topOfTheStack);
+}
+
+#ifndef __MSYS__
+#ifndef __MINGW32__
+#ifndef _EMCC2_
+// Taken from https://stackoverflow.com/a/77336/1044586
+void handler(int sig) {
+  void *array[10];
+  size_t size;
+
+  // get void*'s for all entries on the stack
+  size = backtrace(array, 10);
+
+  // print out all the frames to stderr
+  fprintf(stderr, "Error: signal %d:\n", sig);
+  backtrace_symbols_fd(array, size, STDERR_FILENO);
+  exit(1);
+}
+#endif
+#endif
+#endif
+
+void mainLIB(int numcells, int timeout) {
+#ifndef __MSYS__
+#ifndef __MINGW32__
+#ifndef _EMCC2_
+  signal(SIGSEGV, handler);
+#endif
+#endif
+#endif
+
+  int dummy;
+  void *topOfTheStack = &dummy;
+  Word ac;
+  char **av;
+  if (numcells == 0)
+    numcells = 20000000;
+  char argv1[20];
+  sprintf(argv1, "+N%d", numcells);
+  char* argv[1];
+  argv[0] = argv1;
+  int argc = 1;
+
+  ARGSACLIB(argc,argv,&ac,&av);
+  BEGINSACLIB((Word *)topOfTheStack);
+  BEGINQEPCADLIB(timeout);
+  HELPFRD();
+  }
+
+string PCLIB(string input) {
+  Word Fs,F_e,F_n,F_s,V,t;
+
+  stringstream outputbuffer;
+  istringstream iss(input);
+  istream& inputbuffer = iss;
+  INITIO(&inputbuffer,&outputbuffer);
+  INPUTRD(&Fs,&V);
+  QepcadCls Q(V,Fs);
+  BTMQEPCAD = ACLOCK();
+  Q.QEPCAD(Fs,&t,&F_e,&F_n,&F_s);
+  string output = outputbuffer.str();
+  return output;
+  }
+
+// Chris' method to obtain data...
+Word string2UnNormForm(const string &S, Word V)
+{
+  // Convert from string to QEPCAD Unnormalized Formula
+  Word F, t;
+  istringstream sin(S + ".\n");
+
+  PushInputContext(sin);
+  QFFRDR(V,&F,&t);
+  CREAD();
+  PopInputContext();
+
+  if (t == 0)
+  {
+    cerr << "QEPCADB could not understand the formula:" << endl
+      << sin.str() << endl;
+    exit(1);
+  }
+
+  return F;
+}
+
+string unNormForm2string(Word F, Word V)
+{
+  // Convert from Unnormalized QEPCAD formula to string
+  ostringstream OTS;
+  PushOutputContext(OTS);
+  QFFWR(V,F);
+  PopOutputContext();
+  return OTS.str();
+}
+
+string SLFQLIB(string str_formula, string str_assumptions)
+{
+  // Read input
+  Word Fs, V;
+  istringstream sin(str_formula);
+  ostringstream sout;
+  PushInputContext(sin);
+  PushOutputContext(sout);
+  INPUTRD(&Fs,&V);
+  PopOutputContext();
+  PopInputContext();
+
+  // Initialize QEPCAD problem
+  QepcadCls Q;
+  Q.SETINPUTFORMULA(V,Fs);
+
+  // Add assumptions if any
+  Word As = NIL;
+  if (str_assumptions != "")
+    Q.SETASSUMPTIONS(As = string2UnNormForm(str_assumptions,V));
+
+  // Create CAD & get simplified equivalent formula
+  Q.CADautoConst("");
+  Word Fd = Q.GETDEFININGFORMULA('E'); // NOTE: The 'T' option won't work until I fix
+                                       // GETDEFININGFORMULA to return not only the formula
+                                       // but also the projection factor set, since it may be
+                                       // enlarged when the 'T' option is used.
+
+  // Translate to string and output
+  string OTS = unNormForm2string(Fd,V);
+  string ret = OTS + (As == NIL ? "" : " under assumption " + unNormForm2string(As,V));
+  return ret;
+}
+
+void ENDQEPCADLIB()
+{
+  // clean it all up
+  ENDQEPCAD();
+  ENDSACLIB(SAC_FREEMEM);
 }

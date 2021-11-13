@@ -14,7 +14,9 @@ not propogate!
   \parm{P} is the "safe" half-way improved McCallum's projection of $A$.
 ======================================================================*/
 #include "qepcad.h"
-#include "db/CAPolicy.h"
+#ifndef __MINGW32__
+#include "caserver/CAPolicy.h"
+#endif
 
 Word QepcadCls::PROJMCECmod(Word r, Word A)
 {
@@ -52,15 +54,15 @@ Step1: /* Obtain coefficients. */
 	 Lh = NIL;
 	 t = 0;
 
-#ifndef __MINGW32__
 	 /*-- TEST NEW --*/
+#ifndef __MINGW32__
 	 if (experimentalExtensionFlag)
 	 {
 	   bool qfc = qfrCheckNonVanishing(r-1,L,GVNA.W,GVNQFF.W,GVVL.W);
 	   if (qfc) continue;
 	 }
-	 /*-- END TEST NEW --*/
 #endif
+	 /*-- END TEST NEW --*/
 
 	 if (!VERIFYCONSTSIGN(r-1,IPIP(r-1,ISIGNF(PLBCF(r-1,L)),L),1,GVNA.W)) {
 	   W = MPOLY(L,NIL,LIST1(LIST3(PO_LCO,0,A1)),PO_OTHER,PO_KEEP);
@@ -203,6 +205,7 @@ Step2: /* Obtain discriminants. */
 	 {
 	   if (r <= 2) continue;
 	   if (!PFPRDQ(A1)) continue;
+#ifndef __MINGW32__
 	   if (GVCAP->supports("CONSTORDTEST"))
 	   {
 	     /* Checks that Ap1 has constant order in V(Ap1,cq) for each
@@ -226,6 +229,7 @@ Step2: /* Obtain discriminants. */
 	       continue;
 	     }
 	   }
+#endif
 	   if (PCVERBOSE) {
 	     SWRITE("Unable to determine that discriminant of non-pivot polynomial ");
 	     IPDWRITE(r,Ap1,GVVL);

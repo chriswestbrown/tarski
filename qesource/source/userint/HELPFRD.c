@@ -7,6 +7,7 @@ Help file read.
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "userint/qepcad_help_string.h"
 #define HELPPATH               "qepcad.help"
 #define MaxDescriptionSize     6000
 #define MaxCommandNameSize     60
@@ -17,8 +18,10 @@ extern char *Helps[];
 void HELPFRD()
 {
        FILE *fp;
+#ifdef __MINGW32__
        char *qepath;
-       char helppath[1000];  /* Should be enough. */
+       char helppath[1000]; /* Should be enough. */
+#endif
        char buffer[MaxDescriptionSize]; 
        char name[MaxCommandNameSize];
        char location[MaxNumInteractionLocs];  
@@ -29,22 +32,26 @@ void HELPFRD()
        Word  N,I,L,T,C,D;
        int r1, r2, r3, r4, r5; /* fscanf return values. */
   
-Step1: /* Open the text file containing the helps. */
+Step1:
+#ifdef __MINGW32__
+       /* Open the text file containing the helps. */
        if ((qepath = getenv("qe")) == NULL)
           strcpy(helppath,HELPPATH);
        else {
           strcpy(helppath,qepath);
-#ifdef __MINGW32__
           strcat(helppath,"\\bin\\qepcad.help");
-#else
-          strcat(helppath,"/bin/qepcad.help");
-#endif
-       }
-
+          }
        if (!(fp = fopen(helppath,"r"))) {
-         fprintf(stderr,"Error HELPFRD: Could not open %s\n",helppath);
-         exit(1); }
-
+          fprintf(stderr,"Error HELPFRD: Could not open %s\n",helppath);
+          exit(1);
+          }
+#else
+       /* Open string qepcad_help as filestream.  NOTE: this is a string
+	  version of the text file qepcad.help.  The makefile uses xxd
+	  to converte that file into the array. */
+       fp = fmemopen(qepcad_help,qepcad_help_len,"r");
+#endif
+       
 Step2: /* Read in the main help text and echo it. */
        c = getc(fp);
        while (c != '@') {

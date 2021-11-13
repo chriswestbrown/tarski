@@ -11,9 +11,14 @@ MAKE       =  make  # You must use gmake, but it may not be
 
 CCo        =  $(CXX)
 CCd        =  $(CXX)
-FLAGSo = -O4 -D__CORRECT_ISO_CPP_STRINGS_H_PROTO -fPIC
+FLAGSo = -g -D__CORRECT_ISO_CPP_STRINGS_H_PROTO -fPIC
 
 FLAGSd = -g
+
+ifdef STATIC
+FLAGSo += -static
+FLAGSd += -static
+endif
 
 SUBMAKEFLAGS = -j1
 
@@ -24,6 +29,10 @@ MFlags	= "CCo=${CCo}" "FLAGSo=${FLAGSo}"\
 MFlags += -j1
 
 ARFLAGS := crvU
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
+ARFLAGS := crv
+endif
 
 both:   opt deb
 
@@ -44,3 +53,4 @@ clean:
 	pushd >/dev/null extensions ; 'rm' -f */*.a ; popd >/dev/null
 	pushd >/dev/null plot2d ; 'rm' -f ADJ_2D_plot ; popd >/dev/null
 	pushd >/dev/null cad2d ; 'rm' -f cad2d cad2dd cad2d.a cad2dd.a ; popd >/dev/null
+	find . -name '*.o' -delete

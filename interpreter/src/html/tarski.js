@@ -1,0 +1,1 @@
+/home/kovzol/workspace/wasm/tarski/interpreter/build/tarski.js

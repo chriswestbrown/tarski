@@ -1,3 +1,4 @@
+#ifndef __MINGW32__
 #ifndef _QEPCAD_SESSION_
 #define _QEPCAD_SESSION_
 
@@ -6,7 +7,7 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <signal.h>
-#include "../../poly/caserver/unnamedpipe.h"
+#include <caserver/unnamedpipe.h>
 #include "../../tarskisysdep.h"
 #include "../../formula/writeForQE.h"
 
@@ -105,13 +106,28 @@ namespace tarski {
 
 	// Set the qe environment variable for the qe process
 	std::string tmps = pathToQepcad;
-	int n = tmps.size();
-	string qeroot = tmps.substr(0,n - 11);
+
+        // Allow override of precompiled value for pathToQepcad by using the environment variable "qe":
+        if (getenv("qe") != NULL) {
+          tmps = getenv("qe");
+#ifdef __MSYS__
+          tmps += "\\bin\\qepcad.exe";
+#else
+          tmps += "/bin/qepcad";
+#endif
+          }
+        int n = tmps.size();
+#ifdef __MSYS__
+        n -= 15; // \\bin\\qepcad.exe
+#else
+        n -= 11; // /bin/qepcad
+#endif
+	string qeroot = tmps.substr(0,n);
 	setenv("qe",qeroot.c_str(),1);
 	
         const char *arg1 = "+N10000000", *arg2 = "-t", *arg3 = "200";
-        execlp(pathToQepcad,
-               pathToQepcad,
+        execlp(tmps.c_str(),
+               tmps.c_str(),
                arg1,arg2,arg3,NULL);
         throw TarskiException("QepcadB startup failed!");
 
@@ -120,7 +136,7 @@ namespace tarski {
       // Send Qepcad the script & close unneeded pipes
       intoQepcad.closeIn();
       outofQepcad.closeOut();
-      //cerr << "qscript START>>\n" << qscript << "<<END qscript\n";      
+      //cerr << "qscript START>>\n" << qscript << "<<END qscript\n";
       intoQepcad.out() << qscript << flush;
       if (trackNumberOfLeafCells)
 	intoQepcad.out() << "d-number-leaf-cells\n" << flush;
@@ -246,4 +262,5 @@ namespace tarski {
   };
 }; // END namespace tarski
 
+#endif
 #endif

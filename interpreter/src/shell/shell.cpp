@@ -10,7 +10,11 @@
 #include "linearSubs.h"
 #include <algorithm>
 #include "einterpreter.h"
+#ifndef _EMCC2_
 #include "readlineistream.h"
+#else
+#include <emscripten/emscripten.h>
+#endif
 #include "../onecell/memopolymanager.h"
 #include "../tarskisysdep.h" /* defines pathToMaple variable */
 #include <signal.h>
@@ -27,7 +31,8 @@ extern void RRIS_summary();
 Tracker compTracker;
 
 
-  
+
+#ifndef __MINGW32__
 /**************************************************************
  * I'm keeping this bit in my hip pocket in case I need to add
  * helper files that the executable accesses for, for example,
@@ -62,13 +67,16 @@ string pathToCurrentExecutable()
   buff[s+1] = '\0';
   return buff;
 }
+#endif
 
 void help(ostream& out);
 void printVersion(ostream& out);
 
 void nln() { cout << endl; } // just to help with using gdb
+#ifndef __MINGW32__
 void SIGINT_handler(int i, siginfo_t *sip,void* uap);
 void init_SIGINT_handler();
+#endif
 int sendSignalAfterInterval(int seconds, int signum);
 
   
@@ -96,8 +104,10 @@ int mainDUMMY(int argc, char **argv, void* topOfTheStack)
       else if (argv[i] == string("-t")) {
 	int tout = -1;
 	if (i + 1 < argc && (tout = atoi(argv[i+1])) && tout > 0) {
+#ifndef __MINGW32__
 	  init_SIGINT_handler();
 	  sendSignalAfterInterval(tout,SIGALRM);
+#endif
 	  i++;
 	}
 	else {
@@ -124,7 +134,8 @@ int mainDUMMY(int argc, char **argv, void* topOfTheStack)
     free(av);
 
     srand(time(0));
-    
+
+#ifndef _EMCC2_
     //  istream *inptr = new readlineIstream();
     readlineIstream isin;
     if (!quiet) { isin.setPrompt("> "); }
@@ -135,6 +146,9 @@ int mainDUMMY(int argc, char **argv, void* topOfTheStack)
       (istream*)&fin :
       (quiet && !isatty(fileno(stdin)) ? (istream*)&cin : (istream*)&isin);
     istream &iin = *piin;
+#else
+    istream &iin = cin;
+#endif
     LexContext LC(iin,';');
     defaultNormalizer = new Level3and4(7,7);
 
@@ -162,13 +176,17 @@ int mainDUMMY(int argc, char **argv, void* topOfTheStack)
       if (x.is_null()) continue;
       SRef res = I.eval(I.rootFrame,x);
       if (res->type() == _err && res->err()->msg == "INTERPRETER:quit") { explicitQuit = true; break; }
+#ifndef _EMCC2_
       if (!quiet) { cout << res->toStr() << endl; }
+#endif
       if (res->type() != _err && res->type() != _void) { I.rootFrame->set("%",res); }
       if (res->type() == _err) { I.rootFrame->set("%E",new StrObj(res->err()->getMsg())); }
       I.rootFrame->set("%e",res);
       I.markAndSweep();
     }      
+#ifndef _EMCC2_
     if (!quiet && !explicitQuit) { cout << endl; }
+#endif
 
     if (verbose)
     {
@@ -217,6 +235,7 @@ Options:\n\
       << flush;
 }
 
+#ifndef __MINGW32__
 void SIGINT_handler(int i, siginfo_t *sip,void* uap)
 {  
   if (sip->si_signo == SIGALRM)
@@ -238,10 +257,11 @@ void init_SIGINT_handler()
   sigaction(SIGALRM,p,NULL);
   free(p);
 }
+#endif
 
 int sendSignalAfterInterval(int seconds, int signum)
 {
-#ifdef __APPLE__
+#if defined(__APPLE__) || defined(__MINGW32__) || defined(_EMCC2_)
   return 1;
 #else
   /* Create timer */
@@ -268,11 +288,135 @@ int sendSignalAfterInterval(int seconds, int signum)
 }//end namespace tarski
 
 
+#ifndef _EMCC2_
 int main(int argc, char **argv)
 {
   int dummy = 0;
   void *topOfTheStack = &dummy;
+#ifndef __MINGW32__
   if (strcmp(tarski::pathToQepcad, "") == 0) throw tarski::TarskiException("Invalid location for QEPCAD");
+#endif
   tarski::mainDUMMY(argc,argv,topOfTheStack);
 }
+#endif
 
+tarski::MemoizedPolyManager PM;
+tarski::NewEInterpreter I(&PM);
+
+
+#ifdef _EMCC2_
+extern "C" void EMSCRIPTEN_KEEPALIVE
+#else
+void
+#endif
+TARSKIINIT(int numcells, int timeout) {
+  int dummy = 0;
+  void *topOfTheStack = &dummy;
+#ifndef __MINGW32__
+#ifndef _EMCC2_
+  if (strcmp(tarski::pathToQepcad, "") == 0) throw tarski::TarskiException("Invalid location for QEPCAD");
+#endif
+#endif
+  // Get the CA Server up and running!
+  // I'm sure there's a nicer way to trick SacModInit, but ... this will do for now!
+  // I'm creating a face argc and argv to pass into SacModInit.
+  int argc = 5;
+  if (numcells == 0) numcells = 20000000;
+  if (timeout == 0) timeout = 200;
+  char s0[20]; strcpy(s0, "tarski"); // dummy
+  char s1[20]; sprintf(s1, "+N%d", numcells);
+  char s2[20]; strcpy(s2, "-t");
+  char s3[20]; sprintf(s3, "%d", timeout);
+  char s4[20]; strcpy(s4, "");
+  char **argv = new char*[6];
+  argv[0] = s0; argv[1] = s1; argv[2] = s2; argv[3] = s3; argv[4] = s4;
+  int ac;
+  char **av;
+  cout << "Tarski initializing with numcells " << numcells << " and timeout " << timeout << "." << endl;
+  SacModInit(argc,argv,ac,av,"Saclib","","",topOfTheStack);
+  cout << "Successful initialization" << endl;
+  delete [] argv;
+
+  srand(time(0));
+
+  tarski::defaultNormalizer = new tarski::Level3and4(7,7);
+
+  I.init();
+
+  (*I.rootFrame)["%"] = new tarski::SObj(); // Seed the % variable with a void value;
+  (*I.rootFrame)["%e"] = new tarski::SObj(); // Seed the %e variable with a void value;
+  (*I.rootFrame)["%E"] = new tarski::SObj(); // Seed the %E variable with a void value;
+
+  }
+
+string TARSKIEVAL(string input) {
+    string output;
+    istringstream iss(input);
+
+    istream &iin = iss;
+    tarski::LexContext LC(iin,';');
+    bool explicitQuit = false;
+
+    while(iin)
+    {
+      tarski::SRef x = I.next(iin);
+      if (x.is_null()) continue;
+      tarski::SRef res = I.eval(I.rootFrame,x);
+      if (res->type() == tarski::_err && res->err()->msg == "INTERPRETER:quit") { explicitQuit = true; break; }
+      output += res->toStr() + "\n";
+      if (res->type() != tarski::_err && res->type() != tarski::_void) { I.rootFrame->set("%",res); }
+      if (res->type() == tarski::_err) { I.rootFrame->set("%E",new tarski::StrObj(res->err()->getMsg())); }
+      I.rootFrame->set("%e",res);
+      I.markAndSweep();
+    }
+    // if (!explicitQuit) { output += "\n"; } // seems to be unnecessary to add another \n
+
+    if (tarski::verbose)
+    {
+      tarski::compTracker.report();
+      tarski::compTracker.clear();
+    }
+    return output;
+}
+
+#ifdef _EMCC2_
+// Taken from https://github.com/emscripten-core/emscripten/issues/6433
+extern "C" {
+    inline const char* cstr(const std::string& message) {
+        auto buffer = (char*) malloc(message.length() + 1);
+        buffer[message.length()] = '\0';
+        memcpy(buffer, message.data(), message.length());
+        return buffer;
+    }
+    EMSCRIPTEN_KEEPALIVE const char* TARSKIEVAL(char *input) {
+    string output = TARSKIEVAL(string(input));
+    return cstr(output);
+    }
+}
+
+// Override starting QEPCAD by doing nothing (it also has a main() function):
+int main() {
+}
+#endif
+
+#ifdef _EMCC2_
+extern "C" void EMSCRIPTEN_KEEPALIVE
+#else
+void
+#endif
+TARSKIEND() {
+    delete tarski::defaultNormalizer;
+    SacModEnd();
+    tarski::finalcleanup = true;
+}
+
+/* This is how to use the WebAssembly port (after compilation and installation):
+   1. Load the .html file.
+   2. In the JavaScript console type:
+      TARSKIINIT = Module.cwrap("TARSKIINIT", 'void', ['number', 'number']);
+      TARSKIEVAL = Module.cwrap("TARSKIEVAL", "string", ["string"]);
+   3. To initialize Tarski, use (the timeout is still ignored):
+      TARSKIINIT(1500000,3);
+   4. To compute something useful, type:
+      TARSKIEVAL("(qepcad-api-call [ex x [x>0]])");
+ */
