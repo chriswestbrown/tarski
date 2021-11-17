@@ -1,0 +1,12 @@
+; tests writing of basic smtlib output with translate
+
+(def P (smtlib-load  'translate "smt/smt008.smt2")) ; maps a->x0,b->x1,c->x2,d->x3
+
+(def F [ x0 + 2 x1 + 3 x2 + 4 x3 = 0 ])
+(def Fp [ a + 2 b + 3 c + 4 d = 0 ])
+
+(smtlib-store F "/tmp/tst0.smt2" (get P 1))
+
+(def G (smtlib-load "/tmp/tst0.smt2"))
+(def res (if (equal? Fp G) "pass" "fail"))
+(display res " : test smt10\n")

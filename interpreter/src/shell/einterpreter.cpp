@@ -1486,6 +1486,7 @@ void NewEInterpreter::init()
 
   add(new SMTLibLoad(this));
   add(new SMTLibStore(this));
+  add(new MakeVarMapTranslate(this));
 
   add(new RootsComm(this));
   add(new RanCompComm(this));
@@ -1512,7 +1513,7 @@ void NewEInterpreter::init()
   addType(new RealAlgNumTypeObj(NULL));
   addType(new OCBuilderObj(NULL));
   addType(new OpenNuCADObj(NULL));
-
+  addType(new VarMapTranslateTypeObj(NULL));
 }
 
 }//end namespace tarski

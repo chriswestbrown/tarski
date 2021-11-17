@@ -11,24 +11,25 @@ int Store::SMTLIBRelopInt(const string& str)
   return sigma;
 }
 
-void foo(tarski::Normalizer &NORM, tarski::PolyManager &PM, const string& s)
-{
-  using namespace tarski;
-  istringstream sin(s);
-  ostringstream sout;
-  readSMTRetTarskiString(sin,sout);
-  TFormRef F = processExpFormulaClearDenominators(sout.str(),&PM);
-  TFormRef G = NORM.normalize(F);
-  writeSMTLIB(G,cout);
-  cout << endl;
-}
+// void foo(tarski::Normalizer &NORM, tarski::PolyManager &PM, const string& s)
+// {
+//   using namespace tarski;
+//   istringstream sin(s);
+//   ostringstream sout;
+//   readSMTRetTarskiString(sin,sout);
+//   TFormRef F = processExpFormulaClearDenominators(sout.str(),&PM);
+//   TFormRef G = NORM.normalize(F);
+//   writeSMTLIB(G,cout);
+//   cout << endl;
+// }
 
 tarski::TFormRef readAndNormalize(tarski::Normalizer &NORM, tarski::PolyManager &PM, const string& s)
 {
   using namespace tarski;
   istringstream sin(s);
   ostringstream sout;
-  readSMTRetTarskiString(sin,sout);
+  VarTranslationMapRef vtm = new VarTranslationMapObj(true);
+  readSMTRetTarskiString(sin,sout,vtm);
   TFormRef F = processExpFormulaClearDenominators(sout.str(),&PM);
   TFormRef G = NORM.normalize(F);
   return G;

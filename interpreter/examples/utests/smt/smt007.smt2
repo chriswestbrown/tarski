@@ -1,0 +1,8 @@
+(set-info :status unsat)
+(set-logic NRA)
+(set-info :source | Simple test example.|)
+(set-info :smt-lib-version 2.0)
+(declare-fun x!7 () Real)
+(declare-fun y?z () Real)
+(assert (exists ((z Real)) (and (< (+ (+ (* x!7 x!7) (* y?z y?z)) (* z z)) (/ 1 2)) (< (+ (+ x!7 y?z) z) (/ 1 3)))))
+(checksat)

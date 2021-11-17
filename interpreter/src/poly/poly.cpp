@@ -124,12 +124,15 @@ int IntPolyObj::read(VarContext &C, VarSet S) // Read from current saclib input 
   return t;
 }
 
-namespace WriteSMTLIBImplementation
-{
+/************************************************************
+ * writeSMTLib
+ ************************************************************/
   // IntPolyObj::writeSMTLib(C,out) writes the "this" polynomial in SMTLib
   // format to the output stream out.  The class & functions in this namespace
   // help make the possible.
 
+namespace WriteSMTLIBImplementation
+{  
   // tpair: represents value "w" with type "kind",paired together.
   // char "kind" can be one of: +, -, *, u (unary minus), v (variable), i integer
   class tpair 
@@ -182,35 +185,35 @@ namespace WriteSMTLIBImplementation
 
   // bar(V,W,C,out,i) writes out the polynomial represented in postfix in V to
   // output stream out.  For the initial call, i should be the largest index in V.
-  int bar(vector<tpair>& V, vector<VarSet>& W, VarContext &C, ostream& out, int i)
+  int bar(vector<tpair>& V, vector<VarSet>& W, VarContext &C, ostream& out, int i, WSIRevmapper& vrm)
   {
     if (i < 0) return i;
     Word w = V[i].w;
     char kind = V[i].kind;
     int newi = i-1;
     if (kind == 'v')
-      out << C.getName(W[w]);
+      out << vrm.revMap(C.getName(W[w]));
     else if (kind == 'i')
       IWRITE(w);
     else if (kind == 'u')
     {
-      out << "(- "; newi = bar(V,W,C,out,newi); out << ")";
+      out << "(- "; newi = bar(V,W,C,out,newi,vrm); out << ")";
     }
-    else if (kind == '*' && V[newi].isOne()) { newi = bar(V,W,C,out,newi-1); }
-    else if (kind == '*' && V[newi-1].isOne()) { swap(V[newi-1],V[newi]); newi = bar(V,W,C,out,newi-1); }  
+    else if (kind == '*' && V[newi].isOne()) { newi = bar(V,W,C,out,newi-1,vrm); }
+    else if (kind == '*' && V[newi-1].isOne()) { swap(V[newi-1],V[newi]); newi = bar(V,W,C,out,newi-1,vrm); }  
     else
     {
       out << '(' << kind << ' ';
-      newi = bar(V,W,C,out,newi);
+      newi = bar(V,W,C,out,newi,vrm);
       out << ' ';
-      newi = bar(V,W,C,out,newi);
+      newi = bar(V,W,C,out,newi,vrm);
       out << ")";
     }
     return newi;
   }
 }
 
-void IntPolyObj::writeSMTLIB(VarContext &C, ostream& out)
+void IntPolyObj::writeSMTLIB(VarContext &C, ostream& out, WSIRevmapper& vrm)
 {
   Word r = numVars();
   Word A = sP;
@@ -221,7 +224,7 @@ void IntPolyObj::writeSMTLIB(VarContext &C, ostream& out)
   vector<WriteSMTLIBImplementation::tpair> V;
   WriteSMTLIBImplementation::foo(V,r,A);
   PushOutputContext(out);
-  WriteSMTLIBImplementation::bar(V,W,C,out,V.size()-1);  
+  WriteSMTLIBImplementation::bar(V,W,C,out,V.size()-1,vrm);  
   PopOutputContext();
 }
 

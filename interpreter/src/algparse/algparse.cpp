@@ -205,7 +205,7 @@ TarskiRef clearDenominators(TarskiRef T)
   T->apply(CD);
   CD.sout << ']';
 
-   std::cerr << CD.sout.str() << std::endl;
+  //std::cerr << CD.sout.str() << std::endl;
     
   std::istringstream sin(CD.sout.str());
   LexContext LCs(sin);
