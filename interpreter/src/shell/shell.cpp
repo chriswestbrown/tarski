@@ -350,6 +350,9 @@ TARSKIINIT(int numcells, int timeout) {
   }
 
 string TARSKIEVAL(string input) {
+    Word dummy = 0;
+    BACSTACK = (char*)&dummy;
+
     string output;
     istringstream iss(input);
 
