@@ -10,10 +10,13 @@ namespace tarski {
  ******************************************************************/
 class BasicRewrite
 {
+  int M_leaveOut;
+
 public:
+  enum { M_linearSpolys = 1, M_uniqueAtomWithVar = 2, M_onlyNotEQ = 4 };	  
   QueueManager *globalQM;
-  BasicRewrite(QueueManager *_globalQM) : 
-    globalQM(_globalQM) { }
+  BasicRewrite(QueueManager *_globalQM, int _M_leaveOut) : 
+    globalQM(_globalQM), M_leaveOut(_M_leaveOut)  { }
   TFormRef refine(QAndRef target, TFQueueRef Q);
   TFormRef linSubs(QAndRef target, TAtomRef A, TFQueueRef Q, TFormRef Fs);
   TFormRef splitOnAtom(QAndRef target, TAtomRef A, TFQueueRef Q);
@@ -72,9 +75,10 @@ class PSPolyObj : public ParentageObj
 {
   QAndRef Fp; // Formula that was split
   TAtomRef EQ1, EQ2, EQ2p;
+  VarSet x;
 public:
-  PSPolyObj(QAndRef _Fp, TAtomRef _EQ1, TAtomRef _EQ2, TAtomRef _EQ2p)
-    : Fp(_Fp), EQ1(_EQ1), EQ2(_EQ2), EQ2p(_EQ2p) { }
+  PSPolyObj(QAndRef _Fp, TAtomRef _EQ1, TAtomRef _EQ2, TAtomRef _EQ2p, VarSet _x)
+    : Fp(_Fp), EQ1(_EQ1), EQ2(_EQ2), EQ2p(_EQ2p), x(_x) { }
   void write()
   {
     std::cout << "replaced ";
@@ -83,10 +87,36 @@ public:
     EQ2p->write();
     std::cout << " by linear-S-poly with ";
     EQ1->write();
+    std::cout << " on variable '" << EQ1->getPolyManagerPtr()->getName(x)
+	      << '\'';
   }
   QAndRef predecessor() { return Fp; }
 };
 
+class PSPolyDegenerateObj : public ParentageObj
+{
+  QAndRef Fp; // Formula that was split
+  TAtomRef EQ1, EQ2, degEQ;
+  VarSet x;
+public:
+  PSPolyDegenerateObj(QAndRef _Fp, TAtomRef _EQ1, TAtomRef _EQ2, TAtomRef _degEQ, VarSet _x)
+    : Fp(_Fp), EQ1(_EQ1), EQ2(_EQ2), degEQ(_degEQ), x(_x) { }
+  void write()
+  {
+    std::cout << "case ";
+    degEQ->write();
+    std::cout << " where S-poly construction degenerates reducing ";
+    EQ2->write();
+    std::cout << " by ";
+    EQ1->write();
+    std::cout << " on variable '";
+    EQ1->getPolyManagerPtr()->getName(x);
+    std::cout << '\'';
+  }
+  QAndRef predecessor() { return Fp; }
+};
+  
+  
 class PUniqueAtomObj : public ParentageObj
 {
   QAndRef Fp; // Parent formula

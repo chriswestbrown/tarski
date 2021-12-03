@@ -97,7 +97,7 @@ double MinFormFinder::getMinGrade(QAndRef A) { return minGrade[A->tag]; }
 
 void MinFormFinder::searchForMin(QAndRef A, FormulaGrader &FG)
 {
-  //cout << "In searchForMin (tag = " << A->tag << "): "; A->write(1); cout << endl;
+  //  cout << "In searchForMin (AND) (tag = " << A->tag << "): "; A->write(1); cout << endl;
   if (minGrade.find(A->tag) != minGrade.end())
   {
     //cout << "value already in map!" << endl;
@@ -112,6 +112,7 @@ void MinFormFinder::searchForMin(QAndRef A, FormulaGrader &FG)
   
   void MinFormFinder::searchForMin(QOrRef A, FormulaGrader &FG)
   {
+    //cout << "In searchForMin (OR) (tag = " << A->tag << "): "; A->write(1); cout << endl;
     TOrRef sf = new TOrObj;
     int length = 0;
     double grd = 0;
@@ -130,6 +131,7 @@ void MinFormFinder::searchForMin(QAndRef A, FormulaGrader &FG)
   
   void MinFormFinder::searchForMin(TFQueueRef Q, FormulaGrader &FG)
   {
+    //cout << "In searchForMin (BASE) (tag = " << Q->tag << "): "; cout << endl;
     double grd = -1;
     int length = 0;
     TFormRef sf;

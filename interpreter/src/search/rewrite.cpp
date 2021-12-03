@@ -20,8 +20,10 @@ TFormRef BasicRewrite::refine(QAndRef target, TFQueueRef Q)
   Fs->AND(target->F);
   FindEquations E;
   E(Fs);
-  set<TAtomRef>::iterator i_eq = E.res.begin(), end_eq = E.res.end();
-  for(; i_eq != end_eq; ++i_eq)
+  set<TAtomRef>::iterator beg_eq = E.res.begin(), end_eq = E.res.end();
+
+  /*** Basic linear subs and linSubsXpowk that we always do ***/
+  for(auto i_eq = beg_eq; i_eq != end_eq; ++i_eq)
   {
     if ((*i_eq)->F->numFactors() == 1)
     {
@@ -37,15 +39,16 @@ TFormRef BasicRewrite::refine(QAndRef target, TFQueueRef Q)
     }
   }
 
-  if (true)
+  if (!(M_leaveOut & M_linearSpolys))
   {
   // try rewriting by considering pairs of equations and trying to reduce
   // to linear by an S-polynomial-like construction
-  for(set<TAtomRef>::iterator i_eq = E.res.begin(); i_eq != end_eq; ++i_eq)
+  for(set<TAtomRef>::iterator i_eq = beg_eq; i_eq != end_eq; ++i_eq)
   { 
     if ((*i_eq)->F->numFactors() != 1) continue;
-    for(set<TAtomRef>::iterator j_eq = i_eq; ++j_eq != end_eq;)
+    for(set<TAtomRef>::iterator j_eq = beg_eq; j_eq != end_eq; ++j_eq)
     {
+      if (i_eq == j_eq) continue;
       if ((*j_eq)->F->numFactors() != 1) continue;
       TFormRef res = linearSpolys(target,*i_eq,*j_eq,Q,Fs);
       if (asa<TConstObj>(res)) return res; 
@@ -53,13 +56,13 @@ TFormRef BasicRewrite::refine(QAndRef target, TFQueueRef Q)
   }
   }
 
-  if (true)
+  if (!(M_leaveOut & M_uniqueAtomWithVar))
   {
     TFormRef res = uniqueAtomWithVar(target,Fs,Q);
     if (asa<TConstObj>(res)) return res;
   }
 
-  if (true)
+  if (!(M_leaveOut & M_onlyNotEQ))
   {
     // if we have a conjunction of atoms of the form A1 /\ ... /\ Ak /\ B1 /\ ... /\ Bl s.t.
     // 1. the Ai contain quantified variables and the Bi do not, and 
@@ -124,8 +127,9 @@ TFormRef BasicRewrite::linearSpolys(QAndRef target, TAtomRef A, TAtomRef B,
     int df = f->degree(x);
     int dg = g->degree(x);
     if (df != dg || df <= 1) continue;
-    IntPolyRef h = M.specialSpoly(f,g,x);
-    if (h->degree(x) >= min(df,dg) || h->degree(x) != 1) continue;
+    vector<IntPolyRef> res = M.standardSpoly(f,g,x);
+    IntPolyRef h = res[0], a = res[1], b = res[2];
+    if (h->degree(x) != 1) continue; // only interested in reducing to linear (for now)
 
     if (verbose)
     {
@@ -135,28 +139,68 @@ TFormRef BasicRewrite::linearSpolys(QAndRef target, TAtomRef A, TAtomRef B,
       f->write(M); cout << " and "; g->write(M);
       cout << endl;
     }
-    
-    vector<QAndRef> TV(1);
 
-    TAndRef F1 = new TAndObj;
-    F1->AND(copyAndRemove(Fs,A));
     TAtomRef newConstraint = makeAtom(M,h,EQOP);
-    F1->AND(newConstraint);
-    TFormRef res1 = defaultNormalizer->normalize(F1);
-    if (constValue(res1) == TRUE) return res1;
-    ParentageRef PT1= new PSPolyObj(target,B,A,newConstraint);
-    TV[0] = new QAndObj(res1,target->QVars,target->UVars,PT1);
-    globalQM->enqueueOR(TV,Q);
+    if (b->isConstant()) {
+      TAndRef F1 = new TAndObj;
+      F1->AND(copyAndRemove(Fs,A));
+      F1->AND(newConstraint);
+      TFormRef res1 = defaultNormalizer->normalize(F1);
+      if (constValue(res1) == TRUE) return res1;
+      ParentageRef PT1= new PSPolyObj(target,B,A,newConstraint,VarSet(x));
+      vector<QAndRef> TV = { new QAndObj(res1,target->QVars,target->UVars,PT1) };
+      globalQM->enqueueOR(TV,Q);
+    }
+    else {
+      TAndRef F1 = new TAndObj;
+      F1->AND(copyAndRemove(Fs,A));
+      F1->AND(newConstraint);
+      F1->AND(makeAtom(M,b,NEOP));
+      TAndRef F2 = new TAndObj;
+      F2->AND(Fs);
+      TAtomRef deq = makeAtom(M,b,EQOP);
+      F2->AND(deq);
+      TFormRef res1 = defaultNormalizer->normalize(F1);
+      if (constValue(res1) == TRUE) return res1;
+      TFormRef res2 = defaultNormalizer->normalize(F2);
+      if (constValue(res2) == TRUE) return res2;
+      ParentageRef PT1= new PSPolyObj(target,B,A,newConstraint,x);
+      ParentageRef PT2= new PSPolyDegenerateObj(target,B,A,deq,x);
+      vector<QAndRef> TV = { new QAndObj(res1,target->QVars,target->UVars,PT1),
+			     new QAndObj(res2,target->QVars,target->UVars,PT2) };
+      globalQM->enqueueOR(TV,Q);
+    }
 
-    TAndRef F2 = new TAndObj;
-    F2->AND(copyAndRemove(Fs,B));
-    F2->AND(newConstraint);
-    TFormRef res2 = defaultNormalizer->normalize(F2);
-    if (constValue(res2) == -1) return res2;
-    ParentageRef PT2= new PSPolyObj(target,A,B,newConstraint);
-    TV[0] = new QAndObj(res2,target->QVars,target->UVars,PT2);
-    globalQM->enqueueOR(TV,Q);
-  }
+    if (a->isConstant()) {
+      TAndRef F2 = new TAndObj;
+      F2->AND(copyAndRemove(Fs,B));
+      F2->AND(newConstraint);
+      TFormRef res2 = defaultNormalizer->normalize(F2);
+      if (constValue(res2) == -1) return res2;
+      ParentageRef PT2= new PSPolyObj(target,A,B,newConstraint,VarSet(x));
+      vector<QAndRef> TV = { new QAndObj(res2,target->QVars,target->UVars,PT2) };
+      globalQM->enqueueOR(TV,Q);
+    }
+    else {
+      TAndRef F1 = new TAndObj;
+      F1->AND(copyAndRemove(Fs,A));
+      F1->AND(newConstraint);
+      F1->AND(makeAtom(M,a,NEOP));
+      TAndRef F2 = new TAndObj;
+      F2->AND(Fs);
+      TAtomRef deq = makeAtom(M,a,EQOP);
+      F2->AND(deq);
+      TFormRef res1 = defaultNormalizer->normalize(F1);
+      if (constValue(res1) == TRUE) return res1;
+      TFormRef res2 = defaultNormalizer->normalize(F2);
+      if (constValue(res2) == TRUE) return res2;
+      ParentageRef PT1= new PSPolyObj(target,A,B,newConstraint,x);
+      ParentageRef PT2= new PSPolyDegenerateObj(target,A,B,deq,x);
+      vector<QAndRef> TV = { new QAndObj(res1,target->QVars,target->UVars,PT1),
+			     new QAndObj(res2,target->QVars,target->UVars,PT2) };
+      globalQM->enqueueOR(TV,Q);
+    }
+  }   
   return NULL;
 }
 

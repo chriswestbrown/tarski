@@ -20,7 +20,7 @@ namespace tarski {
  ************************************************************/
 class GreedyQueueManager : public QueueManagerAndChooser
 {
-private:
+public:
   TFQueueRef _root;
   FormulaGrader *_FG; 
 
@@ -50,11 +50,13 @@ public:
     {
       QNodeRef qnsa = MF.fromTtoQ[(*itr)->tag];
       QAndRef sa = asa<QAndObj>(qnsa);
-      if (sa.is_null()) { std::cerr << "Error in GreedyQueueManager::next!!!" << std::endl; 
+      if (sa.is_null()) {
+	std::cerr << "Error in GreedyQueueManager::next!!!" << std::endl; 
 	(*itr)->write();
 	std::cout << std::endl;
 	if (asa<TAndObj>(*itr)) { std::cerr << "It's an AND!" << std::endl; } else { std::cerr << "It's not an AND!" << std::endl; }
-	exit(0); }
+	throw TarskiException("Error in GreedyQueueManager!");
+      }
       if (!sa->expanded) Parts.push_back(sa);
     }
 
@@ -65,6 +67,17 @@ public:
   }
 };
 
+  
+class GreedyGuidedQueueManager : public GreedyQueueManager
+{
+  class negcomp { public: FewestQuantifiedVariablesFirst F; bool operator()(QAndRef a, QAndRef b) const { return !F(a,b); } };
+  priority_queue<QAndRef,std::vector<QAndRef>, negcomp> andsToExpand;
+
+public:
+  void recordAndEnqueued(QAndRef A);
+  QAndRef next();  
+};
+  
 /************************************************************
  * BEGIN GLOBAL VARIABLES
  ************************************************************/
@@ -95,6 +108,8 @@ private:
   QueueManager *globalQM;
   BasicRewrite* pReW;
   TFQueueRef Q;
+  SimpleGradeForQEPCAD SG;
+  MinFormFinder MF;
   pair<TFormRef,double> minp;
 };
 }//end namespace tarski

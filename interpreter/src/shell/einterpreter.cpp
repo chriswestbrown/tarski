@@ -10,7 +10,7 @@
 #include "../onecell/OpenNuCADType.h"
 #include "funcEvalFormAtRat.h"
 #include "funcSyntax.h"
-#include "../search/qfr.h"
+#include "../search/qfr-comm.h"
 #include "../nucad/TestComm.h"
 //#include "../fernando/sample-comm.h"
 //#include "../fernando/type-comm.h"
@@ -239,42 +239,6 @@ ObjType* fetch(const string &fname)
   return dynamic_cast<ObjType*>(&*h);
 }
 
-TFormRef QformToRegularForm(TFormRef F, VarSet QVars)
-{
-  if (asa<TAndObj>(F))
-  {
-    TAndRef Fa = asa<TAndObj>(F);
-    VarSet QVarsAppearing = /*Fa->QVars*/ QVars & Fa->getVars();
-    if (QVarsAppearing.none()) 
-      return Fa;
-    else 
-    {
-      TQBObj *p = new TQBObj(QVarsAppearing,EXIST,Fa,Fa->getPolyManagerPtr());
-      return p;
-    }
-  }
-  else if (asa<TOrObj>(F))
-  {
-    TOrRef Fo = asa<TOrObj>(F);
-    TOrRef p = new TOrObj();
-    for(set<TFormRef>::iterator itr = Fo->disjuncts.begin(); itr != Fo->disjuncts.end(); ++itr)
-      p->OR(QformToRegularForm(*itr,QVars));
-    return p;
-  }
-  else
-  { 
-    VarSet QVarsAppearing = QVars & F->getVars();
-    if (QVarsAppearing.none()) 
-      return F;
-    else 
-    {
-      TQBObj *p = new TQBObj(QVarsAppearing,EXIST,F,F->getPolyManagerPtr());
-      return p;
-    }
-  }
-}
-
-
 class CommFactor : public EICommand
 {
 public:
@@ -383,46 +347,6 @@ the existential closure of F. ";
   }
   string usage() { return "(exclose <tarski formula>)"; }
   string name() { return "exclose"; }
-};
-
-
-class CommQFR : public EICommand
-{
-public:
-  CommQFR(NewEInterpreter* ptr) : EICommand(ptr) { }
-  SRef execute(SRef input, vector<SRef> &args) 
-  { 
-    SRef res;
-    {
-      //      finalcleanup = false;
-      TFormRef T = args[0]->tar()->val;
-      int searchType = args.size() == 1 ? 5 : 4;
-      QFR qfr;
-      try {
-	if (qfr.init(searchType,T,interp->PM)) { return new ErrObj("Bad input format for QFR."); }
-	qfr.rewrite();
-	TFormRef Tp = QformToRegularForm(qfr.getBest(),qfr.getQuantifiedVariables());
-	res = new TarObj(Tp);
-      }
-      catch(TarskiException &e)
-      {
-	res = new ErrObj(e.what());
-      }
-      //      finalcleanup = true;
-    } 
-    return res;
-  }
-  string testArgs(vector<SRef> &args)
-  {
-    return require(args,_tar) == "" ? "" : require(args,_tar,_sym);
-  }
-  string doc() 
-  {
-    return "(qfr F), where F is a Tarski Formula, returns\
-a Tarski Formula resulting from applying qfr.";
-  }
-  string usage() { return "(qfr <tarski formula>)"; }
-  string name() { return "qfr"; }
 };
 
 
