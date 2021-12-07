@@ -45,13 +45,6 @@ static Word ISPPIQT(Word r, Word A) {
      is why this is a "quick test".
   */
 
-  /*
-    t <- MMUPIT(p,A)
-    Medium Modulus univariate polynomial irreducibility test.
-    B <- MPHOM(r,m,A)
-    Modular polynomial homomorphism.
-
-  */
   Word sz = SOSIZE(A);
 #ifdef _ISFPF_DEBUG_
   SWRITE("In ISPPIQT ("); IWRITE(sz); SWRITE("):\n");
