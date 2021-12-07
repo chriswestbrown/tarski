@@ -16,12 +16,15 @@ bool fullyGeneric = false;
  * END GLOBAL VARIABLES
  ************************************************************/
 
-QFR::QFR() { pM = NULL; QMaC = NULL; pReW = NULL; globalQM = NULL; }
+QFR::QFR() { pM = NULL; QMaC = NULL; pReW = NULL; globalQM = NULL;
+  SG = new SmartGradeForQEPCADv1();
+  //SG = new SimpleGradeForQEPCAD();
+}
 int QFR::init(int QMTf, TFormRef _T, PolyManager *_pM)
 {
   pM = _pM;
   Forig = _T;
-
+  selfMonitorStop = false;
   finalcleanup = false;
 
   // Process Forig, get F and QVars
@@ -44,7 +47,7 @@ int QFR::init(int QMTf, TFormRef _T, PolyManager *_pM)
     F = Forig;
   F = getDNF(F);
 
-  // Normalize
+  // Normalize 
   if (asa<TOrObj>(F))
   { 
     TOrRef tor = asa<TOrObj>(F);
@@ -70,7 +73,7 @@ int QFR::init(int QMTf, TFormRef _T, PolyManager *_pM)
   case 3: QMaC = new PrioritySearchQueueManager<SmallestDimensionFirst>; break;
   case 4: QMaC = new PrioritySearchQueueManager<FewestQuantifiedVariablesFirst>; break;
   case 5: QMaC = new GreedyQueueManager; break;
-  case 6: QMaC = new GreedyGuidedQueueManager; break;    
+  case 6: QMaC = new GreedyGuidedQueueManager; selfMonitorStop = true; break;    
   } 
   globalQM = QMaC;
   pReW = new BasicRewrite(globalQM,0/*BasicRewrite::M_linearSpolys*/);
@@ -78,8 +81,8 @@ int QFR::init(int QMTf, TFormRef _T, PolyManager *_pM)
 
   
   // finish intialization of QueueManager if needed
-  SimpleGradeForQEPCAD tmpG;
-  if (QMTf == 5 || QMTf == 6) { dynamic_cast<GreedyQueueManager*>(QMaC)->setData(Q,tmpG); }
+  //SmartGradeForQEPCADv1* tmpG = new SmartGradeForQEPCADv1();
+  if (QMTf == 5 || QMTf == 6) { dynamic_cast<GreedyQueueManager*>(QMaC)->setData(Q,SG); }
 
   // Initialize queue Q
   if (asa<TAndObj>(F) || asa<TAtomObj>(F))
@@ -108,14 +111,13 @@ int QFR::init(int QMTf, TFormRef _T, PolyManager *_pM)
 void QFR::rewrite()
 {
   // This bit is all about the self-monitoring determination of when to stop/continue
-  bool selfMonitorStop = true;
   int iterCount = 0, stepsSinceLastBest = 0, stepsToLastBest = 10, countOfLastBest = 0;
   double lastBestScore = -1.0;
 
   // The loop!
   QAndRef nextAnd;
   while(Q->constValue.is_null() && !(nextAnd = QMaC->next()).is_null())
-  {    
+  {
     // Expand the node "nextAnd"
     TFormRef res = pReW->refine(nextAnd,QMaC->find(nextAnd));
     
@@ -124,11 +126,12 @@ void QFR::rewrite()
     if (constValue(res) == 0) { QMaC->notify(QInfo::equivFalse(nextAnd->parentQueue)); }
     
     // Reorganization of "the graph" might be necessary based on things found equiv or false
-    QMaC->reorganize(Q);
-
+    QMaC->reorganize(Q);    
+    
     // SelfMonitor - stop if there hasn't been an improvement in a sufficient # of steps
+    ++iterCount;
+
     if (selfMonitorStop) {
-      ++iterCount;
       if (++stepsSinceLastBest > stepsToLastBest) { break; }
       getBest();
       double score = minp.second;
@@ -216,7 +219,7 @@ QFR::~QFR() {
   QAndRef GreedyGuidedQueueManager::next() 
   {     
     //-- Find the "best" rewriting currently available
-    SimpleGradeForQEPCAD SG;
+    FormulaGraderRef SG = getFormulaGrader();
     MinFormFinder MF; MF.process(_root,SG); 
     pair<TFormRef,double> minp; minp.first = MF.getMinFormula(_root); minp.second = MF.getMinGrade(_root);
 
@@ -257,7 +260,7 @@ QFR::~QFR() {
       sort(Parts.begin(),Parts.end(),Cmp(&MF));
       for(int i = 0; i < Parts.size() - 1; i--) {
 	andsToExpand.push(Parts[i]);
-	cerr << "Pushing back!" << endl;
+	//cerr << "Pushing back!" << endl;
       }
       return Parts[Parts.size() - 1];
     }

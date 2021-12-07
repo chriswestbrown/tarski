@@ -22,7 +22,7 @@ class GreedyQueueManager : public QueueManagerAndChooser
 {
 public:
   TFQueueRef _root;
-  FormulaGrader *_FG; 
+  FormulaGraderRef _FG; 
 
   class Cmp
   {
@@ -33,12 +33,13 @@ public:
   };
 
 public:
-  void setData(TFQueueRef root, FormulaGrader &FG) { _root = root; _FG = &FG; }
+  void setData(TFQueueRef root, FormulaGraderRef FG) { _root = root; _FG = FG; }
   void recordAndEnqueued(QAndRef A) { QueueManager::recordAndEnqueued(A);  }
+  FormulaGraderRef getFormulaGrader() { return _FG; }
   QAndRef next() 
   {     
     //-- Find the "best" rewriting currently available
-    SimpleGradeForQEPCAD SG;
+    FormulaGraderRef SG = getFormulaGrader();
     MinFormFinder MF; MF.process(_root,SG); 
     pair<TFormRef,double> minp; minp.first = MF.getMinFormula(_root); minp.second = MF.getMinGrade(_root);
 
@@ -108,9 +109,10 @@ private:
   QueueManager *globalQM;
   BasicRewrite* pReW;
   TFQueueRef Q;
-  SimpleGradeForQEPCAD SG;
+  FormulaGraderRef SG;
   MinFormFinder MF;
   pair<TFormRef,double> minp;
+  bool selfMonitorStop; // Used in "refine".  "GreedyGuided" wants this true!
 };
 }//end namespace tarski
 #endif

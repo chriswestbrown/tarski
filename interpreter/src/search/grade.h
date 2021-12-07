@@ -8,10 +8,12 @@ namespace tarski {
 // MinFormAndGrade: Takes a TFQueue and returns the formula with smallest grade
 // represented by that queue, along with the grade itself.  The function is
 // parameterized by a FormulaGrader object.
-class FormulaGrader;
-pair<TFormRef,double> minFormAndGrade(TFQueueRef Q, VarSet QVars, FormulaGrader &FG);
+  
+class FormulaGraderObj;
+typedef GC_Hand<FormulaGraderObj> FormulaGraderRef;
+pair<TFormRef,double> minFormAndGrade(TFQueueRef Q, VarSet QVars, FormulaGraderRef FG);
 
-class FormulaGrader
+class FormulaGraderObj : public GC_Obj
 {
 public:
   virtual double grade(TFormRef F, VarSet QVars) = 0;
@@ -21,14 +23,14 @@ public:
 // grader for formulas that tries to differentiate their potential as input for QEPCAD.
 // if quantifier-free, then {# char's in printed form} else
 // 1000*(10*20^{# of quantified variables} - {# of equations}) + {# char's in printed form}
-class SimpleGradeForQEPCAD : public FormulaGrader
+class SimpleGradeForQEPCAD : public FormulaGraderObj
 {
   double grade(TFormRef F, VarSet QVars);
 };
 
 // SmartGradeForQEPCADv1 - This uses some smarts in terms of formula
 // factorization to better recognize the true complexity of a solution.
-class SmartGradeForQEPCADv1 : public FormulaGrader
+class SmartGradeForQEPCADv1 : public FormulaGraderObj
 {
   double grade(TFormRef F, VarSet QVars);
 };
@@ -39,7 +41,7 @@ class SmartGradeForQEPCADv1 : public FormulaGrader
 class MinFormFinder
 {
 public:
-  void process(TFQueueRef Q, FormulaGrader &FG);
+  void process(TFQueueRef Q, FormulaGraderRef FG);
   double getMinGrade(TFQueueRef Q);
   double getMinGrade(QAndRef A);
   int getMinLength(TFQueueRef Q);
@@ -52,16 +54,16 @@ private:
  public:
   std::map<uint64,QNodeRef>   fromTtoQ; // This just maps the formulas back to nodes (temporarily!)
 
-  void searchForMin(TFQueueRef Q, FormulaGrader &FG);
-  void searchForMin(QAndRef A, FormulaGrader &FG);
-  void searchForMin(QOrRef A, FormulaGrader &FG);
+  void searchForMin(TFQueueRef Q, FormulaGraderRef FG);
+  void searchForMin(QAndRef A, FormulaGraderRef FG);
+  void searchForMin(QOrRef A, FormulaGraderRef FG);
 };
 
 class QAndGradeComp
 {
-  FormulaGrader *FG;
+  FormulaGraderRef FG;
  public:
-  QAndGradeComp(FormulaGrader &G) : FG(&G) { }
+  QAndGradeComp(FormulaGraderRef G) : FG(G) { }
   bool operator()(QAndRef A, QAndRef B) const { return FG->grade(A->F,A->QVars) < FG->grade(B->F,B->QVars); }
    
 };
