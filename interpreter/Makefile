@@ -83,8 +83,11 @@ CPPFLAGS ?= $(INC_FLAGS) -MMD -MP -g
 # On Mac the C++11 dialect must be set, on Linux it is optional, on Windows MSYS2/CLANG64 it should not be set.
 ifeq ($(UNAME_S),Darwin)
 CPPFLAGS += --std=c++11
+else
+ifeq (,$(findstring MINGW64,$(UNAME_S)))
+CPPFLAGS += --std=gnu++14
 endif
-
+endif
 
 $(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
 	$(CXX) $(OBJS) -o $@ $(LDFLAGS)
