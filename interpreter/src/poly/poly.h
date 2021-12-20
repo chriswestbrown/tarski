@@ -66,6 +66,8 @@ public:
   VarSet linearlyOccurringVariables();
   VarSet variableUniqueDegrees();
   int gcdOfVariableExponents(VarSet x);
+  // M[xi] = gcd of exponents of variable xi (and whatever initial value M[xi] had when called)
+  void gcdOfVariableExponentsAll(VarKeyedMap<int> &M);  
   IntPolyRef reduceDegreeInX(VarSet x, int d);
   int signDeduce(const VarKeyedMap<int> &varSign); // varSign[x] = sigma means that "x sigma 0" holds.
   void write(VarContext &C); // Write to the current Saclib Output Context

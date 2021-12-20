@@ -22,6 +22,8 @@
 #include "../smtsolver/qep-solver-comm.h"
 #include "../nucad/TestComm.h"
 #include "qepcad-inter/qepcad-api.h"  
+#include "../search/degreereduce.h"
+
 
 using namespace std;
 
@@ -1231,9 +1233,10 @@ public:
 
 //////////////////////////////////////////////////////////////
 
-  
 class CommChristest : public EICommand
 {
+
+  
 public:
   CommChristest(NewEInterpreter* ptr) : EICommand(ptr) { }
   SRef execute(SRef input, vector<SRef> &args) 
@@ -1242,6 +1245,13 @@ public:
     // Word V = LIST2(LFS("y"),LFS("x"));
     // IntPolyRef p = IntPolyObj::saclibToNonCanonical(r,A,V,*getPolyManagerPtr());
     // return new AlgObj(p,*getPolyManagerPtr());
+
+    if (true) {
+      TFormRef T = args[0]->tar()->val;
+      GeneralDegreeReduce GDR;
+      TFormRef R = GDR.exec(T);
+      return new TarObj(R);
+    }
     
     SRef res;
     try {

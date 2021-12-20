@@ -227,6 +227,8 @@ void BEGINQEPCADLIB(int timeout) {
   INITSYS();
   if (GVCAP != 0)
     useExistingCAServer = true;
-  else
+  else {
     GVCAP = new OriginalPolicy;
+    useExistingCAServer = false;
+  }
 }

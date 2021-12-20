@@ -15,7 +15,7 @@ Output
           rounded according to IEEE standards.
 ======================================================================*/
 #include "saclib.h"
-
+#include <stdio.h>
 void FSUMDESS(A,B,d,C)
         Word *A,*B;
         BDigit d;
@@ -38,6 +38,31 @@ Step2: /* Store the exponent, sign and precision of C. */
 	C[2] = Ap[2];
 	p = Ap[2];
 
+StepD: /* deBUG */
+	goto Step3;
+	SWRITE("A: ");
+	for(Word m = 0; m <= A[2] + 2; m++) {
+	  IWRITE(A[m]); SWRITE(" ");	  
+	}
+	SWRITE("\n");
+	SWRITE("B: ");
+	for(Word m = 0; m <= B[2] + 2; m++) {
+	  IWRITE(B[m]); SWRITE(" ");	  
+	}
+	SWRITE("\n");
+	SWRITE("d: ");
+	IWRITE(d);
+	SWRITE("\n");
+	SWRITE("C: ");
+	for(Word m = 0; m <= p + 2; m++) {
+	  if (-BETA < C[m] && C[m] < BETA) { IWRITE(C[m]); } else { SWRITE("XXXXXXXXXX"); }
+	  SWRITE(" ");	  
+	}
+	SWRITE("\n");
+	fflush(stdout);
+	
+
+	
 Step3: /* Determine the denormalizing shift amount. */
 	q = 0;
 	r = Ap[0] - Bp[0];
@@ -144,9 +169,13 @@ the low-order position of the sum. */
 	   j = q + 1; }
 	if (u != 0)
 	   goto Step12;
-	for (i = j; i >= 3; i--)
-	   if (Bp[i] != 0)
-	      goto Step12;
+	for (i = j; i >= 3; i--) {
+	  /* fprintf(stderr,Ap == A ? "No switch!\n" : "Switch! - "); */
+	  /* fprintf(stderr,"exp %d, sign %d, precision %d - ",C[0],C[1],C[2]); */
+	  /* fprintf(stderr,"i = %d\n",i); */
+	  if (Bp[i] != 0) {
+	    goto Step12;
+	  } }
 	return;
 
 Step9: /* Rounding decision, case d = 0, t = 0 and q >= p. */

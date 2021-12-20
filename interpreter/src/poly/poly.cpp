@@ -102,6 +102,17 @@ int IntPolyObj::gcdOfVariableExponents(VarSet x)
   return PGCDEXP(slevel, sP, indexOfVar(x)); 
 }
 
+void IntPolyObj::gcdOfVariableExponentsAll(VarKeyedMap<int> &M)
+{
+  // This could be made much more efficient my combining map M with the gcd process.
+  // better for sparse polys.
+  Word V = PGCDEXPALL(slevel,sP);
+  auto itr = svars.begin();
+  for(Word Vp = V; Vp != NIL; Vp = RED(Vp),++itr) {
+    M[*itr] = IGCD(M[*itr],FIRST(Vp));
+  }
+}
+  
 IntPolyRef IntPolyObj::reduceDegreeInX(VarSet x, int d)
 {
   if ((x & svars).none()) return this;

@@ -18,7 +18,7 @@ void ENDQEPCAD()
     
     if (GVCAP != 0) { delete GVCAP; GVCAP = 0; }
   }
-  useExistingCAServer = false;
+  //useExistingCAServer = false;
   
   if (GVContext != 0) { delete GVContext; GVContext = 0; }
 

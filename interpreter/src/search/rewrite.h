@@ -171,6 +171,9 @@ public:
 void printDerivation(TFormRef F);
 void printDerivationIfAnd(TFormRef F);
 
+
+
+  
 }//end namespace tarski
 #endif
 

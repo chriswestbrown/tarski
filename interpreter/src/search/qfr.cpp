@@ -4,7 +4,7 @@ using namespace std;
 
 namespace tarski {
   
-/************************************************************
+/************************************************************ 
  * BEGIN GLOBAL VARIABLES
  ************************************************************/
 int timing = 0;
@@ -28,7 +28,7 @@ int QFR::init(int QMTf, TFormRef _T, PolyManager *_pM)
   finalcleanup = false;
 
   // Process Forig, get F and QVars
-  if (!isPrenex(Forig)) 
+  if (!isPrenex(Forig))
   { 
     throw TarskiException("QFR: Input formula must be prenex!"); 
   }
@@ -174,6 +174,7 @@ VarSet QFR::getQuantifiedVariables()
 
   void QFR::printDerivation() {
     //cout << "In printDerivation()!" << endl;
+    if (!Q->constValue.is_null()) { cout << "No derivation stored for constant results!" << endl; return; }    
     TOrRef tor = new TOrObj();
     tor->OR(minp.first);
     for(set<TFormRef>::iterator itr = tor->disjuncts.begin(); itr != tor->disjuncts.end(); ++itr)

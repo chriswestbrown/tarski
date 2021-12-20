@@ -68,7 +68,9 @@ TFormRef QformToRegularForm(TFormRef F, VarSet QVars)
 	  TFormRef minpf = qfr.getBest();
 	  TFormRef Tp = QformToRegularForm(minpf,qfr.getQuantifiedVariables());
 	  res = new TarObj(Tp);
-	  //qfr.printDerivation();
+	  // std::cout << "##### " << res->toStr() << endl;
+	  // qfr.printDerivation();
+	  // std::cout << std::endl;
 	}
 	catch(TarskiException &e)
 	{

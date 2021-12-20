@@ -44,7 +44,6 @@ static Word ISPPIQT(Word r, Word A) {
      Of course if As isn't irreducible we don't know anything, which
      is why this is a "quick test".
   */
-
   Word sz = SOSIZE(A);
 #ifdef _ISFPF_DEBUG_
   SWRITE("In ISPPIQT ("); IWRITE(sz); SWRITE("):\n");
@@ -83,7 +82,13 @@ static Word ISPPIQT(Word r, Word A) {
 #ifdef _ISFPF_DEBUG_
     SWRITE("Evaluated to("); IWRITE(k); SWRITE("): "); IPDWRITE(1,As,V);
     SWRITE(" mod "); IWRITE(p); SWRITE("\n"); 
+#endif
+    if (PDEG(As) != PDEG(A)) {
+#ifdef _ISFPF_DEBUG_
+      SWRITE("Degree dropped ... moving on!\n");
 #endif    
+      continue;
+    }
     t = MMUPIT(p,As);
 #ifdef _ISFPF_DEBUG_
     SWRITE("Result is "); IWRITE(t); SWRITE("\n");			 

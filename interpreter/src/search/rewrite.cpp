@@ -4,6 +4,7 @@
 #include "../formula/formula.h"
 #include "rewrite.h"
 #include "qfr.h"
+#include "degreereduce.h"
 
 using namespace std;
 
@@ -36,6 +37,18 @@ TFormRef BasicRewrite::refine(QAndRef target, TFQueueRef Q)
     {
       TFormRef res = splitOnAtom(target,*i_eq,Q);
       if (asa<TConstObj>(res)) return res;      
+    }
+  }
+
+  /*** General degree reduce. ***/
+  if(true) {
+    GeneralDegreeReduce GDR;
+    TFormRef res1 = GDR.exec(target);
+    if (!res1.identical(target->F)) {
+      if (constValue(res1) == TRUE) return res1;
+      ParentageRef PT1= GDR.makeParentage(target);
+      vector<QAndRef> TV = { new QAndObj(res1,target->QVars,target->UVars,PT1) };
+      globalQM->enqueueOR(TV,Q);
     }
   }
 

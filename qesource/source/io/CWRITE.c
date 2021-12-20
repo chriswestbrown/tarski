@@ -28,6 +28,7 @@ void PushOutputContext(ostream &out)
   OCS.top().OPOS = OPOS;
   currOut = &out;
   OPOS = 0;
+  //  cerr << "Push: " << OCS.size() << endl;
 }
 
 void PopOutputContext()
@@ -35,6 +36,7 @@ void PopOutputContext()
   currOut = OCS.top().pout;
   OPOS = OCS.top().OPOS;
   OCS.pop();
+  //  cerr << "Pop: " << OCS.size() << endl;
 }
 
 ostream& TopOutputContext()
