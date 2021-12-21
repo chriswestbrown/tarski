@@ -18,7 +18,7 @@ namespace tarski {
     }
   };
 
-  void exploreQueue(TFQueueRef Q, VarSet QVars, FormulaGrader &FG)
+  void exploreQueue(TFQueueRef Q, VarSet QVars, FormulaGraderRef FG)
   {
     fgcmp C;
     set<pair<TFormRef,double>,fgcmp> S(C);
@@ -27,7 +27,7 @@ namespace tarski {
       QAndRef AN = asa<QAndObj>(*itr);
       if (!AN.is_null())
       {
-	S.insert(pair<TFormRef,double>(AN,FG.grade(AN->F,QVars)));
+	S.insert(pair<TFormRef,double>(AN,FG->grade(AN->F,QVars)));
       }
       else
       {

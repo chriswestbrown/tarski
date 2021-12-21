@@ -59,7 +59,7 @@ Step5: /* Compute the resultant modulo several primes and
 
         while (ICOMP(Q,f) <= 0) {
 	   if (L == NIL)
-	      FAIL("IPRES","Prime list exhausted");
+	     FAIL("IPRES","Prime list exhausted",r,A,B,f,Q);
            ADV(L,&p,&L);
            As = MPHOM(r,p,A);
 	   Bs = MPHOM(r,p,B);

@@ -13,6 +13,15 @@
 
 namespace tarski {
 
+// This is a base class that serves as a mapping from Tarski variables back
+// to whatever variable names we want in the SMTLIB output.  It's too bad it has to 
+class WSIRevmapper
+{
+public:
+  virtual const string& revMap(const string& var) { return var; }
+};
+
+
 /********************************************************************************
  * An IntPolyObj represents a polynomial as
  * - svars: the (ordered) set of variables in which the polynomial has positive degree.
@@ -24,7 +33,7 @@ namespace tarski {
  ********************************************************************************/
 class IntPolyObj;
 typedef GC_Hand<IntPolyObj> IntPolyRef;
-
+  
 class IntPolyObj : public GC_Obj
 {
   //private:
@@ -57,6 +66,8 @@ public:
   VarSet linearlyOccurringVariables();
   VarSet variableUniqueDegrees();
   int gcdOfVariableExponents(VarSet x);
+  // M[xi] = gcd of exponents of variable xi (and whatever initial value M[xi] had when called)
+  void gcdOfVariableExponentsAll(VarKeyedMap<int> &M);  
   IntPolyRef reduceDegreeInX(VarSet x, int d);
   int signDeduce(const VarKeyedMap<int> &varSign); // varSign[x] = sigma means that "x sigma 0" holds.
   void write(VarContext &C); // Write to the current Saclib Output Context
@@ -68,7 +79,7 @@ public:
   // C : variable context
   static IntPolyRef saclibToNonCanonical(Word r, Word A, Word V, VarContext &C);
   
-  void writeSMTLIB(VarContext &C, ostream& out);
+  void writeSMTLIB(VarContext &C, ostream& out, WSIRevmapper& vrm);
   void writeMAPLE(VarContext &C, ostream& out);
   void writeMATHEMATICA(VarContext &C, ostream& out);
 
@@ -148,5 +159,7 @@ int specialLinCombQ(IntPolyRef P, IntPolyRef Q, VarKeyedMap<int> &varSign, int s
 // given in L, and deduced sign ded, returns a minimal sized VarSet S, s.t. the
 // assumptions on elts of S assume to make the same sign-deduction.
 VarSet minimalReqdForSignDeduce(Word slevel, Word sP, Word L, VarSet S, int ded);
+
+
 }//end namespace tarski
 #endif

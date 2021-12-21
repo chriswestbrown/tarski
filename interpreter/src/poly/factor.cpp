@@ -47,7 +47,7 @@ FactRef operator*(FactRef f, FactRef g)
 } 
 
 
-void FactObj::write() const // Write to the current Saclib Output Context
+void FactObj::write() const // Write to the current Saclib Output Context 
 {
   if (numFactors() == 0 || content != 1) IWRITE(content);
   map<IntPolyRef,int>::const_iterator i = MultiplicityMap.cbegin();

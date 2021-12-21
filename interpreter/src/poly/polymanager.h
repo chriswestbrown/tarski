@@ -73,7 +73,8 @@ public:
   // Input: Polynomials p and q, variable x. deg_x(p) = deg_x(q) > 1.
   // Output: NULL or polynomial (not a cannonical copy!)
   IntPolyRef specialSpoly(IntPolyRef p, IntPolyRef q, VarSet x);
-
+  vector<IntPolyRef> standardSpoly(IntPolyRef p, IntPolyRef q, VarSet x);
+  
   string polyToStr(IntPolyRef p) 
   { ostringstream sout; PushOutputContext(sout); 
     p->write(*this); PopOutputContext(); return sout.str(); }

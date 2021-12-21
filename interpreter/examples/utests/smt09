@@ -1,0 +1,7 @@
+; tests reading of formulas with variable translation
+; These two smt files should be the same but with different variable names
+(def PF (smtlib-load 'translate "smt/smt006.smt2"))
+(def PG (smtlib-load 'translate "smt/smt007.smt2"))
+
+(def res (if (equal? (head PF) (head PG)) "pass" "fail"))
+(display res " : test smt09\n")

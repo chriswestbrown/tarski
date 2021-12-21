@@ -90,6 +90,13 @@ Word PUDV(Word r, Word P);
 // Returns gcd(e1,...,ek), where P = c1 xi^e1 + ... + ck xi^ek, ci \in D[x1 ... x_{i-1} x_{i+1} ... x_r]
 Word PGCDEXP(Word r, Word P, Word i);
 
+// Polynomial GCD of Exponents
+// r : Beta digit
+// P : polynomial in (x1 ... xr)
+// Returns L = (g1,...,gr) where gi is the gcd of exponents for variable xi
+Word PGCDEXPALL(Word r, Word P);
+
+
 // Polynomial Reduce Degree in x_i
 // r : Beta digit
 // P : polynomial in x_1 ... x_r

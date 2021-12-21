@@ -1,5 +1,5 @@
 (set-info :status unsat)
-(set-logic QF_NRA)
+(set-logic NRA)
 (set-info :source | Simple test example.|)
 (set-info :smt-lib-version 2.0)
 (declare-fun x () Real)

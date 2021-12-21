@@ -1,0 +1,7 @@
+; tests reading of quantified formulas
+
+(def F [ex z[2 z^2 + 2 y^2 + 2 x^2 - 1 < 0 /\ 3 z + 3 y + 3 x - 1 < 0]])
+(def G (smtlib-load "smt/smt006.smt2"))
+
+(def res (if (equal? F G) "pass" "fail"))
+(display res " : test smt08\n")

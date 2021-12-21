@@ -313,4 +313,31 @@ IntPolyRef PolyManager::specialSpoly(IntPolyRef p, IntPolyRef q, VarSet x)
 
   return new IntPolyObj(r,R,V);
 }
+
+// Standard S-polynomial
+// Input: Polynomials p and q, variable x. deg_x(p) = deg_x(q) > 1.
+// Output: triple (R,a,b) of int polynomial refs (not cannonical copies!)
+//         s.t.  a = ldcf_x(p), b = ldcf_x(q), R = b*p - a*q (the S-poly)
+vector<IntPolyRef> PolyManager::standardSpoly(IntPolyRef p, IntPolyRef q, VarSet x)
+{
+  VarSet V = p->getVars() + q->getVars();
+  Word r = V.numElements();
+  Word i = V.positionInOrder(x);
+  Word P = p->expand(V), Q = q->expand(V);
+
+  Word A = PMMVPO(r,P,i), B = PMMVPO(r,Q,i);
+  VarSet Vp = V - x;
+  Word rp = r-1;
+  Word a = PLDCF(A);
+  Word b = PLDCF(B);
+  Word ab, bb, c;
+  IPGCDC(rp,a,b,&c,&ab,&bb);
+  
+  // a and b are level r-1, we have to "add the missing x" back to multiply
+  Word R = IPDIF(r,IPPROD(r,LIST2(0,bb),P),IPPROD(r,LIST2(0,ab),Q));
+
+  vector<IntPolyRef> res = { new IntPolyObj(r,R,V), new IntPolyObj(r-1,ab,Vp), new IntPolyObj(r-1,bb,Vp) };
+  return res;
+}
+
 }//end namespace tarski

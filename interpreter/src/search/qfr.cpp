@@ -4,7 +4,7 @@ using namespace std;
 
 namespace tarski {
   
-/************************************************************
+/************************************************************ 
  * BEGIN GLOBAL VARIABLES
  ************************************************************/
 int timing = 0;
@@ -16,16 +16,19 @@ bool fullyGeneric = false;
  * END GLOBAL VARIABLES
  ************************************************************/
 
-QFR::QFR() { pM = NULL; QMaC = NULL; pReW = NULL; globalQM = NULL; }
+QFR::QFR() { pM = NULL; QMaC = NULL; pReW = NULL; globalQM = NULL;
+  SG = new SmartGradeForQEPCADv1();
+  //SG = new SimpleGradeForQEPCAD();
+}
 int QFR::init(int QMTf, TFormRef _T, PolyManager *_pM)
 {
   pM = _pM;
   Forig = _T;
-
+  selfMonitorStop = false;
   finalcleanup = false;
 
   // Process Forig, get F and QVars
-  if (!isPrenex(Forig)) 
+  if (!isPrenex(Forig))
   { 
     throw TarskiException("QFR: Input formula must be prenex!"); 
   }
@@ -44,7 +47,7 @@ int QFR::init(int QMTf, TFormRef _T, PolyManager *_pM)
     F = Forig;
   F = getDNF(F);
 
-  // Normalize
+  // Normalize 
   if (asa<TOrObj>(F))
   { 
     TOrRef tor = asa<TOrObj>(F);
@@ -70,15 +73,16 @@ int QFR::init(int QMTf, TFormRef _T, PolyManager *_pM)
   case 3: QMaC = new PrioritySearchQueueManager<SmallestDimensionFirst>; break;
   case 4: QMaC = new PrioritySearchQueueManager<FewestQuantifiedVariablesFirst>; break;
   case 5: QMaC = new GreedyQueueManager; break;
+  case 6: QMaC = new GreedyGuidedQueueManager; selfMonitorStop = true; break;    
   } 
   globalQM = QMaC;
-  pReW = new BasicRewrite(globalQM);
+  pReW = new BasicRewrite(globalQM,0/*BasicRewrite::M_linearSpolys*/);
   Q = new TFQueueObj(globalQM);
 
   
   // finish intialization of QueueManager if needed
-  SimpleGradeForQEPCAD tmpG;
-  if (QMTf == 5) { dynamic_cast<GreedyQueueManager*>(QMaC)->setData(Q,tmpG); }
+  //SmartGradeForQEPCADv1* tmpG = new SmartGradeForQEPCADv1();
+  if (QMTf == 5 || QMTf == 6) { dynamic_cast<GreedyQueueManager*>(QMaC)->setData(Q,SG); }
 
   // Initialize queue Q
   if (asa<TAndObj>(F) || asa<TAtomObj>(F))
@@ -106,9 +110,14 @@ int QFR::init(int QMTf, TFormRef _T, PolyManager *_pM)
 
 void QFR::rewrite()
 {
+  // This bit is all about the self-monitoring determination of when to stop/continue
+  int iterCount = 0, stepsSinceLastBest = 0, stepsToLastBest = 10, countOfLastBest = 0;
+  double lastBestScore = -1.0;
+
+  // The loop!
   QAndRef nextAnd;
   while(Q->constValue.is_null() && !(nextAnd = QMaC->next()).is_null())
-  {    
+  {
     // Expand the node "nextAnd"
     TFormRef res = pReW->refine(nextAnd,QMaC->find(nextAnd));
     
@@ -117,15 +126,39 @@ void QFR::rewrite()
     if (constValue(res) == 0) { QMaC->notify(QInfo::equivFalse(nextAnd->parentQueue)); }
     
     // Reorganization of "the graph" might be necessary based on things found equiv or false
-    QMaC->reorganize(Q);
+    QMaC->reorganize(Q);    
+    
+    // SelfMonitor - stop if there hasn't been an improvement in a sufficient # of steps
+    ++iterCount;
+
+    if (selfMonitorStop) {
+      if (++stepsSinceLastBest > stepsToLastBest) { break; }
+      getBest();
+      double score = minp.second;
+      if (lastBestScore < 0 || score < lastBestScore) {
+	lastBestScore = score;
+	stepsSinceLastBest = 0;	
+	stepsToLastBest = max(iterCount - countOfLastBest,stepsToLastBest);
+	countOfLastBest = iterCount;
+      }
+      if (false) {
+	cout << "iterCount = " << iterCount << ", score = " << score << " "
+	     <<  stepsSinceLastBest << " " << stepsToLastBest << endl << endl;
+	if (dynamic_cast<GreedyQueueManager*>(globalQM)) {
+	  //NOTE: only GreedyQueueManager's currently have a field for the root
+	  globalQM->graphStats(dynamic_cast<GreedyQueueManager*>(globalQM)->_root);
+	  cout << endl << endl;
+	}
+      }
+    }
   }  
 }
 
 TFormRef QFR::getBest()
 {
+  // cout << "In getBest()" << endl;
   if (!Q->constValue.is_null()) { return Q->constValue; }
-  SimpleGradeForQEPCAD SG;
-  MinFormFinder MF; MF.process(Q,SG); 
+  MF.process(Q,SG); 
   minp.first = MF.getMinFormula(Q); minp.second = MF.getMinGrade(Q);
 
   // minp.first is QAndRef or QOrRef, I need to get a regular TFormRef
@@ -139,7 +172,35 @@ VarSet QFR::getQuantifiedVariables()
   return QVars;
 }
 
-void QFR::printDerivation() { }
+  void QFR::printDerivation() {
+    //cout << "In printDerivation()!" << endl;
+    if (!Q->constValue.is_null()) { cout << "No derivation stored for constant results!" << endl; return; }    
+    TOrRef tor = new TOrObj();
+    tor->OR(minp.first);
+    for(set<TFormRef>::iterator itr = tor->disjuncts.begin(); itr != tor->disjuncts.end(); ++itr)
+    {
+      QNodeRef qnsa = MF.fromTtoQ[(*itr)->tag];
+      QAndRef sa = asa<QAndObj>(qnsa);
+      if (!sa.is_null())
+      {
+	cout << "Derivation is:" << endl;
+	stack<QAndRef> S_p;
+	while(!sa->PR->initial())
+	{
+	  S_p.push(sa);
+	  sa = sa->PR->predecessor();
+	}
+	while(!S_p.empty())
+	{
+	  S_p.top()->PR->write();
+	  cout << " -> ";
+	  S_p.top()->write(true);
+	  cout << endl;
+	  S_p.pop();
+	}
+      }
+    }
+}
 
 QFR::~QFR() { 
   finalcleanup = true;
@@ -148,4 +209,64 @@ QFR::~QFR() {
   delete globalQM;
 }
 
+
+  void GreedyGuidedQueueManager::recordAndEnqueued(QAndRef A)
+  {
+    QueueManager::recordAndEnqueued(A);
+    andsToExpand.push(A);
+  }
+
+
+  QAndRef GreedyGuidedQueueManager::next() 
+  {     
+    //-- Find the "best" rewriting currently available
+    FormulaGraderRef SG = getFormulaGrader();
+    MinFormFinder MF; MF.process(_root,SG); 
+    pair<TFormRef,double> minp; minp.first = MF.getMinFormula(_root); minp.second = MF.getMinGrade(_root);
+
+    //-- Build a std::vector of all unexpanded disjuncts
+    std::vector<QAndRef> Parts;
+    TOrRef tor = new TOrObj();
+    tor->OR(minp.first);
+    for(std::set<TFormRef>::iterator itr = tor->disjuncts.begin(); itr != tor->disjuncts.end(); ++itr)
+    {
+      QNodeRef qnsa = MF.fromTtoQ[(*itr)->tag];
+      QAndRef sa = asa<QAndObj>(qnsa);
+      if (sa.is_null()) {
+	std::cerr << "Error in GreedyQueueManager::next!!!" << std::endl; 
+	(*itr)->write();
+	std::cout << std::endl;
+	if (asa<TAndObj>(*itr)) { std::cerr << "It's an AND!" << std::endl; } else { std::cerr << "It's not an AND!" << std::endl; }
+	throw TarskiException("Error in GreedyQueueManager!");
+      }
+      if (!sa->expanded) Parts.push_back(sa);
+    }
+
+    //-- If Parts empty, then greedy search is done, else return "minimum" element of Parts
+    if (Parts.size() == 0) {
+      //cerr << "Parts is 0" << endl;
+      QAndRef n;
+      TFQueueRef np = NULL;
+      while(np.is_null())
+      {
+	if (andsToExpand.empty()) return 0;
+	n = andsToExpand.top(); 
+	andsToExpand.pop();
+	if (n->done()) { continue; }
+	np = find(n);
+      }
+      return n; 
+    }
+    else {
+      sort(Parts.begin(),Parts.end(),Cmp(&MF));
+      for(int i = 0; i < Parts.size() - 1; i--) {
+	andsToExpand.push(Parts[i]);
+	//cerr << "Pushing back!" << endl;
+      }
+      return Parts[Parts.size() - 1];
+    }
+  }
+
+
+  
 }//end namespace tarski
