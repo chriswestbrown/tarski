@@ -128,8 +128,8 @@ if [ "$UNAME_S" = "Linux" ]; then
    }
  fi
 
-if [[ "$UNAME_S" == *"MINGW"* ]]; then
- JAVA=`find /c/Program\ Files\/OpenJDK/* | sort | head -1`
+if [[ "$UNAME_S" == *"MINGW64"* ]]; then
+ JAVA=`find /c/Program\ Files\/OpenJDK/* | sort | grep jdk | head -1`
  if [ "$JAVA" = "" ]; then
   echo "No Java found. Consider installing it via choco (openjdk)."
   fi
@@ -137,6 +137,17 @@ if [[ "$UNAME_S" == *"MINGW"* ]]; then
    echo "No swig found. Consider installing it via pacman (swig)."
    }
  fi
+
+if [[ "$UNAME_S" == *"MINGW32"* ]]; then
+ JAVA=`find /c/Program\ Files\ \(x86\)\/Java/* | sort | grep jdk | head -1`
+ if [ "$JAVA" = "" ]; then
+  echo "No Java found. Consider installing it via choco (jdk8 --x86)."
+  fi
+ which swig > /dev/null || {
+   echo "No swig found. Consider installing it via pacman (swig)."
+   }
+ fi
+
 
 if [ "$TOOLCHAIN" != emmake -a "$JAVA" != "" ]; then
  which swig > /dev/null && {

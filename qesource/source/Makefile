@@ -63,7 +63,7 @@ ifneq ($(UNAME_S),Darwin)
 # On non-Mac systems:
 ARFLAGS := crvU
 # On Linux:
-ifeq (,$(findstring MINGW64,$(UNAME_S)))
+ifeq (,$(findstring MINGW,$(UNAME_S)))
 EXTLIBS += -lrt ${qe}/extensions/rend/rendo.a
 EXTLIBSD += -lrt ${qe}/extensions/rend/rendd.a
 ifdef STATIC

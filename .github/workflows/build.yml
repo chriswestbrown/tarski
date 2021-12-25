@@ -79,6 +79,35 @@ jobs:
     - name: build
       run: ./build.sh
 
+  windows-clang32:
+
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+    - uses: actions/checkout@v2
+    - name: prerequisites
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: CLANG32
+        update: true
+        install: >-
+          base-devel
+          gcc
+          libreadline-devel
+          libcrypt-devel
+          openssl-devel
+          zlib-devel
+          swig
+          mingw-w64-clang-i686-toolchain
+          mingw-w64-clang-i686-swig
+    - name: install-openjdk
+      run: choco install jdk8 --x86
+      shell: cmd
+    - name: build
+      run: ./build.sh
+
   wasm:
 
     runs-on: ubuntu-latest

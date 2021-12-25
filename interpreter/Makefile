@@ -24,7 +24,7 @@ extLibQEPCAD:=  ${qe}/source/qepcad.a \
 		${qe}/source/qepcad.a
 
 # The rend extension will not be built on Windows MSYS2/CLANG64, otherwise always.
-ifeq (,$(findstring MINGW64,$(UNAME_S)))
+ifeq (,$(findstring MINGW,$(UNAME_S)))
 extLibQEPCAD += ${qe}/extensions/rend/rendo.a
 endif
 
@@ -67,7 +67,7 @@ endif
 
 # On Mac and Windows MSYS2/CLANG64 the rt library is not present, but otherwise it is necessary.
 ifneq ($(UNAME_S),Darwin)
-ifeq (,$(findstring MINGW64,$(UNAME_S)))
+ifeq (,$(findstring MINGW,$(UNAME_S)))
 LDFLAGS += -lrt
 ifdef STATIC
 LDFLAGS += -lpthread -ltinfo -static
@@ -84,7 +84,7 @@ CPPFLAGS ?= $(INC_FLAGS) -MMD -MP -g
 ifeq ($(UNAME_S),Darwin)
 CPPFLAGS += --std=c++11
 else
-ifeq (,$(findstring MINGW64,$(UNAME_S)))
+ifeq (,$(findstring MINGW,$(UNAME_S)))
 CPPFLAGS += --std=gnu++14
 endif
 endif
@@ -111,7 +111,7 @@ LIBTARSKI:=libtarski.jnilib
 endif
 
 # Output file on Windows:
-ifeq (,$(findstring MINGW64,$(UNAME_S)))
+ifeq (,$(findstring MINGW,$(UNAME_S)))
 else
 LIBTARSKI:=tarski.dll
 endif
@@ -128,7 +128,7 @@ $(SWIG)/tarski_wrap.o: src/swig/tarski_wrap.cxx
         -I"$(JAVA)/include" -I"$(JAVA)/include/linux" -I"$(JAVA)/include/win32" -fPIC
 	mv tarski_wrap.o $(SWIG)/
 $(LIBTARSKI): $(OBJS) $(SWIG)/tarski_wrap.o
-	$(CXX) -shared $(SWIG)/tarski_wrap.o $(OBJS) -o $@ $(LDFLAGS_SHARED) -fPIC
+	$(CXX) -shared $(SWIG)/tarski_wrap.o $(OBJS) $(SWIG)/tarski.def -o $@ $(LDFLAGS_SHARED) -fPIC
 $(SWIG)/main.class: $(SWIG)/main.java $(SWIG)/tarski.java $(SWIG)/tarskiJNI.java
 	cd $(SWIG); "$(JAVA)/bin/javac" -d . main.java tarski.java tarskiJNI.java
 dlltest: $(SWIG)/main.class $(LIBTARSKI)
