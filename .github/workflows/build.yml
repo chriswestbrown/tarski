@@ -102,8 +102,8 @@ jobs:
           swig
     - name: add-clang32
       run: |
-          C:\Windows\system32\cmd.exe /D /S /C D:\a\_temp\setup-msys2\msys2.cmd -c "'echo' '[clang32]' '>>' '/etc/pacman.conf'"
-          C:\Windows\system32\cmd.exe /D /S /C D:\a\_temp\setup-msys2\msys2.cmd -c "'echo' '/etc/pacman.d/mirrorlist.mingw' '>>' '/etc/pacman.conf'"
+          C:\Windows\system32\cmd.exe /D /S /C D:\a\_temp\setup-msys2\msys2.cmd -c "'echo' '[clang32]' >> '/etc/pacman.conf'"
+          C:\Windows\system32\cmd.exe /D /S /C D:\a\_temp\setup-msys2\msys2.cmd -c "'echo' '/etc/pacman.d/mirrorlist.mingw' >> '/etc/pacman.conf'"
           C:\Windows\system32\cmd.exe /D /S /C D:\a\_temp\setup-msys2\msys2.cmd -c "'pacman' '--noconfirm' '-Syuu' '--overwrite' '*'"
       shell: cmd
     - name: prerequisites2
