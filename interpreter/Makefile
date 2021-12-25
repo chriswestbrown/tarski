@@ -102,6 +102,9 @@ tarski.a: $(AOBJ)
 
 ### DLL related code ###
 
+SWIG := src/swig
+LDFLAGS_SHARED = $(filter-out -static, $(LDFLAGS))
+
 # Output file on Linux:
 LIBTARSKI:=libtarski.so
 
@@ -110,16 +113,14 @@ ifeq ($(UNAME_S),Darwin)
 LIBTARSKI:=libtarski.jnilib
 endif
 
-# Output file on Windows:
+# Output file on Windows, add .def for CLANG32:
 ifeq (,$(findstring MINGW,$(UNAME_S)))
 else
 LIBTARSKI:=tarski.dll
+DEF:=$(SWIG)/tarski.def
 endif
 
 dll: $(LIBTARSKI)
-
-SWIG := src/swig
-LDFLAGS_SHARED = $(filter-out -static, $(LDFLAGS))
 
 $(SWIG)/tarski_wrap.cxx $(SWIG)/tarski.java $(SWIG)/tarskiJNI.java:
 	cd $(SWIG); swig -c++ -java -package tarski tarski.i
@@ -128,7 +129,7 @@ $(SWIG)/tarski_wrap.o: src/swig/tarski_wrap.cxx
         -I"$(JAVA)/include" -I"$(JAVA)/include/linux" -I"$(JAVA)/include/win32" -fPIC
 	mv tarski_wrap.o $(SWIG)/
 $(LIBTARSKI): $(OBJS) $(SWIG)/tarski_wrap.o
-	$(CXX) -shared $(SWIG)/tarski_wrap.o $(OBJS) $(SWIG)/tarski.def -o $@ $(LDFLAGS_SHARED) -fPIC
+	$(CXX) -shared $(SWIG)/tarski_wrap.o $(OBJS) $(DEF) -o $@ $(LDFLAGS_SHARED) -fPIC
 $(SWIG)/main.class: $(SWIG)/main.java $(SWIG)/tarski.java $(SWIG)/tarskiJNI.java
 	cd $(SWIG); "$(JAVA)/bin/javac" -d . main.java tarski.java tarskiJNI.java
 dlltest: $(SWIG)/main.class $(LIBTARSKI)
