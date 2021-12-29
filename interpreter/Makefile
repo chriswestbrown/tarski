@@ -56,9 +56,11 @@ AOBJ := $(ASRC:%=$(BUILD_DIR)/%.o)
 DEPS := $(OBJS:.o=.d)
 
 LDFLAGS :=  $(saclibOverrides) $(extLibQEPCAD) $(extLibSACLIB) $(extLibMINISAT) $(extLibMD5)
-# On non-wasm we always need readline (and the order matters, it must precede -lrt):
+# On non-wasm we always need readline if set (and the order matters, it must precede -lrt):
 ifneq ($(TOOLCHAIN),emmake)
+ifeq ($(READLINE),1)
 LDFLAGS += -lreadline
+endif
 else
 # Otherwise we use a different target suffix:
 TARGET_EXEC := tarski.js
@@ -75,6 +77,10 @@ endif
 endif
 endif
 
+# Set/unset readline support
+ifeq ($(READLINE),0)
+CXXFLAGS += -DNO_READLINE
+endif
 
 INC_DIRS := $(shell find $(SRC_DIRS) -type d)
 INC_FLAGS := $(addprefix -I,$(INC_DIRS)) $(extIncludesSACLIB) $(extIncludeMINISAT) $(extIncludesMD5)

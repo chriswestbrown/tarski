@@ -20,6 +20,12 @@ FLAGSo += -static
 FLAGSd += -static
 endif
 
+ifeq ($(READLINE),0)
+FLAGSo += -DNO_READLINE
+FLAGSd += -DNO_READLINE
+endif
+
+
 SUBMAKEFLAGS = -j1
 
 MFlags	= "CCo=${CCo}" "FLAGSo=${FLAGSo}"\

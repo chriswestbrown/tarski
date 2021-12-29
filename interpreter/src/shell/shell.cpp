@@ -11,10 +11,12 @@
 #include <algorithm>
 #include "einterpreter.h"
 #ifndef _EMCC2_
+#ifndef NO_READLINE
 #include "readlineistream.h"
+#endif // NO_READLINE
 #else
 #include <emscripten/emscripten.h>
-#endif
+#endif _EMCC2_
 #include "../onecell/memopolymanager.h"
 #include "../tarskisysdep.h" /* defines pathToMaple variable */
 #include <signal.h>
@@ -135,7 +137,7 @@ int mainDUMMY(int argc, char **argv, void* topOfTheStack)
 
     srand(time(0));
 
-#ifndef _EMCC2_
+#if !defined(_EMCC2_) && !defined(NO_READLINE)
     //  istream *inptr = new readlineIstream();
     readlineIstream isin;
     if (!quiet) { isin.setPrompt("> "); }

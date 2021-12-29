@@ -51,8 +51,10 @@ EXTLIBSD  =	${qe}/extensions/sfext/sfextd.a \
 		${SPECLFLAGS}
 
 ifneq ($(TOOLCHAIN),emmake)
+ifneq ($(READLINE),0)
 EXTLIBS += -lreadline
 EXTLIBSD += -lreadline
+endif
 endif
 
 ARFLAGS := crv
