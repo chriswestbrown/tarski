@@ -97,8 +97,9 @@ ifneq ($(PLATFORM),MAC)
 ifneq ($(PLATFORM),WINDOWS)
 LDFLAGS += -lrt
 ifdef STATIC
+LIBCRYPTOA := $(shell find /usr/lib -name libcrypto.a)
 LDFLAGS += -pthread -static \
- /usr/lib/x86_64-linux-gnu/libcrypto.a -static-libgcc -static-libstdc++
+ $(LIBCRYPTOA) -static-libgcc -static-libstdc++
 endif
 endif
 endif
