@@ -48,7 +48,7 @@ extLibQEPCAD:=  ${qe}/source/qepcad.a \
 		${qe}/source/qepcad.a
 
 # The rend extension will not be built on Windows MSYS2/CLANG*, otherwise always.
-ifeq ($(PLATFORM),WINDOWS)
+ifneq ($(PLATFORM),WINDOWS)
 extLibQEPCAD += ${qe}/extensions/rend/rendo.a
 endif
 
