@@ -97,7 +97,7 @@ ifneq ($(PLATFORM),MAC)
 ifneq ($(PLATFORM),WINDOWS)
 LDFLAGS += -lrt
 ifdef STATIC
-LDFLAGS += /lib/x86_64-linux-gnu/libcrypto.a -static-libgcc  -static-libstdc++
+LDFLAGS += /usr/lib/x86_64-linux-gnu/libcrypto.a -static-libgcc -static-libstdc++
 endif
 endif
 endif
