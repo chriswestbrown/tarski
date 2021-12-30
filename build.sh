@@ -9,6 +9,7 @@ externalQepcadRoot=""
 ### Use "STATIC=1 ./build.sh" if you want to compile the tarski executable statically.
 ### Use "./build.sh clean" to clean up and remove objects that are already built.
 ### Use "READLINE=0 ./build.sh" if you want omit readline support.
+### Use "MAKEOPT=-j4 ./build.sh" to use 4 cores on compilation (only for Tarski, not for QEPCAD).
 
 ######################################################################################
 
@@ -97,7 +98,7 @@ minisatRoot="$tarskiRoot/minisat"
 export TMROOT=$minisatRoot
 pushd $TMROOT/core
 echo "Making Minisat..."
-check "$TOOLCHAIN make libr"
+check "$TOOLCHAIN make $MAKEOPT libr"
 echo "Minisat Done"
 popd
 
@@ -108,7 +109,7 @@ pushd ./src
 check ./mksysdep.sh
 popd
 
-check "$TOOLCHAIN make"
+check "$TOOLCHAIN make $MAKEOPT"
 popd
 
 ### LIBTARSKI
@@ -160,7 +161,7 @@ if [ "$TOOLCHAIN" != emmake -a "$JAVA" != "" ]; then
   pushd interpreter
   echo "Making libtarski..."
   export JAVA
-  check "make dll"
+  check "make $MAKEOPT dll"
   timeout 60 make dlltest || echo "The Java Native Interface seems unstable."
   popd
   }
