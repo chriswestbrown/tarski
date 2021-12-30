@@ -97,8 +97,16 @@ ifneq ($(PLATFORM),MAC)
 ifneq ($(PLATFORM),WINDOWS)
 LDFLAGS += -lrt
 ifdef STATIC
-LDFLAGS += /usr/lib/x86_64-linux-gnu/libcrypto.a -static-libgcc -static-libstdc++
+LDFLAGS += -pthread -static \
+ /usr/lib/x86_64-linux-gnu/libcrypto.a -static-libgcc -static-libstdc++
 endif
+endif
+endif
+
+# When built statically on Linux, we need tinfo if readline is present.
+ifdef STATIC
+ifeq ($(READLINE),1)
+LDFLAGS += -ltinfo
 endif
 endif
 
