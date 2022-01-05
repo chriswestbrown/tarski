@@ -42,7 +42,7 @@ namespace tarski {
       // Initialize QEPCAD problem
       QepcadCls Q;
       Q.SETINPUTFORMULA(V,Fs);
-  
+
       // Create CAD & get simplified equivalent formula
       ostringstream warningsAndErrors;
       std::stringstream rest;
@@ -78,7 +78,7 @@ namespace tarski {
     }
     catch(QepcadException &e) { res = string("Error! ") + e.what(); errorFlag = true; }
     catch(exception &e) { res = string("Error! Exception!"); errorFlag = true; }
-  
+
     // clean it all up
     ENDQEPCAD();
     if (errorFlag) { return new ErrObj(res); }

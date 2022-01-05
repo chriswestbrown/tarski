@@ -34,7 +34,7 @@ Step0: /* Dummy timeout handling. */
        if (jnidll_timeout > 0 && GCC >= jnidll_timeout) {
            jnidll_timeout = GCC + jnidll_timeout; // schedule the next timeout
            printf("Dummy timeout\n");
-           FAIL("GCSI (setup)","Dummy timeout");
+           FAIL("GCSI (dummy timeout)","Dummy timeout");
            }
 
 Step1: /* Setup. */

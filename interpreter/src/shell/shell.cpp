@@ -365,6 +365,7 @@ string TARSKIEVAL(string input) {
     tarski::LexContext LC(iin,';');
     bool explicitQuit = false;
 
+    try {
     while(iin)
     {
       tarski::SRef x = I.next(iin);
@@ -377,6 +378,7 @@ string TARSKIEVAL(string input) {
       I.rootFrame->set("%e",res);
       I.markAndSweep();
     }
+    } catch (exception& e) { output = string("Exception: ") + e.what(); }
     // if (!explicitQuit) { output += "\n"; } // seems to be unnecessary to add another \n
 
     if (tarski::verbose)
