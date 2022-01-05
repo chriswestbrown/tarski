@@ -21,6 +21,8 @@ extern "C" {
 extern void gcw_MARK();
 }
 
+extern int jnidll_timeout;
+
 void GCSI(Word s, char *EACSTACK)
 {
        Word I,L,N,N1,Np,Np1,T,T1,c,**i,j,inc;
@@ -28,12 +30,20 @@ void GCSI(Word s, char *EACSTACK)
        GCArray *v;
        /* hide I,L,N,N1,Np,Np1,T,T1,c,i,j,inc,a,v; */
 
+Step0: /* Dummy timeout handling. */
+       if (jnidll_timeout > 0 && GCC >= jnidll_timeout) {
+           jnidll_timeout = GCC + jnidll_timeout; // schedule the next timeout
+           printf("Dummy timeout\n");
+           FAIL("GCSI (setup)","Dummy timeout");
+           }
+
 Step1: /* Setup. */
 	  if (GCM == 1) {
          SWRITE("\nThe "); GWRITE(GCC+1); 
          SWRITE("--th garbage collection....");
        }
        T1 = CLOCK();
+
 
 Step3: /* Mark the global variables. */
        L = GCGLOBALS; 
