@@ -235,7 +235,7 @@ sym - symbol.  e.g. 'foo\n\
 num - number, integer or rational.  e.g. 123\n\
 str - string, e.g. \"hello\"\n\
 alg - algebraic, e.g. [x + y^2 - 5]\n\
-tar - tarski, e.g. [x + y^2 - 5 < 0\n\
+tar - tarski, e.g. [x + y^2 - 5 < 0]\n\
 err - error\n\
 fun - function (builtin).  Note: def, set! and lambda are *not* fun's.\n\
 clo - closure.  These are user-defined functions\n\
