@@ -4,6 +4,9 @@
 # Make sure you build the program first ("MAKEOPT=-j4 STATIC=1 ./build.sh").
 # Required packages before running this script:
 # git-extras lintian
+# (The lintian tool will notify you that static builds are considered problematic.
+# Nevertheless, the .deb package will be built and will be portable.
+# If you want to follow Debian's policy, just remove STATIC=1 on building Tarski.)
 
 set -x
 set -e

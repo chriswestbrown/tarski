@@ -1,4 +1,5 @@
 #!/bin/sh
+ldd $1 || exit 0
 # Prints the versions of the installed .deb packages that are required to run the executable.
 export ARCH=`dpkg --print-architecture`
 (ldd $1 | awk '{if ($3=="") print $1; else print $3}' | while read LIB; do
