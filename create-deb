@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+
+# This script creates a .deb package of Tarski.
+# Make sure you build the program first ("MAKEOPT=-j4 STATIC=1 ./build.sh").
+# Required packages before running this script:
+# git-extras lintian
+
+set -x
+set -e
+test -x interpreter/bin/tarski
+
+ARCH=$(dpkg --print-architecture)
+LINUX_VARIANT=$(lsb_release -s -i)
+LINUX_VERSION=$(lsb_release -s -r)
+
+PLATFORMCODE=$LINUX_VARIANT-$LINUX_VERSION
+
+MAINDIR=$(pwd)
+TARSKI_VERSION=$(cat interpreter/src/tarski.h | grep tarskiVersion | grep \\. | awk '{print $7}' | cut -f2 -d\")
+
+FSDIR=tarski_${TARSKI_VERSION}-${PLATFORMCODE}_$ARCH
+rm -rf "$FSDIR"
+
+BINDIR=$FSDIR/usr/bin
+mkdir -p "$BINDIR"
+cp "$MAINDIR/interpreter/bin/tarski" "$BINDIR"
+strip $BINDIR/tarski
+cp "$MAINDIR/qesource/source/qepcad" "$BINDIR"
+strip $BINDIR/qepcad
+
+DOCDIR=$FSDIR/usr/share/doc/tarski
+mkdir -p $DOCDIR
+
+echo "Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: tarski
+Source: https://github.com/kovzol/tarski
+
+Files: *
+" > "$DOCDIR/copyright"
+cat interpreter/LICENSE >> "$DOCDIR/copyright"
+echo -e "\n" >> "$DOCDIR/copyright"
+cat saclib2.2.7/LICENSE >> "$DOCDIR/copyright"
+echo >> "$DOCDIR/copyright"
+cat qesource/LICENSE >> "$DOCDIR/copyright"
+echo -e "\n\nMiniSat (http://minisat.se)" >> "$DOCDIR/copyright"
+head -18 minisat/core/Solver.cc | tail -17 >> "$DOCDIR/copyright"
+
+git-changelog -x > "$DOCDIR/changelog"
+gzip -9n "$DOCDIR/changelog"
+
+mkdir -p "$FSDIR/DEBIAN"
+echo -n "Package: tarski
+Version: $TARSKI_VERSION
+Section: math
+Priority: optional
+Architecture: $ARCH
+Depends: " > "$FSDIR/DEBIAN/control"
+./dep-deb-versions "$MAINDIR/interpreter/bin/tarski" >> "$FSDIR/DEBIAN/control"
+echo "
+Maintainer: Zoltan Kovacs <zoltan@geogebra.org>
+Description: provides a command-line interface to a number of
+ functions for computing with Tarski formulas and semi-algebraic sets.
+ It includes fast simplification and UNSAT cores for Tarski formulas,
+ problem formulation for QEPCAD B, Open NuCAD construction and projection,
+ read and write in smtlib syntax. The QEPCAD B system is also included.
+" >> "$FSDIR/DEBIAN/control"
+
+# Fix permissions
+chmod -R g-w "$FSDIR"
+
+fakeroot dpkg-deb --build "$FSDIR"
+lintian "$FSDIR.deb"
