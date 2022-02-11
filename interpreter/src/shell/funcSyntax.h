@@ -17,6 +17,7 @@ void writeMaple(TFormRef T, std::ostream& out);
 void writeMathematica(TFormRef T, std::ostream& out);
 void writeSyNRAC(TFormRef T, std::ostream& out);
 void writeREDLOG(TFormRef T, std::ostream& out);
+void writeGeogebra(TFormRef T, std::ostream& out);
 
 class CommSyntax : public EICommand
 {
@@ -55,6 +56,14 @@ class CommSyntax : public EICommand
 	polynom->getVal()->writeMATHEMATICA(*(interp->getPolyManagerPtr()),ostr);
       else
 	writeMathematica(formula->getValue(),ostr);
+    }
+    else if (target->getVal() == "geogebra")
+    {
+      if (formula.is_null()) {
+	PushOutputContext(ostr); polynom->getVal()->write(*(interp->getPolyManagerPtr())); PopOutputContext();
+      }
+      else
+	writeGeogebra(formula->getValue(),ostr);
     }
     else
       return new ErrObj("Unkown syntax target \"" + target->getVal() + "\" in function syntax.");
@@ -316,6 +325,62 @@ class WriteREDLOG : public TFPolyFun
   }
 };
 
+class WriteGeogebra : public TFPolyFun
+{
+  std::ostream* pout;    
+ public:
+  WriteGeogebra(std::ostream &out) { pout = &out; }
+  void action(TConstObj* p) { PushOutputContext(*pout); p->write(); PopOutputContext();  }
+  void action(TAtomObj* p)  { PushOutputContext(*pout); p->write(); PopOutputContext();  }
+  void action(TExtAtomObj* p) { PushOutputContext(*pout); p->write(); PopOutputContext();  }
+  void action(TAndObj* p) 
+  {
+    PushOutputContext(*pout);    
+    for(std::set<TFormRef>::iterator itr = p->conjuncts.begin(); itr != p->conjuncts.end(); ++itr)
+    {
+      if (itr != p->conjuncts.begin())
+	(*pout) << " /\\ ";
+      if (getPrecLevel(p) < getPrecLevel(*itr)) { (*pout) << "("; actOn(*itr); (*pout) << ")"; }
+      else { actOn(*itr); }
+    }    
+    PopOutputContext();
+  }
+  void action(TOrObj* p)
+  { 
+    PushOutputContext(*pout);    
+    for(std::set<TFormRef>::iterator itr = p->disjuncts.begin(); itr != p->disjuncts.end(); ++itr)
+    {
+      if (itr != p->disjuncts.begin())
+	(*pout) << " \\/ ";
+      if (getPrecLevel(p) < getPrecLevel(*itr)) { (*pout) << "("; actOn(*itr); (*pout) << ")"; }
+      else { actOn(*itr); }
+    }
+    PopOutputContext();
+  }
+  void action(TQBObj* p)
+  {
+    std::ostream &out = *pout;
+    PolyManager *pM = p->getPolyManagerPtr();
+    int N = p->numBlocks(), count = 0;
+    for(int k = N-1; k >= 0; k--)
+    {
+      VarSet V = p->blockVars(k);
+      for(VarSet::iterator itr = V.begin(); itr != V.end(); ++itr, ++count) {
+	out << "[" << (p->blockType(k) == EXIST ? "ex " : "all ") << pM->getName(*itr);
+      }
+    }
+
+    out << "[";
+    this->actOn(p->getFormulaPart());
+    out << "]";
+      
+    for(int i = 0; i < count; i++)
+      out << "]";    
+  }
+};
+
+
+
 
 void writeMaple(TFormRef T, std::ostream& out)
 {
@@ -338,6 +403,12 @@ void writeSyNRAC(TFormRef T, std::ostream& out)
 void writeREDLOG(TFormRef T, std::ostream& out)
 {
   WriteREDLOG WM(out);
+  WM.actOn(T);
+}
+
+void writeGeogebra(TFormRef T, std::ostream& out)
+{
+  WriteGeogebra WM(out);
   WM.actOn(T);
 }
 }//end namespace tarski
