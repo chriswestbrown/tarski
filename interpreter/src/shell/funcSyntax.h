@@ -74,7 +74,7 @@ class CommSyntax : public EICommand
     std::string s = require(args,_sym,_tar);
     return s == "" ? s : require(args,_sym,_alg);
   }
-  std::string doc() { return "Convert the syntactic representation of a formula or polynomial.  The first argument is a symbol defining the target syntax, which right now is: 1. 'maple for the syntax used by the Maple RegularChains library.  E.g. (syntax 'maple [x y - 1 < 0 /\\ x > 0]) produces \"x*y-1<0 &and x> 0\". 2. 'mathematica for the syntax used by Mathematica."; }
+  std::string doc() { return "Convert the syntactic representation of a formula or polynomial.  The first argument is a symbol defining the target syntax, which right now is: 1. 'maple for the syntax used by the Maple RegularChains library.  E.g. (syntax 'maple [x y - 1 < 0 /\\ x > 0]) produces \"x*y-1<0 &and x> 0\". 2. 'mathematica for the syntax used by Mathematica. 3. 'redlog for REDLOG. 4. 'synrac for Synrac.  5. 'geogebra for GeoGebra."; }
   std::string usage() { return "(syntax target formula) or (syntax target polynomial)"; }
   std::string name() { return "syntax"; }
 };
