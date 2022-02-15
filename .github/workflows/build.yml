@@ -65,6 +65,7 @@ jobs:
         update: true
         install: >-
           gcc
+          make
           libreadline-devel
           libcrypt-devel
           openssl-devel
@@ -92,6 +93,7 @@ jobs:
         update: true
         install: >-
           gcc
+          make
           libreadline-devel
           libcrypt-devel
           openssl-devel
