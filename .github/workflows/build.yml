@@ -64,8 +64,8 @@ jobs:
         msystem: CLANG64
         update: true
         install: >-
+          base-devel
           gcc
-          make
           libreadline-devel
           libcrypt-devel
           openssl-devel
@@ -92,8 +92,8 @@ jobs:
         msystem: CLANG32
         update: true
         install: >-
+          base-devel
           gcc
-          make
           libreadline-devel
           libcrypt-devel
           openssl-devel
@@ -110,7 +110,7 @@ jobs:
       run: choco install jdk8 --x86
       shell: cmd
     - name: build
-      run: ./build.sh
+      run: CC=clang CXX=clang++ ./build.sh
 
   wasm:
 
