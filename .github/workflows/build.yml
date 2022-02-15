@@ -65,7 +65,7 @@ jobs:
         update: true
         install: >-
           base-devel
-          gcc
+          mingw-w64-clang-x86_64-clang
           libreadline-devel
           libcrypt-devel
           openssl-devel
@@ -93,7 +93,7 @@ jobs:
         update: true
         install: >-
           base-devel
-          gcc
+          mingw-w64-clang-i686-clang
           libreadline-devel
           libcrypt-devel
           openssl-devel
