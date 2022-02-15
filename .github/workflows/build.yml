@@ -92,7 +92,7 @@ jobs:
         update: true
         install: >-
           base-devel
-          mingw-w64-clang-i686-cc
+          mingw-w64-clang-i686-clang
           libreadline-devel
           libcrypt-devel
           openssl-devel
