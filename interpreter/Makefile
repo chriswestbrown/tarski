@@ -89,7 +89,7 @@ endif
 else
 # Otherwise, on WASM we use a different target suffix:
 TARGET_EXEC := tarski.js
-LDFLAGS += -s "EXTRA_EXPORTED_RUNTIME_METHODS=['cwrap']" -fexceptions -s ALLOW_MEMORY_GROWTH=1 -s SINGLE_FILE=1 -s MODULARIZE=1 -s EXPORT_NAME=Tarski
+LDFLAGS += -s "EXTRA_EXPORTED_RUNTIME_METHODS=['cwrap']" -fexceptions -s ALLOW_MEMORY_GROWTH=1 -s SINGLE_FILE=1 -s MODULARIZE=1 -s EXPORT_NAME=Tarski -O3
 endif
 
 # On Mac and Windows MSYS2/CLANG* the rt library is not present, but otherwise it is necessary.
@@ -119,7 +119,7 @@ endif
 INC_DIRS := $(shell find $(SRC_DIRS) -type d)
 INC_FLAGS := $(addprefix -I,$(INC_DIRS)) $(extIncludesSACLIB) $(extIncludeMINISAT) $(extIncludesMD5)
 
-CPPFLAGS ?= $(INC_FLAGS) -MMD -MP -g -O3
+CPPFLAGS ?= $(INC_FLAGS) -MMD -MP -g
 # On Mac the C++11 dialect must be set, on Linux it is optional, on Windows MSYS2/CLANG* it should not be set.
 ifeq ($(PLATFORM),MAC)
 CPPFLAGS += --std=c++11
