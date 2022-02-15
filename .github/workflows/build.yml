@@ -66,10 +66,9 @@ jobs:
         install: >-
           base-devel
           mingw-w64-clang-x86_64-cc
-          mingw-w64-clang-x86_64-libreadline-devel
-          mingw-w64-clang-x86_64-libcrypt-devel
-          mingw-w64-clang-x86_64-openssl-devel
-          mingw-w64-clang-x86_64-zlib-devel
+          mingw-w64-clang-x86_64-readline
+          mingw-w64-clang-x86_64-openssl
+          mingw-w64-clang-x86_64-zlib
           mingw-w64-clang-x86_64-swig
     - name: install-openjdk
       run: choco install openjdk
@@ -92,7 +91,6 @@ jobs:
         update: true
         install: >-
           base-devel
-          mingw-w64-clang-i686-clang
           libreadline-devel
           libcrypt-devel
           openssl-devel
@@ -103,7 +101,7 @@ jobs:
           C:\Windows\system32\cmd.exe /D /S /C D:\a\_temp\setup-msys2\msys2.cmd -c "'echo' '[clang32]' >> '/etc/pacman.conf'"
           C:\Windows\system32\cmd.exe /D /S /C D:\a\_temp\setup-msys2\msys2.cmd -c "'echo' 'Include = /etc/pacman.d/mirrorlist.mingw' >> '/etc/pacman.conf'"
           C:\Windows\system32\cmd.exe /D /S /C D:\a\_temp\setup-msys2\msys2.cmd -c "'pacman' '--noconfirm' '-Syuu' '--overwrite' '*'"
-          C:\Windows\system32\cmd.exe /D /S /C D:\a\_temp\setup-msys2\msys2.cmd -c "'pacman' '--noconfirm' '-S' '--needed' '--overwrite' '*' 'mingw-w64-clang-i686-toolchain' 'mingw-w64-clang-i686-swig'"
+          C:\Windows\system32\cmd.exe /D /S /C D:\a\_temp\setup-msys2\msys2.cmd -c "'pacman' '--noconfirm' '-S' '--needed' '--overwrite' '*' 'mingw-w64-clang-i686-cc' 'mingw-w64-clang-i686-swig'"
       shell: cmd
     - name: install-openjdk
       run: choco install jdk8 --x86
