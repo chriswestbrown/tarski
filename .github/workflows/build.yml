@@ -66,11 +66,10 @@ jobs:
         install: >-
           base-devel
           mingw-w64-clang-x86_64-cc
-          libreadline-devel
-          libcrypt-devel
-          openssl-devel
-          zlib-devel
-          swig
+          mingw-w64-clang-x86_64-libreadline-devel
+          mingw-w64-clang-x86_64-libcrypt-devel
+          mingw-w64-clang-x86_64-openssl-devel
+          mingw-w64-clang-x86_64-zlib-devel
           mingw-w64-clang-x86_64-swig
     - name: install-openjdk
       run: choco install openjdk
