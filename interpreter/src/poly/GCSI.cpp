@@ -16,12 +16,13 @@ Side effects
   occurs.
 ======================================================================*/
 #include "replacesac.h"
+#include <time.h>
 #include <cstdio>
 extern "C" {
 extern void gcw_MARK();
 }
 
-extern int jnidll_timeout;
+extern int dll_timeout;
 
 void GCSI(Word s, char *EACSTACK)
 {
@@ -29,13 +30,6 @@ void GCSI(Word s, char *EACSTACK)
        char *a;
        GCArray *v;
        /* hide I,L,N,N1,Np,Np1,T,T1,c,i,j,inc,a,v; */
-
-Step0: /* Dummy timeout handling. */
-       if (jnidll_timeout > 0 && GCC >= jnidll_timeout) {
-           jnidll_timeout = GCC + jnidll_timeout; // schedule the next timeout
-           printf("Dummy timeout\n");
-           FAIL("GCSI (dummy timeout)","Dummy timeout");
-           }
 
 Step1: /* Setup. */
 	  if (GCM == 1) {
@@ -129,11 +123,13 @@ Step9: /* Too few cells or arrays? */
        if (Np == 0)
          FAIL("GCSI (final check)","No arrays reclaimed.",N,NU,RHO);
 
+Step10: /* Timeout handling. */
+       // printf("GCSI clock %d\n", clock());
+       if (dll_timeout > 0 && clock() >= dll_timeout) {
+           // printf("Timeout\n");
+           FAIL("GCSI (timeout)","Timeout");
+           }
+
 Return: /* Prepare for return. */
        return;
 }
-
-
-
-
-

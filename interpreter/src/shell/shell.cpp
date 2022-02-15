@@ -26,7 +26,8 @@ using namespace std;
 uint64 GC_Obj::next_tag = 1;
 uint64 GC_Obj::num_deleted = 0;
 
-int jnidll_timeout = 0;
+clock_t dll_timeout = 0;
+int timeout_param = 0;
 
 namespace tarski {
 
@@ -338,7 +339,7 @@ TARSKIINIT(int numcells, int timeout) {
   cout << "Welcome to tarski " << tarski::tarskiVersion << " " << tarski::tarskiVersionDate << "." << endl;
   cout << "Initializing with numcells " << numcells << " and timeout " << timeout << "." << endl;
   SacModInit(argc,argv,ac,av,"Saclib","","",topOfTheStack);
-  jnidll_timeout = timeout;
+  timeout_param = timeout;
   cout << "Successful initialization." << endl;
   delete [] argv;
 
@@ -364,6 +365,9 @@ string TARSKIEVAL(string input) {
     istream &iin = iss;
     tarski::LexContext LC(iin,';');
     bool explicitQuit = false;
+
+    dll_timeout = clock() + timeout_param * CLOCKS_PER_SEC; // when to stop
+    // cout << "dll_timeout set to " << dll_timeout << "\n";
 
     try {
     while(iin)
