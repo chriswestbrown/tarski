@@ -129,6 +129,13 @@ CPPFLAGS += --std=gnu++14
 endif
 endif
 
+# By default build the target executable
+all: $(BUILD_DIR)/$(TARGET_EXEC)
+ifeq ($(PLATFORM),WASM)
+# On WebAssembly platform, build also an advanced version of the .js, too
+all += $(BUILD_DIR)/tarski-advanced.js
+endif
+
 $(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
 	$(CXX) $(OBJS) -o $@ $(LDFLAGS)
 	test -r build/tarski && cp build/tarski bin/tarski || true
@@ -204,6 +211,20 @@ $(BUILD_DIR)/%.cpp.o: %.cpp
 	$(MKDIR_P) $(dir $@)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
 
+# Create an advanced version of the .js file with proper redirection of stdout/stderr.
+# See https://emscripten.org/docs/api_reference/module.html#creating-the-module-object
+$(BUILD_DIR)/tarski-advanced.js: $(BUILD_DIR)/tarski.js
+	sed 's/Module\["print"\]/\
+ function (message) {\
+        var outputtext = document.getElementById("outputtext");\
+        outputtext.innerHTML += "<i>" + message.replaceAll("<", "\&lt;") + "<\/i><br>";\
+        }\
+/ ; s/Module\["printErr"\]/\
+ function (message) {\
+        var outputtext = document.getElementById("outputtext");\
+        outputtext.innerHTML += "<i>" + message.replaceAll("<", "\&lt;") + "<\/i><br>";\
+        }\
+/' $< > $@
 
 .PHONY: clean
 
