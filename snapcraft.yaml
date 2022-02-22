@@ -1,4 +1,9 @@
 name: tarski
+
+architectures:
+  - build-on: amd64
+  - build-on: armhf
+
 base: core20
 version: '1.30'
 summary: A system for computing with Tarski formulas and semi-algebraic sets
