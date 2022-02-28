@@ -22,6 +22,8 @@ apps:
     command: bin/tarski
     environment:
       qe: "$SNAP/"
+    plugs:
+      - home
 
   qepcad:
     command: bin/qepcad
