@@ -130,10 +130,11 @@ endif
 endif
 
 # By default build the target executable
+ifneq ($(PLATFORM),WASM)
 all: $(BUILD_DIR)/$(TARGET_EXEC)
-ifeq ($(PLATFORM),WASM)
+else
 # On WebAssembly platform, build also an advanced version of the .js, too
-all += $(BUILD_DIR)/tarski-advanced.js
+all: $(BUILD_DIR)/$(TARGET_EXEC) $(BUILD_DIR)/tarski-advanced.js
 endif
 
 $(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
