@@ -31,9 +31,9 @@ extLibMINISAT:=../minisat/core/lib.a
 extIncludeMINISAT:=-I${TMROOT}/core
 extIncludesMD5:=
 extLibMD5:=-lcrypto
-# On Linux, if we build statically, libcrypto will be set later
+# On Linux and Windows (that is, not Mac), if we build statically, libcrypto will be set later
 ifdef STATIC
-ifeq ($(PLATFORM),LINUX)
+ifneq ($(PLATFORM),MAC)
 extLibMD5:=
 endif
 endif
@@ -107,7 +107,7 @@ endif
 # On Windows we need a bit different options for a static build.
 ifeq ($(PLATFORM),WINDOWS)
 ifdef STATIC
-MSYS2_ENV := $(shell echo $MSYSTEM | tr CLANG clang)
+MSYS2_ENV := $(shell echo ${MSYSTEM} | tr CLANG clang)
 LIBCRYPTOA := /${MSYS2_ENV}/lib/libcrypto.a
 LDFLAGS += -static \
  $(LIBCRYPTOA) -static-libgcc -static-libstdc++
