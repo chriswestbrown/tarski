@@ -104,6 +104,16 @@ endif
 endif
 endif
 
+# On Windows we need a bit different options for a static build.
+ifeq ($(PLATFORM),WINDOWS)
+ifdef STATIC
+MSYS2_ENV := $(shell echo $MSYSTEM | tr CLANG clang)
+LIBCRYPTOA := /${MSYS2_ENV}/lib/libcrypto.a
+LDFLAGS += -static \
+ $(LIBCRYPTOA) -static-libgcc -static-libstdc++
+endif
+endif
+
 # When built statically on Linux, we need tinfo if readline is present.
 ifdef STATIC
 ifeq ($(READLINE),1)
