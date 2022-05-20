@@ -840,7 +840,7 @@ public:
 	{
 	  SRef f = interp->eval(interp->rootFrame,args[0]);
 	  if (f->type() == _err) { return new ErrObj("Name '" + args[0]->sym()->val + "' unkown in help!"); }
-	  int n = -f->fun()->builtin; 
+	  int n =  f->type() == _fun ? -f->fun()->builtin : -1; 
 	  if (f->type() != _fun ||  n < interp->OFFSET || n >= interp->X.size())
 	  {
 	    return new ErrObj("Argument to help not a builtin or extended function name.");
@@ -1423,6 +1423,28 @@ public:
   string name() { return "christest"; }
 };
 
+class CommSymList : public EICommand
+{
+public:
+  CommSymList(NewEInterpreter* ptr) : EICommand(ptr) { }
+  SRef execute(SRef input, vector<SRef> &args) 
+  {
+    LisRef L = new LisObj();
+
+    for(auto itr = interp->rootFrame->begin(); itr != interp->rootFrame->end(); ++itr)
+      L->push_back(new SymObj(itr->first));
+    
+    return L;
+  }
+  string testArgs(vector<SRef> &args) { return ""; }
+  string doc() 
+  {
+    return "Returns a list of all top-level symbols in the interpreter.";
+  }
+  string usage() { return "(sym-list)"; }
+  string name() { return "sym-list"; }
+};
+
 
 void NewEInterpreter::init() 
 {
@@ -1508,6 +1530,7 @@ void NewEInterpreter::init()
   add(new QepSolverComm(this));
 #endif
   add(new CommChristest(this));
+  add(new CommSymList(this));
 
   // add extended types
   addType(new RealAlgNumTypeObj(NULL));
