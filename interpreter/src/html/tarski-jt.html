@@ -82,7 +82,14 @@ Tarski().then(function(Module) {
             var output = "";
             try {
                 output = TARSKIEVAL(input);
-                term.echo("%noformat%" + $.terminal.escape_formatting(output), {newline: false});
+                var svg_start = output.indexOf('"<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">');
+                if (svg_start > -1) {
+                    term.echo("%noformat%" + $.terminal.escape_formatting(output.slice(0, svg_start)), {newline: false});
+                    // TODO: This should be improved. We assume that there is only one image in the output, and it is at its end:
+                    // Trim leading " and ending ":str:
+                    term.echo(output.slice(svg_start +1, -6), {raw: true});
+                    }
+                else term.echo("%noformat%" + $.terminal.escape_formatting(output), {newline: false});
             }
             catch (error) {
                 term.echo("[[b;red;]Sorry, an internal error is occurred.]");
