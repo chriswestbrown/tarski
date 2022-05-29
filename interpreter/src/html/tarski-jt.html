@@ -97,7 +97,8 @@ Tarski().then(function(Module) {
                 }
             },
             name: "Tarski",
-            greetings: "Welcome to Tarski " + version + "!"
+            greetings: "Welcome to Tarski " + version + "!" + "\n" +
+                "Initialized with numcells " + numcells + " and timeout " + timeout + "."
         });
 
     $.terminal.defaults.formatters.push(function(string) {
