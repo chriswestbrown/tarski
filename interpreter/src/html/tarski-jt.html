@@ -8,6 +8,48 @@
 <link href="https://cdnjs.cloudflare.com/ajax/libs/jquery.terminal/2.33.2/css/jquery.terminal.min.css" rel="stylesheet"/>
 
 <script>
+
+function format_tarski_output(input) {
+    var output = "";
+    var lines = input.split(/\n/);
+    var noLines = lines.length;
+    var prevLine = "";
+    for (var i = 0; i < noLines; i++) {
+        var c = "";
+        line = lines[i];
+        if (line.endsWith(":tar")) c = "[;gray;]"
+        if (line.endsWith(":boo")) c = "[;yellow;]";
+        if (line.endsWith(":alg")) c = "[b;cyan;]";
+        if (line.endsWith(":num")) c = "[;green;]";
+        if (line.endsWith(":fun")) c = "[b;magenta;]";
+        if (line.endsWith(":clo")) c = "[b;gray;]";
+        if (line.endsWith(":void")) c = "[;magenta;]";
+        if (line.endsWith(":sym")) c = "[b;yellow;]";
+        if (line.endsWith(":str")) c = "[b;green;]";
+        if (line.endsWith(":err")) c = "[;red;]";
+        if (line.endsWith(":ext")) c = "[;cyan;]";
+
+        prevLine += line;
+
+        if (c != "") {
+            prevLine = "[" + c + prevLine + "]\n";
+            output += prevLine;
+            prevLine = "";
+            }
+        else { // No end indicating the data type is detected.
+            // We assume this is a multi-line output.
+            prevLine += "\n";
+            }
+        }
+    if (prevLine != "" && prevLine != "\n") { // flush buffer (without \n)
+        output += prevLine;
+        }
+
+    if (output.endsWith("\n")) output = output.slice(0,-1); // remove last \n
+
+    return output;
+    }
+
 Tarski().then(function(Module) {
     // Defaults:
     var numcells = 50000000;
@@ -59,7 +101,7 @@ Tarski().then(function(Module) {
         });
 
     $.terminal.defaults.formatters.push(function(string) {
-        if (string.startsWith("%noformat%")) return string.substring(10);
+        if (string.startsWith("%noformat%")) return format_tarski_output(string.substring(10));
         return string.split(/((?:\s|&nbsp;|\(|\))+)/).map(function(string) {
             if (keywords.indexOf(string) != -1) {
                 return '[[b;white;]' + string + ']';
