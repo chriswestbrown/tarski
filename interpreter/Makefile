@@ -143,8 +143,8 @@ endif
 ifneq ($(PLATFORM),WASM)
 all: $(BUILD_DIR)/$(TARGET_EXEC)
 else
-# On WebAssembly platform, build also an advanced version of the .js, too
-all: $(BUILD_DIR)/$(TARGET_EXEC) $(BUILD_DIR)/tarski-advanced.js
+# On WebAssembly platform, build also advanced versions of the .js, too
+all: $(BUILD_DIR)/$(TARGET_EXEC) $(BUILD_DIR)/tarski-advanced.js $(BUILD_DIR)/tarski-jt-advanced.js
 endif
 
 $(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
@@ -234,6 +234,18 @@ $(BUILD_DIR)/tarski-advanced.js: $(BUILD_DIR)/tarski.js
  function (message) {\
         var outputtext = document.getElementById("outputtext");\
         outputtext.innerHTML += "<i>" + message.replaceAll("<", "\&lt;") + "<\/i><br>";\
+        }\
+/' $< > $@
+
+# Create another advanced version of the .js file with proper redirection of stdout/stderr (jquery.terminal variant).
+$(BUILD_DIR)/tarski-jt-advanced.js: $(BUILD_DIR)/tarski.js
+	sed 's/Module\["print"\]/\
+ function (message) {\
+        if (typeof tarski_term !== "undefined") tarski_term.echo("%noformat%[[i;gray;]" + $$.terminal.escape_formatting(message) + "]");\
+        }\
+/ ; s/Module\["printErr"\]/\
+ function (message) {\
+        if (typeof tarski_term !== "undefined") tarski_term.echo("%noformat%[[b;red;]" + $$\.terminal.escape_formatting(message) + "]");\
         }\
 /' $< > $@
 
