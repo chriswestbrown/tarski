@@ -18,24 +18,16 @@ Tarski().then(function(Module) {
     TARSKIEND = Module.cwrap("TARSKIEND", "void", []);
     TARSKIINIT(numcells, timeout);
 
-    // These should be obtained directly from Tarski (TODO):
-    keywords = ['quote', 'def', 'set!', 'lambda', 'list', 'eval', 'apply', 'map', 'bin-reduce',
-           'length', 'cputime', 'head', 'get', 'quit', 'version', 'msg', 'load', 'equal?',
-           'display', 'tail', 'typename', 'help', 't-and', 't-or', 't-neg', 't-ex', 't-all',
-           't-type', 'normalize', 'normtest', 'exclose', 'dnf', 'make-prenex',
-           'split-non-strict', 'rename-variables', 'qfr', 'clear-assignments', 'clear-exp',
-           'factor', 'ufactor', 'collect-factors', 'evalf', 'poly-size-stats', 'sub', 'getsub',
-           'getargs', 'suggest-var-order', 'suggest-qepcad', 'qepcad-qe', 'qepcad-sat', 'qepcad-api-call',
-           'syntax', 'new-ocbuilder', 'ocmergeinto', 'oc-projfac-summary', 'oc-projfac-std::set',
-           'oc-point-in-cell', 'oc-mccallum-proj-stats', 'oc-mccallum-proj-closure', 'oc-error-poly',
-           'oc-choose-point-completion', 'oc-split', 'oc-point', 'oc-move-point', 'make-nuCAD1',
-           'make-NuCADConjunction', 'make-NuCADDNF', 'SAT-NuCADConjunction', 'smtlib-load', 'smtlib-store',
-           'make-varmap', 'roots', 'ran-comp', 'num-to-ran', 'indexedroot-to-ran', 'get-2var-features',
-           'linsub-g', 'test-comm', 'bbsat', 'wbsat', 'bbwb', 'box-solve', 'qep-solve', 'christest'].sort();
-    keywords2 = [];
+    // Obtaining the list of available commands:
+    var symlist = TARSKIEVAL("(sym-list)").split(" ");
+    var symlist_l = symlist.length;
+    keywords = [];
+    for (var i = 1; i < symlist.length - 1; ++i) {
+       keywords.push(symlist[i].slice(0, -4)); // remove ":sym"
+       }
     var l = keywords.length;
     var depth = 2;
-    for (i=0; i < depth*l; i++) keywords.push("(" + keywords[i]);
+    for (var i=0; i < depth*l; i++) keywords.push("(" + keywords[i]);
     // Now we hacked the list of keywords to have some autocompletion when the input starts with parentheses.
     // This is very hacky and should be fixed, see https://github.com/jcubic/jquery.terminal/wiki/Tab-completion. TODO
 
