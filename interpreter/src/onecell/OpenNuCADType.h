@@ -8,6 +8,7 @@
 #include "../formula/writeForQE.h"
 #include <string>
 #include <sstream>
+#include <regex>
 
 namespace tarski {
 class OpenNuCADObj; typedef GC_Hand<OpenNuCADObj> OpenNuCADRef;
@@ -152,16 +153,49 @@ class OpenNuCADObj : public TypeExtensionObj
     return new SObj();
   }
 
+  /*
+    Calling options:
+    1. (msg D 'plotleaves <windowstring> <labelstring> <fnamestring>)
+    2. (msg D 'plotleaves <windowstring> <labelstring>) <-- default output as string
+    3. (msg D 'plotleaves <windowstring> <fnamestring>) <-- default label "C" 
+    4. (msg D 'plotleaves <windowstring>) <-- default label "C" and output as string
+   */
   SRef plotLeaves(std::vector<SRef>& args)
   {
-    StrRef plots, label, fname;
-    if (!(args.size() > 2 && sCast(args[0],plots) && sCast(args[1],label) && sCast(args[2],fname)))
-    { return new ErrObj("OpenNuCAD show-graph requires three std::string arguments."); }
-    ofstream fout(fname->getVal().c_str());
-    if (!fout) { return new ErrObj("File \"" + fname->getVal() + "\" could not be opened."); }
-    try { plotLeaves(plots->getVal(),label->getVal(),fout); }
-    catch(TarskiException &e) { return new ErrObj(e.what()); }
-    return new SObj();
+    ostringstream sout;
+    ofstream fout;
+    ostream* pout = &sout;    
+    try {
+      regex labelre("C(\\d+[ULX]|X)*");
+      StrRef plots, label, fname, errMsg;
+      int N = args.size(), i = 0;
+      if (N == 0 || N > 3) {
+	throw TarskiException("OpenNuCAD plot-leaves can be called with one, two or three arguments.");
+      }
+      if (!sCast(args[0],plots)) {
+	throw TarskiException("OpenNuCAD plot-leaves invalid first argument.");
+      }
+      ++i;
+      if (i < N && sCast(args[i],label) && regex_match(label->getVal(),labelre))
+	++i;
+      else {
+	if (N == 3) { throw TarskiException("OpenNuCAD plot-leaves invalid label for first argument!"); }
+	label = new StrObj("C");
+      }
+      if (i < N && sCast(args[i],fname)) {
+	fout.open(fname->getVal());
+	if (!fout) {
+	  throw TarskiException("File \"" + fname->getVal() + "\" could not be opened.");	
+	}
+	++i;
+	pout = &fout;
+      }
+      if (i != N) {
+	throw TarskiException("OpenNuCAD plot-leaves can be called with one, two or three arguments.");
+      }
+      plotLeaves(plots->getVal(),label->getVal(),*pout);
+    } catch(TarskiException &e) { return new ErrObj(e.what()); }
+    return pout == &sout ? new StrObj(sout.str()) : new SObj();
   }
 
   SRef showGraph(std::vector<SRef>& args)
