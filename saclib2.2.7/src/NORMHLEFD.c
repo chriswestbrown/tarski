@@ -44,6 +44,8 @@ Step0: /* Initialize the lifting and testing times,
           and evaluate N at 1. */
        Th = Tt = 0;
        N1 = IPEMV(1,N,1);
+       Fb = NIL; /* Initialize here because we might not enter early fact detection code */
+
 
 Step1: /* Compute the two-factor lifting bound and the highest
           single-precision power of p not exceeding the bound. */ 
