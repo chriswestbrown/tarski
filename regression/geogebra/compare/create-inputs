@@ -1,0 +1,17 @@
+#!/bin/bash
+
+exit 1 # this script is just for reference
+
+# This script is used to create the inputs in this folder.
+# See https://github.com/kovzol/geogebra-discovery#benchmarks,
+# in particular the "Compare test" for an explanation.
+
+MYDIR=`pwd`
+TESTDIR=/var/lib/jenkins/workspace/GeoGebra_Discovery-comparetest/fork/geogebra/test/scripts/benchmark/compare/tmp
+cd $TESTDIR
+for i in `ls .test.stdout-*-Classic5`; do
+ NAME=`echo $i | cut -d- -f2-`
+ NAME=`echo $NAME | sed s/-Classic5//`
+ echo $NAME
+ cat $i | grep "LOG: code=" | cut -d= -f2- > $MYDIR/$NAME.in
+ done
