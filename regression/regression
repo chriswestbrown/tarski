@@ -19,6 +19,7 @@ REGRESSION=0
 SILENT=0
 FOLDER=.
 NUMCELLS=50000000
+OUTPUTDIR=""
 
 export LC_ALL=C
 
@@ -57,6 +58,7 @@ usage() {
  echo "   -I           run infeasible tests also (listed in file infeasible.txt)"
  echo "   -A           run ambiguous tests also (listed in file ambiguous.txt)"
  echo "   -s           be silent: do not exit with error code when there is a regression"
+ echo "   -S <number>  set regression output directory to the given number"
  echo "   -t <number>  timeout: exit from a single test after the given number of seconds ($TIMEOUT)"
  echo "   -b <path>    use the given binary for testing ($BINARY)"
  echo "   -T <folder>  run tests only in folder"
@@ -65,7 +67,7 @@ usage() {
  exit 0
  }
 
-while getopts "t:T:b:n:rfhHIAs" OPT; do
+while getopts "t:T:b:n:S:rfhHIAs" OPT; do
  case $OPT in
   s)
    SILENT=1
@@ -97,6 +99,9 @@ while getopts "t:T:b:n:rfhHIAs" OPT; do
   n)
    NUMCELLS="$OPTARG"
    ;;
+  S)
+   OUTPUTDIR="$OPTARG"
+   ;;
   h)
    usage
    ;;
@@ -118,6 +123,9 @@ SAVEDIR=.
 
 if [ "$REGRESSION" = 1 ]; then
  SAVEDIR=`date +%Y%m%d%H%M%S`
+ if [ "$OUTPUTDIR" != "" ]; then
+  SAVEDIR=$OUTPUTDIR
+  fi
  mkdir -p $SAVEDIR
  echo 0 > $SAVEDIR/.good
  echo 0 > $SAVEDIR/.bad
