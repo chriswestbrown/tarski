@@ -1,0 +1,204 @@
+#!/bin/sh
+# This is a regression test suite for Tarski.
+#
+# 1. Create your input files *.in in arbitrary subfolders (do not use timestamps for subfolder names).
+# 2. Run `./regression` to automatically create *.out files for each input. This may take a while...
+# 3. Do some modifications on the program (hopefully only improvements), recompile it.
+# 4. Run `./regression -r` to run a regression test.
+# 5. Check the obtained information in a subfolder created from the current timestamp.
+# 6. Fine tuning can be done via command line options and some .txt files (see help via option -h).
+
+BINARY=../bin/tarski # override it with -b <full-path-to-executable>
+
+OVERWRITE=0
+TIMEOUT=480
+HEAVY=0
+INFEASIBLE=0
+AMBIGUOUS=0
+REGRESSION=0
+SILENT=0
+FOLDER=.
+NUMCELLS=50000000
+
+export LC_ALL=C
+
+log() {
+ DATE=`date +%T`
+ echo "$DATE $*"
+ }
+
+output() { # <xmlfile> <time> <failures> <name> "[message]"
+ XML=$1
+ TIME=$2
+ FAILS=$3
+ NAME=$4
+ MESSAGE="$5"
+ TIMESTAMP=`date +%Y-%m-%dR%H:%M:%S`
+ echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" > $XML
+ echo "<testsuites name=\"$BINARY regression test\" time=\"$TIME\" tests=\"1\" failures=\"$FAILS\">" >> $XML
+ echo " <testsuite name=\"$NAME\" timestamp=\"$TIMESTAMP\" tests=\"1\" file=\"$NAME.out\" time=\"$TIME\" failures=\"$FAILS\">" >> $XML
+ echo "  <testcase name=\"$NAME\" time=\"$TIME\">" >> $XML
+ if [ "$FAILS" = 1 -a "$MESSAGE" != "" ]; then
+  echo "   <failure message=\"$MESSAGE\"></failure>" >> $XML
+  fi
+ echo "  </testcase>" >> $XML
+ echo " </testsuite>" >> $XML
+ echo "</testsuites>" >> $XML
+ }
+
+usage() {
+ echo "$0 - a regression test suite for Tarski."
+ echo "Usage:"
+ echo " $0 [options]"
+ echo "  where options can be as follows (defaults in parentheses):"
+ echo "   -r           run a regression test (if not specified, it creates the remaining .out files)"
+ echo "   -f           overwrite existing .out files (on creation only)"
+ echo "   -H           run heavy tests also (listed in file heavy.txt)"
+ echo "   -I           run infeasible tests also (listed in file infeasible.txt)"
+ echo "   -A           run ambiguous tests also (listed in file ambiguous.txt)"
+ echo "   -s           be silent: do not exit with error code when there is a regression"
+ echo "   -t <number>  timeout: exit from a single test after the given number of seconds ($TIMEOUT)"
+ echo "   -b <path>    use the given binary for testing ($BINARY)"
+ echo "   -T <folder>  run tests only in folder"
+ echo "   -n <cells>   invoke Tarski with +Ncells ($NUMCELLS)"
+ echo "   -h           show this help"
+ exit 0
+ }
+
+while getopts "t:T:b:n:rfhHIAs" OPT; do
+ case $OPT in
+  s)
+   SILENT=1
+   ;;
+  r)
+   REGRESSION=1
+   ;;
+  f)
+   OVERWRITE=1
+   ;;
+  H)
+   HEAVY=1
+   ;;
+  I)
+   INFEASIBLE=1
+   ;;
+  A)
+   AMBIGUOUS=1
+   ;;
+  t)
+   TIMEOUT="$OPTARG"
+   ;;
+  T)
+   FOLDER="$OPTARG"
+   ;;
+  b)
+   BINARY="$OPTARG"
+   ;;
+  n)
+   NUMCELLS="$OPTARG"
+   ;;
+  h)
+   usage
+   ;;
+
+ esac
+done
+
+export BINARY # for the awk script below (intelligent diff)
+
+# Put name of the filters into $@
+shift $((OPTIND-1))
+
+test -x $BINARY || {
+ echo "Cannot find $BINARY"
+ exit 2
+ }
+
+SAVEDIR=.
+
+if [ "$REGRESSION" = 1 ]; then
+ SAVEDIR=`date +%Y%m%d%H%M%S`
+ mkdir -p $SAVEDIR
+ echo 0 > $SAVEDIR/.good
+ echo 0 > $SAVEDIR/.bad
+ fi
+
+find $FOLDER -name '*.in' | while read IN; do
+ INDIRNAME=`dirname $IN`
+ TESTNAME="$INDIRNAME"/`basename $IN .in`
+ OUT=$TESTNAME.out
+ if [ "$REGRESSION" = 1 -o "$OVERWRITE" = 1 -o ! -f $OUT ]; then
+  IGNORE=0
+  if [ "$INFEASIBLE" = 0 ]; then
+   grep -F --silent $IN infeasible.txt && IGNORE=1
+   fi
+  if [ "$HEAVY" = 0 ]; then
+   grep -F --silent $IN heavy.txt && IGNORE=1
+   fi
+  if [ "$AMBIGUOUS" = 0 ]; then
+   grep -F --silent $IN ambiguous.txt && IGNORE=1
+   fi
+  if [ "$IGNORE" = 0 ]; then
+   DATE=`date +%T`
+   log "Processing $IN"
+   if [ "$REGRESSION" = 1 ]; then
+    mkdir -p `dirname $SAVEDIR/$OUT`
+    fi
+   INFILE=`mktemp`
+   test -r $INDIRNAME/.preamble && cat $INDIRNAME/.preamble >> $INFILE
+   FILTER=...
+   test -r "$INDIRNAME"/.filter && FILTER=`cat "$INDIRNAME"/.filter`
+   export FILTER
+   # This is extremely hacky. See https://www.gnu.org/software/gawk/manual/html_node/Gory-Details.html
+   cat $IN | sed s/"&"/"\\\\&"/g | awk '{filter=ENVIRON["FILTER"]; sub(/\.\.\./, $0, filter); print filter}' >> $INFILE
+   /bin/time timeout $TIMEOUT $BINARY +N$NUMCELLS < $INFILE > $SAVEDIR/$OUT 2> $SAVEDIR/.stderr
+   TIME=`cat $SAVEDIR/.stderr | tail -2 | head -1 | cut -f1 -du`
+   RETVAL=0
+   cat $SAVEDIR/.stderr | head -n -2 | grep --silent terminated && { # "Command terminated with signal 11" (for example)
+    ERROR=`cat $SAVEDIR/.stderr | head -n -2 | grep -v terminated`
+    RETVAL=`cat $SAVEDIR/.stderr | head -n -2 | grep terminated | cut -f5 -d" "` # 11
+    }
+   rm $INFILE
+   if [ $RETVAL != 0 ]; then
+    if [ "$REGRESSION" = 1 ]; then
+     cat $SAVEDIR/.stderr | head -n -2 >> $SAVEDIR/$OUT
+     fi
+    log "Process exited with error $RETVAL"
+    fi
+   if [ "$REGRESSION" = 1 ]; then
+    TESTOK=1 # being optimistic
+    diff -U 1 $OUT $SAVEDIR/$OUT > $SAVEDIR/$OUT.diff
+    if [ -s $SAVEDIR/$OUT.diff ]; then
+     BAD=`cat $SAVEDIR/.bad`
+     BAD=$((BAD+1))
+     echo $BAD > $SAVEDIR/.bad
+     log "Regression found in $OUT"
+     TESTOK=0
+     output $SAVEDIR/$TESTNAME.xml $TIME 1 $TESTNAME "$ERROR ($RETVAL)"
+     fi # regression found
+    if [ "$TESTOK" = 1 ]; then
+     GOOD=`cat $SAVEDIR/.good`
+     GOOD=$((GOOD+1))
+     echo $GOOD > $SAVEDIR/.good
+     output $SAVEDIR/$TESTNAME.xml $TIME 0 $TESTNAME
+     rm -f $SAVEDIR/$OUT $SAVEDIR/$OUT.diff # cleaning up
+     fi # test ok
+    fi # regression test run
+   fi # test should not be ignored
+  fi
+ done
+
+log "All files have been processed"
+
+if [ "$REGRESSION" = 1 ]; then
+ BAD=`cat $SAVEDIR/.bad`
+ GOOD=`cat $SAVEDIR/.good`
+ log "Summary: $GOOD good and $BAD bad results"
+ if [ "$BAD" != 0 -a "$SILENT" = 0 ]; then
+  exit 1
+  fi
+ fi
+
+rm -f $SAVEDIR/.bad $SAVEDIR/.good $SAVEDIR/.stderr # cleaning up
+
+exit 0
