@@ -77,7 +77,7 @@ void BEGINQEPCAD(int &argc, char**& argv)
   {
     int tmp = system("bash -c 'exit $(stty size | cut -d\" \" -f2)'");
     tmp = WEXITSTATUS(tmp);
-    if (10 <= tmp <= 512)
+    if (10 <= tmp && tmp <= 512)
       cols = tmp;
   }
 #endif
