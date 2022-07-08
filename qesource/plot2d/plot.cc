@@ -133,7 +133,7 @@ void* readdata(void *x)
 	pthread_mutex_lock(&M);
 	swap(CE,E);
 	pthread_mutex_unlock(&M);
-	for(int i = 0; i < E.size(); i++) delete E[i];
+	for(size_t i = 0; i < E.size(); i++) delete E[i];
 	E.clear(); }
       else if (c == 'E') { /******* Exit! *******************/
 	return 0;
@@ -154,7 +154,7 @@ void display()
 {
   pthread_mutex_lock(&M);
   glClear(GL_COLOR_BUFFER_BIT);
-  for(int i = 0; i < CE.size(); i++)
+  for(size_t i = 0; i < CE.size(); i++)
     CE[i]->glRend(Colors);
   pthread_mutex_unlock(&M);  
   glutSwapBuffers();
@@ -285,7 +285,7 @@ void SNoverSR::glRend(const CADColors &C)
   // 128 or so points that can appear.
   C.glSetColor(colorType,'D');
   glBegin(GL_LINE_STRIP);
-  for(int i = 0; i < V.size(); i++)
+  for(size_t i = 0; i < V.size(); i++)
     glVertex2(V[i]);
   glEnd();
 }
@@ -327,7 +327,7 @@ bool SRoverSR::read(istream &in)
     else 
     {
       cerr << "Sector over sector in unknown format!" << endl;
-      for(int i = 0; i < V.size(); i++)
+      for(size_t i = 0; i < V.size(); i++)
 	cerr << V[i] << endl;
       exit(1);
     }

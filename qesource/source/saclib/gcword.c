@@ -54,7 +54,7 @@ void clean()
 void gcw_register(Word *p)
 {
   G.push_back(p);
-  if (G.size() == lim)
+  if (G.size() == (size_t)lim)
     clean();
 }
 
@@ -62,7 +62,7 @@ void gcw_MARK()
 {
   //  SWRITE("gcw size is: ");IWRITE(G.size()); SWRITE("\n");
   clean();
-  for(int i = 0; i < G.size(); i++)
+  for(size_t i = 0; i < G.size(); i++)
     if (*G[i] > BETA && *G[i] < BETAp && (*G[i] & 1))
       MARK(*G[i]);
 
