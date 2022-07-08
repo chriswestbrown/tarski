@@ -46,7 +46,7 @@ BDigit PRJPNTEQUAL(Word A, Word B)
     Word KR = LIST2(SECOND(aK),LIST2(1,1));
     Word sL = AFSIGN(aM,aI,AFPEMV(1,aM,G,KL));
     Word sR = AFSIGN(aM,aI,AFPEMV(1,aM,G,KR));
-    return EQUAL(KL,KR) && sL == 0 || sL == 1 && sR == -1 || sL == -1 && sR == 1;
+    return (EQUAL(KL,KR) && sL == 0) || (sL == 1 && sR == -1) || (sL == -1 && sR == 1);
   }
 
   /* One primitive, the other not */
@@ -75,10 +75,10 @@ Step1: /* Group. */
 	 {
            ADV(Jt,&J2,&Jt);
            Jt2 = LELTI(J2,PO_POLY);
-           if (LELTI(J1,PO_TYPE) == PO_POINT && LELTI(J2,PO_TYPE) == PO_POINT
-	       && PRJPNTEQUAL(Js1,Jt2) || 
-	       LELTI(J1,PO_TYPE) != PO_POINT && LELTI(J2,PO_TYPE) != PO_POINT
-	       && EQUAL(Js1,Jt2))
+           if ((LELTI(J1,PO_TYPE) == PO_POINT && LELTI(J2,PO_TYPE) == PO_POINT
+	       && PRJPNTEQUAL(Js1,Jt2)) || 
+	       (LELTI(J1,PO_TYPE) != PO_POINT && LELTI(J2,PO_TYPE) != PO_POINT
+	       && EQUAL(Js1,Jt2)))
 	   {
              SLELTI(J2,PO_PARENT,CONC(LELTI(J2,PO_PARENT),LELTI(J1,PO_PARENT)));
              t = 1;

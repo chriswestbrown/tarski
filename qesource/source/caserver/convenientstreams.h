@@ -31,7 +31,7 @@ public:
     string s = "";
     signed char c = in.get(); 
     if (opt == skipleadingws) 
-      while(c != EOF && (isspace(c) || c == '\\' && isspace(in.peek()))) c = in.get();
+      while(c != EOF && (isspace(c) || (c == '\\' && isspace(in.peek())))) c = in.get();
     // States  : 0 = normal, 1 = in comment, 2 = just read a backslash
     int state = 0;
     do {

@@ -38,9 +38,9 @@ Step3: /* Add edges. */
       while(S_c != NIL && RED(S_c) != NIL)
       {
 	Word c1 = FIRST(S_c), c2 = SECOND(S_c), c3 = THIRD(S_c);
-	if (LELTI(c1,TRUTH) == TRUE && LELTI(c3,TRUTH) == FALSE
+	if ((LELTI(c1,TRUTH) == TRUE && LELTI(c3,TRUTH) == FALSE)
 	    ||
-	    LELTI(c1,TRUTH) == FALSE && LELTI(c3,TRUTH) == TRUE)
+	    (LELTI(c1,TRUTH) == FALSE && LELTI(c3,TRUTH) == TRUE))
 	{
 	  SLELTI(c2,TRUTH,TRUE);
 	  SLELTI(c2,HOWTV,TOPINF);
@@ -106,7 +106,7 @@ Step6: /* Split cell list by dimension. */
        tc++;
      else
        fc++; }
-   if (tc > 0 && fc > 0 || GVERTEXLABEL(v,G) == TRUE && tc == 0)
+   if ((tc > 0 && fc > 0) || (GVERTEXLABEL(v,G) == TRUE && tc == 0))
      GNEWLABEL(v,TRUE,G);
    else
      GNEWLABEL(v,FALSE,G); }
