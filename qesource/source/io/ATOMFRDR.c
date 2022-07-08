@@ -76,7 +76,7 @@ void ETFATOMRDR(Word V, Word P1, BDigit R, Word *F_, Word *t_, int errMode)
         Word t, F, r, j, P2, P2p, r1, r2, a, P, s;
 
 Step1: /* Prepare */
-        t = 1; r = LENGTH(V);
+        t = 1; r = LENGTH(V); F = NIL;
 
 
 Step2: /* Read "_root_" */

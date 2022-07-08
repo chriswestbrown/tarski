@@ -77,6 +77,7 @@ Step4: /*  Isolate the real roots of each basis polynomial. */
 Step5: /* Refine roots? */
 	if (k == NIL)
 	  goto Return;
+	Js = NIL;
 	Ls = NIL;
 	for(Lp = L; Lp != NIL; Lp = RED(Lp))
         { 

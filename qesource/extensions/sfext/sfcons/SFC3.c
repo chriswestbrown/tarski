@@ -90,7 +90,7 @@ Step3: /* The normal language. */
 	switch(m) {
 	case (0) : SF = NECCONDS(Lt,Lf,LA,Pp); break;
 	case (1) : SF = NAIVESF(Lt,Lf,LA,Pp); break; 
-	case (2) : SWRITE("GEOTEST requires the extended language!\n"); goto Return; } }
+	case (2) : SF = NIL; SWRITE("GEOTEST requires the extended language!\n"); goto Return; } }
 
 Step4: /* Massage the formula. */
       pflag = 1;

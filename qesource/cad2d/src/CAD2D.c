@@ -23,6 +23,8 @@ void QepcadCls2D::CAD2D(Word Fs, Word *t_, Word *F_e_, Word *F_n_, Word *F_s_)
        Word A,D,F,F_e,F_n,F_s,Fh,J,P,Q,Ths,f,i,r,t;
        Word L;
 Step1: /* Normalize. */
+       t = -1;
+       F_e = F_n = F_s = NIL;
        FIRST4(Fs,&r,&f,&Q,&Fh);
        F = NORMQFF(Fh);
        GVNQFF = F;

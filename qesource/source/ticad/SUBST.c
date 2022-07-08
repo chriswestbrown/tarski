@@ -24,6 +24,7 @@ Word QepcadCls::SUBST(Word c, Word k, Word M, Word b, Word B)
        Word P,L,Sp,T1,T2,G,Q,f,i;
 
 Step1: /* Substitute. */
+        f = UNDET;
         L = NIL;
         S = NIL;
         Bp = B;

@@ -33,7 +33,7 @@ Step2: /* Read digits and convert. */
        BKSP(); a = S * a; goto Return;
 
 Step3: /* Error. */
-       DIELOC(); t = 0; goto Return;
+       DIELOC(); a = 0; t = 0; goto Return;
 
 Return: /* Prepare for return. */
        *a_ = a;

@@ -39,7 +39,7 @@ Step1: /* Read in. */
        goto Return;
 
 Step2: /* Error exit. */
-       DIELOC(); t = 0; goto Return;
+       DIELOC(); q = 0; t = 0; goto Return;
 
 Return: /* Prepare for return. */
        *q_ = q;

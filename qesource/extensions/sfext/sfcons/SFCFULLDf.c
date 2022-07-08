@@ -52,6 +52,7 @@ Step2: /* Extended language. */
 
       if (Lt == NIL && Lf == NIL) {
 	SWRITE("No cells have truth values!\n");
+	SF = NIL;
 	goto Return; }
       t = ESPCADDOPFSUFF(Pp,LIST1(Dp));
       LA = LISTOETAmod(Pp,n,t==NIL);

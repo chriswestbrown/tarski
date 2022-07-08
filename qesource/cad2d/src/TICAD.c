@@ -43,6 +43,8 @@ Step2: /* Choose. */
 	 if (L == 0) { /* Init for 1D Sectors */
 	   L = LELTI(D,CHILD);
 	   d = 1; }
+	 else
+	   d = 0;
 
 	 if (d == 1 && L != NIL) { /* Choose next 1D sectors */
 	   c = FIRST(L);
@@ -51,6 +53,7 @@ Step2: /* Choose. */
 	   else
 	     L = RED2(L); }
 	 else if (d == 1 && L == NIL) { /* Init for 1D sections */
+	   c = NIL;
 	   d = 0;
 	   L = RED(LELTI(D,CHILD));
 	 }

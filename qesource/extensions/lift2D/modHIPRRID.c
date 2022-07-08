@@ -28,6 +28,7 @@ Step1: /* Compute a bound for the positive roots. */
 	k = HIPPRB(n,A);
 
 Step2: /* Isolate the positive roots. */
+	L = NIL;
 	if (k == NIL) {
 	   L1 = NIL;
 	   goto Step3; }

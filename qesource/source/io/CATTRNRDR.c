@@ -39,7 +39,7 @@ Step2: /* Get the internal representation. */
        goto Return;
 
 Step3: /* Error exit. */
-       DIELOC(); t = 0;
+       DIELOC(); V = 0; t = 0;
 
 Return: /* Prepare for return. */
        *V_ = V;

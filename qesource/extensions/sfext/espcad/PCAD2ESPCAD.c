@@ -44,6 +44,8 @@ Step2: /* Generate correct i-level signiture list. */
            P_i = RED(P_i);
            s = RED(s); }
          s = INV(ss); }
+       else
+	 s = NIL;
 
 Step3: /* Construct extended Sub-CAD cell structure. */
        EDs = LIST8(C,A,LELTI(Ds,SC_INX),NIL,s,NIL,UNDET,UNDET);

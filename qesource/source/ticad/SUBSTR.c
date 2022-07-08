@@ -24,6 +24,7 @@ Word QepcadCls::SUBSTR(Word c, Word k, Word b, Word B)
        Word P,L,Q,T1,T2,Sp,G,f,i;
 
 Step1: /* Do it. */
+       f = UNDET;
        L = NIL;
        S = NIL;
        Bp = B;
