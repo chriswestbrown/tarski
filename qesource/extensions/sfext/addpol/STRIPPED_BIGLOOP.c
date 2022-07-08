@@ -97,7 +97,7 @@ Return:/* Return. */
       tt = ACLOCK() - tt;
 
                     if (PCVERBOSE) {
-		    SWRITE("The whole thing took: "); IWRITE(tt); SWRITE(" miliseconds!\n\n"); }
+		    SWRITE("The whole thing took: "); IWRITE(tt); SWRITE(" milliseconds!\n\n"); }
 
       *P_ = P;
       *D_ = D;

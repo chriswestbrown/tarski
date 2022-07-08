@@ -4,7 +4,7 @@
 Modular array polynomial product.
 
 Inputs
-  m : a postive BETA-digit.
+  m : a positive BETA-digit.
   A,B : in Z/(m)[x] in array representation.
   C : an array large enough to hold the product of A and B.
 
