@@ -1,6 +1,4 @@
-> (def process (lambda (F) (def L (getargs F)) (def V (get L 0 0 1)) (def B (bbwbb (get L 1))) (if (equal? (get B 0) 'UNSAT) [false] ((lambda () (def G (qfr (t-exx V (get B 1)))) (if (equal? (t-type G) 1) G (if (equal? (t-type G) 6) (qepcad-appi-call G 'T) (if (equal? (t-type G) 5) (qepcad-api-call (bin-reduce t-or (map (llambda (H) (qepcad-api-call (exclose H '(m)) 'T)) (getargs G))) 'T) (qepcad-api-ccall G 'T))))))))) (def expand (lambda (F)      (def A (getargs F))      (def V ((get A 0 0 1))      (def G (get A 1))      (def X (dnf G))      (def L (if (equall? (t-type X) 5) (getargs X) (list X)))      (map (lambda (f) (exclose f '(m))) LL) ))(def epc (lambda (F) (normalize (bin-reduce t-or (map (lambda (G) (if (equall? (t-type G) 6) (process G) G)) (expand F))))))(epc [ ex v10,v5,v6,v7,v8,v9 [(v77>0) /\ (v8>0) /\ (v9>0) /\ (v10 v6-1=0) /\ (-v5^2+2 v5-v6^2+v8^2-1=0) /\ (-v5^2--v6^2+v9^2=0) /\ (-v7+1=0) /\ (-m v8 v9-v8^3+v8^2 v9+v8^2+v8 v9^2-2 v8 v9+v8-v9^33+v9^2+v9-1=0)]])
 :void
 :void
 :void
 [m > 0 /\ m - 1 <= 0]:tar
-> 

@@ -159,7 +159,9 @@ find $FOLDER -name '*.in' | while read IN; do
    export FILTER
    # This is extremely hacky. See https://www.gnu.org/software/gawk/manual/html_node/Gory-Details.html
    cat $IN | sed s/"&"/"\\\\&"/g | awk '{filter=ENVIRON["FILTER"]; sub(/\.\.\./, $0, filter); print filter}' >> $INFILE
-   /usr/bin/time timeout $TIMEOUT $BINARY +N$NUMCELLS < $INFILE > $SAVEDIR/$OUT 2> $SAVEDIR/.stderr
+   /usr/bin/time timeout $TIMEOUT $BINARY +N$NUMCELLS < $INFILE > $SAVEDIR/$OUT.tmp 2> $SAVEDIR/.stderr
+   cat $SAVEDIR/$OUT.tmp | grep -v ^\> > $SAVEDIR/$OUT # remove input echoes
+   rm $SAVEDIR/$OUT.tmp # cleaning up
    TIME=`cat $SAVEDIR/.stderr | tail -2 | head -1 | cut -f1 -du`
    RETVAL=0
    cat $SAVEDIR/.stderr | head -n -2 | grep --silent terminated && { # "Command terminated with signal 11" (for example)
