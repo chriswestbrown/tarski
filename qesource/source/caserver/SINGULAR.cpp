@@ -18,6 +18,12 @@ SingularServer::SingularServer(string dirPath)
   if (childpid == 0) {
     intoSingular.setStdinToPipe();
     outofSingular.setStdoutToPipe();
+    outofSingular.setStderrToPipe();
+    intoSingular.closeIn();
+    intoSingular.closeOut();
+    outofSingular.closeIn();
+    outofSingular.closeOut();
+    setsid();
 
     // Begin: Just for debug!!
     //    system("/home/wcbrown/bin/Singular -q --no-warn --min-time=0.001 --ticks-per-sec=1000 | tee /tmp/SingOutLog");
@@ -33,9 +39,10 @@ SingularServer::SingularServer(string dirPath)
 	   "--ticks-per-sec=1000",
 	   NULL);
       perror("SingularServer Constructor: Singular startup failed! (Set SINGULAR environment variable)");
-      outofSingular.closeOut();
       exit(0);
   }
+  intoSingular.closeIn();
+  outofSingular.closeOut();
 }
 
 SingularServer::~SingularServer()
