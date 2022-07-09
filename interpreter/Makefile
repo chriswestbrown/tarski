@@ -129,7 +129,7 @@ endif
 INC_DIRS := $(shell find $(SRC_DIRS) -type d)
 INC_FLAGS := $(addprefix -I,$(INC_DIRS)) $(extIncludesSACLIB) $(extIncludeMINISAT) $(extIncludesMD5)
 
-CPPFLAGS ?= $(INC_FLAGS) -MMD -MP -g
+CPPFLAGS ?= $(INC_FLAGS) -MMD -MP -g -O3
 # On Mac the C++11 dialect must be set, on Linux it is optional, on Windows MSYS2/CLANG* it should not be set.
 ifeq ($(PLATFORM),MAC)
 CPPFLAGS += --std=c++11
