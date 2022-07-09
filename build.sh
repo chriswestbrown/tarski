@@ -121,9 +121,11 @@ popd
 UNAME_S=`uname -s`
 
 if [ "$UNAME_S" = "Darwin" ]; then
- JAVA=`find /usr/local/Cellar/openjdk/*/ | sort | head -1`
  if [ "$JAVA" = "" ]; then
-  echo "No Java found. Consider installing it via Homebrew (openjdk)."
+  JAVA=`find /usr/local/Cellar/openjdk/*/ | sort | head -1`
+  if [ "$JAVA" = "" ]; then
+   echo "No Java found. Consider installing it via Homebrew (openjdk)."
+   fi
   fi
  which swig > /dev/null || {
    echo "No swig found. Consider installing it via Homebrew (swig)."

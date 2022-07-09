@@ -184,7 +184,7 @@ $(SWIG)/tarski_wrap.cxx $(SWIG)/tarski.java $(SWIG)/tarskiJNI.java:
 	cd $(SWIG); swig -c++ -java -package tarski tarski.i
 $(SWIG)/tarski_wrap.o: src/swig/tarski_wrap.cxx
 	$(CXX) -c $(SWIG)/tarski_wrap.cxx -Isrc/main -Isrc -I$(SACLIB)/include \
-        -I"$(JAVA)/include" -I"$(JAVA)/include/linux" -I"$(JAVA)/include/win32" -fPIC
+        -I"$(JAVA)/include" -I"$(JAVA)/include/linux" -I"$(JAVA)/include/win32" -I"$(JAVA)/include/darwin" -fPIC
 	mv tarski_wrap.o $(SWIG)/
 $(LIBTARSKI): $(OBJS) $(SWIG)/tarski_wrap.o
 	$(CXX) -shared $(SWIG)/tarski_wrap.o $(OBJS) $(DEF) -o $@ $(LDFLAGS_SHARED) -fPIC
