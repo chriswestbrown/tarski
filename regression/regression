@@ -11,7 +11,7 @@
 BINARY=../bin/tarski # override it with -b <full-path-to-executable>
 
 OVERWRITE=0
-TIMEOUT=480
+TIMEOUT=300 # 5 minutes
 HEAVY=0
 INFEASIBLE=0
 AMBIGUOUS=0
