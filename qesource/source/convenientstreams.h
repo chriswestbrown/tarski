@@ -26,7 +26,7 @@ public:
   slwcistream(istream& in, option opt = none)
   {
     string s = "";
-    char c = in.get(); 
+    signed char c = in.get(); 
     if (opt == skipleadingws) 
       while(c != EOF && (isspace(c) || c == '\\' && isspace(in.peek()))) c = in.get();
     // States  : 0 = normal, 1 = in comment, 2 = just read a backslash
@@ -88,7 +88,7 @@ cacInBuff::int_type cacInBuff::underflow()
     // States  : 0 = normal, 1 = in comment, 2 = just read a backslash
     istream & in = *trueIn;
     int state = 0;
-    char c;
+    signed char c;
     while(ls < buffSize - extra && (c = in.get()))
     {
       if (c == EOF) break;

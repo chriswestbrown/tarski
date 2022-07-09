@@ -38,7 +38,7 @@ Step0: /* Read user input */
   bool 
     z = true, // show zero dimensional cell
     c = true; // make a plot in color
-  char g;
+  signed char g;
   while((g = lin.get()) && g != EOF) {
     switch(g) {
     case 'z': z = false; break;

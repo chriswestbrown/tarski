@@ -43,7 +43,7 @@ public:
   singlelinestream(istream& in, option opt = none)
   {
     string s = "";
-    char c = in.get(); if (opt == skipleadingws) while(c != EOF && isspace(c)) c = in.get();
+    signed char c = in.get(); if (opt == skipleadingws) while(c != EOF && isspace(c)) c = in.get();
     while(c != '\n' && c != EOF) { s += c; c = in.get(); }
     str(s);
   }
