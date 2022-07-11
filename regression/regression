@@ -21,6 +21,19 @@ FOLDER=.
 NUMCELLS=50000000
 OUTPUTDIR=""
 
+# Platform detection
+PLATFORM=`uname -s`
+if [ "$PLATFORM" = Linux ]; then
+ TIMEHEAD=2
+else
+ if [ "$PLATFORM" = Darwin ]; then
+  TIMEHEAD=1
+ else
+  # Assuming TIMEHEAD=2 will be okay:
+  TIMEHEAD=2
+  fi
+ fi
+
 export LC_ALL=C
 
 log() {
@@ -129,16 +142,22 @@ if [ "$REGRESSION" = 1 ]; then
  mkdir -p $SAVEDIR
  echo 0 > $SAVEDIR/.good
  echo 0 > $SAVEDIR/.bad
+ echo 0 > $SAVEDIR/.ignored
  fi
 
-find $FOLDER -name '*.in' | while read IN; do
+TESTCASES=`find $FOLDER -name '*.in' | wc -l`
+I=0
+IGNORED=0
+find $FOLDER -name '*.in' | sort | while read IN; do
+ I=$((I+1))
  INDIRNAME=`dirname $IN`
  TESTNAME="$INDIRNAME"/`basename $IN .in`
  OUT=$TESTNAME.out
  if [ "$REGRESSION" = 1 -o "$OVERWRITE" = 1 -o ! -f $OUT ]; then
   IGNORE=0
+  IGNORED=`cat $SAVEDIR/.ignored`
   if [ "$INFEASIBLE" = 0 ]; then
-   grep -F --silent $IN infeasible.txt && IGNORE=1
+   grep -F --silent $IN infeasible.txt && IGNORE=1 
    fi
   if [ "$HEAVY" = 0 ]; then
    grep -F --silent $IN heavy.txt && IGNORE=1
@@ -146,9 +165,11 @@ find $FOLDER -name '*.in' | while read IN; do
   if [ "$AMBIGUOUS" = 0 ]; then
    grep -F --silent $IN ambiguous.txt && IGNORE=1
    fi
+  IGNORED=$((IGNORED+IGNORE))
+  echo $IGNORED > $SAVEDIR/.ignored
   if [ "$IGNORE" = 0 ]; then
    DATE=`date +%T`
-   log "Processing $IN"
+   log "Processing $IN (#$I of $TESTCASES)"
    if [ "$REGRESSION" = 1 ]; then
     mkdir -p `dirname $SAVEDIR/$OUT`
     fi
@@ -159,25 +180,33 @@ find $FOLDER -name '*.in' | while read IN; do
    export FILTER
    # This is extremely hacky. See https://www.gnu.org/software/gawk/manual/html_node/Gory-Details.html
    cat $IN | sed s/"&"/"\\\\&"/g | awk '{filter=ENVIRON["FILTER"]; sub(/\.\.\./, $0, filter); print filter}' >> $INFILE
-   /usr/bin/time timeout $TIMEOUT $BINARY +N$NUMCELLS < $INFILE > $SAVEDIR/$OUT.tmp 2> $SAVEDIR/.stderr
-   cat $SAVEDIR/$OUT.tmp | grep -v ^\> > $SAVEDIR/$OUT # remove input echoes
+   /usr/bin/time timeout -k $((TIMEOUT+2)) $TIMEOUT $BINARY +N$NUMCELLS < $INFILE > $SAVEDIR/$OUT.tmp 2> $SAVEDIR/.stderr
+   cat $SAVEDIR/$OUT.tmp | grep -v ^\> | grep -v ^\$ > $SAVEDIR/$OUT # remove input echoes, and empty lines (Mac)
    rm $SAVEDIR/$OUT.tmp # cleaning up
-   TIME=`cat $SAVEDIR/.stderr | tail -2 | head -1 | cut -f1 -du`
+   TIME=`cat $SAVEDIR/.stderr | tail -$TIMEHEAD | head -1 | cut -f1 -du`
    RETVAL=0
-   cat $SAVEDIR/.stderr | head -n -2 | grep --silent terminated && { # "Command terminated with signal 11" (for example)
-    ERROR=`cat $SAVEDIR/.stderr | head -n -2 | grep -v terminated`
-    RETVAL=`cat $SAVEDIR/.stderr | head -n -2 | grep terminated | cut -f5 -d" "` # 11
-    }
+   ERROR=""
+   if [ "$PLATFORM" != Darwin ]; then
+    cat $SAVEDIR/.stderr | head -n -$TIMEHEAD | grep --silent terminated && { # "Command terminated with signal 11" (for example)
+     ERROR=`cat $SAVEDIR/.stderr | head -n -$TIMEHEAD | grep -v terminated`
+     RETVAL=`cat $SAVEDIR/.stderr | head -n -$TIMEHEAD | grep terminated | cut -f5 -d" "` # 11
+     }
+   else # head -n -... is not supported
+    cat $SAVEDIR/.stderr | grep terminated && { # "Command terminated with signal 11" (for example)
+     ERROR=?
+     RETVAL=`cat $SAVEDIR/.stderr | grep terminated | cut -f5 -d" "` # 11
+     }
+    fi
    rm $INFILE
    if [ $RETVAL != 0 ]; then
     if [ "$REGRESSION" = 1 ]; then
-     cat $SAVEDIR/.stderr | head -n -2 >> $SAVEDIR/$OUT
+     cat $SAVEDIR/.stderr | head -n -$TIMEHEAD >> $SAVEDIR/$OUT
      fi
     log "Process exited with error $RETVAL"
     fi
    if [ "$REGRESSION" = 1 ]; then
     TESTOK=1 # being optimistic
-    diff -U 1 $OUT $SAVEDIR/$OUT > $SAVEDIR/$OUT.diff
+    diff --strip-trailing-cr -U 1 $OUT $SAVEDIR/$OUT > $SAVEDIR/$OUT.diff
     if [ -s $SAVEDIR/$OUT.diff ]; then
      BAD=`cat $SAVEDIR/.bad`
      BAD=$((BAD+1))
@@ -203,7 +232,8 @@ log "All files have been processed"
 if [ "$REGRESSION" = 1 ]; then
  BAD=`cat $SAVEDIR/.bad`
  GOOD=`cat $SAVEDIR/.good`
- log "Summary: $GOOD good and $BAD bad results"
+ IGNORED=`cat $SAVEDIR/.ignored`
+ log "Summary: $GOOD good and $BAD bad results ($IGNORED ignored)"
  rm -f $SAVEDIR/.stderr # cleaning up
  if [ "$BAD" != 0 -a "$SILENT" = 0 ]; then
   exit 1
