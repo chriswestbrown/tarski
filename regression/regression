@@ -145,7 +145,7 @@ if [ "$REGRESSION" = 1 ]; then
  echo 0 > $SAVEDIR/.ignored
  fi
 
-TESTCASES=`find $FOLDER -name '*.in' | wc -l`
+TESTCASES=`find $FOLDER -name '*.in' | wc -l | awk '{print $1}'`
 I=0
 IGNORED=0
 find $FOLDER -name '*.in' | sort | while read IN; do
@@ -180,7 +180,11 @@ find $FOLDER -name '*.in' | sort | while read IN; do
    export FILTER
    # This is extremely hacky. See https://www.gnu.org/software/gawk/manual/html_node/Gory-Details.html
    cat $IN | sed s/"&"/"\\\\&"/g | awk '{filter=ENVIRON["FILTER"]; sub(/\.\.\./, $0, filter); print filter}' >> $INFILE
-   /usr/bin/time timeout -k $((TIMEOUT+2)) $TIMEOUT $BINARY +N$NUMCELLS < $INFILE > $SAVEDIR/$OUT.tmp 2> $SAVEDIR/.stderr
+   if [ "$PLATFORM" != Darwin ]; then
+    /usr/bin/time timeout -k $((TIMEOUT+2)) $TIMEOUT $BINARY +N$NUMCELLS < $INFILE > $SAVEDIR/$OUT.tmp 2> $SAVEDIR/.stderr
+   else
+    /usr/bin/time timeout $TIMEOUT $BINARY +N$NUMCELLS < $INFILE > $SAVEDIR/$OUT.tmp 2> $SAVEDIR/.stderr
+    fi
    cat $SAVEDIR/$OUT.tmp | grep -v ^\> | grep -v ^\$ > $SAVEDIR/$OUT # remove input echoes, and empty lines (Mac)
    rm $SAVEDIR/$OUT.tmp # cleaning up
    TIME=`cat $SAVEDIR/.stderr | tail -$TIMEHEAD | head -1 | cut -f1 -du`
