@@ -1,4 +1,1 @@
-:void
-:void
-:void
-[m > 0 /\ m^2 - m - 1 = 0]:tar
+[m > 0 /\ m^2 - m - 1 = 0]

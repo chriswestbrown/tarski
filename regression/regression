@@ -181,9 +181,9 @@ find $FOLDER -name '*.in' | sort | while read IN; do
    # This is extremely hacky. See https://www.gnu.org/software/gawk/manual/html_node/Gory-Details.html
    cat $IN | sed s/"&"/"\\\\&"/g | awk '{filter=ENVIRON["FILTER"]; sub(/\.\.\./, $0, filter); print filter}' >> $INFILE
    if [ "$PLATFORM" != Darwin ]; then
-    /usr/bin/time timeout -k $((TIMEOUT+2)) $TIMEOUT $BINARY +N$NUMCELLS < $INFILE > $SAVEDIR/$OUT.tmp 2> $SAVEDIR/.stderr
+    /usr/bin/time timeout -k $((TIMEOUT+2)) $TIMEOUT $BINARY +N$NUMCELLS $INFILE > $SAVEDIR/$OUT.tmp 2> $SAVEDIR/.stderr
    else
-    /usr/bin/time timeout $TIMEOUT $BINARY +N$NUMCELLS < $INFILE > $SAVEDIR/$OUT.tmp 2> $SAVEDIR/.stderr
+    /usr/bin/time timeout $TIMEOUT $BINARY +N$NUMCELLS $INFILE > $SAVEDIR/$OUT.tmp 2> $SAVEDIR/.stderr
     fi
    cat $SAVEDIR/$OUT.tmp | grep -v ^\> | grep -v ^\$ > $SAVEDIR/$OUT # remove input echoes, and empty lines (Mac)
    rm $SAVEDIR/$OUT.tmp # cleaning up
