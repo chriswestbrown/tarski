@@ -24,7 +24,7 @@ Word GCAC = 0;
 Word GCM = 0;
 Word NU = NU_;
 Word RHO = RHO_;
-Word *SPACE;
+Word *SPACE = 0;
 Word *SPACEB;
 Word *SPACEB1;
 Word GCAAVAIL;

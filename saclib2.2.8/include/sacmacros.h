@@ -14,7 +14,7 @@ Header file for SACLIB macro definitions
 ---------------------------------------------------------------------------*/
 #define SACMAJVERS 2
 #define SACMINVERS 2
-#define SACREVVERS 7
+#define SACREVVERS 8
 
 /*---------------------------------------------------------------------------
 		Macros that are always defined.

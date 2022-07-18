@@ -43,7 +43,7 @@ tarskiRoot=$(pwd)
 ### SACLIB
 if [ "$externalSaclibRoot" = "" ]
 then
-    saclibRoot="$tarskiRoot/saclib2.2.7"
+    saclibRoot="$tarskiRoot/saclib2.2.8"
 else
     saclibRoot=$externalSaclibRoot
 fi
@@ -62,7 +62,7 @@ if [ "$1" = "clean" ]; then
  pushd interpreter
  check "make clean"
  popd
- pushd saclib2.2.7
+ pushd saclib2.2.8
  rm -fr lib
  popd
  # Final cleanup
