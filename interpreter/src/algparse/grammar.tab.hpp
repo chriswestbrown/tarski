@@ -1,8 +1,9 @@
-/* A Bison parser, made by GNU Bison 3.0.4.  */
+/* A Bison parser, made by GNU Bison 3.5.1.  */
 
 /* Bison interface for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2015 Free Software Foundation, Inc.
+   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2020 Free Software Foundation,
+   Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -30,28 +31,39 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
+/* Undocumented macros, especially those whose name start with YY_,
+   are private implementation details.  Do not rely on them.  */
+
 #ifndef YY_ALG_GRAMMAR_TAB_HPP_INCLUDED
 # define YY_ALG_GRAMMAR_TAB_HPP_INCLUDED
 /* Debug traces.  */
-#ifndef YYDEBUG
-# define YYDEBUG 0
-#endif
+#ifndef ALGDEBUG
+# if defined YYDEBUG
 #if YYDEBUG
+#   define ALGDEBUG 1
+#  else
+#   define ALGDEBUG 0
+#  endif
+# else /* ! defined YYDEBUG */
+#  define ALGDEBUG 0
+# endif /* ! defined YYDEBUG */
+#endif  /* ! defined ALGDEBUG */
+#if ALGDEBUG
 extern int algdebug;
 #endif
 /* "%code requires" blocks.  */
-#line 7 "grammar.ypp" /* yacc.c:1909  */
+#line 7 "grammar.ypp"
 
     void algerror(tarski::LexContext *LC, tarski::TarskiRef &result, char const *msg);
     int algparse(tarski::LexContext*, tarski::TarskiRef&);
  
 
-#line 50 "grammar.tab.hpp" /* yacc.c:1909  */
+#line 62 "grammar.tab.hpp"
 
 /* Token type.  */
-#ifndef YYTOKENTYPE
-# define YYTOKENTYPE
-  enum yytokentype
+#ifndef ALGTOKENTYPE
+# define ALGTOKENTYPE
+  enum algtokentype
   {
     PLUS = 258,
     MINUS = 259,
@@ -81,22 +93,23 @@ extern int algdebug;
 #endif
 
 /* Value type.  */
-#if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-#line 21 "grammar.ypp" /* yacc.c:1909  */
+#if ! defined ALGSTYPE && ! defined ALGSTYPE_IS_DECLARED
+#line 21 "grammar.ypp"
 union algValue
 {
-#line 21 "grammar.ypp" /* yacc.c:1909  */
+#line 21 "grammar.ypp"
 
   tarski::TokenRef*     tokPtr;
   tarski::AlgebraicRef* algPtr;
   tarski::FormulaRef*   frmPtr;
 
-#line 95 "grammar.tab.hpp" /* yacc.c:1909  */
+#line 107 "grammar.tab.hpp"
+
 };
-#line 21 "grammar.ypp" /* yacc.c:1909  */
-typedef union algValue YYSTYPE;
-# define YYSTYPE_IS_TRIVIAL 1
-# define YYSTYPE_IS_DECLARED 1
+#line 21 "grammar.ypp"
+typedef union algValue ALGSTYPE;
+# define ALGSTYPE_IS_TRIVIAL 1
+# define ALGSTYPE_IS_DECLARED 1
 #endif
 
 

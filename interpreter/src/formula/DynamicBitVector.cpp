@@ -83,9 +83,9 @@ vector < DBV > * identityMatrix(vector < DBV> * toSize)
   vector <DBV> * toRet = new vector<DBV>();
   int size = toSize->size();
   for (int i = 0; i < size; i++){
-    DBV * toAdd = new DBV(size);
-    toAdd->set(i, true);
-    toRet->push_back(*toAdd);
+    DBV toAdd(size);
+    toAdd.set(i, true);
+    toRet->push_back(toAdd);
   }
   return toRet;
 }

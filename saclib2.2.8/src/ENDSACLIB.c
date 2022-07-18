@@ -21,6 +21,7 @@ void ENDSACLIB(f)
 
 Step1:  /* Release the SPACE. */
         free(SPACE);
+	SPACE = 0;
 
 Step2:  /* Release the memory allocated using GCAMALLOC(). */
 	if (f == SAC_FREEMEM) {

@@ -53,6 +53,12 @@ void clean()
 
 void gcw_register(Word *p)
 {
+  /* Before BEGINSACLIB and after ENDSACLIB the Saclib global
+     variable SPACE should be set to 0.  We return on 0 here
+     to avoid the situation at exit where G might be destroyed
+     and gcw_register called afterwards. */
+  if (SPACE == 0) return; 
+
   G.push_back(p);
   if (G.size() == (size_t)lim)
     clean();
