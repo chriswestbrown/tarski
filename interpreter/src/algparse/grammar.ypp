@@ -11,11 +11,11 @@
 
 //%define api.namespace {tarski}
 
-%pure-parser
+%define api.pure
 %parse-param { tarski::LexContext *LC }
 %parse-param { tarski::TarskiRef &result }
 %lex-param   { tarski::LexContext *LC }
-%name-prefix "alg"
+%define api.prefix {alg}
 
 /**** Define terminals & non-terminals & bison directives ****/
 %union algValue {
@@ -56,7 +56,7 @@ N : NEG N { $$ = tarski::newNot($2);                  delete $1; delete $2; }
   | A { $$ = tarski::copy($1);                        delete $1; }
   ;
 A : Q LB F RB { $$ = tarski::addFormulaToQuantifier($1,$3); delete $1; delete $2; delete $3; delete $4; }
-  | E RELOP ROOT P E { $$ = tarski::newExtTarskiAtom($1,$2,$4,$5); delete $1; delete $2; delete $3; delete $4; }
+  | E RELOP ROOT P E { $$ = tarski::newExtTarskiAtom($1,$2,$4,$5); delete $1; delete $2; delete $3; delete $4; delete $5; }
   | E RELOP E { $$ = tarski::newTarskiAtom($1,$2,$3); delete $1; delete $2; delete $3; }
   | LB F RB { $$ = tarski::copy($2);                  delete $1; delete $2; delete $3; }
   | LP F RP { $$ = tarski::copy($2);                  delete $1; delete $2; delete $3; }
