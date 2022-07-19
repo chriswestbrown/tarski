@@ -89,7 +89,7 @@ inline int char2sym(char c)
     const int F[] = {0,1,2,0,0,1};
     stringstream sio;
     int s = 0;
-    char c;
+    signed char c;
     while(true)
     {
       c = in.get();
@@ -110,7 +110,7 @@ inline int char2sym(char c)
   SRef Interpreter::readstring(istream &in)
   {
     ostringstream sout;
-    char c = in.get(); if (c != '"') { return 0; }
+    signed char c = in.get(); if (c != '"') { return 0; }
     bool escape = false;
     while((c = in.get()) && (escape || c != '"') && c != EOF)
     {
@@ -130,7 +130,7 @@ inline int char2sym(char c)
   SRef Interpreter::readsym(istream &in)
   {
     ostringstream sout;
-    char c;
+    signed char c;
     while((c = in.peek()) && !isspace(c) && c != EOF && c != '('
 	  && c != ')' && c != ';' && c != ']' && c != '['
 	  )
@@ -149,7 +149,7 @@ inline int char2sym(char c)
   
   SRef Interpreter::readcomment(istream &in) 
   {  
-    char c = in.get(); if (c != ';') return 0;
+    signed char c = in.get(); if (c != ';') return 0;
     while((c = in.get()) && c != '\n' && c != EOF);
     return 0;
   }
@@ -157,7 +157,7 @@ inline int char2sym(char c)
   SRef Interpreter::readlist(istream &in)
   {
     LisRef res = new LisObj();
-    char c = in.get(); if (c != '(') return 0;
+    signed char c = in.get(); if (c != '(') return 0;
     while(1)
     {
       while(in && isspace(c = in.peek())) { in.get(); }
@@ -334,7 +334,7 @@ int main(int argc, char **argv)
 
 SRef Interpreter::next(istream &in)
   {
-    char c;  while(in && isspace(c = in.peek())) { in.get(); }
+    signed char c;  while(in && isspace(c = in.peek())) { in.get(); }
     if (c == EOF) return 0;
     if (isdigit(c)) return readnum(in);
     if (c == '-') { in.get(); char d = in.peek(); in.putback(c); if (!isspace(d)) { return readnum(in); } }
@@ -354,7 +354,7 @@ SRef Interpreter::next(istream &in)
     SRef res = readsym(in);
     if (res.is_null())
     { 
-      ostringstream sout; char c; while((c = in.get()) && c != EOF && c != '\n') sout << c;
+      ostringstream sout; signed char c; while((c = in.get()) && c != EOF && c != '\n') sout << c;
       if (sout.str().length() > 0) 
 	res = new ErrObj(string("Character '")
 			 + (char)sout.str()[0] + "' unexpected!");
