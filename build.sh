@@ -8,11 +8,11 @@ externalQepcadRoot=""
 ### Use "TOOLCHAIN=emmake ./build.sh" if you intend to start a WebAssembly build.
 ### Use "STATIC=1 ./build.sh" if you want to compile the tarski executable statically.
 ### Use "./build.sh clean" to clean up and remove objects that are already built.
-### Use "READLINE=0 ./build.sh" if you want omit readline support.
+### Use "READLINE=0 ./build.sh" if you want to omit readline support.
 ### Use "MAKEOPT=-j4 ./build.sh" to use 4 cores on compilation (only for Tarski, not for QEPCAD).
 
 ### Tarski may crash in certain cases. To avoid that, consider compiling Saclib without optimization:
-### sed -i s/-O3// saclib2.2.7/bin/mklib # do NOT optimize Saclib
+### sed -i s/-O3// saclib2.2.8/bin/mklib # do NOT optimize Saclib (recommended)
 ### sed -i s/-O3// qesource/Makefile     # do NOT optimize QEPCAD
 ### sed -i s/-O3// interpreter/Makefile  # do NOT optimize Tarski
 
@@ -66,7 +66,7 @@ if [ "$1" = "clean" ]; then
  rm -fr lib
  popd
  # Final cleanup
- find \( -name '*.o' -or -name '*.or' -or -name '*.a' -or -name '.exe' -or -name '*.wasm' \) -delete
+ find \( -name '*.o' -or -name '*.or' -or -name '*.a' -or -name '.exe' -or -name '*.wasm' -or -name '*.dll' \) -delete
  exit 0
  fi
 
