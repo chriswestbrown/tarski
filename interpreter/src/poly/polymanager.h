@@ -28,7 +28,7 @@ typedef GC_Hand<PolyManagerStatsObj> PolyManagerStatsRef;
 class PolyManager : public VarContext
 {
 public:
-  class PolyLT { public: int operator()(IntPolyRef a, IntPolyRef b) { return IntPolyObj::ipcmp(a,b); } };
+  class PolyLT { public: int operator()(IntPolyRef a, IntPolyRef b) const { return IntPolyObj::ipcmp(a,b); } };
 private:
   set<IntPolyRef,PolyLT> polyset;
   PolyManagerStatsRef _stats;
