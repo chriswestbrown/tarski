@@ -20,9 +20,9 @@ namespace tarski {
  ************************************************************/
 class GreedyQueueManager : public QueueManagerAndChooser
 {
-private:
+public:
   TFQueueRef _root;
-  FormulaGrader *_FG; 
+  FormulaGraderRef _FG; 
 
   class Cmp
   {
@@ -33,12 +33,13 @@ private:
   };
 
 public:
-  void setData(TFQueueRef root, FormulaGrader &FG) { _root = root; _FG = &FG; }
+  void setData(TFQueueRef root, FormulaGraderRef FG) { _root = root; _FG = FG; }
   void recordAndEnqueued(QAndRef A) { QueueManager::recordAndEnqueued(A);  }
+  FormulaGraderRef getFormulaGrader() { return _FG; }
   QAndRef next() 
   {     
     //-- Find the "best" rewriting currently available
-    SimpleGradeForQEPCAD SG;
+    FormulaGraderRef SG = getFormulaGrader();
     MinFormFinder MF; MF.process(_root,SG); 
     pair<TFormRef,double> minp; minp.first = MF.getMinFormula(_root); minp.second = MF.getMinGrade(_root);
 
@@ -50,11 +51,13 @@ public:
     {
       QNodeRef qnsa = MF.fromTtoQ[(*itr)->tag];
       QAndRef sa = asa<QAndObj>(qnsa);
-      if (sa.is_null()) { std::cerr << "Error in GreedyQueueManager::next!!!" << std::endl; 
+      if (sa.is_null()) {
+	std::cerr << "Error in GreedyQueueManager::next!!!" << std::endl; 
 	(*itr)->write();
 	std::cout << std::endl;
 	if (asa<TAndObj>(*itr)) { std::cerr << "It's an AND!" << std::endl; } else { std::cerr << "It's not an AND!" << std::endl; }
-	exit(0); }
+	throw TarskiException("Error in GreedyQueueManager!");
+      }
       if (!sa->expanded) Parts.push_back(sa);
     }
 
@@ -65,6 +68,17 @@ public:
   }
 };
 
+  
+class GreedyGuidedQueueManager : public GreedyQueueManager
+{
+  class negcomp { public: FewestQuantifiedVariablesFirst F; bool operator()(QAndRef a, QAndRef b) const { return !F(a,b); } };
+  priority_queue<QAndRef,std::vector<QAndRef>, negcomp> andsToExpand;
+
+public:
+  void recordAndEnqueued(QAndRef A);
+  QAndRef next();  
+};
+  
 /************************************************************
  * BEGIN GLOBAL VARIABLES
  ************************************************************/
@@ -95,7 +109,10 @@ private:
   QueueManager *globalQM;
   BasicRewrite* pReW;
   TFQueueRef Q;
+  FormulaGraderRef SG;
+  MinFormFinder MF;
   pair<TFormRef,double> minp;
+  bool selfMonitorStop; // Used in "refine".  "GreedyGuided" wants this true!
 };
 }//end namespace tarski
 #endif

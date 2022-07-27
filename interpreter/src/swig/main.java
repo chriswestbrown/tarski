@@ -6,8 +6,8 @@ public class main {
      System.loadLibrary("tarski");
      // Set the number of Saclib cells and the timeout.
      System.out.println("Initalization...");
-     tarski.TARSKIINIT(5000000, 5);
-     System.out.println("Successful initialization.");
+     tarski.TARSKIINIT(50000000, 30); // on some platforms a higher number of cells may be needed to avoid crash
+     System.out.println("Tarski successfully initialized.");
      // First example: Check if there is a real number "x" that is greater than 0. (TRUE)
      String input = "(qepcad-api-call [ex x [x > 0]])";
      String output = tarski.TARSKIEVAL(input);

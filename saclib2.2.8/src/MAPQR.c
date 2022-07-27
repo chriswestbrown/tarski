@@ -4,7 +4,7 @@
 Modular array polynomial quotient and remainder.
 
 Inputs
-  m : a postive BETA-digit.
+  m : a positive BETA-digit.
   A,B : in Z/(m)[x], non-zero and in array representation.
         The leading coefficient of B is a unit in Z/(m).
   Q : an array large enough to contain the quotient of A divided by B.

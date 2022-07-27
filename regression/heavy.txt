@@ -1,0 +1,1 @@
+./kovzol/geometry1.in

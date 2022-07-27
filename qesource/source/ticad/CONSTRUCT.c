@@ -384,8 +384,9 @@ Word IUPSBRRIIR(Word t_B, BDigit p, BDigit k)
     }
 
     /* Otherwise, isolate using floating-point routines */
-    if (Li == 0)
+    if (Li == 0) {
       Li = SIPRRID(C[i]);
+    }
 
     if (Li == 0) { fail = true; goto Return; }
 

@@ -30,6 +30,7 @@ Word QepcadCls2D::TICAD(Word Q,Word F,Word f,Word P,Word A)
 Step1: /* Initialize. */
        D = INITPCAD();
        L = 0;
+       d = 0;
 
 Step2: /* Choose. */
        GVPC = D;
@@ -51,6 +52,7 @@ Step2: /* Choose. */
 	   else
 	     L = RED2(L); }
 	 else if (d == 1 && L == NIL) { /* Init for 1D sections */
+	   c = NIL;
 	   d = 0;
 	   L = RED(LELTI(D,CHILD));
 	 }

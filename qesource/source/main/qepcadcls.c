@@ -70,7 +70,7 @@ void QepcadCls::UnsatCore::FactorInfo::WRITEFULL(Word V)
 
 void QepcadCls::UnsatCore::OrigAtom::clearTags()
 {
-  for(int i = 0; i < factors.size(); i++)
+  for(size_t i = 0; i < factors.size(); i++)
     factors[i].clearTag();
 }
 
@@ -92,7 +92,7 @@ void QepcadCls::UnsatCore::prepareForLift()
   }
 
   // set in factored form
-  for(int k = 0; k < conjuncts.size(); k++)
+  for(int k = 0; (size_t)k < conjuncts.size(); k++)
   {
     OrigAtom &A = conjuncts[k];
     Word r = A.r;
@@ -215,7 +215,7 @@ void QepcadCls::UnsatCore::OrigAtom::WRITE(Word V)
   {
     if (sign < 0) SWRITE("-");
     if (ICOMP(content,1) != 0) { IWRITE(content); }
-    for(int i = 0; i < factors.size(); i++)
+    for(size_t i = 0; i < factors.size(); i++)
       factors[i].WRITEFULL(V);
     SWRITE(" ");
     SWRITE(relopString(relop).c_str());
@@ -228,7 +228,7 @@ void QepcadCls::UnsatCore::OrigAtom::WRITE(Word V)
 bool QepcadCls::UnsatCore::OrigAtom::isKnownFalse()
 {
   int s = signToSigma(sign);
-  for(int i = 0; i < factors.size(); i++)
+  for(size_t i = 0; i < factors.size(); i++)
   {    
     int sf = (factors[i].exp % 2 == 1) ? factors[i].tag : T_square[factors[i].tag];
     s = T_prod[s][sf];
@@ -245,7 +245,7 @@ void QepcadCls::UnsatCore::record(Word C)
   if (LELTI(C,HOWTV) == BYEQC) return;
 
   // Clear truth tags (i.e. set them all to UNDET)
-  for(int i = 0; i < conjuncts.size(); i++)
+  for(size_t i = 0; i < conjuncts.size(); i++)
     conjuncts[i].clearTags();
   
   int k = LELTI(C,LEVEL);
@@ -262,7 +262,7 @@ void QepcadCls::UnsatCore::record(Word C)
     {
       int s = FIRST(Si);
       vector< pair<int,int> > &V = appearsIn[pair<int,int>(i,j)];
-      for(int h = 0; h < V.size(); h++)
+      for(size_t h = 0; h < V.size(); h++)
       {
 	int a = V[h].first, b = V[h].second;
 	conjuncts[a].factors[b].tag = signToSigma(s);
@@ -272,7 +272,7 @@ void QepcadCls::UnsatCore::record(Word C)
 
   // go through each input atomic formula to determine if it's known to be false
   Word K = NIL;
-  for(int i = 0; i < conjuncts.size(); i++)
+  for(int i = 0; (size_t)i < conjuncts.size(); i++)
   {
     if (conjuncts[i].isKnownFalse())
     {
@@ -290,7 +290,7 @@ void QepcadCls::UnsatCore::findUnsatCore(bool indexOnly)
     // Add equational constraints as size 1 sets.  Recall, right now
     // we adopt the expedient of making the unsat core include all
     // equational constraints.
-    for(int i = 0; i < conjuncts.size(); i++)
+    for(int i = 0; (size_t)i < conjuncts.size(); i++)
     {
       if (conjuncts[i].relop == EQOP)
 	MHSP = COMP(LIST1(i),MHSP);

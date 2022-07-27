@@ -16,10 +16,13 @@ Side effects
   occurs.
 ======================================================================*/
 #include "replacesac.h"
+#include <time.h>
 #include <cstdio>
 extern "C" {
 extern void gcw_MARK();
 }
+
+extern int dll_timeout;
 
 void GCSI(Word s, char *EACSTACK)
 {
@@ -34,6 +37,7 @@ Step1: /* Setup. */
          SWRITE("--th garbage collection....");
        }
        T1 = CLOCK();
+
 
 Step3: /* Mark the global variables. */
        L = GCGLOBALS; 
@@ -119,11 +123,13 @@ Step9: /* Too few cells or arrays? */
        if (Np == 0)
          FAIL("GCSI (final check)","No arrays reclaimed.",N,NU,RHO);
 
+Step10: /* Timeout handling. */
+       // printf("GCSI clock %d\n", clock());
+       if (dll_timeout > 0 && clock() >= dll_timeout) {
+           // printf("Timeout\n");
+           FAIL("GCSI (timeout)","Timeout");
+           }
+
 Return: /* Prepare for return. */
        return;
 }
-
-
-
-
-

@@ -18,6 +18,12 @@ SingularServer::SingularServer(string dirPath)
   if (childpid == 0) {
     intoSingular.setStdinToPipe();
     outofSingular.setStdoutToPipe();
+    outofSingular.setStderrToPipe();
+    intoSingular.closeIn();
+    intoSingular.closeOut();
+    outofSingular.closeIn();
+    outofSingular.closeOut();
+    setsid();
 
     // Begin: Just for debug!!
     //    system("/home/wcbrown/bin/Singular -q --no-warn --min-time=0.001 --ticks-per-sec=1000 | tee /tmp/SingOutLog");
@@ -33,9 +39,10 @@ SingularServer::SingularServer(string dirPath)
 	   "--ticks-per-sec=1000",
 	   NULL);
       perror("SingularServer Constructor: Singular startup failed! (Set SINGULAR environment variable)");
-      outofSingular.closeOut();
       exit(0);
   }
+  intoSingular.closeIn();
+  outofSingular.closeOut();
 }
 
 SingularServer::~SingularServer()
@@ -70,7 +77,7 @@ static Word readSingularPoly(Word r, Word V, istream &in)
   Word A, t;
   string s;
   in >> s;
-  for(unsigned int i = 0; i < s.length(); ++i)
+  for(size_t i = 0; i < s.length(); ++i)
     if (s[i] == '*') s[i] = ' ';
   s += ".\n";
   istringstream si(s);
@@ -111,7 +118,7 @@ static string WritePolyForSingular(Word r, Word P, Word V)
     out = sout.str();
   }
   // Put in * symbols
-  for(unsigned int i = 1; i < out.length() - 1; ++i)
+  for(size_t i = 1; i < out.length() - 1; ++i)
     if (out[i] == ' ' && out[i+1] != '+' && out[i+1] != '-'
 	&& out[i-1] != '+' && out[i-1] != '-'
 	)

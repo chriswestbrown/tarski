@@ -23,7 +23,7 @@ void FREADR(Word V, Word f, Word *Fs_, Word *t_,int errMode)
        /* hide C,i,q,r,t; */
 
 Step1: /* Read quantifier list. */
-       t = 1; Q = NIL; r = LENGTH(V);
+       Fs = NIL; t = 1; Q = NIL; r = LENGTH(V);
        for (i = f + 1; i <= r; i++)
          {
          C = CREADB();

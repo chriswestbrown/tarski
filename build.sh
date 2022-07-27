@@ -8,11 +8,23 @@ externalQepcadRoot=""
 ### Use "TOOLCHAIN=emmake ./build.sh" if you intend to start a WebAssembly build.
 ### Use "STATIC=1 ./build.sh" if you want to compile the tarski executable statically.
 ### Use "./build.sh clean" to clean up and remove objects that are already built.
+### Use "READLINE=0 ./build.sh" if you want to omit readline support.
+### Use "MAKEOPT=-j4 ./build.sh" to use 4 cores on compilation (only for Tarski, not for QEPCAD).
+
+### Tarski may crash in certain cases. To avoid that, consider compiling Saclib without optimization:
+### sed -i s/-O3// saclib2.2.8/bin/mklib # do NOT optimize Saclib (recommended)
+### sed -i s/-O3// qesource/Makefile     # do NOT optimize QEPCAD
+### sed -i s/-O3// interpreter/Makefile  # do NOT optimize Tarski
 
 ######################################################################################
 
+if [ "$READLINE" = "" ]; then
+ READLINE=1
+ fi
+
 export STATIC
 export TOOLCHAIN
+export READLINE
 
 trap "exit 1" TERM
 export TOP_PID=$$
@@ -54,7 +66,7 @@ if [ "$1" = "clean" ]; then
  rm -fr lib
  popd
  # Final cleanup
- find \( -name '*.o' -or -name '*.or' -or -name '*.a' -or -name '.exe' -or -name '*.wasm' \) -delete
+ find \( -name '*.o' -or -name '*.or' -or -name '*.a' -or -name '.exe' -or -name '*.wasm' -or -name '*.dll' \) -delete
  exit 0
  fi
 
@@ -91,7 +103,7 @@ minisatRoot="$tarskiRoot/minisat"
 export TMROOT=$minisatRoot
 pushd $TMROOT/core
 echo "Making Minisat..."
-check "$TOOLCHAIN make libr"
+check "$TOOLCHAIN make $MAKEOPT libr"
 echo "Minisat Done"
 popd
 
@@ -102,16 +114,18 @@ pushd ./src
 check ./mksysdep.sh
 popd
 
-check "$TOOLCHAIN make"
+check "$TOOLCHAIN make $MAKEOPT"
 popd
 
 ### LIBTARSKI
 UNAME_S=`uname -s`
 
 if [ "$UNAME_S" = "Darwin" ]; then
- JAVA=`find /usr/local/Cellar/openjdk/*/ | sort | head -1`
  if [ "$JAVA" = "" ]; then
-  echo "No Java found. Consider installing it via Homebrew (openjdk)."
+  JAVA=`find /usr/local/Cellar/openjdk/*/ | sort | head -1`
+  if [ "$JAVA" = "" ]; then
+   echo "No Java found. Consider installing it via Homebrew (openjdk)."
+   fi
   fi
  which swig > /dev/null || {
    echo "No swig found. Consider installing it via Homebrew (swig)."
@@ -128,8 +142,8 @@ if [ "$UNAME_S" = "Linux" ]; then
    }
  fi
 
-if [[ "$UNAME_S" == *"MINGW"* ]]; then
- JAVA=`find /c/Program\ Files\/OpenJDK/* | sort | head -1`
+if [[ "$UNAME_S" == *"MINGW64"* ]]; then
+ JAVA=`find /c/Program\ Files\/OpenJDK/* | sort | grep jdk | head -1`
  if [ "$JAVA" = "" ]; then
   echo "No Java found. Consider installing it via choco (openjdk)."
   fi
@@ -138,12 +152,23 @@ if [[ "$UNAME_S" == *"MINGW"* ]]; then
    }
  fi
 
+if [[ "$UNAME_S" == *"MINGW32"* ]]; then
+ JAVA=`find /c/Program\ Files\ \(x86\)\/Java/* | sort | grep jdk | head -1`
+ if [ "$JAVA" = "" ]; then
+  echo "No Java found. Consider installing it via choco (jdk8 --x86)."
+  fi
+ which swig > /dev/null || {
+   echo "No swig found. Consider installing it via pacman (swig)."
+   }
+ fi
+
+
 if [ "$TOOLCHAIN" != emmake -a "$JAVA" != "" ]; then
  which swig > /dev/null && {
   pushd interpreter
   echo "Making libtarski..."
   export JAVA
-  check "make dll"
+  check "make $MAKEOPT dll"
   timeout 60 make dlltest || echo "The Java Native Interface seems unstable."
   popd
   }

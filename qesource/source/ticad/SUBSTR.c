@@ -24,6 +24,7 @@ Word QepcadCls::SUBSTR(Word c, Word k, Word b, Word B)
        Word P,L,Q,T1,T2,Sp,G,f,i;
 
 Step1: /* Do it. */
+       f = UNDET;
        L = NIL;
        S = NIL;
        Bp = B;
@@ -53,7 +54,7 @@ Step2: /* Check if S1 vanishes and, if so, whether this invalidates McCallum's p
 		 SWRITE(" in the cylinder ");
 		 SWRITE("over the cell ");
 		 LWRITE(LELTI(c,INDX));
-		 SWRITE(" of postive dimension.  The McCallum projection ");
+		 SWRITE(" of positive dimension.  The McCallum projection ");
 		 SWRITE("may not be valid.\n"); } }
 	     
 	     if (CELLDIM(c) == 0 || f == TRUE) {
@@ -65,7 +66,7 @@ Step2: /* Check if S1 vanishes and, if so, whether this invalidates McCallum's p
 		 SWRITE(" in the cylinder \n");
 		 SWRITE("over the cell ");
 		 LWRITE(LELTI(c,INDX));
-		 SWRITE(" of postive dimension.  The McCallum projection \n");
+		 SWRITE(" of positive dimension.  The McCallum projection \n");
 		 SWRITE("may not be valid.\n");
 	       }
 	     }

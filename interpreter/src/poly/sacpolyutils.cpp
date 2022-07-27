@@ -198,6 +198,29 @@ Word PGCDEXP(Word r, Word P, Word i)
   return g;
 }
 
+// Lists of digits GCDs
+Word LDGCD(Word L1, Word L2)
+{
+  return L1 == NIL ? NIL : COMP(IGCD(FIRST(L1),FIRST(L2)),LDGCD(RED(L1),RED(L2)));
+}
+
+static Word PGCDEXPALLrev(Word r, Word P)
+{
+  if (r == 0) return NIL;
+  if (P == 0) return COMP(0,PGCDEXPALLrev(r-1,0));
+  Word g = 0, Lp = NIL;
+  for(Word Pp = P; Pp != NIL; Pp = RED2(Pp)) {
+    Word e, c, Tp;
+    FIRST2(Pp,&e,&c);
+    g = IGCD(g,e);
+    Tp = PGCDEXPALLrev(r-1,c);
+    Lp = r == 1 || Pp == P ? Tp : LDGCD(Lp,Tp);
+  }
+  return COMP(g,Lp);
+}
+Word PGCDEXPALL(Word r, Word P) { return CINV(PGCDEXPALLrev(r,P)); }
+
+
 Word PREDDEGXi(Word r, Word P, Word i, Word d)
 {
   if (i == r)

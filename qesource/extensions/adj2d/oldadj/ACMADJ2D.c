@@ -29,6 +29,7 @@ Step1: /* Get (A,I) defining c. */
   FIRST2(Ip,&ip1,&ip2);
   i1 = RNLBRN(ip1);
   i2 = RNLBRN(ip2);
+  t = 0;
 
 Step2: /* Get sample points for c_l and c_r. */
   i_l = RNLBRN(SPRLC(c_l));

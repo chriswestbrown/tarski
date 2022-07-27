@@ -1,0 +1,125 @@
+<html>
+<!-- This version is based on jquery.terminal. -->
+<body>
+<script src="tarski-jt-advanced.js"></script>
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.terminal/2.33.2/js/jquery.terminal.min.js"></script>
+<script src="https://unpkg.com/jquery.terminal/js/autocomplete_menu.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/jquery.terminal/2.33.2/css/jquery.terminal.min.css" rel="stylesheet"/>
+
+<script>
+
+function format_tarski_output(input) {
+    var output = "";
+    var lines = input.split(/\n/);
+    var noLines = lines.length;
+    var prevLine = "";
+    for (var i = 0; i < noLines; i++) {
+        var c = "";
+        line = lines[i];
+        if (line.endsWith(":tar")) c = "[;gray;]"
+        if (line.endsWith(":boo")) c = "[;yellow;]";
+        if (line.endsWith(":alg")) c = "[b;cyan;]";
+        if (line.endsWith(":num")) c = "[;green;]";
+        if (line.endsWith(":fun")) c = "[b;magenta;]";
+        if (line.endsWith(":clo")) c = "[b;gray;]";
+        if (line.endsWith(":void")) c = "[;magenta;]";
+        if (line.endsWith(":sym")) c = "[b;yellow;]";
+        if (line.endsWith(":str")) c = "[b;green;]";
+        if (line.endsWith(":err")) c = "[;red;]";
+        if (line.endsWith(":ext")) c = "[;cyan;]";
+
+        prevLine += line;
+
+        if (c != "") {
+            prevLine = "[" + c + prevLine + "]\n";
+            output += prevLine;
+            prevLine = "";
+            }
+        else { // No end indicating the data type is detected.
+            // We assume this is a multi-line output.
+            prevLine += "\n";
+            }
+        }
+    if (prevLine != "" && prevLine != "\n") { // flush buffer (without \n)
+        output += prevLine;
+        }
+
+    if (output.endsWith("\n")) output = output.slice(0,-1); // remove last \n
+
+    return output;
+    }
+
+Tarski().then(function(Module) {
+    // Defaults:
+    var numcells = 50000000;
+    var timeout = 10;
+
+    TARSKIINIT = Module.cwrap("TARSKIINIT", 'void', ['number', 'number']);
+    TARSKIEVAL = Module.cwrap("TARSKIEVAL", "string", ["string"]);
+    TARSKIEND = Module.cwrap("TARSKIEND", "void", []);
+    TARSKIINIT(numcells, timeout);
+
+    // Obtaining the list of available commands:
+    var symlist = TARSKIEVAL("(sym-list)").split(" ");
+    var symlist_l = symlist.length;
+    keywords = [];
+    for (var i = 1; i < symlist.length - 1; ++i) {
+       keywords.push(symlist[i].slice(0, -4)); // remove ":sym"
+       }
+    var l = keywords.length;
+    var depth = 2;
+    for (var i=0; i < depth*l; i++) keywords.push("(" + keywords[i]);
+    // Now we hacked the list of keywords to have some autocompletion when the input starts with parentheses.
+    // This is very hacky and should be fixed, see https://github.com/jcubic/jquery.terminal/wiki/Tab-completion. TODO
+
+    // Obtaining the version number:
+    var version_words = TARSKIEVAL("(version)").split(' ');
+    version = version_words[2].slice(0, -1);
+
+    tarski_term = $('body').terminal(function(cmd, term) {
+            var input = cmd;
+            var output = "";
+            try {
+                output = TARSKIEVAL(input);
+                var svg_start = output.indexOf('"<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">');
+                if (svg_start > -1) {
+                    term.echo("%noformat%" + $.terminal.escape_formatting(output.slice(0, svg_start)), {newline: false});
+                    // TODO: This should be improved. We assume that there is only one image in the output, and it is at its end:
+                    // Trim leading " and ending ":str:
+                    term.echo(output.slice(svg_start +1, -6), {raw: true});
+                    }
+                else term.echo("%noformat%" + $.terminal.escape_formatting(output), {newline: false});
+            }
+            catch (error) {
+                term.echo("[[b;red;]Sorry, an internal error is occurred.]");
+            }
+        }, {
+            checkArity: false,
+            autocompleteMenu: true,
+            completion: function(string, callback) {
+                // Show the list only if there is already a character given from the command:
+                if (!this.before_cursor().endsWith("(")) { 
+                    callback(keywords);
+                }
+            },
+            name: "Tarski",
+            greetings: "Welcome to Tarski " + version + "!" + "\n" +
+                "Initialized with numcells " + numcells + " and timeout " + timeout + "."
+        });
+
+    $.terminal.defaults.formatters.push(function(string) {
+        if (string.startsWith("%noformat%")) return format_tarski_output(string.substring(10));
+        return string.split(/((?:\s|&nbsp;|\(|\))+)/).map(function(string) {
+            if (keywords.indexOf(string) != -1) {
+                return '[[b;white;]' + string + ']';
+            } else {
+                return string;
+            }
+        }).join('');
+    });
+});
+
+</script>
+</body>
+</html>

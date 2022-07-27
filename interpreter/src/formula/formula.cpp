@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
+#include <exception>
 
 #include "formula.h"
 
@@ -210,7 +211,7 @@ string toString(TFormRef t)
 {
   ostringstream sout;
   PushOutputContext(sout);
-  t->write();
+  try { t->write(); } catch(exception &e) { PopOutputContext(); throw e; }
   PopOutputContext();
   return sout.str();
 }

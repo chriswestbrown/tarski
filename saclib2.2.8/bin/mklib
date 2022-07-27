@@ -67,14 +67,14 @@ elif [ $1 = "deb" ]; then
   popd >/dev/null
 elif [ $1 = "opt" ]; then
   pushd >/dev/null  $saclib/lib/objo
-  $TOOLCHAIN make $CC_OPTION "SACFLAG=" EXTENSION=o
+  $TOOLCHAIN make $CC_OPTION "SACFLAG=-O3" EXTENSION=o
   popd >/dev/null
 elif [ $1 = "all" ]; then
   pushd >/dev/null  $saclib/lib/objd
   $TOOLCHAIN make $CC_OPTION "SACFLAG=-g -DNO_SACLIB_MACROS" EXTENSION=d
   popd >/dev/null
   pushd >/dev/null  $saclib/lib/objo
-  $TOOLCHAIN make $CC_OPTION "SACFLAG=" EXTENSION=o
+  $TOOLCHAIN make $CC_OPTION "SACFLAG=-O3" EXTENSION=o
   popd >/dev/null
 else
   echo "USAGE:"

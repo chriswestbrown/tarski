@@ -95,7 +95,7 @@ Step3: /* Isolate the roots of B(alpha,y) */
 	  goto Return; }
 	
 	/* get trend of first root */
-	if (PDEG(B) % 2 == 0 && s == 1 || PDEG(B) % 2 == 1 && s == -1)
+	if ((PDEG(B) % 2 == 0 && s == 1) || (PDEG(B) % 2 == 1 && s == -1))
 	  t1 = -1;
 	else
 	  t1 = 1;

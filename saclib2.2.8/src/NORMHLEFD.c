@@ -126,6 +126,8 @@ Step8: /* Factor testing. */
 	     tt = ACLOCK();
 	     Tt += tt;
 	     Ib = Ip; } }
+       else
+	 Fb = NIL; /* Chris added 12/21 so that "Fb != NIL" in Step11 is alwyas well defined. */
   
 Step9: /* Prepare for linear lifting. */
        Ns = N;

@@ -18,7 +18,7 @@ void FMAATOMREAD(Word Q, Word V, Word *F_, Word *t_)
        /* hide r,s,t; */
 
 Step1: /* Read the left polynomial. */
-        t = 1; r = LENGTH(V);
+        t = 1; r = LENGTH(V); F = NIL;
         IPEXPREAD(r,V,&P1,&t); if (t == 0) goto Return;
 
 Step2: /* Read the relational operator. */
@@ -71,6 +71,7 @@ Word POLYINDEX(Word P, Word p, Word r, Word *t)
     p = SECOND(p);
 
   /* Is p already in P? */
+  pp = NIL;
   P_r = LELTI(P,r); *t = 0;
   for(Pp = P_r; Pp != NIL; Pp = RED(Pp)) {
     pp = FIRST(Pp);

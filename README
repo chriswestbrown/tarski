@@ -31,21 +31,30 @@
       - readline
 
       Dependencies on Windows
-      After installation of MSYS2 you have two options, either
-      the CLANG64 (preferred) or the MSYS environment should be used,
-      with the following packages (e.g. pacman -S <name>):
+      Make sure you set Developer Mode and check out the sources
+      after enabling symbolic link support.
+      After installation of MSYS2 you have three options, either
+      CLANG64 (preferred), CLANG32 or the MSYS environment should be used.
+      You need the following packages (e.g. pacman -S <name>):
       - base-devel
-      - gcc
+      - mingw-w64-clang-x86_64-cc (only for CLANG64)
+      - mingw-w64-clang-i686-cc (only for CLANG32)
+      - gcc (only for MSYS)
+      The following packages are required for CLANG64/CLANG32
+      - mingw-w64-clang-<ARCH>-readline
+      - mingw-w64-clang-<ARCH>-openssl
+      - mingw-w64-clang-<ARCH>-zlib
+      where <ARCH> is either x86_64 (for CLANG64) or i686 (for CLANG32).
+      For an MSYS build you need these packages:
       - zlib-devel
       - openssl-devel
       - libreadline-devel
       - libcrypt-devel
-      - mingw-w64-clang-x86_64-toolchain (only for CLANG64)
 
       Dependencies for a JNI build
-      - Either a Linux, a Mac or a Windows MSYS2/CLANG64 platform
+      - Either a Linux, a Mac or a Windows MSYS2/CLANG* platform
       - Everything from the list above for the given platform
-      - swig
+      - mingw-w64-clang-<ARCH>-swig
       - a Java Development Kit (e.g. default-jdk on Linux)
 
       Dependencies for a WebAssembly build
@@ -71,10 +80,47 @@
       It is strongly suggested to add that bin directory to your
       shell PATH variable.
 
+   d. Deployment
+      If want to make a release version of Tarski...
+
+      1. On Windows the following sequence of commands can be useful
+         for the CLANG64/CLANG32 builds:
+
+         CC=clang CXX=clang++ ./build.sh
+         strip interpreter/bin/tarski.exe
+         strip interpreter/tarski.dll
+         strip qesource/source/qepcad.exe
+
+      2. On Linux, for static executables (they are portable):
+
+         STATIC=1 ./build.sh
+         strip interpreter/bin/tarski
+         strip qesource/source/qepcad
+
+         For a static JNI DLL:
+
+         STATIC=1 READLINE=0 ./build.sh
+         strip interpreter/libtarski.so
+
+      3. On Mac, for the executables:
+
+         ./build.sh
+         strip interpreter/bin/tarski
+         strip qesource/source/qepcad
+
+         For a JNI DLL:
+
+         READLINE=0 ./build.sh
+         strip -S interpreter/libtarski.jnilib
+
+      4. On Linux/WASM (after compiling the prerequisites):
+
+         . <PATH_TO_EMSCRIPTEN>/emsdk/emsdk_env.sh
+         yes | TOOLCHAIN=emmake ./build.sh
+
 4. License
    Saclib, Qepcad, MiniSAT and Tarski all have their own license
    files in their resepective root directories.
 
 5. Please send bug reports or questions to Chris Brown at
    wcbrown@usna.edu.
-   

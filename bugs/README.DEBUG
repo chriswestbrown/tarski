@@ -11,7 +11,7 @@ A. BACKGROUND
    jumps based on those values are made.  It's OK, since the
    only real effect is that the garbage collector is more
    conservative than it needs to be.  However, if you use
-   Valgrind, you will see tons of spurrious errors that drown
+   Valgrind, you will see tons of spurious errors that drown
    out the ones you care about.
 
 B. SOLUTION

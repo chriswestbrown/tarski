@@ -31,7 +31,7 @@ Step1: /* Read in. */
        goto Return;
 
 Step2: /* Error exit. */
-       DIELOC(); t = 0; goto Return;
+       DIELOC(); p = 0; t = 0; goto Return;
 
 Return: /* Prepare for return. */
        *p_ = p;

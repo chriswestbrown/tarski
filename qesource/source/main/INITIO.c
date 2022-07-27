@@ -17,7 +17,7 @@ void INITIO(istream *is, ostream *os)
        Word i;
 
 Step1: /* Initialize Input. */	  
-#ifndef _EMCC2_
+#if !defined(_EMCC2_) && !defined(NO_READLINE)
        if (is == NULL) {
          if (isatty(0)) 
 	   InputContextInit(*(new readlineIstream()));

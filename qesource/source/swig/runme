@@ -6,7 +6,7 @@ echo "Make sure to run build.sh in the root folder of Tarski first."
 
 set -e
 
-SACLIB=../../../saclib2.2.7
+SACLIB=../../../saclib2.2.8
 UNAME_S=`uname -s`
 START_GROUP="-Wl,--start-group"
 END_GROUP="-Wl,--end-group"

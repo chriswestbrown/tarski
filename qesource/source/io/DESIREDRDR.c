@@ -15,6 +15,7 @@ void DESIREDRDR(Word *F_, Word *t_)
        /* hide C,C1,R,V1,V2,t; */
 
 Step1: /* Atomic condition. */
+       F = NIL;
        t = 1;
        C = CREADB(); if (C == '[') goto Step2;
        BKSP(); 

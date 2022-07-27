@@ -11,10 +11,12 @@
 #include <algorithm>
 #include "einterpreter.h"
 #ifndef _EMCC2_
+#ifndef NO_READLINE
 #include "readlineistream.h"
+#endif // NO_READLINE
 #else
 #include <emscripten/emscripten.h>
-#endif
+#endif _EMCC2_
 #include "../onecell/memopolymanager.h"
 #include "../tarskisysdep.h" /* defines pathToMaple variable */
 #include <signal.h>
@@ -24,6 +26,8 @@ using namespace std;
 uint64 GC_Obj::next_tag = 1;
 uint64 GC_Obj::num_deleted = 0;
 
+clock_t dll_timeout = 0;
+int timeout_param = 0;
 
 namespace tarski {
 
@@ -135,7 +139,7 @@ int mainDUMMY(int argc, char **argv, void* topOfTheStack)
 
     srand(time(0));
 
-#ifndef _EMCC2_
+#if !defined(_EMCC2_) && !defined(NO_READLINE)
     //  istream *inptr = new readlineIstream();
     readlineIstream isin;
     if (!quiet) { isin.setPrompt("> "); }
@@ -332,9 +336,11 @@ TARSKIINIT(int numcells, int timeout) {
   argv[0] = s0; argv[1] = s1; argv[2] = s2; argv[3] = s3; argv[4] = s4;
   int ac;
   char **av;
-  cout << "Tarski initializing with numcells " << numcells << " and timeout " << timeout << "." << endl;
+  cout << "Welcome to tarski " << tarski::tarskiVersion << " " << tarski::tarskiVersionDate << "." << endl;
+  cout << "Initializing with numcells " << numcells << " and timeout " << timeout << "." << endl;
   SacModInit(argc,argv,ac,av,"Saclib","","",topOfTheStack);
-  cout << "Successful initialization" << endl;
+  timeout_param = timeout;
+  cout << "Successful initialization." << endl;
   delete [] argv;
 
   srand(time(0));
@@ -350,6 +356,9 @@ TARSKIINIT(int numcells, int timeout) {
   }
 
 string TARSKIEVAL(string input) {
+    Word dummy = 0;
+    BACSTACK = (char*)&dummy;
+
     string output;
     istringstream iss(input);
 
@@ -357,6 +366,10 @@ string TARSKIEVAL(string input) {
     tarski::LexContext LC(iin,';');
     bool explicitQuit = false;
 
+    dll_timeout = clock() + timeout_param * CLOCKS_PER_SEC; // when to stop
+    // cout << "dll_timeout set to " << dll_timeout << "\n";
+
+    try {
     while(iin)
     {
       tarski::SRef x = I.next(iin);
@@ -369,6 +382,7 @@ string TARSKIEVAL(string input) {
       I.rootFrame->set("%e",res);
       I.markAndSweep();
     }
+    } catch (exception& e) { output = string("Exception: ") + e.what(); }
     // if (!explicitQuit) { output += "\n"; } // seems to be unnecessary to add another \n
 
     if (tarski::verbose)

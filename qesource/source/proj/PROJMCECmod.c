@@ -109,7 +109,7 @@ Step1: /* Obtain coefficients. */
 	     tf = tf || (Q == FULLDE || Q == FULLDA);
 	     
 	     /* Test 3: in free variable space when the PCMZERROR option is used */
-	     tf = tf || PCMZERROR && rp <= GVNFV;
+	     tf = tf || (PCMZERROR && rp <= GVNFV);
 
 	     /* Test 4: has no common zero with the system of all other coefficients */
 	     if (!tf)

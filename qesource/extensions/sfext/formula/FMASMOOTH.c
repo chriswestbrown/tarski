@@ -16,6 +16,7 @@ Step1: /* Atoms and Constants. */
   if (ISLIST(F1) || F1 == TRUE || F1 == FALSE) {
     G = F;
     goto Return; }
+  G = NIL;
 
 Step2: /* AND's */
   if (F1 == ANDOP) {

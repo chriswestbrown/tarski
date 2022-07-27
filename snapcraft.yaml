@@ -1,0 +1,43 @@
+name: tarski
+
+architectures:
+  - build-on: amd64
+  - build-on: armhf
+
+base: core20
+version: '1.30'
+summary: A system for computing with Tarski formulas and semi-algebraic sets
+description: |
+  Tarski is a system that provides a command-line interface to a number of
+  functions for computing with Tarski formulas and semi-algebraic sets.
+  It includes fast simplification and UNSAT cores for Tarski formulas,
+  problem formulation for QEPCAD B, Open NuCAD construction and projection,
+  read and write in smtlib syntax. The QEPCAD B system is also included.
+
+grade: stable
+confinement: strict
+
+apps:
+  tarski:
+    command: bin/tarski
+    environment:
+      qe: "$SNAP/"
+    plugs:
+      - home
+
+  qepcad:
+    command: bin/qepcad
+
+parts:
+  tarski:
+    build-packages: [libssl-dev, zlib1g-dev, libreadline-dev]
+    source: https://github.com/kovzol/tarski.git
+    plugin: dump
+    override-build: |
+      sed -i s/-O3// saclib2.2.8/bin/mklib # do NOT optimize Saclib
+      STATIC=1 ./build.sh
+      strip interpreter/bin/tarski
+      strip qesource/source/qepcad
+      mkdir -p ../install/bin
+      cp interpreter/bin/tarski ../install/bin/
+      cp qesource/source/qepcad ../install/bin/

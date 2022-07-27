@@ -262,6 +262,8 @@ void WRITE_PS_INTERACTIVE(Rend_Cell &M, Rend_Win &W, Word L, Word e, Word D, Wor
       if (t == 'p') {
 	  SWRITE("Enter projetion factor by (level,index): ");
 	  p = LREAD(); }
+      else
+	  p = NIL;
 
       switch(c) {
       case 'x': // 1D Sectors

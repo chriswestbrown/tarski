@@ -1,0 +1,4 @@
+EXPORTS
+Java_tarski_tarskiJNI_TARSKIEND
+Java_tarski_tarskiJNI_TARSKIEVAL
+Java_tarski_tarskiJNI_TARSKIINIT

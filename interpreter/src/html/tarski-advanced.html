@@ -1,0 +1,191 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <script src="tarski-advanced.js"></script>
+    <script src="tarski-loader.js"></script>
+
+    <title>Tarski</title>
+</head>
+    <body>
+         <center>
+             <div id="outputtext" name="outputtext" style="width: 650px; height: 400px;
+                 border: 1px solid; margin: 5px; padding: 5px; font-family: monospace;
+                 background-color: #e0e0ff; text-align: left; overflow-y: scroll">
+                 This is the web version of <a target="_blank"
+                 href="https://www.usna.edu/Users/cs/wcbrown/tarski/index.html">Tarski</a>,<br>
+                 a system for computing with Tarski formulas and semi-algebraic sets.<br><br></div>
+             <form>
+                 <input id="inputtext" name="inputtext" size=80 style="font-family: monospace;
+                 font-weight: bold; background-color: #ffe0e0">
+             </form>
+             <div>
+                 <input type="checkbox" id="clearinput" name="clearinput" checked="checked">
+                 <label for="clearinput">Clear input bar after each computation</label>
+             </div>
+             <div>Set number of cells to <input id="numcells" name="numcells" size="8" value="50000000">
+                 and timeout to <input id="timeout" name="timeout" size="1" value="5"> and
+                 <button type="button" onclick="reinit()">reinitialize</button>
+             </div>
+             <div>
+                 <input type="checkbox" id="showtutorial" name="showtutorial" onclick="tutorial()">
+                 <label for="showtutorial">Show tutorial</label>
+             </div>
+
+         </center>
+
+         <script type="text/javascript">
+         // sampleinput = "(qepcad-api-call [ex x [x>0] ])";
+         // sampleinput = "(help)";
+         sampleinput = "";
+         function myinit() {
+
+             document.getElementById('inputtext').addEventListener('keypress', function(event) {
+                 if (event.keyCode == 13) {
+                     event.preventDefault();
+                     compute();
+                     }
+                 });
+             var input = document.getElementById("inputtext");
+             input.value = sampleinput;
+             input.focus();
+             }
+         function compute() {
+             var input = document.getElementById("inputtext");
+             var outputtext = document.getElementById("outputtext");
+             outputtext.insertAdjacentHTML('beforeend', "&gt; <b>" + input.value + "</b><br>");
+             try {
+                 output = TARSKIEVAL(input.value);
+                 }
+             catch (error) {
+                 output = colorize("Sorry, an internal error is occurred.", "red") + "<br>";
+                 outputtext.scrollTop = 99999;
+                 outputtext.insertAdjacentHTML('beforeend', output);
+                 var clearinput = document.getElementById("clearinput");
+                 if (clearinput.checked) input.value = '';
+                 return; // don't continue
+                 }
+             var lines = output.split(/\n/);
+             var noLines = lines.length;
+             var prevLine = "";
+             for (var i = 0; i < noLines; i++) {
+                 var c = "";
+                 line = lines[i].replaceAll("<", "&lt;");
+                 if (line.endsWith(":tar")) c = "#000000";
+                 if (line.endsWith(":boo")) c = "#200000";
+                 if (line.endsWith(":alg")) c = "#0000c0";
+                 if (line.endsWith(":num")) c = "#c000c0";
+                 if (line.endsWith(":fun")) c = "#d0d000";
+                 if (line.endsWith(":clo")) c = "#c0c000";
+                 if (line.endsWith(":void")) c = "#c0c0c0";
+                 if (line.endsWith(":sym")) c = "#0080c0";
+                 if (line.endsWith(":str")) c = "#8080c0";
+                 if (line.endsWith(":err")) c = "#c00000";
+                 if (line.endsWith(":ext")) c = "#ffff00";
+
+                 prevLine += line;
+
+                 if (c != "") {
+                    prevLine = colorize(prevLine, c);
+                    outputtext.insertAdjacentHTML('beforeend', prevLine + "<br>");
+                    prevLine = "";
+                    }
+                 else { // No end indicating the data type is detected.
+                    // We assume this is a multi-line output.
+                    prevLine += "<br>";
+                    }
+                 }
+             if (prevLine != "" && prevLine != "<br>") { // flush buffer (without <br>)
+                 outputtext.insertAdjacentHTML('beforeend', prevLine);
+                 }
+
+             outputtext.scrollTop = 99999;
+             var clearinput = document.getElementById("clearinput");
+             if (clearinput.checked) input.value = '';
+             }
+         function colorize(string, color) {
+             return '<span style="color: ' + color + '">' + string + '</span>';
+             }
+         function reinit() {
+             var numcells = document.getElementById("numcells").value;
+             var timeout = document.getElementById("timeout").value;
+             var outputtext = document.getElementById("outputtext");
+
+             try {
+                 TARSKIEND();
+                 TARSKIINIT(numcells, timeout);
+                 outputtext.insertAdjacentHTML('beforeend', "Restart succeeded.<br>");
+                 }
+             catch (error) {
+                 outputtext.insertAdjacentHTML('beforeend', colorize("Sorry, an internal error is occurred. Please try to reload the page.", "red") + "<br>");
+                 }
+
+             outputtext.scrollTop = 99999;
+             }
+         function tutorial() {
+             var showtutorial = document.getElementById("showtutorial").checked;
+             var tutorial = document.getElementById("tutorial");
+             tutorial.hidden = !showtutorial;
+             }
+         function t(command) {
+             var input = document.getElementById("inputtext");
+             input.value = command;
+             input.focus();
+             compute();
+         }
+
+
+         </script>
+
+    <div id="tutorial" name="tutorial" hidden="true" style="width:650px; margin:auto">
+    <hr>
+    <div>Try the following simple inputs by clicking on them:</div>
+    <ul>
+     <li>Find a quantifier-free equivalent form on the solvability of a quadratic equation:<br>
+        <span style="cursor: pointer; background-color: #ffe0e0;
+        font-family: monospace; font-weight: bold"
+        onclick='t("(qepcad-api-call [ex x [a x^2 + b x + c = 0]])")'>(qepcad-api-call
+        [ex x [a x^2 + b x + c = 0]])</span>
+     <li>Prove that the function 𝑦=𝑥² diverges to infinity if 𝑥 tends to infinity:<br>
+        <span style="cursor: pointer; background-color: #ffe0e0;
+        font-family: monospace; font-weight: bold"
+        onclick='t("(qepcad-api-call [all M [ ex N [all x [x > N impl x^2 > M]]]])")'>(qepcad-api-call
+        [all M [ ex N [all x [x > N impl x^2 > M]]]])</span>
+     <li>Solve a system of inequalities:<br>
+        <span style="cursor: pointer; background-color: #ffe0e0;
+        font-family: monospace; font-weight: bold"
+        onclick='t("(qepcad-api-call [ex y [y > x^2 - 3 /\\ y < 2 - x - x^3]])")'>(qepcad-api-call
+        [ex y [y > x^2 - 3 /\ y < 2 - x - x^3]])</span>
+     <li>Negate the statement that the sequence 1/𝑛 converges to 0:<br>
+        <span style="cursor: pointer; background-color: #ffe0e0;
+        font-family: monospace; font-weight: bold"
+        onclick='t("(t-neg [all epsilon [epsilon > 0 impl ex N [ n > N impl 1 < n*epsilon]]])")'>(t-neg
+        [all epsilon [epsilon > 0 impl ex N [ n > N impl 1 < n*epsilon]]])</span>
+     <li>Try the SVG export example from Tarski's homepage (all statements on a single line):<br>
+        <span style="cursor: pointer; background-color: #ffe0e0;
+        font-family: monospace; font-weight: bold"
+        onclick='t("(def F1 [ y > -x (x - 1) /\\ (x - 1/3)^2 + y^2 < (1/2)^2 ]) (def R1 (SAT-NuCADConjunction F1)) (head R1) (def F2 [ y > -x (x - 1) /\\ (x - 1/3)^2 + y^2 < (1/8)^2 ]) (def R2 (SAT-NuCADConjunction F2)) (head R2) (def F [ y > -x (x - 1) /\\ (x - c)^2 + y^2 < r^2 /\\ r > 0 ]) (def D (make-NuCADConjunction &#39;(c r x y) &#39;(0 0 0 0) F)) (msg D &#39;project 2) (msg D &#39;plot-leaves \"-1 1 -1 1 500 500\" \"C\" \"/dev/stdout\")")'>(def
+        F1 [ y > -x (x - 1) /\ (x - 1/3)^2 + y^2 &lt; (1/2)^2 ])<br>
+        (def R1 (SAT-NuCADConjunction F1)) (head R1)<br>
+        (def F2 [ y > -x (x - 1) /\ (x - 1/3)^2 + y^2 &lt; (1/8)^2 ])<br>
+        (def R2 (SAT-NuCADConjunction F2)) (head R2)<br>
+        (def F [ y > -x (x - 1) /\ (x - c)^2 + y^2 &lt; r^2 /\ r > 0 ])<br>
+        (def D (make-NuCADConjunction '(c r x y) '(0 0 0 0) F)) (msg D 'project 2)<br>
+        (msg D 'plot-leaves "-1 1 -1 1 500 500" "C" "/dev/stdout")</span><br>
+        When the computation is finished, copy the output string
+        <tt><i>&lt;!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" … &lt;/svg></i></tt>
+        and paste it into <a href="https://www.svgviewer.dev/">svgviewer.dev</a>.
+     <li>Show all available commands: <span style="cursor: pointer; background-color: #ffe0e0;
+        font-family: monospace; font-weight: bold"
+        onclick='t("(help)")'>(help)</span>
+     <li>Get an error message: <span style="cursor: pointer; background-color: #ffe0e0;
+        font-family: monospace; font-weight: bold"
+        onclick='t("Hey!")'>Hey!</span>
+     <li>Alternatively, <a target="_blank" href="https://github.com/kovzol/tarski/releases">download</a> and start an even
+        faster native version.<br>If you are familiar with Linux:<br>
+      <a href="https://snapcraft.io/tarski"><img style="height: 32px" alt="Get it from the Snap Store"
+       src="https://snapcraft.io/static/images/badges/en/snap-store-white.svg" /></a>
+    </ul>
+    </div>
+    </body>
+</html>
+

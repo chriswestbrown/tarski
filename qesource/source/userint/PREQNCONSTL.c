@@ -73,7 +73,7 @@ Return: /* Prepare for return. */
 
 Word POLYLABEL(Word P, Word p, Word r, Word *t)
 {
-  Word P_r, Pp, pp;
+  Word P_r, Pp, pp = NIL;
 
   for(; PDEG(p) == 0; r--)
     p = SECOND(p);

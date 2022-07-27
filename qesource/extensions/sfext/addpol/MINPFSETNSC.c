@@ -40,7 +40,7 @@ Word MINPFSETNSC(Word P,Word S,Word D,Word K)
       Word x_s,js,Ls,O,Q,Q_i,Sp,Pp,i,Cp,*V,*Vp,**A,a,N,k,S_r,I,j,p;
 
 Step1: /* Initialization. */
-      C = NIL; Sltr = NIL; Pltr = NIL; N = LENGTH(K);
+      C = NIL; Sltr = NIL; S_r = NIL; Pltr = NIL; N = LENGTH(K);
 
 Step2: /* Loop over each level in D. */
       for(r = 1; r <= N; r++) {

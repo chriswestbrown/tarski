@@ -719,7 +719,7 @@ limit-entry-db 6 abcde m
 @
 limit-entry-db NNN
 
-Only when the actual computation took longer than NNN miliseconds,
+Only when the actual computation took longer than NNN milliseconds,
 its results are stored into a database.
 @
 

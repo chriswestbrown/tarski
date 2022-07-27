@@ -27,6 +27,7 @@ void AFUPMPR(Word M, Word I, Word B, Word J, Word L, Word *Js_, Word *j_)
        /* hide L1,Lp,j,jp,s,t,v,vp; */
 
 Step1: /* Initialize. */
+       j = 0;
        FIRST2(J,&a,&b);
        t = AFUPSR(M,I,B,b);
        if (t == 0)

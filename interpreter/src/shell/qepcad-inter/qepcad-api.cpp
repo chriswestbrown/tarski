@@ -11,12 +11,13 @@ namespace tarski {
     // Convert from Unnormalized QEPCAD formula to string
     ostringstream OTS;
     ::PushOutputContext(OTS);
-    ::QFFWR(V,F);
+    try { ::QFFWR(V,F); } catch(exception &e) { ::PopOutputContext(); throw e; }
     ::PopOutputContext();
     return OTS.str();
   }
 
   SRef qepcadAPICall(std::string &input, char formType) {
+    //cerr << std::endl << input << std::endl << std::endl;
     string str_F = input;
     string res;
     string assumptionsAsUsed;
@@ -33,20 +34,22 @@ namespace tarski {
       ostringstream sout;
       ::PushInputContext(sin);
       ::PushOutputContext(sout);
-      ::INPUTRD(&Fs,&V);
+      try { ::INPUTRD(&Fs,&V); } catch(exception &e)
+      { ::PopOutputContext(); ::PopInputContext(); throw TarskiException("qepcad-api fail (INPUTRD)"); }
       ::PopOutputContext();
       ::PopInputContext();
 
       // Initialize QEPCAD problem
       QepcadCls Q;
       Q.SETINPUTFORMULA(V,Fs);
-  
+
       // Create CAD & get simplified equivalent formula
       ostringstream warningsAndErrors;
       std::stringstream rest;
       rest << sin.rdbuf();
       ::PushOutputContext(warningsAndErrors);
-      Q.CADautoConst(rest.str());
+      try { Q.CADautoConst(rest.str()); } catch(exception &e)
+      { ::PopOutputContext(); throw TarskiException("qepcad-api fail (CADautoConst)"); }
       ::PopOutputContext();
 
       // Output
@@ -75,7 +78,7 @@ namespace tarski {
     }
     catch(QepcadException &e) { res = string("Error! ") + e.what(); errorFlag = true; }
     catch(exception &e) { res = string("Error! Exception!"); errorFlag = true; }
-  
+
     // clean it all up
     ENDQEPCAD();
     if (errorFlag) { return new ErrObj(res); }

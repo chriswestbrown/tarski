@@ -109,7 +109,7 @@ Step2: /* Get a new character. */
 Step3: /* End of file. */
        if (C == EOF)
        {
-#ifdef _EMCC2_
+#if defined(_EMCC2_) || defined(NO_READLINE)
 	 PushInputContext(std::cin);
 #else
 	 cerr << "\007\007\007";

@@ -511,7 +511,7 @@ void VERTFILL2D(Word D)
   Word L, S, T, CB;
 
   /* GET 1D CAD STACK */
-  L = L = LELTI(D,CHILD);
+  L = LELTI(D,CHILD);
   if (L == NIL)
   {
     SWRITE("Must by a 2D CAD!\n");

@@ -27,6 +27,8 @@ void QepcadCls::QEPCADauto(Word Fs, Word *t_, Word *F_e_, Word *F_n_, Word *F_s_
        char c1,c2; /* Chris variables. */
 
 Step1: /* Normalize. */
+       t = -1;
+       F_e = F_n = F_s = NIL;
        FIRST4(Fs,&r,&f,&Q,&Fh);
        F = NORMQFF(Fh);
        if (GVUA != NIL) GVNA = NORMQFF(GVUA);
