@@ -1,5 +1,5 @@
 #!/bin/sh
-# This is a regression test suite for Tarski.
+# This is a regression test suite for Tarski. Make sure you compile Tarski with readline support first.
 #
 # 1. Create your input files *.in in arbitrary subfolders (do not use timestamps for subfolder names).
 # 2. Run `./regression` to automatically create *.out files for each input. This may take a while...
