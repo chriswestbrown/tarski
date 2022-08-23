@@ -20,6 +20,7 @@ SILENT=0
 FOLDER=.
 NUMCELLS=50000000
 OUTPUTDIR=""
+QUIT=0
 
 # Platform detection
 PLATFORM=`uname -s`
@@ -71,6 +72,7 @@ usage() {
  echo "   -I           run infeasible tests also (listed in file infeasible.txt)"
  echo "   -A           run ambiguous tests also (listed in file ambiguous.txt)"
  echo "   -s           be silent: do not exit with error code when there is a regression"
+ echo "   -Q           exit immediately if error 11 is occurred"
  echo "   -S <number>  set regression output directory to the given number"
  echo "   -t <number>  timeout: exit from a single test after the given number of seconds ($TIMEOUT)"
  echo "   -b <path>    use the given binary for testing ($BINARY)"
@@ -80,10 +82,13 @@ usage() {
  exit 0
  }
 
-while getopts "t:T:b:n:S:rfhHIAs" OPT; do
+while getopts "t:T:b:n:S:rfhHIAsQ" OPT; do
  case $OPT in
   s)
    SILENT=1
+   ;;
+  Q)
+   QUIT=1
    ;;
   r)
    REGRESSION=1
@@ -207,6 +212,9 @@ find $FOLDER -name '*.in' | sort | while read IN; do
      cat $SAVEDIR/.stderr | head -n -$TIMEHEAD >> $SAVEDIR/$OUT
      fi
     log "Process exited with error $RETVAL"
+    if [ $RETVAL = 11 -a $QUIT = 1 ]; then
+     exit 1
+     fi
     fi
    if [ "$REGRESSION" = 1 ]; then
     TESTOK=1 # being optimistic
