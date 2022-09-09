@@ -11,8 +11,9 @@ externalQepcadRoot=""
 ### Use "READLINE=0 ./build.sh" if you want to omit readline support.
 ### Use "MAKEOPT=-j4 ./build.sh" to use 4 cores on compilation (only for Tarski, not for QEPCAD).
 
-### Tarski may crash in certain cases. To avoid that, consider compiling Saclib without optimization:
-### sed -i s/-O3// saclib2.2.8/bin/mklib # do NOT optimize Saclib (recommended on Linux and Windows)
+### Tarski may crash in certain cases. To avoid that, consider compiling the tool without certain optimizations:
+### sed -i s/-O3/"-fno-ipa-pure-const -fno-inline-small-functions -fno-inline-functions-called-once"/ saclib2.2.8/bin/mklib # optimize Saclib carefully (recommended on Linux/gcc)
+### sed -i s/-O3// saclib2.2.8/bin/mklib # do NOT optimize Saclib (recommended on Windows)
 ### sed -i s/-O3// qesource/Makefile     # do NOT optimize QEPCAD (recommended on Windows 64-bit)
 ### sed -i s/-O3// interpreter/Makefile  # do NOT optimize Tarski (recommended on Windows 64-bit)
 

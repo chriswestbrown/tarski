@@ -34,7 +34,7 @@ parts:
     source: https://github.com/kovzol/tarski.git
     plugin: dump
     override-build: |
-      sed -i s/-O3// saclib2.2.8/bin/mklib # do NOT optimize Saclib
+      sed -i s/-O3/"-O3 -fno-ipa-pure-const -fno-inline-small-functions -fno-inline-functions-called-once"/ saclib2.2.8/bin/mklib # optimize Saclib carefully
       STATIC=1 ./build.sh
       strip interpreter/bin/tarski
       strip qesource/source/qepcad
