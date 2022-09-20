@@ -196,7 +196,7 @@ if [ "$WEB" = 1 ]; then
 TESTCASES=`find $FOLDER -name '*.in' | grep -v node_modules | wc -l | awk '{print $1}'`
 I=0
 IGNORED=0
-find $FOLDER -name '*.in' | sort | while read IN; do
+find $FOLDER -name '*.in' | grep -v node_modules | sort | while read IN; do
  I=$((I+1))
  INDIRNAME=`dirname $IN`
  TESTNAME="$INDIRNAME"/`basename $IN .in`
