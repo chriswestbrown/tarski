@@ -21,6 +21,7 @@ FOLDER=.
 NUMCELLS=50000000
 OUTPUTDIR=""
 QUIT=0
+WEB=0
 
 # Platform detection
 PLATFORM=`uname -s`
@@ -75,14 +76,15 @@ usage() {
  echo "   -Q           exit immediately if error 11 is occurred"
  echo "   -S <number>  set regression output directory to the given number"
  echo "   -t <number>  timeout: exit from a single test after the given number of seconds ($TIMEOUT)"
- echo "   -b <path>    use the given binary for testing ($BINARY)"
+ echo "   -b <path>    use the given binary (or .js) for testing ($BINARY)"
+ echo "   -w           test the web version"
  echo "   -T <folder>  run tests only in folder"
  echo "   -n <cells>   invoke Tarski with +Ncells ($NUMCELLS)"
  echo "   -h           show this help"
  exit 0
  }
 
-while getopts "t:T:b:n:S:rfhHIAsQ" OPT; do
+while getopts "t:T:b:n:S:rfhHIAsQw" OPT; do
  case $OPT in
   s)
    SILENT=1
@@ -92,6 +94,13 @@ while getopts "t:T:b:n:S:rfhHIAsQ" OPT; do
    ;;
   r)
    REGRESSION=1
+   ;;
+  w)
+   WEB=1
+   if [ "$PLATFORM" = Darwin ]; then
+    echo "Cannot run the web version on Mac, sorry..."
+    exit 1
+    fi
    ;;
   f)
    OVERWRITE=1
@@ -132,7 +141,7 @@ export BINARY # for the awk script below (intelligent diff)
 # Put name of the filters into $@
 shift $((OPTIND-1))
 
-test -x $BINARY || {
+test -r $BINARY || {
  echo "Cannot find $BINARY"
  exit 2
  }
@@ -148,6 +157,40 @@ if [ "$REGRESSION" = 1 ]; then
  echo 0 > $SAVEDIR/.good
  echo 0 > $SAVEDIR/.bad
  echo 0 > $SAVEDIR/.ignored
+ fi
+
+if [ "$WEB" = 1 ]; then
+ # Prepare the web version...
+ WEBDIR=web.tmp
+ # rm -fr $WEBDIR
+ mkdir -p $WEBDIR
+ echo "Tarski().then(function(Module) {
+ var numcells = $NUMCELLS;
+ var timeout = $TIMEOUT;
+ TARSKIINIT = Module.cwrap(\"TARSKIINIT\", 'void', ['number', 'number']);
+ TARSKIEVAL = Module.cwrap(\"TARSKIEVAL\", \"string\", [\"string\"]);
+ TARSKIEND = Module.cwrap(\"TARSKIEND\", \"void\", []);
+ TARSKIINIT(numcells, timeout);
+ myinit(); // Start your program in the function myinit()...
+});" > $WEBDIR/tarski-loader.js
+ cp $BINARY $WEBDIR
+ echo "const puppeteer = require('puppeteer');
+  const path = require('path');
+  (async() => {
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+  await page.goto(\`file:\${path.join(__dirname, 'test.html')}\`, {waitUntil: 'networkidle2'});
+  page.waitForSelector('#finished', {timeout: ${TIMEOUT}000, visible: true});
+  const result = await page.\$eval(\"div#result\", (el) => el.innerHTML);
+  const timing =  await page.\$eval(\"div#timing\", (el) => el.innerHTML);
+  console.log(timing);
+  console.log(result);
+  await browser.close();
+  })();" > $WEBDIR/tester.js
+ cd $WEBDIR
+ mkdir -p node_modules
+ npm i --silent --save puppeteer # Install Puppeteer...
+ cd ..
  fi
 
 TESTCASES=`find $FOLDER -name '*.in' | wc -l | awk '{print $1}'`
@@ -181,31 +224,69 @@ find $FOLDER -name '*.in' | sort | while read IN; do
    INFILE=`mktemp`
    test -r $INDIRNAME/.preamble && cat $INDIRNAME/.preamble >> $INFILE
    FILTER=...
-   test -r "$INDIRNAME"/.filter && FILTER=`cat "$INDIRNAME"/.filter`
+   if [ "$WEB" = 0 ]; then
+    test -r "$INDIRNAME"/.filter && FILTER=`cat "$INDIRNAME"/.filter` # For the web version this is disabled.
+    fi
    export FILTER
    # This is extremely hacky. See https://www.gnu.org/software/gawk/manual/html_node/Gory-Details.html
    cat $IN | sed s/"&"/"\\\\&"/g | awk '{filter=ENVIRON["FILTER"]; sub(/\.\.\./, $0, filter); print filter}' >> $INFILE
-   if [ "$PLATFORM" != Darwin ]; then
-    /usr/bin/time timeout -k $((TIMEOUT+2)) $TIMEOUT $BINARY +N$NUMCELLS $INFILE > $SAVEDIR/$OUT.tmp 2> $SAVEDIR/.stderr
-   else
-    /usr/bin/time timeout $TIMEOUT $BINARY +N$NUMCELLS $INFILE > $SAVEDIR/$OUT.tmp 2> $SAVEDIR/.stderr
-    fi
-   cat $SAVEDIR/$OUT.tmp | grep -v ^\> | grep -v ^\$ > $SAVEDIR/$OUT # remove input echoes, and empty lines (Mac)
-   rm $SAVEDIR/$OUT.tmp # cleaning up
-   TIME=`cat $SAVEDIR/.stderr | tail -$TIMEHEAD | head -1 | cut -f1 -du`
-   RETVAL=0
-   ERROR=""
-   if [ "$PLATFORM" != Darwin ]; then
-    cat $SAVEDIR/.stderr | head -n -$TIMEHEAD | grep --silent terminated && { # "Command terminated with signal 11" (for example)
-     ERROR=`cat $SAVEDIR/.stderr | head -n -$TIMEHEAD | grep -v terminated`
-     RETVAL=`cat $SAVEDIR/.stderr | head -n -$TIMEHEAD | grep terminated | cut -f5 -d" "` # 11
-     }
-   else # head -n -... is not supported
-    cat $SAVEDIR/.stderr | grep terminated && { # "Command terminated with signal 11" (for example)
-     ERROR=?
-     RETVAL=`cat $SAVEDIR/.stderr | grep terminated | cut -f5 -d" "` # 11
-     }
-    fi
+   if [ "$WEB" = 1 ]; then
+    echo "<html><body><script src=\"tarski.js\"></script>
+     <script src=\"tarski-loader.js\"></script>
+     <div id=\"status\">start</div><div id=\"result\">none</div><div id=\"timing\">none</div>
+     <div id=\"finished\" style=\"display:none\">computation ended</div>
+     <script>function myinit() {
+     var start = Date.now();
+     document.getElementById(\"status\").innerHTML = \"computing\";
+     var output1 = TARSKIEVAL(\`" > $WEBDIR/test.html
+     cat $INFILE | sed s/display// | sed s/"\\\\"/"\\\\\\\\"/g >> $WEBDIR/test.html
+     echo "\`);
+     var output2 = output1.split(\"\\\\n\");
+     var output = \"\";
+     for (i=0; i<output2.length; i++) {
+       if (output2[i].endsWith(\":tar\"))
+         output += output2[i].substring(0,output2[i].length-4);
+       }
+     var delta = Date.now() - start;
+     document.getElementById(\"status\").innerHTML = \"finished\";
+     document.getElementById(\"result\").innerHTML = output;
+     document.getElementById(\"timing\").innerHTML = delta;
+     document.getElementById(\"finished\").style.display = \"block\";
+     }</script></body></html>" >> $WEBDIR/test.html
+    cd $WEBDIR
+    timeout -k $((TIMEOUT+2)) $TIMEOUT node tester.js 2>/dev/null | sed s/"&gt;"/">"/g | sed s/"&lt;"/"<"/g > output.tmp
+    cd ..
+    RETVAL=$?
+    TIME=$TIMEOUT
+    TIMEMS=`head -1 $WEBDIR/output.tmp`
+    if [ "$TIMEMS" != "" ]; then
+     TIME=`echo "scale=3; $TIMEMS/1000" | bc -q`
+     fi
+    cat $WEBDIR/output.tmp | tail -n +2 > $SAVEDIR/$OUT
+    ERROR=""
+   else # WEB = 1
+    if [ "$PLATFORM" != Darwin ]; then
+     /usr/bin/time timeout -k $((TIMEOUT+2)) $TIMEOUT $BINARY +N$NUMCELLS $INFILE > $SAVEDIR/$OUT.tmp 2> $SAVEDIR/.stderr
+    else
+     /usr/bin/time timeout $TIMEOUT $BINARY +N$NUMCELLS $INFILE > $SAVEDIR/$OUT.tmp 2> $SAVEDIR/.stderr
+     fi
+    cat $SAVEDIR/$OUT.tmp | grep -v ^\> | grep -v ^\$ > $SAVEDIR/$OUT # remove input echoes, and empty lines (Mac)
+    rm $SAVEDIR/$OUT.tmp # cleaning up
+    TIME=`cat $SAVEDIR/.stderr | tail -$TIMEHEAD | head -1 | cut -f1 -du`
+    RETVAL=0
+    ERROR=""
+    if [ "$PLATFORM" != Darwin ]; then
+     cat $SAVEDIR/.stderr | head -n -$TIMEHEAD | grep --silent terminated && { # "Command terminated with signal 11" (for example)
+      ERROR=`cat $SAVEDIR/.stderr | head -n -$TIMEHEAD | grep -v terminated`
+      RETVAL=`cat $SAVEDIR/.stderr | head -n -$TIMEHEAD | grep terminated | cut -f5 -d" "` # 11
+      }
+    else # head -n -... is not supported
+     cat $SAVEDIR/.stderr | grep terminated && { # "Command terminated with signal 11" (for example)
+      ERROR=?
+      RETVAL=`cat $SAVEDIR/.stderr | grep terminated | cut -f5 -d" "` # 11
+      }
+     fi
+    fi # WEB != 1
    rm $INFILE
    if [ $RETVAL != 0 ]; then
     if [ "$REGRESSION" = 1 ]; then
