@@ -181,6 +181,7 @@ if [ "$WEB" = 1 ]; then
   (async() => {
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
+  page.on('pageerror', pageerr=> { console.log('ERROR'); console.log(pageerr); });
   await page.goto(\`file:\${path.join(__dirname, 'test.html')}\`, {waitUntil: 'networkidle2'});
   page.waitForSelector('#finished', {timeout: ${TIMEOUT}000, visible: true});
   const result = await page.\$eval(\"div#result\", (el) => el.innerHTML);
@@ -264,13 +265,18 @@ find $FOLDER -name '*.in' | grep -v node_modules | sort | while read IN; do
      fi
     cd ..
     TIME=$TIMEOUT
+
+    cat $WEBDIR/output.tmp | head -1 | grep --silent ERROR && { # A JavaScript error occured. That can happen.
+      RETVAL=`cat $WEBDIR/output.tmp | head -2 | tail -1`...]
+     }
+
     TIMEMS=`head -1 $WEBDIR/output.tmp`
     if [ "$TIMEMS" != "" ]; then
      TIME=`echo "scale=3; $TIMEMS/1000" | bc -q`
      fi
     cat $WEBDIR/output.tmp | tail -n +2 | grep -v '^$' > $SAVEDIR/$OUT # empty lines will be removed from output
     ERROR=""
-   else # WEB = 1
+   else # WEB != 1
     if [ "$PLATFORM" != Darwin ]; then
      /usr/bin/time timeout -k $((TIMEOUT+2)) $TIMEOUT $BINARY +N$NUMCELLS $INFILE > $SAVEDIR/$OUT.tmp 2> $SAVEDIR/.stderr
     else
@@ -294,12 +300,12 @@ find $FOLDER -name '*.in' | grep -v node_modules | sort | while read IN; do
      fi
     fi # WEB != 1
    rm $INFILE
-   if [ $RETVAL != 0 ]; then
-    if [ "$REGRESSION" = 1 ]; then
+   if [ "$RETVAL" != 0 ]; then
+    if [ "$REGRESSION" = 1 -a $WEB = 0 ]; then
      cat $SAVEDIR/.stderr | head -n -$TIMEHEAD >> $SAVEDIR/$OUT
      fi
     log "Process exited with error $RETVAL"
-    if [ $RETVAL = 11 -a $QUIT = 1 ]; then
+    if [ "$RETVAL" = 11 -a $QUIT = 1 ]; then
      exit 1
      fi
     fi
