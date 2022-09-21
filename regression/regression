@@ -1,5 +1,7 @@
 #!/bin/sh
-# This is a regression test suite for Tarski. Make sure you compile Tarski with readline support first.
+# This is a regression test suite for Tarski.
+# Make sure you compile Tarski with readline support first (for the native version)
+# or compile the JavaScript version.
 #
 # 1. Create your input files *.in in arbitrary subfolders (do not use timestamps for subfolder names).
 # 2. Run `./regression` to automatically create *.out files for each input. This may take a while...
@@ -233,7 +235,7 @@ find $FOLDER -name '*.in' | grep -v node_modules | sort | while read IN; do
    if [ "$WEB" = 1 ]; then
     echo "<html><body><script src=\"tarski.js\"></script>
      <script src=\"tarski-loader.js\"></script>
-     <div id=\"status\">start</div><div id=\"result\">none</div><div id=\"timing\">none</div>
+     <div id=\"status\">start</div><div id=\"result\"></div><div id=\"timing\">none</div>
      <div id=\"finished\" style=\"display:none\">computation ended</div>
      <script>function myinit() {
      var start = Date.now();
@@ -254,15 +256,19 @@ find $FOLDER -name '*.in' | grep -v node_modules | sort | while read IN; do
      document.getElementById(\"finished\").style.display = \"block\";
      }</script></body></html>" >> $WEBDIR/test.html
     cd $WEBDIR
-    timeout -k $((TIMEOUT+2)) $TIMEOUT node tester.js 2>/dev/null | sed s/"&gt;"/">"/g | sed s/"&lt;"/"<"/g > output.tmp
-    cd ..
+    timeout -k $((TIMEOUT+10)) $((TIMEOUT+2)) node tester.js 2>/dev/null | sed s/"&gt;"/">"/g | sed s/"&lt;"/"<"/g > output.tmp
     RETVAL=$?
+    if [ $RETVAL = 124 -o $RETVAL = 137 ]; then
+     # The TERM or KILL signal was required to stop the process. That's bad.
+     RETVAL=11 # We handle this equivalently to a signal 11 in the native version.
+     fi
+    cd ..
     TIME=$TIMEOUT
     TIMEMS=`head -1 $WEBDIR/output.tmp`
     if [ "$TIMEMS" != "" ]; then
      TIME=`echo "scale=3; $TIMEMS/1000" | bc -q`
      fi
-    cat $WEBDIR/output.tmp | tail -n +2 > $SAVEDIR/$OUT
+    cat $WEBDIR/output.tmp | tail -n +2 | grep -v '^$' > $SAVEDIR/$OUT # empty lines will be removed from output
     ERROR=""
    else # WEB = 1
     if [ "$PLATFORM" != Darwin ]; then
