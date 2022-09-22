@@ -24,6 +24,8 @@ NUMCELLS=50000000
 OUTPUTDIR=""
 QUIT=0
 WEB=0
+SAMPLES=100 # Use so many startups of native Tarski to find its minimal startup time.
+STARTUPTIME=1000 # Be pessimistic.
 
 # Platform detection
 PLATFORM=`uname -s`
@@ -191,7 +193,20 @@ if [ "$WEB" = 1 ]; then
  mkdir -p node_modules
  npm i --silent --save puppeteer # Install Puppeteer...
  cd ..
- fi
+else
+ # Measure startup of the native version
+ for i in `seq 1 $SAMPLES`; do
+  /usr/bin/time $BINARY +N$NUMCELLS < /dev/null 2> /tmp/regression-time.tmp
+  TIME=`cat /tmp/regression-time.tmp | tail -$TIMEHEAD | head -1 | cut -f1 -du`
+  REGISTER=`echo "$TIME < $STARTUPTIME" | bc -q` # Decide by using bc
+  if [ $REGISTER = 1 ]; then
+   STARTUPTIME=$TIME
+   echo -n "\rStartup time of native Tarski will be assumed to be $STARTUPTIME"
+   fi
+  done
+ rm -f /tmp/regression-time.tmp
+ echo
+ fi # WEB = 1
 
 TESTCASES=`find $FOLDER -name '*.in' | grep -v node_modules | wc -l | awk '{print $1}'`
 I=0
@@ -284,6 +299,7 @@ find $FOLDER -name '*.in' | grep -v node_modules | sort | while read IN; do
     cat $SAVEDIR/$OUT.tmp | grep -v ^\> | grep -v ^\$ > $SAVEDIR/$OUT # remove input echoes, and empty lines (Mac)
     rm $SAVEDIR/$OUT.tmp # cleaning up
     TIME=`cat $SAVEDIR/.stderr | tail -$TIMEHEAD | head -1 | cut -f1 -du`
+    TIME=`echo "if ($TIME > $STARTUPTIME) ($TIME - $STARTUPTIME) else 0" | bc -q`
     RETVAL=0
     ERROR=""
     if [ "$PLATFORM" != Darwin ]; then
