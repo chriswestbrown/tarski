@@ -80,7 +80,7 @@ usage() {
  echo "   -t <number>  timeout: exit from a single test after the given number of seconds ($TIMEOUT)"
  echo "   -b <path>    use the given binary (or .js) for testing ($BINARY)"
  echo "   -w           test the web version"
- echo "   -T <folder>  run tests only in folder"
+ echo "   -T <folder>  run tests only in folder ($FOLDER)"
  echo "   -n <cells>   invoke Tarski with +Ncells ($NUMCELLS)"
  echo "   -h           show this help"
  exit 0
@@ -139,9 +139,6 @@ while getopts "t:T:b:n:S:rfhHIAsQw" OPT; do
 done
 
 export BINARY # for the awk script below (intelligent diff)
-
-# Put name of the filters into $@
-shift $((OPTIND-1))
 
 test -r $BINARY || {
  echo "Cannot find $BINARY"
@@ -247,6 +244,8 @@ find $FOLDER -name '*.in' | grep -v node_modules | sort | while read IN; do
      var output2 = output1.split(\"\\\\n\");
      var output = \"\";
      for (i=0; i<output2.length; i++) {
+       if (output2[i].includes(\"Exception\") || output2[i].includes(\"error\"))
+         output += output2[i];
        if (output2[i].endsWith(\":tar\"))
          output += output2[i].substring(0,output2[i].length-4);
        }
