@@ -1,0 +1,94 @@
+#!/bin/sh
+# This script is part of the regression test suite for Tarski.
+# See the script "regression" first. If two or more sets of outputs are already created,
+# use this script to get a comparison of them.
+
+OUTPUTDIRS=""
+LEGENDS=""
+REPORTDIR=report-`date +%Y-%m-%d-%T`
+FOLDER=.
+
+export LC_ALL=C
+
+usage() {
+ echo "$0 - compare two runs of the regression test suite for Tarski."
+ echo "Usage:"
+ echo " $0 [options]"
+ echo "  where options can be as follows (defaults in parentheses):"
+ echo "   -d <number1>,<number2>,...  set regression output directories to the given numbers, mandatory"
+ echo "   -l <string1>,<string2>,...  set legends for regression output directories (same as given for -d)"
+ echo "   -o <folder>                 generate output in folder ($REPORTDIR)"
+ echo "   -T <folder>                 take tests only from folder ($FOLDER)"
+ echo "   -h                          show this help"
+ exit 0
+ }
+
+while getopts "T:o:d:l:h" OPT; do
+ case $OPT in
+  d)
+   OUTPUTDIRS="$OPTARG"
+   ;;
+  l)
+   LEGENDS="$OPTARG"
+   ;;
+  o)
+   REPORTDIR="$OPTARG"
+   ;;
+  T)
+   FOLDER="$OPTARG"
+   ;;
+  h)
+   usage
+   ;;
+
+ esac
+done
+
+if [ "$OUTPUTDIRS" = "" ]; then
+ echo "Mandatory option -d was not given."
+ exit 1
+ fi
+
+if [ "$LEGENDS" = "" ]; then
+ LEGENDS="$OUTPUTDIRS"
+ fi
+
+mkdir -p $REPORTDIR
+
+CSV_UNION=$REPORTDIR/compare-union.csv
+CSV_INTERSECTION=$REPORTDIR/compare-intersection.csv
+echo "Test name,$LEGENDS" > $CSV_UNION
+echo "Test name,$LEGENDS" > $CSV_INTERSECTION
+OUTPUTDIRS_LIST=`echo $OUTPUTDIRS | tr , " "`
+find $FOLDER -name '*.in' | grep -v node_modules | sort | while read IN; do
+ TESTNAME=`dirname $IN`/`basename $IN .in`
+ CSVLINE="$TESTNAME"
+ KEEPLINE_UNION=1
+ KEEPLINE_INTERSECTION=1
+ for OUTPUTDIR in $OUTPUTDIRS_LIST; do
+  test -s $TESTNAME.out || { # This test has no official output (just a 0-length empty file). Ignore.
+   KEEPLINE_UNION=0
+   KEEPLINE_INTERSECTION=0
+   }
+  test -r $OUTPUTDIR/$TESTNAME.xml && { # Test output exists for OUTPUTDIR.
+   cat $OUTPUTDIR/$TESTNAME.xml | grep --silent failures=\"0\" && {
+    # Correct output.
+    CELL=`cat $OUTPUTDIR/$TESTNAME.xml | grep time= | head -1 | sed s/".*time=\"\([0-9.]*\)\".*"/"\\1/"`
+    } || {
+    # Incorrect output.
+    CELL=error
+    KEEPLINE_INTERSECTION=0
+    }
+   CSVLINE="$CSVLINE,$CELL"
+   } || { # Test output does not exist for OUTPUTDIR. Ignore this test.
+   KEEPLINE_UNION=0
+   KEEPLINE_INTERSECTION=0
+   }
+  done # end of row
+ if [ $KEEPLINE_UNION = 1 ]; then
+  echo $CSVLINE >> $CSV_UNION
+  fi
+ if [ $KEEPLINE_INTERSECTION = 1 ]; then
+  echo $CSVLINE >> $CSV_INTERSECTION
+  fi
+ done # end of table
