@@ -196,7 +196,7 @@ if [ "$WEB" = 1 ]; then
 else
  # Measure startup of the native version
  for i in `seq 1 $SAMPLES`; do
-  /usr/bin/time $BINARY +N$NUMCELLS < /dev/null 2> /tmp/regression-time.tmp
+  /usr/bin/time $BINARY +N$NUMCELLS < /dev/null > /dev/null 2> /tmp/regression-time.tmp
   TIME=`cat /tmp/regression-time.tmp | tail -$TIMEHEAD | head -1 | cut -f1 -du`
   REGISTER=`echo "$TIME < $STARTUPTIME" | bc -q` # Decide by using bc
   if [ $REGISTER = 1 ]; then

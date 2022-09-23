@@ -12,18 +12,18 @@ YFACTOR=8
 
 # R related settings (predefined colors and linetypes).
 # If there are more than 12 columns, this will not work. FIXME.
-R_COL[1]=blue;	R_LTY[1]=1
-R_COL[2]=red;	R_LTY[2]=1
-R_COL[3]=black;	R_LTY[3]=1
-R_COL[4]=black;	R_LTY[4]=2
-R_COL[5]=black;	R_LTY[5]=3
-R_COL[6]=red;	R_LTY[6]=2
-R_COL[7]=darkgreen;	R_LTY[7]=1
-R_COL[8]=darkgreen;	R_LTY[8]=2
-R_COL[9]=blue;	R_LTY[9]=2
-R_COL[10]=red;	R_LTY[10]=3
-R_COL[11]=blue;	R_LTY[11]=3
-R_COL[12]=darkgreen;	R_LTY[12]=3
+R_COL[1]=red;	R_LTY[1]=1
+R_COL[2]=blue;	R_LTY[2]=1
+R_COL[3]=darkgreen;	R_LTY[3]=1
+R_COL[4]=black;	R_LTY[4]=1
+R_COL[5]=red;	R_LTY[5]=2
+R_COL[6]=blue;	R_LTY[6]=2
+R_COL[7]=darkgreen;	R_LTY[7]=2
+R_COL[8]=black;	R_LTY[8]=2
+R_COL[9]=red;	R_LTY[9]=3
+R_COL[10]=blue;	R_LTY[10]=3
+R_COL[11]=darkgreen;	R_LTY[11]=3
+R_COL[12]=black;	R_LTY[12]=3
 
 export LC_ALL=C
 
@@ -168,5 +168,5 @@ for OUTPUTDIR in $OUTPUTDIRS_LIST; do
 echo "legend('center','groups',c($LEGENDLIST),lty=c($LTYSLIST),col=c($COLSLIST),ncol=2,bty=\"n\");" >> $R_PROG
 
 cd $REPORTDIR
-cat density-plot.r | R -q --save || echo "Missing installation of R, please install it first."
+cat density-plot.r | R -q --save || echo "Problem when running R, please check."
 cd ..
