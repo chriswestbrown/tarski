@@ -196,7 +196,7 @@ if [ "$WEB" = 1 ]; then
 else
  # Measure startup of the native version
  for i in `seq 1 $SAMPLES`; do
-  /usr/bin/time $BINARY +N$NUMCELLS < /dev/null 2> /tmp/regression-time.tmp
+  /usr/bin/time $BINARY +N$NUMCELLS < /dev/null > /dev/null 2> /tmp/regression-time.tmp
   TIME=`cat /tmp/regression-time.tmp | tail -$TIMEHEAD | head -1 | cut -f1 -du`
   REGISTER=`echo "$TIME < $STARTUPTIME" | bc -q` # Decide by using bc
   if [ $REGISTER = 1 ]; then
@@ -282,6 +282,9 @@ find $FOLDER -name '*.in' | grep -v node_modules | sort | while read IN; do
 
     cat $WEBDIR/output.tmp | head -1 | grep --silent ERROR && { # A JavaScript error occured. That can happen.
       RETVAL=`cat $WEBDIR/output.tmp | head -2 | tail -1`...]
+      if [ "$RETVAL" = "[Error: RuntimeError: memory access out of bounds...]" ]; then # signal 11...
+       RETVAL=11
+       fi
      }
 
     TIMEMS=`head -1 $WEBDIR/output.tmp`
