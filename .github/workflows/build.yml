@@ -128,7 +128,7 @@ jobs:
         sed -i 's|^CROSS_COMPILE.*$|CROSS_COMPILE=|g' Makefile
         emmake make build_generated libssl.a libcrypto.a
         cp -R include/openssl $EMSDK/upstream/emscripten/cache/sysroot/include
-        cp libcrypto.a libssl.a $EMSDK/upstream/emscripten/cache/sysroot/lib
+        cp libcrypto.a libssl.a $EMSDK/upstream/emscripten/system/lib
         cd ..
     - name: build
       run: |
