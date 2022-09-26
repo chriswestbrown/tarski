@@ -64,7 +64,7 @@ endif
 ifeq ($(PLATFORM),WASM)
 WASM_OPENSSL_INCLUDE=$(EMSDK)/upstream/emscripten/system/include
 WASM_OPENSSL_LIB=$(EMSDK)/upstream/emscripten/system/lib
-extIncludesMd5:=-I$(WASM_OPENSSL_INCLUDE)
+extIncludesMd5:=-Icache/sysroot/include -Icache/sysroot/include/openssl
 extLibMD5:=$(WASM_OPENSSL_LIB)/libssl.a $(WASM_OPENSSL_LIB)/libcrypto.a
 endif
 
