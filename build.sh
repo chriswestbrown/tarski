@@ -80,10 +80,10 @@ externalQepcadRoot=""
 ###
 ### * Linux, clang (version 14.0.0)
 ###
-### Safe optimizing is recommended via a careful configuration of optimization flags:
-###
 ### Example:
 ### sed -i s/-O3// interpreter/Makefile  # recommended on Linux, clang
+###
+### Safe optimizing is recommended via a careful configuration of optimization flags:
 ###
 ### * Windows, MSYS2, clang64 (version 13.0.1):
 ###   -O1
