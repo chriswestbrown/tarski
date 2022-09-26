@@ -127,8 +127,8 @@ jobs:
         emconfigure ./Configure linux-generic64 --prefix=$EMSDK/upstream/emscripten/system
         sed -i 's|^CROSS_COMPILE.*$|CROSS_COMPILE=|g' Makefile
         emmake make build_generated libssl.a libcrypto.a
-        cp -R include/openssl $EMSDK/upstream/emscripten/system/include
-        cp libcrypto.a libssl.a $EMSDK/upstream/emscripten/system/lib
+        cp -R include/openssl $EMSDK/upstream/emscripten/cache/sysroot/include
+        cp libcrypto.a libssl.a $EMSDK/upstream/emscripten/cache/sysroot/lib
         cd ..
     - name: build
       run: |
