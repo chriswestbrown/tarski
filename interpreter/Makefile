@@ -89,7 +89,7 @@ endif
 else
 # Otherwise, on WASM we use a different target suffix:
 TARGET_EXEC := tarski.js
-LDFLAGS += -s "EXTRA_EXPORTED_RUNTIME_METHODS=['cwrap']" -fexceptions -s ALLOW_MEMORY_GROWTH=1 -s SINGLE_FILE=1 -s MODULARIZE=1 -s EXPORT_NAME=Tarski -O3
+LDFLAGS += -s "EXTRA_EXPORTED_RUNTIME_METHODS=['cwrap']" -fwasm-exceptions -s ALLOW_MEMORY_GROWTH=1 -s SINGLE_FILE=1 -s MODULARIZE=1 -s EXPORT_NAME=Tarski -O3
 endif
 
 # On Mac and Windows MSYS2/CLANG* the rt library is not present, but otherwise it is necessary.
@@ -214,7 +214,7 @@ $(BUILD_DIR)/%.c.o: %.c
 CXXFLAGS += -fPIC
 ifeq ($(PLATFORM),WASM)
 CXXFLAGS += -s USE_ZLIB=1 -D_EMCC2_ -s EXPORTED_FUNCTIONS=[_TARSKIINIT,_TARSKIEVAL,_TARSKIEND] $(extIncludesMd5)
-CXXFLAGS += -s "EXTRA_EXPORTED_RUNTIME_METHODS=['cwrap']" -fexceptions -s ALLOW_MEMORY_GROWTH=1
+CXXFLAGS += -s "EXTRA_EXPORTED_RUNTIME_METHODS=['cwrap']" -fwasm-exceptions -s ALLOW_MEMORY_GROWTH=1
 endif
 
 # c++ source
