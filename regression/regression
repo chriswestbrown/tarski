@@ -157,8 +157,8 @@ if [ "$REGRESSION" = 1 ]; then
  mkdir -p $SAVEDIR
  echo 0 > $SAVEDIR/.good
  echo 0 > $SAVEDIR/.bad
- echo 0 > $SAVEDIR/.ignored
  fi
+echo 0 > $SAVEDIR/.ignored
 
 if [ "$WEB" = 1 ]; then
  # Prepare the web version...
@@ -195,17 +195,19 @@ if [ "$WEB" = 1 ]; then
  cd ..
 else
  # Measure startup of the native version
- for i in `seq 1 $SAMPLES`; do
-  /usr/bin/time $BINARY +N$NUMCELLS < /dev/null > /dev/null 2> /tmp/regression-time.tmp
-  TIME=`cat /tmp/regression-time.tmp | tail -$TIMEHEAD | head -1 | cut -f1 -du`
-  REGISTER=`echo "$TIME < $STARTUPTIME" | bc -q` # Decide by using bc
-  if [ $REGISTER = 1 ]; then
-   STARTUPTIME=$TIME
-   echo -n "\rStartup time of native Tarski will be assumed to be $STARTUPTIME"
-   fi
-  done
- rm -f /tmp/regression-time.tmp
- echo
+ if [ $REGRESSION = 1 ]; then
+  for i in `seq 1 $SAMPLES`; do
+   /usr/bin/time $BINARY +N$NUMCELLS < /dev/null > /dev/null 2> /tmp/regression-time.tmp
+   TIME=`cat /tmp/regression-time.tmp | tail -$TIMEHEAD | head -1 | cut -f1 -du`
+   REGISTER=`echo "$TIME < $STARTUPTIME" | bc -q` # Decide by using bc
+   if [ $REGISTER = 1 ]; then
+    STARTUPTIME=$TIME
+    echo -n "\rStartup time of native Tarski will be assumed to be $STARTUPTIME"
+    fi
+   done
+  rm -f /tmp/regression-time.tmp
+  echo
+  fi # REGRESSION = 1
  fi # WEB = 1
 
 TESTCASES=`find $FOLDER -name '*.in' | grep -v node_modules | wc -l | awk '{print $1}'`
