@@ -165,7 +165,7 @@ for OUTPUTDIR in $OUTPUTDIRS_LIST; do
  echo "par(new=TRUE);" >> $R_PROG
  done
 # Final R related computations
-echo "legend('center','groups',c($LEGENDLIST),lty=c($LTYSLIST),col=c($COLSLIST),ncol=2,bty=\"n\");" >> $R_PROG
+echo "legend('topright','groups',c($LEGENDLIST),lty=c($LTYSLIST),col=c($COLSLIST),ncol=2,bty=\"n\");" >> $R_PROG
 
 cd $REPORTDIR
 cat density-plot.r | R -q --save || echo "Problem when running R, please check."
