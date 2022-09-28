@@ -765,7 +765,7 @@ public:
 	else
 	{
 	  SRef f = interp->eval(interp->rootFrame,args[0]);
-	  if (f->type() == _err) { return new ErrObj("Name '" + args[0]->sym()->val + "' unkown in help!"); }
+	  if (f->type() == _err) { return new ErrObj("Name '" + args[0]->sym()->val + "' unknown in help!"); }
 	  int n =  f->type() == _fun ? -f->fun()->builtin : -1; 
 	  if (f->type() != _fun ||  n < interp->OFFSET || n >= interp->X.size())
 	  {
@@ -774,7 +774,7 @@ public:
 	  else
 	  {
 	    EICommand *p = interp->X[n];
-	    sout << p->name() << ", usage: " << p->usage() << "\n" << p->doc();
+	    sout << p->name() << ", usage: " << p->usage() << "\n" << p->doc() << "\n";
 	  }
 	}
 	writeToFit(sout.str(),cout,getTermWidth());
