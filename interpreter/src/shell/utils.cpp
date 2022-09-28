@@ -25,6 +25,12 @@ int getTermWidth()
   GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
   int cols = csbi.srWindow.Right - csbi.srWindow.Left + 1;
 #endif
+  if (cols == 0) {
+    cols = 80; // Set a default value if no meaningful data was obtained.
+    // This should never happen.
+    // But Emscripten-3.1.22 seems to optimize out the value of cols if it is
+    // not edited. So we do some dummy operation here to work around the issue.
+    }
   return cols;
 }
 
