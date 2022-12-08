@@ -918,7 +918,9 @@ public:
   }
   string doc() 
   {
-    return "TO APPEAR";
+    return "(collect-factors F), where F is a Tarski formula, \
+returns a list of the distinct irreducible factors of all the \
+polynomials appearing in F.";
   }
   string usage() { return "(collect-factors <tarski formula>)"; }
   string name() { return "collect-factors"; }
