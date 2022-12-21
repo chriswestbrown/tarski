@@ -18,6 +18,8 @@ class Mapper;
 
 /*************************************************************
  **  Class Rend_Cell
+ **  Note: child[0] is the -infty section and 
+ **        child[child.size()-1] is the +infty section
  *************************************************************/
 class Rend_Cell
 {
@@ -58,6 +60,9 @@ public:
   void out_descrip_ps_standard(Rend_Win &W, ostream &out, Mapper &M);
   void out_descrip_ps_raji(Rend_Win &W, ostream &out, Mapper &M);
   Word description(Rend_Win &W);
+  void out_descrip_svg_standard(Rend_Win &W, ostream &out, Mapper &M);
+  void svg_write_polyline(Rend_Win &W,ostream &out, Mapper &M, Word L, Word p);
+
 };
 
 

@@ -13,6 +13,7 @@ that the user will type in explicit values.  The 2D CAD plotting
 programs are then called.
 ======================================================================*/
 #include "rend.h"
+#include <cstring>
 
 void QepcadCls::PLOT2DCAD2FILE(Word D, Word P, Word J)
 {
@@ -22,7 +23,7 @@ Step0: /* Read user input */
 
   // Get basic info
   double x,X,y,Y,e;
-  int Id1 = 200, Id2 = 200;
+  int Id1 = 600, Id2 = 600;
   char S[40];
   singlelinestream lin(qein(),singlelinestream::skipleadingws);
   if (!(lin >> x >> X >> y >> Y >> e >> S)) {
@@ -70,13 +71,18 @@ Step3:/* Get a nice initial plot.                                   */
   Rend_Cell M;        /* M is the "mirror" CAD for plotting.    */
   CONMIRCAD(D,P,J,M,*this); /* This actually constructs M.            */
   Rend_Win W(M,Id1,Id2,Ix,IX,Iy,IY);
+  W.set_precis_faithfull();
   W.update_extents(M);
   L = W.get_lociva(M);
   FILL_2D(M,W,E,L,P);
   
 /********************************************************************/
-Step4: /* Produce plot! */  
-  WRITE_EPS(M,W,L,E,P,out,c,z);
+Step4: /* Produce plot! */
+  int n = strlen(S);
+  if (n > 4 && strcmp(S + (n - 4),".svg") == 0)
+    WRITE_SVG(M,W,L,E,P,out,c,z);
+  else
+    WRITE_EPS(M,W,L,E,P,out,c,z);
   out.close();
 
   return;

@@ -66,6 +66,8 @@ Word CH_VIEW_WIN(Rend_Cell &M, Rend_Win &W, Word Xs, Word Xt,
 Word CH_VIEW_WIN_COOR(Rend_Cell &M, Rend_Win &W, Word P, Word N,
 		 Word x,Word X, Word y, Word Y);
 void WRITE_PS(Rend_Cell &M, Rend_Win &W, Word L, Word e, Word P);
+void WRITE_SVG(Rend_Cell &M, Rend_Win &W, Word L, Word e, Word P, ostream &out, bool c, bool z);
+
 void WRITE_PS_COLOR(Rend_Cell &M, Rend_Win &W, Word L, Word e, Word P);
 void WRITE_PS_STANDARD(Rend_Cell &M, Rend_Win &W, Word L, Word e, Word P, Word Oflag = 0);
 void WRITE_PS_RAJI(Rend_Cell &M, Rend_Win &W, Word L, Word e, Word P, Word Oflag = 1);
