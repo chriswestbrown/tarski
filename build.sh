@@ -15,7 +15,7 @@ externalQepcadRoot=""
 ### Optimization issues
 ### -------------------
 ###
-### By default, Tarski optimizied fully via the optimization option -O3.
+### By default, Tarski will be optimized fully via the optimization option -O3.
 ### However, it may crash in certain cases. To avoid that, consider compiling the tool without certain optimizations.
 ### Tarski consists of three parts: Saclib (1), QEPCAD B (2), and the interpreter (3).
 ### These three parts may require special consideration.
