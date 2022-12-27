@@ -504,6 +504,90 @@ void Rend_Cell::out_descrip_ps_raji(Rend_Win &W,ostream &out, Mapper &M)
     
 }
 
+string svgClassChooser(Rend_Cell& c)
+{
+  switch(c.level) {
+  case 0: return "error";
+  case 1: {
+    string cls = "c";
+    return cls + (c.section ? "01" : "11") + (c.truth == FALSE ? "F" : (c.truth == TRUE ? "T" : "U"));
+  }    
+  case 2: {
+    string cls = "c";
+    return cls + (c.parent->section ? "0" : "1") + (c.section ? "0" : "1") + (c.truth == FALSE ? "F" : (c.truth == TRUE ? "T" : "U"));
+  }
+  default: return "error";
+  }
+}
+string svgIdChooser(Rend_Cell& c)
+{
+  switch(c.level) {
+  case 0: return "error";
+  case 1: {
+    string cls = "c";
+    return cls + "_" + to_string(c.index);
+  }
+  case 2: {
+    string cls = "c";
+    return cls + "_" + to_string(c.parent->index) + "_" + to_string(c.index);
+  }
+  default: return "error";
+  }
+}
+
+void Rend_Cell::svg_write_polyline(Rend_Win &W,ostream &out, Mapper &M, Word L, Word p)
+{
+  out << "<polyline id=\"" << svgIdChooser(*this) << "\""
+      << " class=\"" << svgClassChooser(*this) << "\"" 
+      << " points=\"";
+  for(Word Lp = L; Lp != NIL; Lp = RED(Lp)) {
+    M.Pwrite(FIRST(Lp),out,p);
+    out << ' ';
+  }
+  if (!section)
+    M.Pwrite(FIRST(L),out,p); // wrap around to start for sectors
+  out << "\">" << endl
+      << "</polyline>" << endl;
+}
+
+void Rend_Cell::out_descrip_svg_standard(Rend_Win &W,ostream &out, Mapper &M)
+{
+  Word p,x,y,L,l,x1,x2,y1,y2;
+  p = 12;
+  switch (level) {
+  case 0 :
+    /****** Root Cell *************/
+    return;
+  case 1: {
+    Word L = section ?
+      LIST2(child[0].description(W),child[1].description(W)) :
+      CCONC(child[0].description(W),CINV(child[1].description(W)));
+    svg_write_polyline(W,out,M,L,p);
+  } break;
+  case 2:     
+    /****** 2D Cells  **************/  
+    if (parent -> section) { // OVER SECTION
+      if (section) {
+	Word V = description(W);
+	out << "<circle cx=\"";
+	M.Xwrite(FIRST(V),out,p);
+	out << "\" cy=\"";
+	M.Ywrite(SECOND(V),out,p);
+	out << "\" r=\"" << 1000.0/W.pixdim.x << "\"  class=\"" << svgClassChooser(*this) << "\"/>";
+	out << endl;
+      }
+      else {
+	L = description(W);
+	svg_write_polyline(W,out,M,L,p);
+      }
+    }
+    else { // OVER SECTOR
+      L = description(W);
+      svg_write_polyline(W,out,M,L,p);
+    }
+    break;    
+  }
+}
 
 /*************************************************************
  **  out_descrip_pscolor  The postscript version

@@ -16,7 +16,7 @@
 #endif // NO_READLINE
 #else
 #include <emscripten/emscripten.h>
-#endif _EMCC2_
+#endif // _EMCC2_
 #include "../onecell/memopolymanager.h"
 #include "../tarskisysdep.h" /* defines pathToMaple variable */
 #include <signal.h>

@@ -46,6 +46,7 @@ $(LIB)(ADD_POINTS.o) \
 $(LIB)(FILL_2D.o) \
 $(LIB)(WRITE_PLOT.o) \
 $(LIB)(WRITE_PS.o) \
+$(LIB)(WRITE_SVG.o) \
 $(LIB)(WRITE_PS_COLOR.o) \
 $(LIB)(WRITE_EPS.o) \
 $(LIB)(WRITE_PS_STANDARD.o) \

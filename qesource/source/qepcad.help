@@ -755,12 +755,14 @@ p-2d-cad 96 de d
 @
 p-2d-cad xmin xmax ymin ymax step filename [optional flags]
 
-Produces an eps-file plot of the current CAD of 2-space from
+Produces an eps or svg plot of the current CAD of 2-space from
 xmin to xmax along the x-axis and ymin to ymax along the y-
 axis.  The plot is written to the file "filename".  The "step"
 parameter determines how many vertical lines along the x-axis
 get used to produce the plot.  The program starts at xmin and
-moves right in intervals of "step".  Optional flags are:
+moves right in intervals of "step".  If "filename" ends in
+.svg, an svg formatted file is created.  Otherwise an eps file
+is produced. Optional flags are:
 
 COLOR FLAG - default is to plot in color
 C - produces a plot in color

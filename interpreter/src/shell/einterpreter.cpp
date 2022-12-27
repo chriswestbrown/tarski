@@ -344,10 +344,11 @@ public:
   }
   string doc() 
   {
-    return "(exclose F), where F is a Tarski Formula, returns\
-the existential closure of F. ";
+    return "(exclose F [L]), where F is a Tarski Formula, returns\
+the existential closure of F. If the second argument is used, it should be a list\
+of variables to ignore, i.e. not to add to the existential quantifier.";
   }
-  string usage() { return "(exclose <tarski formula>)"; }
+  string usage() { return "(exclose <tarski formula>) or (exclose <tarski formula> <vars to ignore list>)"; }
   string name() { return "exclose"; }
 };
 
@@ -917,7 +918,9 @@ public:
   }
   string doc() 
   {
-    return "TO APPEAR";
+    return "(collect-factors F), where F is a Tarski formula, \
+returns a list of the distinct irreducible factors of all the \
+polynomials appearing in F.";
   }
   string usage() { return "(collect-factors <tarski formula>)"; }
   string name() { return "collect-factors"; }
