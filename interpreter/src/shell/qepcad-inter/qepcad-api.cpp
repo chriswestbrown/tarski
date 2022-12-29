@@ -155,5 +155,82 @@ namespace tarski {
     return new SObj();
   }
 
+
+  SRef QepcadAPICallback::operator()(QepcadCls &Q) {
+    Word V = Q.GVVL;
+    char formType = 'E';
+    string res, assumptionsAsUsed;
+    Word Fd = Q.GETDEFININGFORMULA(formType,1);
+    res = unNormForm2string(Fd,V);
+    if (res.length() > 0 && res[0] != '[') {
+      if (res == "0 = 0") { res = "[true]"; }
+      else if (res == "0 /= 0") { res = "[false]"; }
+      else { res = "[" + res + "]"; }
+    }
+    Word Ad = Q.GETASSUMPTIONS();
+    if (Ad == NIL) { // No assumptions used
+      assumptionsAsUsed = "[true]";
+    }
+    else { 
+      assumptionsAsUsed = unNormForm2string(Ad,V);
+      if (assumptionsAsUsed.length() > 0 && assumptionsAsUsed[0] != '[')
+      { assumptionsAsUsed = "[" + assumptionsAsUsed + "]"; }
+    }
+    return new LisObj(new StrObj(res), new StrObj(assumptionsAsUsed));
+  }
+
+  SRef qepcadAPICall(std::string &input, QepcadAPICallback &f) {
+    string str_F = input;
+    SRef res;
+    bool errorFlag = false;
+    try { 
+      int ac=0;
+      char *tmp[] = {NULL};
+      char **av = tmp;
+      ::BEGINQEPCADLIB(-1);
+
+      // Read input, extracting the formula Fs and the variable list V
+      Word Fs, V;
+      istringstream sin(str_F);
+      ostringstream sout;
+      ::PushInputContext(sin);
+      ::PushOutputContext(sout);
+      try { ::INPUTRD(&Fs,&V); } catch(exception &e)
+      { ::PopOutputContext(); ::PopInputContext(); throw TarskiException("qepcad-api fail (INPUTRD)"); }
+      ::PopOutputContext();
+      ::PopInputContext();
+
+      // Initialize QEPCAD problem
+      QepcadCls Q;
+      Q.SETINPUTFORMULA(V,Fs);
+
+      // Create CAD & get simplified equivalent formula
+      ostringstream warningsAndErrors;
+      std::stringstream rest;
+      rest << sin.rdbuf();
+      ::PushOutputContext(warningsAndErrors);
+      try { Q.CADautoConst(rest.str()); } catch(exception &e)
+      { ::PopOutputContext(); throw TarskiException("qepcad-api fail (CADautoConst)"); }
+      ::PopOutputContext();
+
+      // Output
+      if (warningsAndErrors.str() != "") {
+	errorFlag = true;
+	res = new ErrObj(warningsAndErrors.str());
+      }
+      else {
+	res = f(Q);
+      }
+    }
+    catch(QepcadException &e) { res = new ErrObj(string("Error! ") + e.what()); errorFlag = true; }
+    catch(TarskiException &e) { res = new ErrObj(string("Error! ") + e.what()); errorFlag = true; }
+    catch(exception &e) { res = new ErrObj(string("Error! Exception!")); errorFlag = true; }
+
+    // clean it all up
+    ENDQEPCAD();
+    return res;
+  }
+
+
   
 }

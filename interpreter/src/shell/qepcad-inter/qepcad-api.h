@@ -2,6 +2,7 @@
 #define _QEPCAD_API_SESSION_
 
 #include "einterpreter.h"
+#include "../../../qesource/source/qepcad.h"
 
 namespace tarski {
 
@@ -12,6 +13,14 @@ namespace tarski {
   SRef qepcadAPICall(std::string &input, char formType='T');
 
   
+  class QepcadAPICallback {
+  public:
+    virtual SRef operator()(QepcadCls &Q);
+  };
+  SRef qepcadAPICall(std::string &input, QepcadAPICallback &f);
+  
+
+    
   class CommQepcadAPICall : public EICommand
   {
   public:
