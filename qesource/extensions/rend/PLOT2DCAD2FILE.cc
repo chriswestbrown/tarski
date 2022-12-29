@@ -88,3 +88,20 @@ Step4: /* Produce plot! */
   return;
 }
 
+
+void QepcadCls::PLOT2DTOOUTPUTSTREAM(int Id1, int Id2, double x, double X, double y, double Y, double e,
+				     ostream& out,
+				     bool c, bool z)
+{
+      Word D = GVPC, P = GVPF, J = GVPJ;
+      Word Ix = IEEELBRN(x),IX = IEEELBRN(X),Iy = IEEELBRN(y),
+	IY = IEEELBRN(Y),E = IEEELBRN(e),L;
+      Rend_Cell M;        /* M is the "mirror" CAD for plotting.    */
+      CONMIRCAD(D,P,J,M,*this); /* This actually constructs M.            */
+      Rend_Win W(M,Id1,Id2,Ix,IX,Iy,IY);
+      W.set_precis_faithfull();
+      W.update_extents(M);
+      L = W.get_lociva(M);
+      FILL_2D(M,W,E,L,P);
+      WRITE_SVG(M,W,L,E,P,out,true,true);
+}

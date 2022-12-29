@@ -24,7 +24,6 @@
 #include "qepcad-inter/qepcad-api.h"  
 #include "../search/degreereduce.h"
 
-
 using namespace std;
 
 namespace tarski {
@@ -1382,6 +1381,97 @@ public:
   string name() { return "sym-list"; }
 };
 
+class Plot2D : public EICommand
+{
+
+  class Callback : public QepcadAPICallback {
+    double x,X,y,Y,e;
+    int Id1, Id2;
+    string fname;
+  public:
+    Callback(int h, int w, double x, double X, double y, double Y, const string &fn) {
+      Id1 = w; Id2 = h;
+      this->x = x;
+      this->X = X;
+      this->y = y;
+      this->Y = Y;
+      e = (X - x)/(w/2);
+      fname = fn;
+    }
+    SRef operator()(QepcadCls &Q) {
+      bool c = true, z = true;
+      ostream* pout;
+      ofstream out;
+      ostringstream sout;
+      if (fname == "-")
+	pout = &sout;
+      else {
+	out.open(fname);
+	pout = &out;
+      }
+      Q.PLOT2DTOOUTPUTSTREAM(Id1,Id2,x,X,y,Y,e,*pout,c,z);
+      if (fname == "-") {
+	return new StrObj(sout.str());
+      }
+      else {	
+	return new SObj();
+      }
+    }
+  };
+  
+public:
+  Plot2D(NewEInterpreter* ptr) : EICommand(ptr) { }
+  SRef execute(SRef input, vector<SRef> &args) 
+  {
+    TFormRef F = args[0]->tar()->getValue();
+    string str = args[1]->str()->getVal();
+    
+    //*** get formula and decide variable order
+    // Do basic normalization to get rid of boolean constants, which qepcad doesn't understand.
+    RawNormalizer R(defaultNormalizer);
+    R(F);
+    F = R.getRes();
+    PolyManager &PM = *(F->getPolyManagerPtr());    
+    VarSet Vall = F->getVars();
+    if (Vall.numElements() != 2) { throw TarskiException("Plot2d requries a formula in two variables!"); }
+    ostringstream sout;
+    sout << "[]\n(";
+    for(auto itr = Vall.begin(); itr != Vall.end(); ++itr)
+      sout << (itr == Vall.begin() ? "" : ",") << PM.getName(*itr);
+    sout << ")\n";
+    sout << "2\n";
+    sout << "[";
+    PushOutputContext(sout);
+    F->write();
+    PopOutputContext();
+    sout << "].\n";
+    sout << "go\ngo\ngo\n";
+    
+    //*** parse remaining stuff!
+    istringstream sin(str);
+    int h, w;
+    double x,X,y,Y;
+    string fname;
+    if (!(sin >> h >> w >> x >> X >> y >> Y >> fname)) {
+      throw TarskiException("plot2d string format is improper.");
+    }
+
+    // (plot2d [x^4 + y^4 < 1 /\ y > (2 x - 1)^2 x] "600 600 -2 2 -2 2 foo.svg")
+    string script = sout.str();
+    Callback f(h,w,x,X,y,Y,fname);
+    SRef res = qepcadAPICall(script,f);
+    
+    return res;
+  }
+  string testArgs(vector<SRef> &args) { return require(args,_tar,_str); }
+  string doc() 
+  {
+    return "Given a formula F in two variables, (plot2d F str) produces and svg plot of the formula.  The second argument, 'str', is a string that defines the basic plot parameters: pixelheight, pixelwidth, range of x and range of y, and output file name (or - for string output).  For example, (plot2d [x^4 + y^4 < 1 /\\ y >= (2 x - 1)^2 x] \"400 600 -2 2 -2 2 foo.svg\") produces an output file foo.svg, with height 400 and width 600, showing -2 < x < 2, and -2 < y < 2.";
+  }
+  string usage() { return "(plot2d F str)"; }
+  string name() { return "plot2d"; }  
+};
+
 
 void NewEInterpreter::init() 
 {
@@ -1468,6 +1558,7 @@ void NewEInterpreter::init()
 #endif
   add(new CommChristest(this));
   add(new CommSymList(this));
+  add(new Plot2D(this));
 
   // add extended types
   addType(new RealAlgNumTypeObj(NULL));
