@@ -25,8 +25,8 @@ $(info Tarski is about to be built for platform $(PLATFORM).)
 # Setting internal and external libs and includes
 MROOT=-I../minisat
 TMROOT=../minisat
-extIncludesSACLIB:=-I${saclib}/include -I${qe}/source
-extLibSACLIB:=${saclib}/lib/saclibo.a
+extIncludesSACLIB:=-I${saclib}/include -I${qe}/source 
+extLibSACLIB:=${saclib}/lib/saclibd.a
 extLibMINISAT:=../minisat/core/lib.a
 extIncludeMINISAT:=-I${TMROOT}/core
 extIncludesMD5:=
@@ -49,7 +49,7 @@ extLibQEPCAD:=  ${qe}/source/qepcad.a \
 
 # The rend extension will not be built on Windows MSYS2/CLANG*, otherwise always.
 ifneq ($(PLATFORM),WINDOWS)
-extLibQEPCAD += ${qe}/extensions/rend/rendo.a
+extLibQEPCAD += ${qe}/extensions/rend/rendo.a ${qe}/extensions/adj2d/adj2do.a 
 endif
 
 # Find the openssl include/lib folders automatically on a Mac. We assume that Homebrew is already installed.
