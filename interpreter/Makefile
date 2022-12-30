@@ -49,8 +49,11 @@ extLibQEPCAD:=  ${qe}/source/qepcad.a \
 
 # The rend extension will not be built on Windows MSYS2/CLANG*, otherwise always.
 ifneq ($(PLATFORM),WINDOWS)
-extLibQEPCAD += ${qe}/extensions/rend/rendo.a ${qe}/extensions/adj2d/adj2do.a 
+extLibQEPCAD += ${qe}/extensions/rend/rendo.a
 endif
+
+# Add the adj2do extension to the libraries again:
+extLibQEPCAD += ${qe}/extensions/adj2d/adj2do.a
 
 # Find the openssl include/lib folders automatically on a Mac. We assume that Homebrew is already installed.
 ifeq ($(PLATFORM),MAC)
