@@ -31,8 +31,8 @@ class Rend_Sample
  public:
   virtual Word coordinate(int k) = 0; 
   virtual Word round(int k,int roundup)
-    { return this -> coordinate(k); }
-  //  virtual ~Rend_Sample() = 0;
+  { return this -> coordinate(k); }
+  virtual ~Rend_Sample() { };
 };
 
 class Rend_Sample_1DS : public Rend_Sample

@@ -1456,7 +1456,7 @@ public:
       throw TarskiException("plot2d string format is improper.");
     }
 
-    // (plot2d [x^4 + y^4 < 1 /\ y > (2 x - 1)^2 x] "600 600 -2 2 -2 2 foo.svg")
+    //ex: (plot2d [x^4 + y^4 < 1 /\ y > (2 x - 1)^2 x] "600 600 -2 2 -2 2 foo.svg")
     string script = sout.str();
     Callback f(h,w,x,X,y,Y,fname);
     SRef res = qepcadAPICall(script,f);
