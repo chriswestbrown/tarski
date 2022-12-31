@@ -347,10 +347,10 @@ UnsatCore UNSATCORE;
   Word ADJGRAPHCONS(Word D, Word P, Word J);
   void CLOSURE2D(Word D, Word P, Word J);
   void BOUNDARY2D(Word D, Word P, Word J);
+  void PLOT2DCAD2FILE(Word D, Word P, Word J);
 
 #ifndef __MINGW32__
   /* rend */
-  void PLOT2DCAD2FILE(Word D, Word P, Word J);
   void DISP2DCAD(Word D, Word P, Word J);
 #endif
 
