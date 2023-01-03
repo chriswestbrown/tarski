@@ -1409,6 +1409,9 @@ class Plot2D : public EICommand
 	out.open(fname);
 	pout = &out;
       }
+      if (!*pout) {
+	throw TarskiException("Could not open file \"" + fname + "\"");
+      }
       Q.PLOT2DTOOUTPUTSTREAM(Id1,Id2,x,X,y,Y,e,*pout,c,z);
       if (fname == "-") {
 	return new StrObj(sout.str());
@@ -1423,8 +1426,37 @@ public:
   Plot2D(NewEInterpreter* ptr) : EICommand(ptr) { }
   SRef execute(SRef input, vector<SRef> &args) 
   {
+    try {
+    // options
+    bool optord = false;
+    VarSet v1, v2;
+    string nm1, nm2;
+    
+    // These are guaranteed to be succussfull based on testArgs
     TFormRef F = args[0]->tar()->getValue();
     string str = args[1]->str()->getVal();
+
+    // process remaining arguments
+    for(int i = 2; i < args.size(); i++) {
+      LisRef arg = args[i]->lis();
+      if (arg.is_null() || arg->length() != 2) { throw TarskiException("option arguments must be of form (<name> <value>)"); }
+      SymRef name = arg->get(0)->sym();
+      if (name.is_null()) { throw TarskiException("the first component of an option argument must be a sym."); }
+      if (name->getVal() == "ord") {
+	LisRef L = arg->get(1)->lis();
+	if (L.is_null() || L->length() != 2) {
+	  throw TarskiException("value of 'ord option must be a list of two variables."); }
+	SymRef n1 = L->get(0)->sym(), n2 = L->get(1)->sym();
+	if (n1.is_null() || n2.is_null()) {
+	  throw TarskiException("variables in value of 'ord option must be given as sym objects"); }
+	optord = true;
+	nm1 = n1->getVal();
+	nm2 = n2->getVal();
+      }
+      else {
+	throw TarskiException("unknown option \"" + name->getVal() + "\"");
+      }
+    }
     
     //*** get formula and decide variable order
     // Do basic normalization to get rid of boolean constants, which qepcad doesn't understand.
@@ -1433,12 +1465,23 @@ public:
     F = R.getRes();
     PolyManager &PM = *(F->getPolyManagerPtr());    
     VarSet Vall = F->getVars();
+    cerr << "Vall.numElements() = " << Vall.numElements() << endl;
     if (Vall.numElements() != 2) { throw TarskiException("Plot2d requries a formula in two variables!"); }
+    if (optord) {
+      for(auto itr = Vall.begin(); itr != Vall.end(); ++itr) {
+	const string& s = PM.getName(*itr);
+	if (s == nm1) { v1 = *itr; }
+	else if (s == nm2) { v2 = *itr; }
+      }
+      if (Vall != (v1|v2)) { throw TarskiException("Variables in option 'ord must match the variables in the formula"); }          }
+    else {
+      int i = 0;
+      for(auto itr = Vall.begin(); itr != Vall.end(); ++itr,i++) {
+	if (i == 0) { v1 = *itr; } else { v2 = *itr; }
+      }	
+    }
     ostringstream sout;
-    sout << "[]\n(";
-    for(auto itr = Vall.begin(); itr != Vall.end(); ++itr)
-      sout << (itr == Vall.begin() ? "" : ",") << PM.getName(*itr);
-    sout << ")\n";
+    sout << "[]\n(" << PM.getName(v1) << "," << PM.getName(v2) << ")\n";
     sout << "2\n";
     sout << "[";
     PushOutputContext(sout);
@@ -1453,8 +1496,11 @@ public:
     double x,X,y,Y;
     string fname;
     if (!(sin >> h >> w >> x >> X >> y >> Y >> fname)) {
-      throw TarskiException("plot2d string format is improper.");
+      throw TarskiException("format of second argument incorrect (should be e.g. \"300 300 -2 2 -2 2 foo.svg\")");
     }
+    if (! (h > 0 && w > 0)) { throw TarskiException("pixel height and width must both be positive"); }
+    if (!(x < X)) { throw TarskiException("x-coordinate range must be non-empty"); }
+    if (!(y < Y)) { throw TarskiException("y-coordinate range must be non-empty"); }
 
     //ex: (plot2d [x^4 + y^4 < 1 /\ y > (2 x - 1)^2 x] "600 600 -2 2 -2 2 foo.svg")
     string script = sout.str();
@@ -1462,13 +1508,20 @@ public:
     SRef res = qepcadAPICall(script,f);
     
     return res;
+    }
+    catch (TarskiException& e) {
+      return new ErrObj(string("Error in plot2d: ") + e.what() + "!");
+    }
   }
-  string testArgs(vector<SRef> &args) { return require(args,_tar,_str); }
+  string testArgs(vector<SRef> &args) {
+    return requirepre(args,_tar,_str);
+  }
   string doc() 
   {
-    return "Given a formula F in two variables, (plot2d F str) produces and svg plot of the formula.  The second argument, 'str', is a string that defines the basic plot parameters: pixelheight, pixelwidth, range of x and range of y, and output file name (or - for string output).  For example, (plot2d [x^4 + y^4 < 1 /\\ y >= (2 x - 1)^2 x] \"400 600 -2 2 -2 2 foo.svg\") produces an output file foo.svg, with height 400 and width 600, showing -2 < x < 2, and -2 < y < 2.";
+    return "Given a formula F in two variables, (plot2d F str) produces and svg plot of the formula.  The second argument, 'str', is a string that defines the basic plot parameters: pixelheight, pixelwidth, range of x and range of y, and output file name (or - for string output).  For example, (plot2d [x^4 + y^4 < 1 /\\ y >= (2 x - 1)^2 x] \"400 600 -2 2 -2 2 foo.svg\") produces an output file foo.svg, with height 400 and width 600, showing -2 < x < 2, and -2 < y < 2. Additional optional arguments may follow.  They take the form of (<name> <value>) pairs as described below:\n\
+* ord - specify which variable goes to which axis.  '(ord (<var1> <var2>)) puts <var1> on the horizontal axis and <var2> to the vertical axis.  Example: (plot2d [ y^2 = (2 x+1) (3 x - 1) x ] \"400 400 -2 2 -2 2 foo.svg\" '(ord (y x)))";
   }
-  string usage() { return "(plot2d F str)"; }
+  string usage() { return "(plot2d F str [ <opt> ]+)"; }
   string name() { return "plot2d"; }  
 };
 
