@@ -52,7 +52,8 @@
          function compute() {
              var input = document.getElementById("inputtext");
              var outputtext = document.getElementById("outputtext");
-             outputtext.insertAdjacentHTML('beforeend', "&gt; <b>" + input.value + "</b><br>");
+             var input_displayed = input.value.replaceAll("<", "&lt;");
+             outputtext.insertAdjacentHTML('beforeend', "&gt; <b>" + input_displayed + "</b><br>");
              try {
                  output = TARSKIEVAL(input.value);
                  }
