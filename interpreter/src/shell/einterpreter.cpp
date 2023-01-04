@@ -1465,7 +1465,6 @@ public:
     F = R.getRes();
     PolyManager &PM = *(F->getPolyManagerPtr());    
     VarSet Vall = F->getVars();
-    cerr << "Vall.numElements() = " << Vall.numElements() << endl;
     if (Vall.numElements() != 2) { throw TarskiException("Plot2d requries a formula in two variables!"); }
     if (optord) {
       for(auto itr = Vall.begin(); itr != Vall.end(); ++itr) {
