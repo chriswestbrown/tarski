@@ -163,9 +163,21 @@ void Rend_Win::set_precis_faithfull()
     k = LBRNQORD( RNLBRN(dvx) , ILBRN(pixdim.x) );
     dvy = RNQ(dry , scale);
     e = LBRNFIE(1,k);
-    tmp = RNSUM( dvy , LBRNRN(e) );
-    dvy = SECOND(SSILRCRI(dvy,tmp));
-    dvy = LBRNP2PROD( dvy , -1 );
+
+    // Widen dvy to have logarithmic binary rational number endpoints
+    if (k <= 0) {
+      Word Q, R;
+      IQR(IMP2(RNNUM(dvy),-k),RNDEN(dvy),&Q,&R);
+      if (R != 0) { Q = ISUM(Q,1); }
+      dvy = LBRNFIE(Q,k-1);
+    }
+    else {
+      Word Q, R;
+      IQR(RNNUM(dvy),RNDEN(dvy),&Q,&R);
+      if (R != 0) { Q = ISUM(Q,1); }
+      dvy = LBRNFIE(Q,-1);
+    }
+
     yp = LBRNP2PROD(LBRNSUM(Y.W,y.W),-1);
     y.W = LBRNDIF(yp,dvy);
     Y.W = LBRNSUM(yp,dvy); }
@@ -174,9 +186,21 @@ void Rend_Win::set_precis_faithfull()
     k = LBRNQORD( RNLBRN(dvy) , ILBRN(pixdim.y) );
     dvx = RNQ(drx , scale);
     e = LBRNFIE(1,k);
-    tmp = RNSUM( dvx , LBRNRN(e) );
-    dvx = SECOND(SSILRCRI(dvx,tmp));
-    dvx = LBRNP2PROD( dvx , -1 );
+
+    // Widen dvx to have logarithmic binary rational number endpoints
+    if (k <= 0) {
+      Word Q, R;
+      IQR(IMP2(RNNUM(dvx),-k),RNDEN(dvx),&Q,&R);
+      if (R != 0) { Q = ISUM(Q,1); }
+      dvx = LBRNFIE(Q,k-1);
+    }
+    else {
+      Word Q, R;
+      IQR(RNNUM(dvx),RNDEN(dvx),&Q,&R);
+      if (R != 0) { Q = ISUM(Q,1); }
+      dvx = LBRNFIE(Q,-1);
+    }
+      
     xp = LBRNP2PROD(LBRNSUM(X.W,x.W),-1);
     x.W = LBRNDIF(xp,dvx);
     X.W = LBRNSUM(xp,dvx); }
