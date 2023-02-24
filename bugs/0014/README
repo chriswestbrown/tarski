@@ -1,0 +1,27 @@
+STATUS: CLOSED
+
+SUMMARY
+(plot2d [ (3 x-2) y + x = 0 ] "200 200 -2 2 -6 6 -" '(ord (x y)))
+Produces plot with extraneous line on asymptote that looks like it's part of the curve.  This problem is really a qepcad problem
+
+[]
+(x,y)
+2
+[ (3 x-2) y + x = 0 ] .
+go
+go
+go
+d-2d-cad D
+c -2 2 -2 2
+
+
+NOTE: need to remove qepcad debugging messages!
+Multiplicity not sufficient over (2)!
+Before!
+31/2^6 49/2^6 31/2^6 49/2^6  : -1722.222222222222222+ : -1722.222222222222222+
+BBBBBBBBBBBBBBB
+After!
+31/2^6 49/2^6 31/2^6 49/2^6  : -1722.222222222222222+ : -1722.222222222222222+
+
+ACTION
+To get to this bug I had to set the way-back machine to the 1990s.  In my oldadj/ACMADJ2D.c code, which implements Arnon-Collins-McCallum adjacency, there was a bug.  Essentially I had an interval and checked that some poly p has no sign variations in the interval ... turns out I needed to ensure the p is non-vanishing at the interval endpoints too.  Ugh, not fun to find!
