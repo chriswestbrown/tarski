@@ -5,6 +5,7 @@
  **
  *************************************************************/
 #include "Rend_Win.h"
+#include "Mapper.h"
 
 Rend_Win::Rend_Win(Rend_Cell &D, int a, int b, Word ix, Word iX, Word iy, Word iY)
 {
@@ -142,8 +143,9 @@ inline static Word LBRNMAX(Word a,Word b)
  *************************************************************/
 void Rend_Win::set_precis_faithfull()
 {
+  const bool LOCAL_DEBUG_FLAG = false;
   Word drx,dry,dvx,dvy,sx,sy,e,tmp,yp,xp,scale,k;
-
+  
   /* dr stands for "rend window dimensions" */
   drx = RNINT(pixdim.x);
   dry = RNINT(pixdim.y);
@@ -154,11 +156,23 @@ void Rend_Win::set_precis_faithfull()
   sx = RNQ(drx,dvx);
   sy = RNQ(dry,dvy);
 
+  if (LOCAL_DEBUG_FLAG) {PushOutputContext(cerr);
+  SWRITE("Before!\n");
+  LBRNWRITE(x.W); SWRITE(" "); LBRNWRITE(X.W); SWRITE(" ");
+  LBRNWRITE(y.W); SWRITE(" "); LBRNWRITE(Y.W); SWRITE(" ");
+  Mapper Q(0,0,1000,1000,*this);
+  SWRITE(" : "); RNDWRITE(Q.mapX(LBRNFIE(0,1)),15);
+  SWRITE(" : "); RNDWRITE(Q.mapY(LBRNFIE(0,1)),15);
+  SWRITE("\n");
+  PopOutputContext();}
+
+  
   /* determine scale and change dv so that that scaling
      maps at least the desired viewing region into the
      rend window.
   */
   if (RNCOMP( sx , sy ) < 0) {
+    if (LOCAL_DEBUG_FLAG) { cerr << "AAAAAAAAAAAAAA" << endl; }
     scale = sx;
     k = LBRNQORD( RNLBRN(dvx) , ILBRN(pixdim.x) );
     dvy = RNQ(dry , scale);
@@ -182,6 +196,7 @@ void Rend_Win::set_precis_faithfull()
     y.W = LBRNDIF(yp,dvy);
     Y.W = LBRNSUM(yp,dvy); }
   else {
+    if (LOCAL_DEBUG_FLAG) { cerr << "BBBBBBBBBBBBBBB" << endl; }
     scale = sy;
     k = LBRNQORD( RNLBRN(dvy) , ILBRN(pixdim.y) );
     dvx = RNQ(drx , scale);
@@ -208,6 +223,15 @@ void Rend_Win::set_precis_faithfull()
   precis.x = precis.y = k-4; // The -4 is arbitrary it says something
   // about how close a point has to be to another pixel for a mistake
   // to be possible
+  if (LOCAL_DEBUG_FLAG) {PushOutputContext(cerr);
+  SWRITE("After!\n");
+  LBRNWRITE(x.W); SWRITE(" "); LBRNWRITE(X.W); SWRITE(" ");
+  LBRNWRITE(y.W); SWRITE(" "); LBRNWRITE(Y.W); SWRITE(" ");
+  Mapper Q(0,0,1000,1000,*this);
+  SWRITE(" : "); RNDWRITE(Q.mapX(LBRNFIE(0,1)),15);
+  SWRITE(" : "); RNDWRITE(Q.mapY(LBRNFIE(0,1)),15);
+  SWRITE("\n");
+  PopOutputContext();}
 }
 
 void Rend_Win::update_extents(Rend_Cell &M)

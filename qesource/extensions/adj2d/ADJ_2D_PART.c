@@ -49,7 +49,7 @@ Step4: /* If assignment is not unique, decide which is correct. */
        if (Sol != AD2D_FAIL && LENGTH(Sol) == 1)
 	 Sol = FIRST(Sol);
        else {
-SWRITE("Multiplicity not sufficient over "); OWRITE(LELTI(c,INDX)); SWRITE("!\n");
+	 //SWRITE("Multiplicity not sufficient over "); OWRITE(LELTI(c,INDX)); SWRITE("!\n");
 	 Sol = ACMADJ2D(c,c_l,c_r,P); }
 
 Step5: /* Clean up evidence of "shadow stacks". */

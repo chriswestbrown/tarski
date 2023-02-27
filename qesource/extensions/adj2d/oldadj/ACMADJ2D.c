@@ -165,6 +165,10 @@ Word ASYS1(Word M, Word H, Word I, Word P2, Word c_l, Word c_r)
   Word P,p,t,i1,i2,L1p,L2p,L1n,L2n,n1p,n1n,n2p,n2n,p1,p2,L1,L2,J,j,z,Sol,i,L,S,Ip;
 
 Step1: /* Refine I so that for each p in P_2 p(x,0) has no sign variations in I. */
+       /* Added 2023: also require p(x,0) to be non-zero at endpoints of I.  Note
+          that we don't have to worry about p(x,0) being the zero polynomial, since
+          that would mean p has a factor of x, and we are always dealing with
+          irreducible polynomials of positive degree in y. */
   if (H != 0)
     I = ASYS2(M,H,I,P2);
   else {
@@ -172,7 +176,8 @@ Step1: /* Refine I so that for each p in P_2 p(x,0) has no sign variations in I.
     for(P = P2; P != NIL; P = RED(P)) {
       p = LELTI(FIRST(P),PO_POLY);
       p = IPEVAL(2,p,2,0);
-      while(TSVSLI(p,I)) {
+      //                .------added 2023 to address bug ----------------------.
+      while(TSVSLI(p,I) || IUPBRES(p,FIRST(I)) == 0 || IUPBRES(p,SECOND(I)) == 0 ) {
 	if (LBRIIBISECT(I,M,t,&J)) {
 	  FIRST2(I,&i1,&i2);
 	  I = ASYS2(M,LIST2(i1,FIRST(J)),LIST2(FIRST(J),i2),P2);
