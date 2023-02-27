@@ -176,7 +176,7 @@ Step1: /* Refine I so that for each p in P_2 p(x,0) has no sign variations in I.
     for(P = P2; P != NIL; P = RED(P)) {
       p = LELTI(FIRST(P),PO_POLY);
       p = IPEVAL(2,p,2,0);
-      //                .------added 2023 to address bug ----------------------.
+      /*                .------added 2023 to address bug ----------------------. */
       while(TSVSLI(p,I) || IUPBRES(p,FIRST(I)) == 0 || IUPBRES(p,SECOND(I)) == 0 ) {
 	if (LBRIIBISECT(I,M,t,&J)) {
 	  FIRST2(I,&i1,&i2);
