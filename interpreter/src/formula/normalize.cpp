@@ -94,13 +94,19 @@ namespace tarski {
   TFormRef level1_and(TAndRef Cinit, TAtomRef* ptr = NULL)
   {
     TAndRef Cfinal = new TAndObj;
-    for(set<TFormRef>::iterator itr = Cinit->conjuncts.begin(); itr != Cinit->conjuncts.end(); ++itr)
-      if (level1_atom(*itr,Cfinal) == false)
-      {
-	if (ptr != NULL) { (*ptr) = *itr; }
-        return new TConstObj(FALSE);
+    for(set<TFormRef>::iterator itr = Cinit->conjuncts.begin(); itr != Cinit->conjuncts.end(); ++itr) {
+      switch ((*itr)->constValue()) {
+      case FALSE:  return new TConstObj(FALSE); break;
+      case TRUE: break;
+      default:
+	if (level1_atom(*itr,Cfinal) == false)
+	{
+	  if (ptr != NULL) { (*ptr) = *itr; }
+	  return new TConstObj(FALSE);
+	} 
+	break;
       }
-
+    }
     if (0)
       { // stats gathering ... temporary stuff!
         cout << "AFTER L1: ";
