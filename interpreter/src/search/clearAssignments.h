@@ -163,6 +163,7 @@ namespace tarski {
                 std::vector<Deduction>::const_iterator end) { }
     void notify() {}
     DedExp deduce(TAndRef t, bool& res);
+    std::string name() const { return "Substituter"; }
     void dump();
     int getSubstitutionLevel(VarSet x) { int k = orderSubstituted[x]; return k == 0  ? 0 : nextSubCounter - k; }
     TAndRef filter(TAndRef t);

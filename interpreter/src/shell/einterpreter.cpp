@@ -23,6 +23,7 @@
 #include "../nucad/TestComm.h"
 #include "qepcad-inter/qepcad-api.h"  
 #include "../search/degreereduce.h"
+#include "misc-comms.h"
 
 using namespace std;
 
@@ -1381,6 +1382,10 @@ public:
   string name() { return "sym-list"; }
 };
 
+
+
+
+
 class Plot2D : public EICommand
 {
 
@@ -1610,6 +1615,7 @@ void NewEInterpreter::init()
 #endif
   add(new CommChristest(this));
   add(new CommSymList(this));
+  add(new CommGetFreeVars(this)); 
   add(new Plot2D(this));
 
   // add extended types

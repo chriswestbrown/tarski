@@ -88,7 +88,9 @@ Step3: /* Searches non-zero substituted projection factors to see if the factors
 	       P = T1; }
 	 }
 	 if (PDEG(P) > 0) {
-	   SWRITE("Error! Delineating polynomial should be added over cell");
+	   SWRITE("Error! Delineating polynomial ");
+	   IPDWRITE(1,P,LIST1(LFS("z")));
+	   SWRITE(" should be added over cell");
 	   OWRITE(LELTI(c,INDX));
 	   SWRITE("!\n");
 	 }	
