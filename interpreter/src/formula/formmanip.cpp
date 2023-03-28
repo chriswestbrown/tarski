@@ -888,6 +888,7 @@ TFormRef exclose(TFormRef T)
       res = new TQBObj(FVars, EXIST, T, T->getPolyManagerPtr());
     else
     {
+      Tp = new TQBObj(Tp); // clone Tp since add is destructive!
       Tp->add(FVars,EXIST);
       res = Tp;
     }
@@ -916,6 +917,7 @@ TFormRef exclose(TFormRef T, const vector<string> &holdout)
       res = new TQBObj(EVars, EXIST, T, T->getPolyManagerPtr());
     else
     {
+      Tp = new TQBObj(Tp); // clone Tp since add is destructive!
       Tp->add(EVars,EXIST);
       res = Tp;
     }

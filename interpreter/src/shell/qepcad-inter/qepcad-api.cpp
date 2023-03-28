@@ -17,7 +17,7 @@ namespace tarski {
   }
 
   SRef qepcadAPICall(std::string &input, char formType) {
-    //cerr << std::endl << input << std::endl << std::endl;
+    //cerr << std::endl << "qepcad-api-call input: " << input << std::endl << std::endl;
     string str_F = input;
     string res;
     string assumptionsAsUsed;
