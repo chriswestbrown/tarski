@@ -27,6 +27,8 @@ WEB=0
 SAMPLES=100 # Use so many startups of native Tarski to find its minimal startup time.
 STARTUPTIME=1000 # Be pessimistic.
 
+COMMANDLINE="$*"
+
 # Platform detection
 PLATFORM=`uname -s`
 if [ "$PLATFORM" = Linux ]; then
@@ -151,6 +153,11 @@ SAVEDIR=.
 
 if [ "$REGRESSION" = 1 ]; then
  SAVEDIR=`date +%Y%m%d%H%M%S`
+ if [ "$WEB" = 1 ]; then
+  SAVEDIR="${SAVEDIR}w"
+ else
+  SAVEDIR="${SAVEDIR}n"
+  fi
  if [ "$OUTPUTDIR" != "" ]; then
   SAVEDIR=$OUTPUTDIR
   fi
@@ -192,6 +199,9 @@ if [ "$WEB" = 1 ]; then
  cd $WEBDIR
  mkdir -p node_modules
  npm i --silent --save puppeteer # Install Puppeteer...
+ echo -n "Using " # getting the version of the used browser...
+ # This is not elegant (and not even correct)... node should be stopped properly at the earliest convenience:
+ timeout 7 node -p '(async()=>{const x = require("puppeteer"); console.log(await(await(await x.launch()).newPage()).browser().version())})()' | grep Headless
  cd ..
 else
  # Measure startup of the native version
@@ -360,6 +370,7 @@ if [ "$REGRESSION" = 1 ]; then
  IGNORED=`cat $SAVEDIR/.ignored`
  log "Summary: $GOOD good and $BAD bad results ($IGNORED ignored)"
  rm -f $SAVEDIR/.stderr # cleaning up
+ echo "$COMMANDLINE" > $SAVEDIR/.commandline
  if [ "$BAD" != 0 -a "$SILENT" = 0 ]; then
   exit 1
   fi
