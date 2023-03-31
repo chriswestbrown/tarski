@@ -1,1 +1,77 @@
-(def process (lambda (F) (def L (getargs F)) (def V (get L 0 0 1)) (def B (bbwb (get L 1))) (if (equal? (get B 0) 'UNSAT) [false] ((lambda () (def G (qfr (t-ex V (get B 1)))) (if (equal? (t-type G) 1) G (if (equal? (t-type G) 6) (qepcad-api-call G 'T) (if (equal? (t-type G) 5) (qepcad-api-call (bin-reduce t-or (map (lambda (H) (qepcad-api-call (exclose H '(m)) 'T)) (getargs G))) 'T) (qepcad-api-call G 'T))))))))) (def expand (lambda (F)      (def A (getargs F))      (def V (get A 0 0 1))      (def G (get A 1))      (def X (dnf G))      (def L (if (equal? (t-type X) 5) (getargs X) (list X)))      (map (lambda (f) (exclose f '(m))) L) ))(def epc (lambda (F) (normalize (bin-reduce t-or (map (lambda (G) (if (equal? (t-type G) 6) (process G) G)) (expand F))))))
+; epcx - version 4.0 2023-03-28 - Chris Brown
+; This script defines a new Tarski command "epc" that provides a better "black box"
+; command for existential quantifier elimination.
+; Use like: (epc [ex x[x^2 + b x + c = 0]])
+; IMPORTANT! Only call epc on a prenex, existentially quantified formula.
+;            I.e. when you call (epc F), the formula F should look like
+;                 [ex x1,...,xn[ F ] ], where F is quantifier-free.
+;            
+
+; (qepcad-ex-elim F t)  Qepcad existential quantifier elimination
+; Inputs  F: a existentially quantified prenex conjunction (or constant or quantifier-free conjunction)
+;         t: either 'T or 'E, the formula output flag for qepcad-api-call
+; This will test satisfiability first, and only try to do qe if satisfiability fails.
+; The rationale for this is that there is a lot more variable order flexibility for
+; qepcad, and also rewriting options for qfr for a fully quantified formula, so the
+; computing time is likely to be substantially less for checking satisfiability than
+; for doing quantifier elimination
+(def qepcad-ex-elim
+  (lambda (F t)
+    (if (equal? (t-type F) 1) ; if F is constant
+      F
+      (if (equal? (length (get-free-vars F)) 0)
+        (qepcad-api-call F t)
+        ((lambda () ; let hack
+           (def S (process (exclose F)))
+           (if (equal? S [false])
+             [false]
+             (qepcad-api-call F t)
+       )))))))
+
+; (qepcad-simplify F t) Qepcad simplification
+(def qepcad-simplify (lambda (F t) (qepcad-api-call F t)))
+
+; (process F) - F is an existentially quantified formula
+; 1. Let F' be the quantifier-free part of F and do fast simplification on F'
+; 2. if result is FALSE, return 
+; 3. do "quantified formula rewrite", which is repeated linear substitutions for quantified variables followed by simplifications
+;    which results in a disjunction of quantified formulas
+; 4. call qepcad on each formula independently to eliminate quanfied variables and return a list of the resulting formulas
+(def process
+     (lambda (F)
+       (def L (getargs F))
+       (def V (get L 0 0 1))
+       (def B (normalize (get L 1)))
+       (if (equal? (t-type B) 1) ; is B a T/F constant?
+          B
+          (
+            (lambda () ; This is a funky way to simulate a block of statements
+              (def G (qfr (t-ex V B)))
+              (if (equal? (t-type G) 1) ; is G a T/F constant ?
+                G
+                (if (equal? (t-type G) 6) ; is G of the form [ex x1,...,xn [ Conjunction ]]?
+                   (qepcad-simplify (qepcad-ex-elim G 'T) 'T) ; inner call does QE, outer call simplifies result (e.g. if there are assumptions)
+                   (if (equal? (t-type G) 5) ; is G a disjunction of formulas?
+                       (qepcad-simplify (bin-reduce t-or (map (lambda (H) (qepcad-ex-elim H 'T)) (getargs G))) 'T)
+                        ; quantifier-free atom or conjunction
+                       (qepcad-simplify G 'T)
+    ))))))))
+
+; (expand F) - F is an existentially quantified formula
+; 1. Take the quantifier-free part of F and expand into DNF F1 \/ F2 \/ ... \/ Fk
+; 2. For each Fi reintroduce the quantified variables from F and call the result Gi
+; 3. Return (G1 G2 ... Gk)
+(def expand
+     (lambda (F)
+       (def A (getargs F))
+       (def V (get A 0 0 1))
+       (def G (get A 1))
+       (def X (dnf G))
+       (def L (if (equal? (t-type X) 5) (getargs X) (list X)))
+       (map (lambda (f) (t-ex V f)) L) ))
+
+; (epc F) - F is an existentially quantified formula
+; 1. L = (expand F)
+; 2. Lp = list resulting from applying process to each of the elements of L and collecting the result
+; 3. "or" the elements of Lp all together and simplify the result
+(def epc (lambda (F) (normalize (bin-reduce t-or (map (lambda (G) (if (equal? (t-type G) 6) (process G) G)) (expand F))))))
