@@ -434,7 +434,11 @@ SRef Interpreter::eval(Frame* env, SRef input)
       if (nargs != 3 && nargs != 4) { return new ErrObj("if requires two or three argument expressions."); }
       SRef e1 = eval(env,L->get(1));
       BooRef cond = e1->boo();
-      if (cond.is_null()) { return new ErrObj("if's first argument expression must evaluate to a boolean."); }
+      if (cond.is_null())
+	  return new ErrObj(e1->type() == _err ?
+			    e1->err()->msg  :
+			    string("if's first argument expression must evaluate to a boolean - ") +
+			  "instead received: " + e1->toStr());
       if (cond->val == true) { return eval(env,L->get(2)); }
       else if (nargs == 3)   { return new SObj(); }
       else                   { return   eval(env,L->get(3)); }

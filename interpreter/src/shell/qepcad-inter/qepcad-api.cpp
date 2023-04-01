@@ -77,7 +77,7 @@ namespace tarski {
       }
     }
     catch(QepcadException &e) { res = string("Error! ") + e.what(); errorFlag = true; }
-    catch(exception &e) { res = string("Error! Exception!"); errorFlag = true; }
+    catch(exception &e) { res = string("Error! Qepcad-api-call failure!"); errorFlag = true; }
 
     // clean it all up
     ENDQEPCAD();
@@ -222,9 +222,15 @@ namespace tarski {
 	res = f(Q);
       }
     }
-    catch(QepcadException &e) { res = new ErrObj(string("Error! ") + e.what()); errorFlag = true; }
-    catch(TarskiException &e) { res = new ErrObj(string("Error! ") + e.what()); errorFlag = true; }
-    catch(exception &e) { res = new ErrObj(string("Error! Exception!")); errorFlag = true; }
+    catch(QepcadException &e) {
+      res = new ErrObj(string("Error! ") + e.what()); errorFlag = true;
+    }
+    catch(TarskiException &e) {
+      res = new ErrObj(string("Error! ") + e.what()); errorFlag = true;
+    }
+    catch(exception &e) {
+      res = new ErrObj(string("Error! Exception!")); errorFlag = true;
+    }
 
     // clean it all up
     ENDQEPCAD();
