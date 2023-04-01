@@ -5,7 +5,7 @@ architectures:
   - build-on: armhf
 
 base: core20
-version: '1.31'
+version: '1.32'
 summary: A system for computing with Tarski formulas and semi-algebraic sets
 description: |
   Tarski is a system that provides a command-line interface to a number of
