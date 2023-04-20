@@ -31,6 +31,7 @@ public:
   int right;/* the index of the cell's right neighbor       */
   int section;/* 1 if the cell's a section  and 0 otherwise */
   Word truth; /* the truth value of the cell                */
+  int btype;  /* the border type of the cell (see CONMIRCAD)*/
   Safe_Array<Rend_Cell> child; /* the children of the cell  */
   Rend_Cell* parent; /* the parent cell                     */
   Rend_Sample* sample; /* the cell's sample point.          */
@@ -60,8 +61,8 @@ public:
   void out_descrip_ps_standard(Rend_Win &W, ostream &out, Mapper &M);
   void out_descrip_ps_raji(Rend_Win &W, ostream &out, Mapper &M);
   Word description(Rend_Win &W);
-  void out_descrip_svg_standard(Rend_Win &W, ostream &out, Mapper &M);
-  void svg_write_polyline(Rend_Win &W,ostream &out, Mapper &M, Word L, Word p);
+  void out_descrip_svg_standard(Rend_Win &W, ostream &out, Mapper &M, bool dset); // dset true means display semi-alg. set not CAD
+  void svg_write_polyline(Rend_Win &W,ostream &out, Mapper &M, Word L, Word p, bool dset);
 
 };
 

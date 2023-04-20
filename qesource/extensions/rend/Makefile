@@ -43,6 +43,7 @@ $(LIB)(Rend_Sample.o) \
 $(LIB)(Rend_Cell.o) \
 $(LIB)(Rend_Win.o) \
 $(LIB)(ADD_POINTS.o) \
+$(LIB)(ADDBOUNDARYINFO.o) \
 $(LIB)(FILL_2D.o) \
 $(LIB)(WRITE_PLOT.o) \
 $(LIB)(WRITE_PS.o) \

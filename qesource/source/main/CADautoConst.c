@@ -43,6 +43,12 @@ Step1: /* Normalize. */
 	   PopOutputContext();
 	   if (sout.str() != "") { FAIL("CADautoConst",sout.str().c_str()); }
 	 }
+	 else if (next == "full" || next == "full-cad") {
+	   if (PCMZERROR)
+	     FAIL("CADautoConst","Command \"full-cad\" incompatible with \"measure-zero-erro\"! No change made!\n");
+	   else
+	     PCFULL = 'y'; 
+	 }
 	 else { FAIL("CADautoConst","Unknown command!"); }
        }
        FIRST4(GVF,&r,&f,&Q,&Fh);

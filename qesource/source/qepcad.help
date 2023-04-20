@@ -771,6 +771,13 @@ c - produces a plot in black and white
 ZERO-DIMENSIONAL CELL FLAG - default is to show 0-dim cells
 Z - puts dots at each 0-dimensional cell
 z - does not put a dot at each 0-dimensional cell
+
+SEMI-ALGEBRAIC SET PLOT FLAG - only available with svg output
+                             - default is not to use this
+S - svg output plot shows the semi-algebraic set only, rather
+    than the CAD artifacts.
+    NOTE: dots are placed at special places.
+s - don't use this special output
 @
 
 

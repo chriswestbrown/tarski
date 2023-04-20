@@ -358,6 +358,6 @@ UnsatCore UNSATCORE;
   void QEPCADauto(Word Fs, Word *t_, Word *F_e_, Word *F_n_, Word *F_s_);
   void PROJECTauto(Word r, Word A, Word *P_, Word *J_);
   Word TICADauto(Word Q, Word F, Word f, Word P, Word A);
-  void PLOT2DTOOUTPUTSTREAM(int Id1, int Id2, double x, double X, double y, double Y, double e, ostream& out, bool c, bool z);
+  void PLOT2DTOOUTPUTSTREAM(int Id1, int Id2, double x, double X, double y, double Y, double e, ostream& out, bool c, bool z, bool s);
     
 };
