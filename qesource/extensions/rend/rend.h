@@ -56,6 +56,7 @@ Word LBRNQORD(Word A,Word B);
 Word SSILRCRI(Word a_,Word b_);
 
 void CONMIRCAD(Word D,Word P,Word J,Rend_Cell& M,QepcadCls &Q);
+void ADDBOUNDARYINFO(Rend_Cell& M,QepcadCls &Q);
 void ADD_POINTS( Rend_Cell &C, Word p_index, Word x, Word L_);
 void FILL_2D( Rend_Cell &M, Rend_Win &W, Word e, Word L, Word P );
 void WRITE_PLOT(Rend_Cell &M, Rend_Win &W, Word l, Word r, ostream &out);
@@ -66,7 +67,7 @@ Word CH_VIEW_WIN(Rend_Cell &M, Rend_Win &W, Word Xs, Word Xt,
 Word CH_VIEW_WIN_COOR(Rend_Cell &M, Rend_Win &W, Word P, Word N,
 		 Word x,Word X, Word y, Word Y);
 void WRITE_PS(Rend_Cell &M, Rend_Win &W, Word L, Word e, Word P);
-void WRITE_SVG(Rend_Cell &M, Rend_Win &W, Word L, Word e, Word P, ostream &out, bool c, bool z);
+void WRITE_SVG(Rend_Cell &M, Rend_Win &W, Word L, Word e, Word P, ostream &out, bool c, bool z, bool s);
 
 void WRITE_PS_COLOR(Rend_Cell &M, Rend_Win &W, Word L, Word e, Word P);
 void WRITE_PS_STANDARD(Rend_Cell &M, Rend_Win &W, Word L, Word e, Word P, Word Oflag = 0);
@@ -86,5 +87,9 @@ void PLOTeps_2D_CAD(Word D, Word P, Word J,
 void EPS_HEADER(double x1, double y1, double x2, double y2, double offset, ostream& out, double D = 0);
 
 static inline int min(int a, int b) { return a < b ? a : b; }
+
+
+bool decideNoDot(Rend_Cell& M, int i, int j) ;
+
 
 #endif /* _REND_ */

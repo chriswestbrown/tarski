@@ -38,7 +38,8 @@ Step0: /* Read user input */
   // Get additional flags
   bool 
     z = true, // show zero dimensional cell
-    c = true; // make a plot in color
+    c = true, // make a plot in color
+    s = false; // show the semi-algebraic set only, not the CAD artifacts
   signed char g;
   while((g = lin.get()) && g != EOF) {
     switch(g) {
@@ -46,6 +47,8 @@ Step0: /* Read user input */
     case 'Z': z = true; break;
     case 'c': c = false; break;
     case 'C': c = true; break;
+    case 's': s = false; break;
+    case 'S': s = true; break;
     default: break;
     } }
   qein().putback('\n'); //QEPCAD's next command function looks for a newline first!
@@ -70,6 +73,8 @@ Step3:/* Get a nice initial plot.                                   */
     IY = IEEELBRN(Y),E = IEEELBRN(e),L;
   Rend_Cell M;        /* M is the "mirror" CAD for plotting.    */
   CONMIRCAD(D,P,J,M,*this); /* This actually constructs M.            */
+  if (s)
+    ADDBOUNDARYINFO(M,*this);
   Rend_Win W(M,Id1,Id2,Ix,IX,Iy,IY);
   W.set_precis_faithfull();
   W.update_extents(M);
@@ -79,8 +84,9 @@ Step3:/* Get a nice initial plot.                                   */
 /********************************************************************/
 Step4: /* Produce plot! */
   int n = strlen(S);
-  if (n > 4 && strcmp(S + (n - 4),".svg") == 0)
-    WRITE_SVG(M,W,L,E,P,out,c,z);
+  if (n > 4 && strcmp(S + (n - 4),".svg") == 0) {
+    WRITE_SVG(M,W,L,E,P,out,c,z,s);
+  }
   else
     WRITE_EPS(M,W,L,E,P,out,c,z);
   out.close();
@@ -91,17 +97,19 @@ Step4: /* Produce plot! */
 
 void QepcadCls::PLOT2DTOOUTPUTSTREAM(int Id1, int Id2, double x, double X, double y, double Y, double e,
 				     ostream& out,
-				     bool c, bool z)
+				     bool c, bool z, bool s)
 {
-      Word D = GVPC, P = GVPF, J = GVPJ;
-      Word Ix = IEEELBRN(x),IX = IEEELBRN(X),Iy = IEEELBRN(y),
-	IY = IEEELBRN(Y),E = IEEELBRN(e),L;
-      Rend_Cell M;        /* M is the "mirror" CAD for plotting.    */
-      CONMIRCAD(D,P,J,M,*this); /* This actually constructs M.            */
-      Rend_Win W(M,Id1,Id2,Ix,IX,Iy,IY);
-      W.set_precis_faithfull();
-      W.update_extents(M);
-      L = W.get_lociva(M);
-      FILL_2D(M,W,E,L,P);
-      WRITE_SVG(M,W,L,E,P,out,true,true);
+  Word D = GVPC, P = GVPF, J = GVPJ;
+  Word Ix = IEEELBRN(x),IX = IEEELBRN(X),Iy = IEEELBRN(y),
+    IY = IEEELBRN(Y),E = IEEELBRN(e),L;
+  Rend_Cell M;        /* M is the "mirror" CAD for plotting.    */
+  CONMIRCAD(D,P,J,M,*this); /* This actually constructs M.            */
+  if (s)
+    ADDBOUNDARYINFO(M,*this);
+  Rend_Win W(M,Id1,Id2,Ix,IX,Iy,IY);
+  W.set_precis_faithfull();
+  W.update_extents(M);
+  L = W.get_lociva(M);
+  FILL_2D(M,W,E,L,P);
+  WRITE_SVG(M,W,L,E,P,out,true,true,s);
 }

@@ -15,6 +15,7 @@ Rend_Cell::Rend_Cell()
   index = level = left = right = AD2D_ErrI;
   parent = NULL; sample = NULL; truth = UNDET;
   section = 0;
+  btype = -1;
 }
 
 /*************************************************************
@@ -504,8 +505,13 @@ void Rend_Cell::out_descrip_ps_raji(Rend_Win &W,ostream &out, Mapper &M)
     
 }
 
-string svgClassChooser(Rend_Cell& c)
+string svgClassChooser(Rend_Cell& c, bool dset)
 {
+  if (dset) { // displaying semi-algebraic set, not CAD
+    string cls = "b";
+    return cls + to_string(c.btype) + (c.truth == FALSE ? "F" : (c.truth == TRUE ? "T" : "U"));
+  }
+
   switch(c.level) {
   case 0: return "error";
   case 1: {
@@ -535,10 +541,10 @@ string svgIdChooser(Rend_Cell& c)
   }
 }
 
-void Rend_Cell::svg_write_polyline(Rend_Win &W,ostream &out, Mapper &M, Word L, Word p)
+void Rend_Cell::svg_write_polyline(Rend_Win &W,ostream &out, Mapper &M, Word L, Word p, bool dset)
 {
   out << "<polyline id=\"" << svgIdChooser(*this) << "\""
-      << " class=\"" << svgClassChooser(*this) << "\"" 
+      << " class=\"" << svgClassChooser(*this,dset) << "\"" 
       << " points=\"";
   for(Word Lp = L; Lp != NIL; Lp = RED(Lp)) {
     M.Pwrite(FIRST(Lp),out,p);
@@ -550,7 +556,7 @@ void Rend_Cell::svg_write_polyline(Rend_Win &W,ostream &out, Mapper &M, Word L, 
       << "</polyline>" << endl;
 }
 
-void Rend_Cell::out_descrip_svg_standard(Rend_Win &W,ostream &out, Mapper &M)
+void Rend_Cell::out_descrip_svg_standard(Rend_Win &W,ostream &out, Mapper &M, bool dset)
 {
   Word p,x,y,L,l,x1,x2,y1,y2;
   p = 12;
@@ -562,7 +568,7 @@ void Rend_Cell::out_descrip_svg_standard(Rend_Win &W,ostream &out, Mapper &M)
     Word L = section ?
       LIST2(child[0].description(W),child[1].description(W)) :
       CCONC(child[0].description(W),CINV(child[1].description(W)));
-    svg_write_polyline(W,out,M,L,p);
+    svg_write_polyline(W,out,M,L,p,dset);
   } break;
   case 2:     
     /****** 2D Cells  **************/  
@@ -573,17 +579,18 @@ void Rend_Cell::out_descrip_svg_standard(Rend_Win &W,ostream &out, Mapper &M)
 	M.Xwrite(FIRST(V),out,p);
 	out << "\" cy=\"";
 	M.Ywrite(SECOND(V),out,p);
-	out << "\" r=\"" << 1000.0/W.pixdim.x << "\"  class=\"" << svgClassChooser(*this) << "\"/>";
+	out << "\" r=\"" << 1000.0/W.pixdim.x << "\"  class=\"" << svgClassChooser(*this,dset) << "\""
+	    << "/>";
 	out << endl;
       }
       else {
 	L = description(W);
-	svg_write_polyline(W,out,M,L,p);
+	svg_write_polyline(W,out,M,L,p,dset);
       }
     }
     else { // OVER SECTOR
       L = description(W);
-      svg_write_polyline(W,out,M,L,p);
+      svg_write_polyline(W,out,M,L,p,dset);
     }
     break;    
   }
