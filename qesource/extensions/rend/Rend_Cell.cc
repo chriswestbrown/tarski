@@ -584,13 +584,21 @@ void Rend_Cell::out_descrip_svg_standard(Rend_Win &W,ostream &out, Mapper &M, bo
 	out << endl;
       }
       else {
-	L = description(W);
-	svg_write_polyline(W,out,M,L,p,dset);
+	if (dset && this->btype == 0) // Don't display non-border cells 
+	  break;
+	else {
+	  L = description(W);
+	  svg_write_polyline(W,out,M,L,p,dset);
+	}
       }
     }
     else { // OVER SECTOR
-      L = description(W);
-      svg_write_polyline(W,out,M,L,p,dset);
+      if (dset && this->btype == 0 && this->section) // Don't display non-border section cells 
+	break;
+      else {
+	L = description(W);
+	svg_write_polyline(W,out,M,L,p,dset);
+      }
     }
     break;    
   }
