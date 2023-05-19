@@ -1507,9 +1507,11 @@ public:
     int h, w;
     double x,X,y,Y;
     string fname;
-    if (!(sin >> h >> w >> x >> X >> y >> Y >> fname)) {
+    if (!(sin >> h >> w >> x >> X >> y >> Y)) {
       throw TarskiException("format of second argument incorrect (should be e.g. \"300 300 -2 2 -2 2 foo.svg\")");
     }
+    if (!(sin >> fname))
+      fname = "-";
     if (! (h > 0 && w > 0)) { throw TarskiException("pixel height and width must both be positive"); }
     if (!(x < X)) { throw TarskiException("x-coordinate range must be non-empty"); }
     if (!(y < Y)) { throw TarskiException("y-coordinate range must be non-empty"); }
