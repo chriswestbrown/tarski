@@ -1628,6 +1628,7 @@ void NewEInterpreter::init()
   add(new CommSymList(this));
   add(new CommGetFreeVars(this)); 
   add(new Plot2D(this));
+  add(new CommSolutionDimension(this));
 
   // add extended types
   addType(new RealAlgNumTypeObj(NULL));
