@@ -1,0 +1,159 @@
+(plot2d [ x^2 + y^2 < 1 ] "300 300 -2 2 -2 2 junk.svg")
+(plot2d [ x^2 + y^2 < 1 /\ x >= 0 ] "300 300 -2 2 -2 2 foo.svg" '(sset true))
+
+(plot2d [ x^2 + y^2 < 1 ] "300 300 -2 2 -2 2 junk.svg")
+(plot2d [ 2 x^4 - 3 x^2 y + y^2 - 2 y^3 + y^4 <= 0  /\ x^2 - (y - 1)^2 < 1] "300 300 -2 2 -2 3 bar.svg" '(sset true))
+
+(plot2d [ x y > 1] "600 600 -4 4 -4 4 foo.svg" '(sset true) '(ord (x y)))
+(plot2d [ x y >= 1  /\ x^2 + y^2 > 2] "600 600 -4 4 -4 4 foo.svg" '(sset true) '(ord (x y)))
+(plot2d [ x y > 1  /\ x^2 + y^2 >= 4] "600 600 -4 4 -4 4 foo.svg" '(sset true) '(ord (x y)))
+
+(plot2d [ x y > 1  /\  x y^2 < 1 - y  /\ x^2 + y^2 >= 4] "600 600 -4 4 -4 4 foo.svg" '(sset true) '(ord (x y)))
+
+(plot2d [ 2 x^4 - 3 x^2 y + y^2 - 2 y^3 + y^4 = 0  /\ x^2 - (y - 1)^2 < 1] "600 600 -4 4 -4 4 foo.svg" '(sset true) '(ord (x y)))
+(plot2d [ 2 x^4 - 3 x^2 y + y^2 - 2 y^3 + y^4 <= 0  /\ x^2 - (y - 1)^2 < 1] "600 600 -4 4 -4 4 foo.svg" '(sset true) '(ord (x y)))
+
+
+; This is a cool one!
+(plot2d [ (x y - 1) (x y^2 - (1 - y)) < 0  /\ x^2 + y^2 >= 4] "600 600 -4 4 -4 4 foo.svg" '(sset true) '(ord (x y)))
+(plot2d [ (x y - 1) (x y^2 - (1 - y)) < 0  /\ x^2 + y^2 >= 4] "600 600 1.5 2.5 .25 1.25 foo.svg" '(sset true) '(ord (x y)))
+
+[]
+(x,y)
+2
+[x^2 + y^2 < 1 /\ x >= 0 ].
+full
+go
+go
+go
+p-2d-cad -2 2 -2 2 .01 bar.svg S
+
+
+[]
+(x,y)
+2
+[x^2 + y^2 < 1 /\ x >= 0 /\ y /= 0 ].
+full
+go
+go
+go
+p-2d-cad -2 2 -2 2 .1 bar.svg S
+
+
+[]
+(x,y)
+2
+[ x^2 + y^2 < 1 /\ [~[x = 0 /\ y = 0] ]].
+full
+go
+go
+go
+p-2d-cad -2 2 -2 2 .01 bar.svg S
+
+[]
+(x,y)
+2
+[ x^2 + y^2 < 1 /\ x^2 + y^2 >= (1/2)].
+full
+go
+go
+go
+p-2d-cad -2 2 -2 2 .01 bar.svg S
+
+[]
+(x,y)
+2
+[ x^2 + y^2 = 1 /\ [ x - y > 0 /\ x + y <= 0 ]].
+full
+go
+go
+go
+p-2d-cad -2 2 -2 2 .01 bar.svg S
+
+
+[]
+(x,y)
+2
+[ 2 x^4 - 3 x^2 y + y^2 - 2 y^3 + y^4 = 0  /\ x^2 - (y - 1)^2 < 1].
+full
+go
+go
+go
+p-2d-cad -3 3 -3 3 .01 bar.svg S
+
+
+
+[]
+(x,y)
+2
+[ 2 x^4 - 3 x^2 y + y^2 - 2 y^3 + y^4 <= 0  /\ x^2 - (y - 1)^2 < 1].
+full
+go
+go
+go
+p-2d-cad -3 3 -3 3 .01 bar.svg S
+
+
+[]
+(x,y)
+2
+[ x = y /\ [x = 0 \/ x /= 0 ]].
+full
+go
+go
+go
+p-2d-cad -3 3 -3 3 .01 bar.svg S
+
+[]
+(x,y)
+2
+[ (y^2 + 1 + x) (x^2 + y^2 - 1) < 0 /\  2 x^4 - 3 x^2 y + y^2 - 2 y^3 + y^4 <= 0 ].
+full
+go
+go
+go
+p-2d-cad -3 3 -3 3 .01 bar.svg S
+
+[]
+(x,y)
+2
+[  2 x^4 - 3 x^2 y + y^2 - 2 y^3 + y^4 <= 0 \/ x^2 + (y+1/4)^2 = 0].
+full
+go
+go
+go
+p-2d-cad -3 3 -3 3 .01 bar.svg S
+
+
+
+[]
+(x,y)
+2
+[x + 1 >= 0 /\ x - 9 <= 0 /\ y + 6 >= 0 /\ y - 6 <= 0 /\ 2 x + y - 20 <= 0 /\ x - 2 y - 5 <= 0 /\ x - 4 y + 17 >= 0 /\ x^2 + 8 y - 16 >= 0 /\ [y - 2 >= 0 \/ x + 2 y - 5 >= 0 \/ [2 y - 3 > 0 /\ 4 x + y^2 - 4 > 0]]].
+full
+go
+go
+go
+p-2d -2 10 -2 10 0.01 out.svg S
+q
+
+
+[]
+(x,y)
+2
+[x + 1 >= 0 /\ x - 9 <= 0 /\ y + 6 >= 0 /\ y - 6 <= 0 /\ 2 x + y - 20 <= 0 /\ x - 2 y - 5 <= 0 /\ x - 4 y + 17 >= 0 /\ x^2 + 8 y - 16 >= 0 /\ [y - 2 >= 0 \/ x + 2 y - 5 >= 0 \/ [2 y - 3 > 0 /\ 4 x + y^2 - 4 > 0
+]]
+/\ [~[ y = 3 /\ x > -1 /\ x < 6]]
+].
+full
+go
+go
+go
+p-2d -2 10 -2 10 0.01 out.svg S
+q
+
+
+
+########### ZOLTAN BUG 4/21/23 fixed same day
+(plot2d [ x < -1  \/  x + y^(2) > 0] "578 738 -6.6200000000000045 8.14 -5.639999999999998  5.939999999999996 bad.svg" '(sset true) '(ord (x y)))
+

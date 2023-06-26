@@ -10,7 +10,10 @@ int btype(int tl, int t, int tr) {
 int boundaryType(Rend_Cell& M, int i, int j)
 {
   if (i%2==1 && j%2==1) return 0;
-  else if (i%2==1 && j%2==0) return btype(M[i][j-1].truth,M[i][j].truth,M[i][j+1].truth);
+  else if (i%2==1 && j%2==0) {
+    // cerr << "(" << i << "," << j << ") : " << M[i][j-1].truth << " " << M[i][j].truth << " " << M[i][j+1].truth << endl;
+    return btype(M[i][j-1].truth,M[i][j].truth,M[i][j+1].truth);
+  }
   else if (i%2==0 && j%2==1) {
     if (j == 1) { // First sector
       // Set jl so (i-1,jl) is the index of left neighbor
@@ -128,6 +131,8 @@ int boundaryType(Rend_Cell& M, int i, int j)
 // NOTE: must be sure the boundary types for everything already filled in!
 bool decideNoDot(Rend_Cell& M, int i, int j) {
 
+  // cerr << "(" << i << "," << j << ") : ";
+  
   // check left neighbors
   int bcl[3] = {0,0,0}; // count bt0, bt1, bt2
   int jl = -1;
@@ -149,11 +154,26 @@ bool decideNoDot(Rend_Cell& M, int i, int j) {
       if (bt > 0) { jr = k; }
     }
   }
-  
-  bool res =   bcl[1] + bcl[2] == 1 && bcr[1] + bcr[2] == 1 &&
-    M[i][j].btype == M[i-1][jl].btype && M[i][j].btype == M[i+1][jr].btype &&
-    M[i][j].truth == M[i-1][jl].truth && M[i][j].truth == M[i+1][jr].truth;  
 
+  bool res = false; // default is to show dot
+
+  // Case 1: no adjacent cells from left are boundaries, and no adjacent cells from right
+  // are boundary cells, no adjacent cells from left are boundary cells, but (i,j) is a boundary cell
+  // then we have a vertical boundary (or single point).
+  if (bcl[1] + bcl[2] == 0 && bcr[1] + bcr[2] == 0 &&
+      M[i][j].btype == M[i][j-1].btype && M[i][j].btype == M[i][j+1].btype &&
+      M[i][j].truth == M[i][j-1].truth && M[i][j].truth == M[i][j+1].truth)
+    res = true;
+
+  else if (bcl[1] + bcl[2] == 1 && bcr[1] + bcr[2] == 1 &&
+	   M[i][j].btype == M[i-1][jl].btype && M[i][j].btype == M[i+1][jr].btype &&
+	   M[i][j].truth == M[i-1][jl].truth && M[i][j].truth == M[i+1][jr].truth)
+    res = true;
+
+ 
+  // cerr << "bcl = [" << bcl[1] << "," << bcl[2] << "], bcr = [" << bcr[1] << "," << bcr[2] << "] : res = "; 
+  // cerr << res << endl;
+  
   return res;
 }
 
