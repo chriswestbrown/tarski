@@ -118,7 +118,12 @@ if (PCVERBOSE) { SWRITE("Tried up to precision "); IWRITE(i - 8); SWRITE("\n"); 
       RSI(i,a_n,a_d,SJ);
       SISUM(SI,SJ,SK);
       Word delta = i + 3;
-      Rt = COMP(LBRIBRI(LIST2(FLBRN(SK),FLBRN(SK+delta))),Rt);
+      Word I_next = LBRIBRI(LIST2(FLBRN(SK),FLBRN(SK+delta)));
+      if (Rt != NIL && RNCOMP(SECOND(FIRST(Rt)),FIRST(I_next)) > 0) {
+	X = 0;
+	goto Return;
+      }
+      Rt = COMP(I_next,Rt);
       // old: Rt = COMP(LBRIBRI(FIRST(Rs)),Rt);
     }
     FREEARRAY(SI);

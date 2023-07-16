@@ -43,7 +43,6 @@ Step3: /* Truth-invariant CAD. */
        for (i=1; i<=f; i++) NMFPF=NMFPF+LENGTH(LELTI(P,i));
        D = TICAD(Q,F,f,P,A);
 
-
 Step4: /* Solution. */
                /*Int*/ GVPC = D;
                /*Int*/ PCNSTEP = 1;
