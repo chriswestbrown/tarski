@@ -4,12 +4,17 @@
   c must satisfy CELLSRRQ2D, and both siblings of c must
   already have their child stacks in place.
    Return 1 if successfull, otherwise 0
+
+   NOTE: 07/16/2023
+   There is a lot to be done here.  There's not really an
+   adaptive element to this the way there should be.  Should
+   look into this later.
+
  */
 
 #include "lift2d.h"
 
-//#define _PRE_ 22
-#define _PRE_ 80
+#define _PRE_ 22
 
 /* Sorts intervals.  If one is contained in another, the containing interval comes first! 
 This relies on the containing properties of Standard Intervals, this, L1 and L2 must
@@ -57,11 +62,9 @@ Word LIFTSRR2D(Word c, Word D, Word P)
   OC = NIL; /* Just for overlap checking! */
   R = NIL;
   for(P2 = LELTI(P,2); P2 != NIL; P2 = RED(P2)) {
-    //    IBPRRIOAP(M,BRILBRI(I),LELTI(FIRST(P2),PO_POLY), _PRE_,&Rp,&t);
-    t = 1; //DEBUG
+    IBPRRIOAP(M,BRILBRI(I),LELTI(FIRST(P2),PO_POLY), _PRE_,&Rp,&t);
     if (t) {
-      //      IBPRRIOAPSF(M,BRILBRI(I),LELTI(FIRST(P2),PO_POLY),8, _PRE_,&t,&Rp); 
-      IBPRRIOAPSF(M,BRILBRI(I),LELTI(FIRST(P2),PO_POLY),80, _PRE_,&t,&Rp); // DEBUG
+      IBPRRIOAPSF(M,BRILBRI(I),LELTI(FIRST(P2),PO_POLY),2*8, _PRE_,&t,&Rp); // changed from 8 to 2*8.
       if (Rp == 0) {
 	X = 0;
 	goto Return; }
@@ -91,7 +94,7 @@ Word LIFTSRR2D(Word c, Word D, Word P)
   if (count > 1) { /* Just repeat the above, but all in floating point! */
     R = NIL;
     for(P2 = LELTI(P,2); P2 != NIL; P2 = RED(P2)) {
-      IBPRRIOAPSF(M,BRILBRI(I),LELTI(FIRST(P2),PO_POLY),8, _PRE_ + 10,&t,&Rp); 
+      IBPRRIOAPSF(M,BRILBRI(I),LELTI(FIRST(P2),PO_POLY),2*8, _PRE_ + 10,&t,&Rp); 
       if (Rp == 0) {
 	X = 0;
 	goto Return; }
