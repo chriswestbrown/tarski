@@ -39,10 +39,31 @@ Word LIFTSRD2D(Word c, Word D, Word P, Word L)
      ** LOOP OVER EACH 2-LEVEL PROJECTION FACTOR pf
      **********************************************/
     pf = FIRST(P2);
+    Word p_o = LELTI(pf,PO_POLY);
+
+    // !!! shift by sufficiently unlikely number so we probably won't get binary rational root!
+    // !!! p_o is the original poly, p_m is the shifted poly
+    Word a_n = 1;
+    Word a_d = 601; // note: 601 is prime    
+    // construct a_d*z - (a_d*y + a_n)
+    Word tmp = LIST4(1,LIST2(0,LIST2(0,a_d)), // z + ...
+		     0,IPNEG(2,LIST4(1,LIST2(0,a_d),0,LIST2(0,a_n)))); // -(a_d y + a_n)
+    // construct p_o(x,z) over x,y,z from p_o(x,y) over x,y
+    Word p_n = NIL;
+    for(Word A = p_o; A != NIL; A = RED2(A)) {
+      p_n = COMP(FIRST(A),p_n);
+      p_n = COMP(LIST2(0,SECOND(A)),p_n);
+    }
+    p_n = INV(p_n);
+    Word p_m = IPRES(3,p_n,tmp);
+    //IPDWRITE(2,p_m,LIST2(LFS("x"),LFS("y"))); SWRITE("\n");
+      
+    
     if (LSRCH(pf,L)) { /* pf's discriminant vanishes in c */
       
       /* First attempt to isolate roots! (Using Hardware!)*/
-      modIBPRRIOAP(M,BRILBRI(I),LELTI(FIRST(P2),PO_POLY),_PRE_,&Rp,&t);
+      i = 8;
+      modIBPRRIOAP(M,BRILBRI(I),p_m,_PRE_,&Rp,&t);
       count = 0;
       if (t == 0) {
 	for(Rps = Rp; Rps != NIL; Rps = RED(Rps))
@@ -52,7 +73,7 @@ Word LIFTSRD2D(Word c, Word D, Word P, Word L)
       /* If the first attempt fails, try again with software floats! */
       if (t != 0 || count > 1) {
 	for(i = 8, Rp = 0; Rp == 0 && i < 50; i += 8) 
-	  modIBPRRIOAPSF(M,BRILBRI(I),LELTI(FIRST(P2),PO_POLY),i,_PRE_,&t, &Rp);
+	  modIBPRRIOAPSF(M,BRILBRI(I),p_m,i,_PRE_,&t, &Rp);
 if (PCVERBOSE) { SWRITE("Tried up to precision "); IWRITE(i - 8); SWRITE("\n"); }
 	if (Rp == 0) {
 if (PCVERBOSE) { SWRITE("Even the highprecision call to modIBPRRIOAPSF failed!\n"); }
@@ -60,6 +81,8 @@ if (PCVERBOSE) { SWRITE("Even the highprecision call to modIBPRRIOAPSF failed!\n
 	  goto Return; }
 	t = 0;
       }
+
+      //OWRITE(Rp); SWRITE("\n");      
       
       for(Rps = NIL, i = 1, j = 0 ; Rp != NIL; Rp = RED(Rp), i++) {
 	FIRST3(FIRST(Rp),&a,&b,&e);
@@ -86,8 +109,27 @@ if (PCVERBOSE) { SWRITE("Tried up to precision "); IWRITE(i - 8); SWRITE("\n"); 
        X = 0;
       goto Return; }
 
-    for(Rs = Rp, Rt = NIL; Rs != NIL; Rs = RED(Rs))
-      Rt = COMP(LBRIBRI(FIRST(Rs)),Rt);
+    //!!! Unshift each isolating interval (using current precision i), and rep. as BRI not LBRI
+    Word* SI = GETARRAY(2*i+6);
+    Word* SJ = GETARRAY(2*i+6);
+    Word* SK = GETARRAY(2*i+6);
+    for(Rs = Rp, Rt = NIL; Rs != NIL; Rs = RED(Rs)) {
+      LBRISI(FIRST(Rs),i,SI);
+      RSI(i,a_n,a_d,SJ);
+      SISUM(SI,SJ,SK);
+      Word delta = i + 3;
+      Word I_next = LBRIBRI(LIST2(FLBRN(SK),FLBRN(SK+delta)));
+      if (Rt != NIL && RNCOMP(SECOND(FIRST(Rt)),FIRST(I_next)) > 0) {
+	X = 0;
+	goto Return;
+      }
+      Rt = COMP(I_next,Rt);
+      // old: Rt = COMP(LBRIBRI(FIRST(Rs)),Rt);
+    }
+    FREEARRAY(SI);
+    FREEARRAY(SJ);
+    FREEARRAY(SK);
+
     R = COMP(CINV(Rt),R); }
   R = CINV(R);
   DL = CINV(DL);

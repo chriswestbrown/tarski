@@ -1,8 +1,8 @@
 #include "cad2d.h"
 #include <iostream>
-#include "db/convenientstreams.h"
+#include "caserver/convenientstreams.h"
 #include <signal.h>
-#include "db/CAPolicy.h"
+#include "caserver/CAPolicy.h"
 
 static void SIGINT_handler(int i, siginfo_t *sip,void* uap);
 static void init_SIGINT_handler();

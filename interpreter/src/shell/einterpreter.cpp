@@ -1519,7 +1519,7 @@ public:
     //ex: (plot2d [x^4 + y^4 < 1 /\ y > (2 x - 1)^2 x] "600 600 -2 2 -2 2 foo.svg")
     string script = sout.str();
     Callback f(h,w,x,X,y,Y,optshowset,fname);
-    SRef res = qepcadAPICall(script,f);
+    SRef res = qepcadAPICall(script,f,true);
     
     return res;
     }
@@ -1629,7 +1629,9 @@ void NewEInterpreter::init()
   add(new CommGetFreeVars(this)); 
   add(new Plot2D(this));
   add(new CommSolutionDimension(this));
-
+  add(new CommDiscriminant(this));
+  add(new CommSubDiscSeq(this));
+  
   // add extended types
   addType(new RealAlgNumTypeObj(NULL));
   addType(new OCBuilderObj(NULL));

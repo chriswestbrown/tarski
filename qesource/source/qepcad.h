@@ -16,6 +16,7 @@ extern "C" {
 #include "saclib/replacesac.h"
 #include "saclib/gcword.h"
 #include "main/qepcadcls.h"
+#include "main/qepcad2dcls.h"
 
 /* ----------------------------------------*/
 /*            Algorithms                   */

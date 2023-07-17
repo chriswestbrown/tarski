@@ -31,7 +31,7 @@ void modIBPRRIOAP(Word M, Word I, Word B, Word k, Word *L_, BDigit *t_)
 	BDigit t,n,n1,n2,np,u,s,e,i,j,t1,tc,c;
 	ieee F1,F2;
 	double p,w1,w2;
-	interval *A,K,*Q,*HICFP,J;
+	interval *A = NULL,K,*Q = NULL,*HICFP,J;
 
 Step1: /* Convert the isolating interval for \alpha to a
           hardware interval. */
@@ -49,10 +49,11 @@ Step1: /* Convert the isolating interval for \alpha to a
 Step2: /* Convert the minimal polynomial to a hardware interval
           polynomial and refine the hardware interval. */
 	FPCATCH();
-	IUPHIP(M,&A,&t);
+	IUPHIP(M,&A,&t); // If t != 0, remember to free A!
 	if (t == 0) {
-	   t = 1;
-	   goto Return; }
+	  A = NULL;
+	  t = 1;
+	  goto Return; }
 	n = PDEG(M);
 	t = HIPFES(n,A,w2);
 	if (FPCHECK() == 1) {
@@ -88,7 +89,10 @@ Step3: /* Isolate the roots of B(alpha,y) */
 	for(Bp = B; Bp != NIL; Bp = RED2(Bp)) {
 	  FIRST2(Bp,&e,&CFP);
 	  IUPHIP(CFP,&HICFP,&c);
-	  Q[e] = HIPIEVAL(PDEG(CFP),HICFP,K); }
+	  Q[e] = HIPIEVAL(PDEG(CFP),HICFP,K);
+	  if (c != 0)
+	    FREEARRAY(HICFP);
+	}
 
 	/* Check leading coefficient */
 	s = HISIGN(Q[PDEG(B)]);
@@ -158,6 +162,10 @@ Step3: /* Isolate the roots of B(alpha,y) */
 	t = 0;
 	  
 Return: /* Return L and t. */
+	if (Q != NULL)
+	  FREEARRAY(Q);
+	if (A != NULL)
+	  FREEARRAY(A);
 	*L_ = L;
 	*t_ = t;
 	return;

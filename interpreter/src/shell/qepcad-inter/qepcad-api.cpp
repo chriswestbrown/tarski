@@ -88,6 +88,7 @@ namespace tarski {
   }
 
 
+  
   SRef CommQepcadAPICall::execute(SRef input, /*
 						input: A string that is a valid qepcad input script
 						formType: char T for Tarski, E for Extended G for Geometric
@@ -179,7 +180,11 @@ namespace tarski {
     return new LisObj(new StrObj(res), new StrObj(assumptionsAsUsed));
   }
 
-  SRef qepcadAPICall(std::string &input, QepcadAPICallback &f) {
+  /*
+    NOTE: 
+   */
+  SRef qepcadAPICall(std::string &input, QepcadAPICallback &f, bool use2DOpts) {
+    QepcadCls* p = use2DOpts ? new QepcadCls2D() : new QepcadCls();
     string str_F = input;
     SRef res;
     bool errorFlag = false;
@@ -201,7 +206,7 @@ namespace tarski {
       ::PopInputContext();
 
       // Initialize QEPCAD problem
-      QepcadCls Q;
+      QepcadCls &Q = *p;
       Q.SETINPUTFORMULA(V,Fs);
 
       // Create CAD & get simplified equivalent formula
@@ -231,8 +236,9 @@ namespace tarski {
     catch(exception &e) {
       res = new ErrObj(string("Error! Exception!")); errorFlag = true;
     }
-
+    
     // clean it all up
+    delete p;
     ENDQEPCAD();
     return res;
   }

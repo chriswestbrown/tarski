@@ -233,7 +233,7 @@ UnsatCore UNSATCORE;
   Word NZFOPQR(Word c, Word k, Word b, Word A);
   Word NZFOPQ(Word c, Word k, Word M, Word b, Word A);
   void APEQC(Word c, Word k, Word P);
-  void CONSTRUCT(Word c, Word k, Word f, Word Ps, Word As);
+  virtual void CONSTRUCT(Word c, Word k, Word f, Word Ps, Word As);
   void CONSTRUCT1(Word c, Word k, Word f, Word Ps, Word As);
   void CONSTRUCTR(Word c, Word k, Word f, Word Ps, Word As);
   void CONSTRUCTI(Word c, Word k, Word f, Word Ps, Word As);
@@ -328,7 +328,7 @@ UnsatCore UNSATCORE;
   void SFC1(Word D, Word P, Word J, Word n, Word sfm);
   void SFC2(Word D, Word P, Word J, Word n, Word sfm);
   void SFC3(Word D, Word P, Word J, Word n, Word L);
-  Word SFC3f(Word D, Word P, Word J, Word n, Word L, Word outFlag = 0);
+  Word SFC3f(Word D, Word P, Word J, Word n, Word L, Word outFlag=0);
   void SFC4(Word D, Word P, Word J, Word n, Word L);
   void SFCFULLD(Word D, Word P, Word J, Word n);
   Word SFCFULLDf(Word D, Word P, Word J, Word n);
@@ -356,8 +356,8 @@ UnsatCore UNSATCORE;
 
   /* new */
   void QEPCADauto(Word Fs, Word *t_, Word *F_e_, Word *F_n_, Word *F_s_);
-  void PROJECTauto(Word r, Word A, Word *P_, Word *J_);
-  Word TICADauto(Word Q, Word F, Word f, Word P, Word A);
+  virtual void PROJECTauto(Word r, Word A, Word *P_, Word *J_);
+  virtual Word TICADauto(Word Q, Word F, Word f, Word P, Word A);
   void PLOT2DTOOUTPUTSTREAM(int Id1, int Id2, double x, double X, double y, double Y, double e, ostream& out, bool c, bool z, bool s);
     
 };

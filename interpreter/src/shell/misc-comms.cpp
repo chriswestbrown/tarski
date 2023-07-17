@@ -65,5 +65,51 @@ namespace tarski {
     return new SObj();
   }
 
+
+  SRef CommDiscriminant::execute(SRef input, vector<SRef> &args) {
+    AlgRef A = args[0]->alg();
+    IntPolyRef p = A->getVal();
+    SymRef sx = args[1]->sym();
+    Variable x = this->getPolyManagerPtr()->getVar(sx->getVal());
+    int deg = p->degree(x);
+    if (deg <= 0)
+      return new ErrObj("Command " + name() + " requires polynomial of positive degree in given variable.");
+
+    IntPolyRef d = deg == 1 ? new IntPolyObj(1) : this->getPolyManagerPtr()->discriminant(p,x);
+    AlgRef D = new AlgObj(d,*(this->getPolyManagerPtr()));
+    return D;
+  }
+  
+    SRef CommSubDiscSeq::execute(SRef input, vector<SRef> &args) {
+    AlgRef A = args[0]->alg();
+    IntPolyRef p = A->getVal();
+    SymRef sx = args[1]->sym();
+    Variable x = this->getPolyManagerPtr()->getVar(sx->getVal());
+    int deg = p->degree(x);
+    LisRef res = new LisObj();
+    if (deg <= 0)
+      return new ErrObj("Command " + name() + " requires polynomial of positive degree in given variable.");
+    else if (deg == 0) {
+      res->push_back(new AlgObj(new IntPolyObj(1),*(this->getPolyManagerPtr())));
+    }
+    else {
+      VarSet V = p->getVars();
+      Word r = V.numElements();
+      Word i = V.positionInOrder(x);
+      Word A = PMMVPO(r,p->getSaclibPoly(),i);
+      Word Ap = IPDMV(r,A);
+      Word L = IPPSC(r,A,Ap);
+      for(Word Lp = L; Lp != NIL; Lp = RED(Lp)) {
+	Word PSC = IPQ(r-1,FIRST(Lp),PLDCF(A));
+	IntPolyRef sdc = new IntPolyObj(r-1,PSC,V - x);
+	res->push_back(new AlgObj(sdc,*(this->getPolyManagerPtr())));
+      }
+    }
+    return res;
+  }
+
+
+  
+  
   
 }
