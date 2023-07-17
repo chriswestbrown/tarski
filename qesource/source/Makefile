@@ -40,7 +40,7 @@ EXTLIBS   =	${qe}/extensions/sfext/sfexto.a \
 		${qe}/extensions/lift2D/lift2Do.a \
 		${qe}/extensions/newadj/newadjo.a \
 		${qe}/extensions/adj2d/adj2do.a \
-		${saclib}/lib/saclibo.a \
+		${saclib}/lib/saclibd.a \
 		${SPECLFLAGS}
 
 EXTLIBSD  =	${qe}/extensions/sfext/sfextd.a \
@@ -244,7 +244,8 @@ $(LIB)(proj/PROJMCEC.o) \
 $(LIB)(proj/PROPCONS.o) \
 $(LIB)(proj/UDEQNCONST.o) \
 $(LIB)(proj/SEPLAB.o) \
-$(LIB)(proj/PROJECTauto.o)
+$(LIB)(proj/PROJECTauto.o) \
+$(LIB)(proj/PROJECT2Dauto.o)
 
 OBJS_SYSOLVE = \
 $(LIB)(sysolve/ASSUMPTIONSRATVEVAL.o) \
@@ -282,6 +283,7 @@ $(LIB)(ticad/CHCELL.o) \
 $(LIB)(ticad/CHOOSE.o) \
 $(LIB)(ticad/CHSCN.o) \
 $(LIB)(ticad/CONSTRUCT.o) \
+$(LIB)(ticad/CONSTRUCT2D.o) \
 $(LIB)(ticad/CONVERT.o) \
 $(LIB)(ticad/CSSP.o) \
 $(LIB)(ticad/CVCOMP.o) \
@@ -343,7 +345,8 @@ $(LIB)(ticad/SUBST.o) \
 $(LIB)(ticad/SUBSTR.o) \
 $(LIB)(ticad/TCHILD.o) \
 $(LIB)(ticad/TICAD.o) \
-$(LIB)(ticad/TICADauto.o)
+$(LIB)(ticad/TICADauto.o) \
+$(LIB)(ticad/TICAD2Dauto.o)
 
 OBJS_USERINT = \
 $(LIB)(userint/ASSUME.o) \
@@ -462,8 +465,8 @@ $(LIBD)(db/FNDTSDB.o) \
 $(LIBD)(db/GETRPDB.o) \
 $(LIBD)(db/IPFACDB.o) \
 $(LIBD)(db/MODCRDB.o) \
-$(LIBD)(db/SUBSTDB.o) \
-$(LIBD)(db/SINGULAR.o)
+$(LIBD)(db/SUBSTDB.o)
+
 
 OBJS_IOd = \
 $(LIBD)(io/OW.o) \

@@ -21,7 +21,7 @@ Outputs
 void modHIPRRID(BDigit n, interval *A, Word *L_, BDigit *t_)
 {
 	BDigit k,s,t;
-	interval *B,*C;
+	interval *B = NULL,*C;
 	Word b,I,J,L,L1,L2;
 
 Step1: /* Compute a bound for the positive roots. */
@@ -39,6 +39,7 @@ Step2: /* Isolate the positive roots. */
 	   goto Return; }
 	L1 = modHIPRRISD(n,B,0,LIST2(1,-k));
 	FREEARRAY(B);
+	B = NULL;
 
 Step3: /* Compute a bound for the negative roots. */
 	B = HIPNEGT(n,A);
@@ -47,9 +48,12 @@ Step3: /* Compute a bound for the negative roots. */
 Step4: /* Isolate the negative roots. */
 	if (k == NIL) {
            L2 = NIL;
+	   FREEARRAY(B);
+	   B = NULL;
            goto Step5; }
         HIPBHT(n,B,k, &C,&t);
 	FREEARRAY(B);
+	B = NULL;
 	if (t == 0) {
 	   FREEARRAY(C);
 	   t = 1;
