@@ -17,7 +17,7 @@ namespace tarski {
   public:
     virtual SRef operator()(QepcadCls &Q);
   };
-  SRef qepcadAPICall(std::string &input, QepcadAPICallback &f);
+  SRef qepcadAPICall(std::string &input, QepcadAPICallback &f, bool use2DOpts = false);
   
 
     

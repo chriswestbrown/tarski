@@ -183,8 +183,8 @@ namespace tarski {
   /*
     NOTE: 
    */
-  SRef qepcadAPICall(std::string &input, QepcadAPICallback &f) {
-    QepcadCls* p = new QepcadCls2D();
+  SRef qepcadAPICall(std::string &input, QepcadAPICallback &f, bool use2DOpts) {
+    QepcadCls* p = use2DOpts ? new QepcadCls2D() : new QepcadCls();
     string str_F = input;
     SRef res;
     bool errorFlag = false;
