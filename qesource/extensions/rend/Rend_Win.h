@@ -40,7 +40,7 @@ public:
   Int_Pair pixdim; /* pixel dimensions of drawing area       */
   Int_Pair margin; /* margin widths in pixels                */
   Int_Pair precis; /* 2^x x-precision, and 2^y y-precision   */
-  gcmemloc x,X,y,Y;/* binary rational coord's of view area   */
+  gcmemloc x,X,y,Y;/* logarithmic binary rational coord's of view area   */
 
   Rend_Win(Rend_Cell &D, int a = 400, int b = 400, 
 	   Word ix = 0, Word iX = 0, Word iy = 0, 

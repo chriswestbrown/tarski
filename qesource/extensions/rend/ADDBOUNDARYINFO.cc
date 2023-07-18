@@ -130,7 +130,6 @@ int boundaryType(Rend_Cell& M, int i, int j)
 // boundary-ness is implied by its neighbors
 // NOTE: must be sure the boundary types for everything already filled in!
 bool decideNoDot(Rend_Cell& M, int i, int j) {
-
   // cerr << "(" << i << "," << j << ") : ";
   
   // check left neighbors

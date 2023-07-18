@@ -142,7 +142,7 @@ Word Rend_Cell::description(Rend_Win &W)
 	Word y = SECOND(LAST(V));
 	r = LIST2(x,y);
       }
-      V = CONC(V,LIST1(r));
+      V = CCONC(V,LIST1(r));
     }
     else {
 
@@ -174,7 +174,6 @@ Word Rend_Cell::description(Rend_Win &W)
   }
     
   return V;
-      
 }
 
 
@@ -244,7 +243,6 @@ void Rend_Cell::out_descrip(Rend_Win &W,ostream &out,Mapper &M)
 
     break;
   }
-
 }
 
 
@@ -575,7 +573,7 @@ void Rend_Cell::out_descrip_svg_standard(Rend_Win &W,ostream &out, Mapper &M, bo
     if (parent -> section) { // OVER SECTION
       if (section) {
 	Word V = description(W);
-	out << "<circle cx=\"";
+	out << "<circle id=\"" << svgIdChooser(*this) << "\" " << "cx=\"";
 	M.Xwrite(FIRST(V),out,p);
 	out << "\" cy=\"";
 	M.Ywrite(SECOND(V),out,p);
