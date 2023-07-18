@@ -68,17 +68,25 @@ class Mapper
   {
     Word A,Ap;
     A = constrain(mapX(r),ux.W,uX.W);
-    out << setprecision(p);
+    //    int dec_precision = ceil(p/log2(10));
+    int dec_precision = 5;
+    int old_precision = out.precision();
+    out << setprecision(dec_precision);
     Ap = RNPROD(A,RNP2(p));
     out << double(RNFLOR(Ap)) / pow(2.0,p);
+    out << setprecision(old_precision);
   }
   void Ywrite(Word r, ostream &out, int p)
   {
     Word A,Ap;
     A = constrain(mapY(r),uy.W,uY.W);
-    out << setprecision(p);
+    //    int dec_precision = ceil(p/log2(10));
+    int dec_precision = 5;
+    int old_precision = out.precision();
+    out << setprecision(dec_precision);
     Ap = RNPROD(A,RNP2(p));
     out << double(RNFLOR(Ap)) / pow(2.0,p);
+    out << setprecision(old_precision);
   }
   void Pwrite(Word r, ostream &out, int p)
   {

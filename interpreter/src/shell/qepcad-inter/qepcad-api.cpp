@@ -184,6 +184,7 @@ namespace tarski {
     NOTE: 
    */
   SRef qepcadAPICall(std::string &input, QepcadAPICallback &f, bool use2DOpts) {
+    /*chris*/ //use2DOpts=false;
     QepcadCls* p = use2DOpts ? new QepcadCls2D() : new QepcadCls();
     string str_F = input;
     SRef res;
@@ -209,6 +210,8 @@ namespace tarski {
       QepcadCls &Q = *p;
       Q.SETINPUTFORMULA(V,Fs);
 
+      /*chris*/ int t0 = CATime();
+      
       // Create CAD & get simplified equivalent formula
       ostringstream warningsAndErrors;
       std::stringstream rest;
@@ -218,6 +221,9 @@ namespace tarski {
       { ::PopOutputContext(); throw TarskiException("qepcad-api fail (CADautoConst)"); }
       ::PopOutputContext();
 
+      /*chris*/ //int t1 = CATime();
+      /*chris*/ //cerr << "CAD construciton time: " << t1-t0 << endl;
+
       // Output
       if (warningsAndErrors.str() != "") {
 	errorFlag = true;
@@ -225,6 +231,8 @@ namespace tarski {
       }
       else {
 	res = f(Q);
+	/*chris*/ //int t2 = CATime();
+	/*chris*/ //cerr << "plot time: " << t2-t1 << endl;
       }
     }
     catch(QepcadException &e) {

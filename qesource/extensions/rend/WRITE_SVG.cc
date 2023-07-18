@@ -70,7 +70,7 @@ void WRITE_SVG(Rend_Cell &M, Rend_Win &W, Word L, Word e, Word P, ostream &out, 
   Rend_Win Wp(W);
 
   /****************************************
-  *** Write ps header
+  *** Write svg header
   *****************************************/
   double D = 20;
   double offset = 0;

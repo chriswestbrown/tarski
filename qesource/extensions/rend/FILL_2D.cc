@@ -5,7 +5,7 @@ Fill in the 2D sections over sectors.
 
 Inputs
   M : The Rend_Cell cell structure for the CAD.
-  W : The Rend_Win structure defining the viewing infromation.
+  W : The Rend_Win structure defining the viewing information.
   e : A logarithmic binary number giving the offset for the
       x sample points.
   L : A list of indices of 1D section cells in which points should
@@ -32,6 +32,9 @@ Step1: /* Add the points. */
     //-- get the interval you want to fill
     I = M[i].sample -> coordinate( W.precis.x );
     FIRST2(I,&ap,&bp);
+    ap = LBRNCOMP(ap,W.x) < 0 ? W.x.W : ap; // don't look at points to the left of view window
+    bp = LBRNCOMP(W.X,bp) < 0 ? W.X.W : bp; // don't look at points to the right of view window
+    
     if (i == 1)
       ap = LBRNDIF(ap,e); //-- ensure that we draw to right edge.
     if (i == M.child.size() - 2)
@@ -63,7 +66,13 @@ Step2: /* Loop over each level 2 proj factor. */
 Step3: /* Add new points to CAD for P_(2,n). */
       while(Q != NIL) {
 	ADV2(Q,&yl,&x,&Q);
-	ADD_POINTS( M[i],n,x,yl ); } } }
+	ADD_POINTS( M[i],n,x,yl );
+      }
+    }
 
+  }
+
+
+  
   return;
 }
