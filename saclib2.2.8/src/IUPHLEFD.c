@@ -44,6 +44,7 @@ Word IUPHLEFD(p,F,C,E,G)
 
 Step0: /* Initialize the lifting and testing times. */
        Th = Tt = 0;
+       Fb = NIL; /* chris added to avoid conditional on uninitialized value. */
 
 Step1: /* Compute the two-factor lifting bound and the highest
           single-precision power of p not exceeding the bound. */ 

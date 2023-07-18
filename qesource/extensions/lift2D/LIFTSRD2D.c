@@ -6,7 +6,7 @@
   of 2-level projection factors whose discriminants have
   order 1 zeros in c.
   Return 1 if successfull, otherwise 0
- */
+*/
 
 #include "lift2d.h"
 
@@ -40,26 +40,24 @@ Word LIFTSRD2D(Word c, Word D, Word P, Word L)
      **********************************************/
     pf = FIRST(P2);
     Word p_o = LELTI(pf,PO_POLY);
-
-    // !!! shift by sufficiently unlikely number so we probably won't get binary rational root!
-    // !!! p_o is the original poly, p_m is the shifted poly
-    Word a_n = 1;
-    Word a_d = 601; // note: 601 is prime    
-    // construct a_d*z - (a_d*y + a_n)
-    Word tmp = LIST4(1,LIST2(0,LIST2(0,a_d)), // z + ...
-		     0,IPNEG(2,LIST4(1,LIST2(0,a_d),0,LIST2(0,a_n)))); // -(a_d y + a_n)
-    // construct p_o(x,z) over x,y,z from p_o(x,y) over x,y
-    Word p_n = NIL;
-    for(Word A = p_o; A != NIL; A = RED2(A)) {
-      p_n = COMP(FIRST(A),p_n);
-      p_n = COMP(LIST2(0,SECOND(A)),p_n);
-    }
-    p_n = INV(p_n);
-    Word p_m = IPRES(3,p_n,tmp);
-    //IPDWRITE(2,p_m,LIST2(LFS("x"),LFS("y"))); SWRITE("\n");
       
-    
-    if (LSRCH(pf,L)) { /* pf's discriminant vanishes in c */
+    /***** pf's discriminant vanishes in c *****/
+    if (LSRCH(pf,L)) {
+      // !!! shift by sufficiently unlikely number so we probably won't get binary rational root!
+      // !!! p_o is the original poly, p_m is the shifted poly
+      Word a_n = 1;
+      Word a_d = 601; // note: 601 is prime    
+      // construct a_d*z - (a_d*y + a_n)
+      Word tmp = LIST4(1,LIST2(0,LIST2(0,a_d)), // z + ...
+		       0,IPNEG(2,LIST4(1,LIST2(0,a_d),0,LIST2(0,a_n)))); // -(a_d y + a_n)
+      // construct p_o(x,z) over x,y,z from p_o(x,y) over x,y
+      Word p_n = NIL;
+      for(Word A = p_o; A != NIL; A = RED2(A)) {
+	p_n = COMP(FIRST(A),p_n);
+	p_n = COMP(LIST2(0,SECOND(A)),p_n);
+      }
+      p_n = INV(p_n);
+      Word p_m = IPRES(3,p_n,tmp);
       
       /* First attempt to isolate roots! (Using Hardware!)*/
       i = 8;
@@ -72,65 +70,76 @@ Word LIFTSRD2D(Word c, Word D, Word P, Word L)
 
       /* If the first attempt fails, try again with software floats! */
       if (t != 0 || count > 1) {
+	Word Ip = BRILBRI(I);
 	for(i = 8, Rp = 0; Rp == 0 && i < 50; i += 8) 
-	  modIBPRRIOAPSF(M,BRILBRI(I),p_m,i,_PRE_,&t, &Rp);
-if (PCVERBOSE) { SWRITE("Tried up to precision "); IWRITE(i - 8); SWRITE("\n"); }
+	  modIBPRRIOAPSF(M,Ip,p_m,i,_PRE_,&Ip, &Rp);
+	if (PCVERBOSE) { SWRITE("Tried up to precision "); IWRITE(i - 8); SWRITE("\n"); }
 	if (Rp == 0) {
-if (PCVERBOSE) { SWRITE("Even the highprecision call to modIBPRRIOAPSF failed!\n"); }
+	  if (PCVERBOSE) { SWRITE("Even the highprecision call to modIBPRRIOAPSF failed!\n"); }
 	  X = 0;
 	  goto Return; }
 	t = 0;
       }
 
-      //OWRITE(Rp); SWRITE("\n");      
-      
       for(Rps = NIL, i = 1, j = 0 ; Rp != NIL; Rp = RED(Rp), i++) {
 	FIRST3(FIRST(Rp),&a,&b,&e);
 	Rps = COMP(LIST2(a,b),Rps);
 	if (e == 1 && j != 0)
 	{
-	  t = 1; /* PROBLEM: more than 1 "don't know" interval! */
-SWRITE("PRoblem in \"LIFTSRD2D\": More than one \"don't know\"!\n");	  
+	  if (PCVERBOSE) { SWRITE("Problem in \"LIFTSRD2D\": More than one \"don't know\"!\n");	}
+	  X = 0;
+	  goto Return;
 	}
 	else if (e == 1)
 	  j = i; }
       Rp = CINV(Rps);
-      DL = COMP(LIST2(THIRD(LELTI(pf,PO_LABEL)),j),DL); }
-    else { /* pf's discriminant does NOT vanish in c. */
+      DL = COMP(LIST2(THIRD(LELTI(pf,PO_LABEL)),j),DL);
+
+      //!!! Unshift each isolating interval (using current precision i), and rep. as BRI not LBRI
+      Word* SI = GETARRAY(2*i+6);
+      Word* SJ = GETARRAY(2*i+6);
+      Word* SK = GETARRAY(2*i+6);
+      for(Rs = Rp, Rt = NIL; Rs != NIL; Rs = RED(Rs)) {
+	LBRISI(FIRST(Rs),i,SI);
+	RSI(i,a_n,a_d,SJ);
+	SISUM(SI,SJ,SK);
+	Word delta = i + 3;
+	Word I_next = LBRIBRI(LIST2(FLBRN(SK),FLBRN(SK+delta)));
+	if (Rt != NIL && RNCOMP(SECOND(FIRST(Rt)),FIRST(I_next)) > 0) {
+	  FREEARRAY(SI);
+	  FREEARRAY(SJ);
+	  FREEARRAY(SK);
+	  X = 0;
+	  goto Return;
+	}
+	Rt = COMP(I_next,Rt);
+	// old: Rt = COMP(LBRIBRI(FIRST(Rs)),Rt);
+      }
+      FREEARRAY(SI);
+      FREEARRAY(SJ);
+      FREEARRAY(SK);
+    }
+
+    /***** pf's discriminant does NOT vanish in c. *****/
+    else { 
+      i = 8;
       IBPRRIOAP(M,BRILBRI(I),LELTI(FIRST(P2),PO_POLY),_PRE_,&Rp,&t); 
       if (t) {/* This line is my test stuff! */
-		for(i = 8, Rp = 0; Rp == 0 && i < 50; i += 8) 
-	  modIBPRRIOAPSF(M,BRILBRI(I),LELTI(FIRST(P2),PO_POLY),i,_PRE_,&t, &Rp);
-if (PCVERBOSE) { SWRITE("Tried up to precision "); IWRITE(i - 8); SWRITE("\n"); }
+	Word Ip = BRILBRI(I);
+	for(i = 8, Rp = 0; Rp == 0 && i < 50; i += 8) 
+	  modIBPRRIOAPSF(M,BRILBRI(I),LELTI(FIRST(P2),PO_POLY),i,_PRE_,&Ip, &Rp);
+	if (PCVERBOSE) { SWRITE("Tried up to precision "); IWRITE(i - 8); SWRITE("\n"); }
 	t = (Rp == 0); }
-      }
-
-    if (t) {
-       X = 0;
-      goto Return; }
-
-    //!!! Unshift each isolating interval (using current precision i), and rep. as BRI not LBRI
-    Word* SI = GETARRAY(2*i+6);
-    Word* SJ = GETARRAY(2*i+6);
-    Word* SK = GETARRAY(2*i+6);
-    for(Rs = Rp, Rt = NIL; Rs != NIL; Rs = RED(Rs)) {
-      LBRISI(FIRST(Rs),i,SI);
-      RSI(i,a_n,a_d,SJ);
-      SISUM(SI,SJ,SK);
-      Word delta = i + 3;
-      Word I_next = LBRIBRI(LIST2(FLBRN(SK),FLBRN(SK+delta)));
-      if (Rt != NIL && RNCOMP(SECOND(FIRST(Rt)),FIRST(I_next)) > 0) {
+      if (t) {
 	X = 0;
-	goto Return;
+	goto Return; }
+      for(Rs = Rp, Rt = NIL; Rs != NIL; Rs = RED(Rs)) {
+	Rt = COMP(LBRIBRI(FIRST(Rs)),Rt);
       }
-      Rt = COMP(I_next,Rt);
-      // old: Rt = COMP(LBRIBRI(FIRST(Rs)),Rt);
     }
-    FREEARRAY(SI);
-    FREEARRAY(SJ);
-    FREEARRAY(SK);
 
-    R = COMP(CINV(Rt),R); }
+    R = COMP(CINV(Rt),R);
+  }
   R = CINV(R);
   DL = CINV(DL);
 
@@ -189,8 +198,8 @@ if (PCVERBOSE) { SWRITE("Tried up to precision "); IWRITE(i - 8); SWRITE("\n"); 
 	  SP = LIST5(LELTI(LELTI(LELTI(P,2),k),PO_POLY),FIRST(r),LIST2(0,LIST2(RNINT(1),LIST2(1,1))),0,0); /* SP */
 	  SLELTI(R,k,RED(r)); } }
 
-	/* CONSTRUCT CELL */
-	cp = LIST10(FIRST(c_R),NIL,THIRD(c_R),UNDET,SP,
+      /* CONSTRUCT CELL */
+      cp = LIST10(FIRST(c_R),NIL,THIRD(c_R),UNDET,SP,
 		  CCONC(LELTI(c,INDX),LIST1(i)),COMP(FIRST(LELTI(c_R,SIGNPF)),LELTI(c,SIGNPF)),
 		  NOTDET,
 		  LELTI(c_R,DEGSUB),LELTI(c_R,MULSUB));
@@ -268,7 +277,7 @@ if (PCVERBOSE) { SWRITE("Tried up to precision "); IWRITE(i - 8); SWRITE("\n"); 
   SLELTI(c,CHILD,S);
   X = 1;
 
-Return:
+ Return:
   return X;
 }
 
