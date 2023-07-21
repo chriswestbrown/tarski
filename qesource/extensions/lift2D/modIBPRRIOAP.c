@@ -25,6 +25,9 @@ Outputs
 ======================================================================*/
 #include "lift2d.h"
 
+Word ProveNotRoot(Word A, Word M, Word I, Word a, Word b, Word Ap, Word K);
+
+
 void modIBPRRIOAP(Word M, Word I, Word B, Word k, Word *L_, BDigit *t_)
 {
         Word L,CFP,Bp,Ls,Lp,Ld,td,a,b,Jp;
@@ -134,27 +137,70 @@ Step3: /* Isolate the roots of B(alpha,y) */
 	      HIPIR(PDEG(B),Q,J,tc,j,k,&J,&j); 
 	      Jp = HILBRI(J); }
 	    else {
+	      //-------------------------------------------------//	      
 	      /***** DON'T KNOW HOW MANY ROOTS **/
 	      /* This is horribly inefficient, but I'm going to
 		 isolate and refine all the roots of the the 
 		 derivative of B w.r.t. y over alpha, and if only 
 		 one root is in (a,b), it must be my double root.
+		 TODO: check for IPDER not being square-free as a poly in y!
 		*/
-	      IBPRRIOAP(M,I,IPPGSD(2,IPDER(2,B,2)),k,&Ld,&td);
+	      /* PushOutputContext(cerr); */
+	      /* SWRITE("Don't know interval ("); LBRNWRITE(a); SWRITE(","); LBRNWRITE(b); SWRITE(") must be refined!\n"); */
+	      /* PopOutputContext(); */
+	      Word Bp = IPDER(2,B,2);
+	      IBPRRIOAP(M,I,IPPGSD(2,Bp),k,&Ld,&td);
 	      if (td != 0) {
-		IBPRRIOAPSF(M,I,IPPGSD(2,IPDER(2,B,2)),8,k,&td,&Ld);
-		td = !Ld;
+	      	IBPRRIOAPSF(M,I,IPPGSD(2,Bp),8,k,&td,&Ld);
+	      	td = !Ld;
 	      }
-
 	      if (td == 0) {
-		while(LBRNCOMP(SECOND(FIRST(Ld)),a) <= 0)
+		// Filter out all isolating intervals not overlapping (a,b)
+		/* PushOutputContext(cerr); SWRITE("Before: |Ld| = "); IWRITE(LENGTH(Ld)); SWRITE("\n"); PopOutputContext(); */
+	      	while(LBRNCOMP(SECOND(FIRST(Ld)),a) <= 0)
+	      	  Ld = RED(Ld);
+		Word Ltmp = NIL;
+		while(Ld != NIL && LBRNCOMP(b,FIRST(FIRST(Ld))) >= 0) {
+		  Ltmp = COMP(FIRST(Ld),Ltmp);
 		  Ld = RED(Ld);
-		if (LBRNCOMP(FIRST(FIRST(Ld)),a) >= 0 && 
-		    LBRNCOMP(SECOND(FIRST(Ld)),b) <= 0 &&
-		    (RED(Ld) == NIL || LBRNCOMP(FIRST(SECOND(Ld)),b) >= 0))
-		  Jp = FIRST(Ld); 
-		  } } } 
-	  Ls = COMP(CCONC(Jp,LIST1(THIRD(FIRST(Lp)))),Ls);
+		}
+		Ld = CINV(Ltmp);
+
+		/* PushOutputContext(cerr); SWRITE("After: |Ld| = "); IWRITE(LENGTH(Ld)); SWRITE("\n"); PopOutputContext(); */
+		
+		// If there is only one interval, it contains the root beta of B(alpha,y),
+		// and is an isolating inteverval for beta as a root of B'(alpha,y)
+		if (LENGTH(Ld) == 1) {		  
+	      	  //Jp = FIRST(Ld);
+	      	  Jp = CCONC(FIRST(Ld),LIST1(Bp));
+		}
+		else {
+		  Word Leftover = NIL;
+		  for(Word Ldp = Ld; Ldp != NIL; Ldp = RED(Ldp)) {
+		    int tst = ProveNotRoot(B,M,I,a,b,Bp,FIRST(Ldp));
+		    if (!tst)
+		      Leftover = COMP(FIRST(Ldp),Leftover);
+		  }
+		  if (LENGTH(Leftover) == 1) {
+		    Jp = CCONC(FIRST(Leftover),LIST1(Bp));
+		    /* PushOutputContext(cerr); SWRITE("Successfully found the root of deriviative!"); PopOutputContext(); */
+		  }
+		  else {
+		    // We failed to determine which derivative root is the root of A we are looking for!
+		    /* PushOutputContext(cerr); SWRITE("Failed to find the root of deriviative!"); PopOutputContext(); */
+		  }
+		}
+	      }
+	      //-------------------------------------------------//
+	    }
+	  }
+	  /* PushOutputContext(cerr); SWRITE("Jp = "); OWRITE(Jp); SWRITE("\n"); PopOutputContext(); */
+	  Word Jpnew = NIL;
+	  if (RED2(Jp) == NIL) // i.e. length is 2
+	    Jpnew = CCONC(Jp,LIST1(THIRD(FIRST(Lp))));
+	  else
+	    Jpnew = LIST4(FIRST(Jp),SECOND(Jp),THIRD(FIRST(Lp)),THIRD(Jp));
+	  Ls = COMP(Jpnew,Ls);
 	  if (THIRD(FIRST(Lp)) != 0)
 	    tc *= -1;
 	}
@@ -171,3 +217,212 @@ Return: /* Return L and t. */
 	return;
 }
 
+/*
+IUPSHIFTISPR - Integral univariate polynomial shift, integral similar polynomial result 
+Inputs:
+  A : integral univariate polynomial
+  q : a rational number
+Outputs:
+  B : integral polynomial similar to A(x + q)
+Word IUPSHIFTISPR(Word A, Word q)
+{
+  if (q == 0)
+    return A;
+  
+  Word a_n = FIRST(q);
+  Word a_d = SECOND(q);
+
+  // construct a_d*y - (a_d*x + a_n)
+  Word tmp = LIST4(1,LIST2(0,a_d), 0,IPNEG(1,LIST4(1,a_d,0,a_n)));
+  // construct p_o(x,z) over x,y,z from p_o(x,y) over x,y
+  Word p_n = NIL;
+  for(Word A = p_o; A != NIL; A = RED2(A)) {
+    p_n = COMP(FIRST(A),p_n);
+    p_n = COMP(LIST2(0,SECOND(A)),p_n);
+  }
+  p_n = INV(p_n);
+  Word B = IPRES(2,p_n,tmp);
+
+  return B;
+}
+ */
+
+// just cherry pick the positive root parts of IPRRID
+Word IPRRIDPOS(Word A)
+{
+       Word n,k;
+       Word Ab,As,I,L,Ls,a,b;
+
+Step1: /* Degree zero. */
+       n = PDEG(A);
+       L = NIL;
+       if (n == 0)
+	  goto Return;
+
+Step2: /* Isolate positive roots. */
+       Ab = PDBORD(A);
+       b = IUPPRB(Ab);
+       if (b == 0)
+	  goto Return;
+       k = -SECOND(b);
+       As = IUPBHT(Ab,k);
+       L = IPRRISD(As,0,b);
+
+ Return: /* Prepare for return. */
+       return(L);
+}
+ 
+// just cherry pick the negative root parts of IPRRID
+Word IPRRIDNEG(Word A)
+{
+       Word n,k;
+       Word Ab,As,I,L,Ls,a,b;
+
+Step1: /* Degree zero. */
+       n = PDEG(A);
+       L = NIL;
+       if (n == 0)
+	  goto Return;
+
+Step4: /* Isolate negative roots. */
+       Ab = IUPNT(Ab);
+       b = IUPPRB(Ab);
+       if (b == 0)
+	  goto Return;
+       k = -SECOND(b);
+       As = IUPBHT(Ab,k);
+       Ls = IPRRISD(As,0,b);
+       while (Ls != NIL) {
+	  ADV(Ls,&I,&Ls);
+	  FIRST2(I,&a,&b);
+	  I = LIST2(LBRNNEG(b),LBRNNEG(a));
+	  L = COMP(I,L); }
+
+Return: /* Prepare for return. */
+       return(L);
+ }       
+
+
+Word IPIISFLBRN(Word A1, Word I1, Word q, Word* J1_);
+
+/*
+Inputs:
+  A : poly in x, y
+  M : minpoly for root alpha of disc_y(A)
+  I : isolating interval for alpha
+      NOTE: alpha is a simple foor if disc_y(A)!!!
+  a,b : LBRNs, an isolating interval for beta, a multiplicity two root of A(alpha,y) (necessarily the only such)
+  Ap: derivative of A wrt y
+  K : an isolating interval for a root of Ap(alpha,y)
+Outputs:
+  R : TRUE if we can *prove* that beta is not in K, FALSE otherwise
+      NOTE: our attempt to prove is just to ensure no roots of A on the permieter of the rectangle
+            formed by I and (J intersect K).
+ */
+Word ProveNotRoot(Word A, Word M, Word I, Word a, Word b, Word Ap, Word K)
+{
+  // restrict interval
+  Word ap = FIRST(K);
+  Word low = LBRNCOMP(a,ap) < 0 ? ap : a;
+  Word bp = SECOND(K);
+  Word hi = LBRNCOMP(b,bp) > 0 ? bp : b;
+
+  // I should check whether (low,hi) still contains a root of Ap!
+  
+  // each rectangle edge creates a univariate polynomial!
+  Word Abot = IPBREI(2,A,2,LBRNRN(low));
+  Word Atop = IPBREI(2,A,2,LBRNRN(hi));
+  Word Aleft = IPBREI(2,A,1,LBRNRN(FIRST(I)));
+  Word Aright = IPBREI(2,A,1,LBRNRN(SECOND(I)));
+
+  // check that Abot and Atop have no roots in I TODO: make these squarefree!
+  Word Lbot = IPRRISD(Abot,FIRST(I),SECOND(I));
+  if (Lbot != NIL) return FALSE;
+  Word Ltop = IPRRISD(Atop,FIRST(I),SECOND(I));
+  if (Ltop != NIL) return FALSE;
+
+  // check that Aleft and Aright have no roots in (low,high) TODO: make these squarefree!
+  //Word r_low = LBRNRN(low);
+  //Word C = IUPSHIFTISPR(Aleft,r_low);
+  //Word newtop = LBRNDIF(hi-low);
+  Word L = IPRRID(Aleft);
+  for(Word Lp = L; Lp != NIL; Lp = RED(Lp)) {
+    Word R = FIRST(Lp);
+    if (IPIISFLBRN(Aleft,R,low,&R) > 0 && IPIISFLBRN(Aleft,R,hi,&R) < 0)
+      return FALSE;
+  }
+
+  Word Ls = IPRRID(Aright);
+  for(Word Lp = Ls; Lp != NIL; Lp = RED(Lp)) {
+    Word R = FIRST(Lp);
+    if (IPIISFLBRN(Aright,R,low,&R) > 0 && IPIISFLBRN(Aright,R,hi,&R) < 0)
+      return FALSE;
+  }
+
+  return TRUE;
+}
+
+
+/*======================================================================
+               IPIISFLBRN(A1,I1,q;J1,s)
+
+Integral polynomial isolating interval separation from LBRN.
+
+Inputs
+   A1 : integral univariate polynomial
+   I1 : logarithmic binary rational isolating intervals for 
+           simple real root alpha_1 of A1
+   q  : logarimic binary rational number
+Outputs
+   J1 : logarithmic binary rational subinterval of I1.
+   s     : s = -1 if alpha_1 < q, s = +1 if alpha_1 > q, s = 0 otherwise
+======================================================================*/
+#include "saclib.h"
+
+Word IPIISFLBRN(Word A1, Word I1, Word q, Word* J1_)
+
+{
+  Word a1,b1,c,J1,s, ta, tq;
+
+
+Step1: /* Get the interval endpoints. */
+	FIRST2(I1,&a1,&b1);
+	if (LBRNCOMP(a1,b1) == 0) {
+	  J1 = I1;
+	  s = LBRNCOMP(a1,q);
+	  goto Return;
+	}
+
+Step2: /* Case that the intervals are already disjoint. */
+	if (LBRNCOMP(b1,q) <= 0) {
+           J1 = I1;
+           s = -1;
+           goto Return; }
+        else if (LBRNCOMP(q,a1) <= 0) {
+           J1 = I1;
+           s = 1;
+           goto Return; }
+        else
+           s = 0;
+
+	ta = IUPBRES(A1,a1);
+	tq = IUPBRES(A1,q);
+	if (tq == 0) {
+	  J1 = LIST2(q,q);
+	  s = 0;
+	}
+	else if (ta == tq) {
+	  J1 = LIST2(q,b1);
+	  s = 1;
+	}
+	else {
+	  J1 = LIST2(a1,q);
+	  s = -1;
+	}
+
+ Return: /* Return J1, J2 and s. */
+        *J1_ = J1;
+        return s;
+}
+
+ 

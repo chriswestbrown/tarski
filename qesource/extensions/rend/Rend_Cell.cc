@@ -115,13 +115,14 @@ Word Rend_Cell::description(Rend_Win &W)
   if (! parent -> section ) {
     
     if (section) {
-
       ///////**** Section over Sector
       if (index == AD2D_Infy || index == AD2D_N_In)
 	V = NIL;
-      else
+      else {
+	//SWRITE("Real section over sector: "); OWRITE(LELTI(QEPCAD_Cell,6)); SWRITE("\n");
 	V = sample -> coordinate(W.precis.y);
-
+      }
+      
       // Add right neighbor
       Rend_Cell* nb = neighbor_l();
       if (nb != NULL)
