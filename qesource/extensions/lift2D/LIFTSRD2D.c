@@ -10,7 +10,8 @@
 
 #include "lift2d.h"
 
-#define _PRE_ 22
+//#define _PRE_ 22
+const Word qe_ISO_PREC_ = 22;
 
 Word LIFTSRD2D(Word c, Word D, Word P, Word L)
 {
@@ -61,7 +62,7 @@ Word LIFTSRD2D(Word c, Word D, Word P, Word L)
       
       /* First attempt to isolate roots! (Using Hardware!)*/
       i = 8;
-      modIBPRRIOAP(M,BRILBRI(I),p_m,_PRE_,&Rp,&t);
+      modIBPRRIOAP(M,BRILBRI(I),p_m,qe_ISO_PREC_,&Rp,&t);
       count = 0;
       if (t == 0) {
 	for(Rps = Rp; Rps != NIL; Rps = RED(Rps))
@@ -72,7 +73,7 @@ Word LIFTSRD2D(Word c, Word D, Word P, Word L)
       if (t != 0 || count > 1) {
 	Word Ip = BRILBRI(I);
 	for(i = 8, Rp = 0; Rp == 0 && i < 50; i += 8) 
-	  modIBPRRIOAPSF(M,Ip,p_m,i,_PRE_,&Ip, &Rp);
+	  modIBPRRIOAPSF(M,Ip,p_m,i,qe_ISO_PREC_,&Ip, &Rp);
 	if (PCVERBOSE) { SWRITE("Tried up to precision "); IWRITE(i - 8); SWRITE("\n"); }
 	if (Rp == 0) {
 	  if (PCVERBOSE) { SWRITE("Even the highprecision call to modIBPRRIOAPSF failed!\n"); }
@@ -123,11 +124,11 @@ Word LIFTSRD2D(Word c, Word D, Word P, Word L)
     /***** pf's discriminant does NOT vanish in c. *****/
     else { 
       i = 8;
-      IBPRRIOAP(M,BRILBRI(I),LELTI(FIRST(P2),PO_POLY),_PRE_,&Rp,&t); 
+      IBPRRIOAP(M,BRILBRI(I),LELTI(FIRST(P2),PO_POLY),qe_ISO_PREC_,&Rp,&t); 
       if (t) {/* This line is my test stuff! */
 	Word Ip = BRILBRI(I);
 	for(i = 8, Rp = 0; Rp == 0 && i < 50; i += 8) 
-	  modIBPRRIOAPSF(M,BRILBRI(I),LELTI(FIRST(P2),PO_POLY),i,_PRE_,&Ip, &Rp);
+	  modIBPRRIOAPSF(M,BRILBRI(I),LELTI(FIRST(P2),PO_POLY),i,qe_ISO_PREC_,&Ip, &Rp);
 	if (PCVERBOSE) { SWRITE("Tried up to precision "); IWRITE(i - 8); SWRITE("\n"); }
 	t = (Rp == 0); }
       if (t) {
@@ -195,7 +196,11 @@ Word LIFTSRD2D(Word c, Word D, Word P, Word L)
       for(k = 1; s_R != NIL; s_R = RED(s_R), k++) {
 	if (FIRST(s_R) == 0) {
 	  r = LELTI(R,k);
-	  SP = LIST5(LELTI(LELTI(LELTI(P,2),k),PO_POLY),FIRST(r),LIST2(0,LIST2(RNINT(1),LIST2(1,1))),0,0); /* SP */
+	  SP = LIST5(LELTI(LELTI(LELTI(P,2),k),PO_POLY), 
+		     FIRST(r),
+		     LIST2(0,LIST2(RNINT(1),LIST2(1,1))),
+		     0,
+		     0); 
 	  SLELTI(R,k,RED(r)); } }
 
       /* CONSTRUCT CELL */
@@ -226,7 +231,11 @@ Word LIFTSRD2D(Word c, Word D, Word P, Word L)
       for(s = NIL, k = 1; s_R != NIL; s_R = RED(s_R), so = RED(so), k++) {
 	if (FIRST(s_R) == 0) {
 	  r = LELTI(R,k);
-	  SP = LIST5(LELTI(LELTI(LELTI(P,2),k),PO_POLY),FIRST(r),LIST2(0,LIST2(RNINT(1),LIST2(1,1))),0,0); /* SP */
+	  SP = LIST5(LELTI(LELTI(LELTI(P,2),k),PO_POLY),
+		     FIRST(r),
+		     LIST2(0,LIST2(RNINT(1),LIST2(1,1))),
+		     0,
+		     2); /* This 2 is to signal that this is a funky sample point with a double root */
 	  SLELTI(R,k,RED(r));
 	  s = COMP(0,s);
 	}
@@ -271,8 +280,6 @@ Word LIFTSRD2D(Word c, Word D, Word P, Word L)
     if (Sp != NIL)
       prev = SECOND(SECOND(LELTI(nextc,SAMPLE)));
   }
-
-  
 
   SLELTI(c,CHILD,S);
   X = 1;

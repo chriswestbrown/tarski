@@ -14,7 +14,8 @@
 
 #include "lift2d.h"
 
-#define _PRE_ 22
+//#define _PRE_ 22
+const Word qe_ISO_PREC_ = 22;
 
 /* Sorts intervals.  If one is contained in another, the containing interval comes first! 
 This relies on the containing properties of Standard Intervals, this, L1 and L2 must
@@ -62,9 +63,9 @@ Word LIFTSRR2D(Word c, Word D, Word P)
   OC = NIL; /* Just for overlap checking! */
   R = NIL;
   for(P2 = LELTI(P,2); P2 != NIL; P2 = RED(P2)) {
-    IBPRRIOAP(M,BRILBRI(I),LELTI(FIRST(P2),PO_POLY), _PRE_,&Rp,&t);
+    IBPRRIOAP(M,BRILBRI(I),LELTI(FIRST(P2),PO_POLY), qe_ISO_PREC_,&Rp,&t);
     if (t) {
-      IBPRRIOAPSF(M,BRILBRI(I),LELTI(FIRST(P2),PO_POLY),2*8, _PRE_,&t,&Rp); // changed from 8 to 2*8.
+      IBPRRIOAPSF(M,BRILBRI(I),LELTI(FIRST(P2),PO_POLY),2*8, qe_ISO_PREC_,&t,&Rp); // changed from 8 to 2*8.
       if (Rp == 0) {
 	X = 0;
 	goto Return; }
@@ -94,7 +95,7 @@ Word LIFTSRR2D(Word c, Word D, Word P)
   if (count > 1) { /* Just repeat the above, but all in floating point! */
     R = NIL;
     for(P2 = LELTI(P,2); P2 != NIL; P2 = RED(P2)) {
-      IBPRRIOAPSF(M,BRILBRI(I),LELTI(FIRST(P2),PO_POLY),2*8, _PRE_ + 10,&t,&Rp); 
+      IBPRRIOAPSF(M,BRILBRI(I),LELTI(FIRST(P2),PO_POLY),2*8, qe_ISO_PREC_ + 10,&t,&Rp); 
       if (Rp == 0) {
 	X = 0;
 	goto Return; }

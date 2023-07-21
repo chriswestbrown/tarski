@@ -147,6 +147,8 @@ Rend_Sample_2DS::Rend_Sample_2DS(Word C)
   Word T,i,t1,t2,t3,j1,j2,s1,s2,s;
   Word tB,tJ,tA,tI,d1,d2,d3,d4,d5;
 
+  this->C = C;
+  
   //-- Set A to the minpol of sample point, and I to isolating int --/
   T = LELTI( C , SAMPLE );
 
@@ -183,6 +185,18 @@ Rend_Sample_2DS::~Rend_Sample_2DS()
   
 }
 
+/*
+ LBRNILOW(J)
+ LBRN Interval, logarithm of width
+ Assume J is a proper *open* interval
+*/
+Word LBRNILOW(Word J) {
+  Word w = LBRNDIF(SECOND(J),FIRST(J));
+  Word kd = SECOND(w); // exponent of denominator
+  Word kn = ILOG2(FIRST(w));
+  return kn - kd;
+}
+
 /*************************************************************
  **  Refines I to 2^k or less, and returns binary rational 
  **  lower endpoint.
@@ -196,17 +210,23 @@ Step1: /* Initialize and decide if refinement is even necessary. */
   S = A.W; J = I.W;
   if (EQUAL(FIRST(J),SECOND(J)))
     return FIRST(J);
-  if (LSILW(J) <= k)
+  // if (LSILW(J) <= k)
+  if (LBRNILOW(J) <= k)
     return LSIM(FIRST(J),SECOND(J));
   
 Step2: /* Further refinement required. */
   if (ISLIST(FIRST(S))) {
     FIRST5(S,&tB,&tJ,&tA,&tI,&d1);
-    for(i = LSILW(J); i > k; i--)
-      tJ = AFUPIIR(tA,tI,tB,tJ);
-    J = LIST2(RNLBRN(FIRST(tJ)),RNLBRN(SECOND(tJ)));
-    I.W = J;
-    A.W = LIST5(tB,tJ,tA,tI,d1); }
+    if (d1 != 2) { // Note: "2" signals this is funky double root from LIFTSRD2D
+      for(i = LSILW(J); i > k; i--)
+	tJ = AFUPIIR(tA,tI,tB,tJ);
+      J = LIST2(RNLBRN(FIRST(tJ)),RNLBRN(SECOND(tJ)));
+      I.W = J;
+      A.W = LIST5(tB,tJ,tA,tI,d1); }
+    else {
+      // What to do here?
+    }
+  }
   else {
     /* Refine root to desired accuracy.  Note: I'm assuming
        that J is a binary rational. */

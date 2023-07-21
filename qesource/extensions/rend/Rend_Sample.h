@@ -80,15 +80,17 @@ class Rend_Sample_2DS : public Rend_Sample
    ** interval in I.  If the sample point is in primitive
    ** representation, A stores the minimal polynomial. 
    ** Otherwise, A stores the whole sample point structure.
+   ** C : the cell data structure that this is the sample
+   **     points for
    *********************************************************/
 private:
   int t;
-  gcmemloc A,I;
+  gcmemloc A,I,C;
 public:
   Rend_Sample_2DS(Word C);
   virtual ~Rend_Sample_2DS();
   virtual Word coordinate(int k);
-    
+  Word getCell() { return C; }
 };
 
 class Rend_Sample_2DC : public Rend_Sample
