@@ -15,6 +15,7 @@ Side effects
   is no more than NU / RHO  then a message is written and a failure
   occurs.
 ======================================================================*/
+#include "qepcad.h"
 #include "replacesac.h"
 #include <time.h>
 #include <cstdio>
@@ -127,7 +128,12 @@ Step10: /* Timeout handling. */
        // printf("GCSI clock %d\n", clock());
        if (dll_timeout > 0 && clock() >= dll_timeout) {
            // printf("Timeout\n");
-           FAIL("GCSI (timeout)","Timeout");
+           throw QepcadException(std::string("GCSI timeout"));
+           // FAIL("GCSI (timeout)","Timeout");
+           // It seems better to not call FAIL since it destroys certain objects
+           // that cannot always be re-initialized properly.
+           // Instead, we just throw an exception and cross fingers.
+           // Maybe it's OK like that and the next computation will still succeed...
            }
 
 Return: /* Prepare for return. */

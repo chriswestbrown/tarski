@@ -1,4 +1,4 @@
-#include "adj2D.h"
+#include "../adj2d/adj2D.h"
 
 Word HA(Word c, Word c_l, Word P, Word J, Word D);
 Word HAC_CONS(Word c, Word P);

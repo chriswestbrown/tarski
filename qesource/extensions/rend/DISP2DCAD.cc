@@ -1,3 +1,4 @@
+#ifndef __MINGW32__
 /*======================================================================
                  DISP2DCAD(D,P,J)
 
@@ -36,4 +37,4 @@ void QepcadCls::DISP2DCAD(Word D, Word P, Word J)
 
   return;
 }
-
+#endif

@@ -124,9 +124,11 @@ static int sendSignalAfterInterval(int seconds, int signum)
 
 int main(int argc, char **argv)
 {
+#ifndef _EMCC2_
   int dummy;
   void *topOfTheStack = &dummy;
   mainDUMMY(argc,argv,topOfTheStack);
+#endif
 }
 
 #ifndef __MSYS__

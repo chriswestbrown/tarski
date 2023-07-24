@@ -1,3 +1,4 @@
+#ifndef __MINGW32__
 /*===========================================================================
                        PLOT_2D_CAD(D,P,J,Ix,IX,Iy,IY,e,Id1,Id2)
 
@@ -212,3 +213,4 @@ static void longtostring(long A, char* S)
   S[i] = '\0';
 }
 
+#endif
