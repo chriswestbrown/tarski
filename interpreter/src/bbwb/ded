@@ -1,0 +1,20 @@
+Sorted deductions:
+4: [  5 16 ] given: sqrt3 > 0
+1: given: v12 >= 0
+2: given: v13 >= 0
+3: given: v14 >= 0
+11: given: sqrt3^2 - 3 = 0
+9: given: v8 - v6 - 1 = 0
+12: given: v8 v15 - v15 - 1 = 0
+18: [  8 10 14 ] substitution: v8^2 - 2 v8 + v7^2 - v13^2 + 1 = 0
+17: [  8 10 13 ] substitution: v8^2 - 2 v8 + v7^2 - 2 v7 - v12^2 + 2 = 0
+15: given: (v8 + v14 - 1)(v8 - v14 - 1) = 0
+16: [  4 5 ] bbstrict: 6 v14 sqrt3 - v13^2 - 2 v12 v13 - 2 v13 - v12^2 - 2 v12 - 1 > 0
+5: [  4 16 ] given: (sqrt3)(6 v14 sqrt3 - v13^2 - 2 v12 v13 - 2 v13 - v12^2 - 2 v12 - 1) > 0
+6: given: v10 = 0
+0: [  7 ] given: v11 >= 0
+7: given: v11 - 1 = 0
+8: given: v7 - v5 = 0
+10: given: v9 - v7 = 0
+14: [  8 10 18 ] given: v9^2 + v8^2 - 2 v8 - v13^2 + 1 = 0
+13: [  8 10 17 ] given: v9^2 - 2 v9 + v8^2 - 2 v8 - v12^2 + 2 = 0

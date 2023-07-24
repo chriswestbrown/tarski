@@ -106,6 +106,8 @@ namespace tarski {
     // the explantion is EXP
     DedExp(TAtomRef t, int code, const forward_list<TAtomRef>& EXP)
       : d(t, code), exp(EXP) {}
+    DedExp(TAtomRef t, int code, const list<TAtomRef>& EXP)
+      : d(t, code), exp(EXP.cbegin(),EXP.cend()) {}
     //build a deduction which is UNSAT, and an explanation
     DedExp(int code, const forward_list<TAtomRef>& EXP)
       : d(code), exp(EXP) {}

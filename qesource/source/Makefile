@@ -66,8 +66,8 @@ ifneq ($(UNAME_S),Darwin)
 ARFLAGS := crvU
 # On Linux:
 ifeq (,$(findstring MINGW,$(UNAME_S)))
-EXTLIBS += -lrt ${qe}/extensions/rend/rendo.a
-EXTLIBSD += -lrt ${qe}/extensions/rend/rendd.a
+EXTLIBS += -lrt ${qe}/extensions/rend/rendo.a ${qe}/extensions/lift2D/lift2Do.a
+EXTLIBSD += -lrt ${qe}/extensions/rend/rendd.a ${qe}/extensions/lift2D/lift2Dd.a
 ifdef STATIC
 EXTLIBS += -lpthread -ltinfo
 EXTLIBSD += -lpthread -ltinfo
@@ -75,8 +75,8 @@ endif
 endif
 else
 # On Mac:
-EXTLIBS += ${qe}/extensions/rend/rendo.a
-EXTLIBSD += ${qe}/extensions/rend/rendd.a
+EXTLIBS += ${qe}/extensions/rend/rendo.a ${qe}/extensions/lift2D/lift2Do.a
+EXTLIBSD += ${qe}/extensions/rend/rendd.a ${qe}/extensions/lift2D/lift2Dd.a
 endif
 
 NAME      =  qepcad

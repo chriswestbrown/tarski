@@ -58,6 +58,7 @@ namespace tarski{
     inline void notify() {}
     void update(std::vector<Deduction>::const_iterator begin, std::vector<Deduction>::const_iterator end);
     list<DedExp> deduceTarget(std::vector<Deduction>::const_iterator begin, std::vector<Deduction>::const_iterator end);
+    std::string name() const { return "BBSolver"; }
     //Searches for a row of the form 1 0 0 0 0 0 ... 0
     static int findRow(const DMatrix& d);
   };

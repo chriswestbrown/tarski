@@ -60,7 +60,7 @@ namespace tarski {
 
     void update(std::vector<Deduction>::const_iterator begin, std::vector<Deduction>::const_iterator end);
     bool isIdempotent() { return true; }
-  
+    std::string name() const { return "WBSolver"; }  
   };
 
   

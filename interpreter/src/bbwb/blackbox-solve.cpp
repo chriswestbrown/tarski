@@ -23,9 +23,9 @@ namespace tarski {
         return d;
       }
       else {
-	// cerr << "BEFORE bbsat: "; M.write(); cerr << endl;
+	cerr << "BEFORE bbsat: "; M.write(); cerr << endl;
 	deductions = bbsat(t);
-	// cerr << "AFTER  bbsat: "; M.write(); cerr << endl;
+	cerr << "AFTER  bbsat: "; M.write(); cerr << endl;
         if (deductions.empty())  {
           res = false;
           DedExp d;
@@ -260,41 +260,47 @@ namespace tarski {
 	F->addFactor(dedP, 1);
 	dedAtom = new TAtomObj(F, dedSign);
 
-	//-- Add the atoms used to derive dedAtom (Deal with Strengthening too!) --//
-	const std::vector<bool>& deps = comp.at(i);
-	bool strengthen = false;
+	//-- Add the atoms used to derive dedAtom
 	//Iterating through dependencies
+	const std::vector<bool>& deps = comp.at(i);
 	for (size_t a = 0; a < deps.size(); a++)
 	{
 	  if (deps[a] == 0) continue; 
 	  TAtomRef A = M->getAtom(a, true);
 	  atoms.push_front(A);
-	  //check if an existing dependency strengthens
-	  if (strengthen) continue;
-	  if (A->relop == LEOP || A->relop == GEOP || A->relop == EQOP) continue;
-	  FactRef F = A->F;
-	  for (auto itr = F->factorBegin(); !strengthen && itr != F->factorEnd(); ++itr) {
-	    if (dedP->equal(itr->first))
-	      strengthen = true;
-	  }
-	}
-	if (!strengthen)
-	{
-	  strengthener = M->strengthenPoly(dedP);
 	}
       }
          
-      if (idx > 0 && (strengthener.is_null() || !equals(dedAtom,strengthener)))
-      {
-	if (!strengthener.is_null())
-	  atoms.push_front(strengthener);
-	
-	if (!atoms.empty() && ++atoms.begin() != atoms.end()) // |atoms| > 1
-	{	
+      if (idx > 0) {
+	if (!atoms.empty()) // && ++atoms.begin() != atoms.end()) // |atoms| > 1
+	{
+	  // CHRIS FIX
+	  std::list<TAtomRef> extraStrictReqs; // f /= 0 for each factor f not covered by the others
+	  if (!relopIsNonStrict(dedAtom->getRelop())) {
+	    set<IntPolyRef> explicitNonzero;
+	    for(auto itr = dedAtom->getFactors()->factorBegin(); itr != dedAtom->getFactors()->factorEnd(); ++itr)
+	      explicitNonzero.insert(itr->first);
+	    for(auto itr = atoms.begin(); itr != atoms.end(); ++itr)
+	      if (!relopIsNonStrict((*itr)->getRelop()))
+		for(auto pitr = (*itr)->getFactors()->factorBegin(); pitr != (*itr)->getFactors()->factorEnd(); ++pitr)
+		  explicitNonzero.erase(pitr->first);
+	    for(auto itr = explicitNonzero.begin(); itr != explicitNonzero.end(); ++itr)
+	      extraStrictReqs.push_back(makeAtom(*PM,*itr,NEOP));
+	  }
+	  
+
 	  //-- This actually records the newly deduced fact
-	  deds.emplace_back(dedAtom, Deduction::BBSTR, atoms);
-	  if (verbose && false)//DRBROWN disabled
-	    cout << "Added: " << DedExp(dedAtom, Deduction::BBSTR, atoms).toString() << endl;
+	  list<TAtomRef> reqs;
+	  for(auto itr = atoms.begin(); itr != atoms.end(); ++itr)
+	    reqs.push_back(*itr);
+	  for(auto itr = extraStrictReqs.begin(); itr != extraStrictReqs.end(); ++itr)
+	    reqs.push_back(*itr);
+	  auto D = DedExp(dedAtom, Deduction::BBSTR, reqs);
+	  deds.emplace_back(D);
+	  if (verbose /*&& false*/)//DRBROWN disabled
+	  {
+	    cout << "Added[a]: " << D.toString() << endl;
+	  }
 	  
 	  //-- We also need to record the reverse facts dr brown added
 	  for(std::forward_list<TAtomRef>::iterator itr = atoms.begin(); itr != atoms.end(); ++itr)
@@ -303,8 +309,8 @@ namespace tarski {
 	    TAtomRef tmp;
 	    tmp = dedAtom; dedAtom = Latom; Latom = tmp;
 	    deds.emplace_back(dedAtom,Deduction::BBSTR,atoms);
-	    if (verbose && false )//DRBROWN disabled
-	      cerr << "Added: " << DedExp(dedAtom, Deduction::BBSTR, atoms).toString() << endl;
+	    if (verbose /*&& false*/ )//DRBROWN disabled
+	      cerr << "Added[b]: " << DedExp(dedAtom, Deduction::BBSTR, atoms).toString() << endl;
 	    tmp = dedAtom; dedAtom = Latom; Latom = tmp;
 	  }
 	}
@@ -320,8 +326,8 @@ namespace tarski {
 	
 	//-- This actually records the newly deduced fact
 	deds.emplace_back(dedAtom, Deduction::BBSTR, atoms);
-	if (verbose && false)//DRBROWN disabled
-	  cout << "Added***: " << DedExp(dedAtom, Deduction::BBSTR, atoms).toString() << endl;
+	if (verbose /*&& false*/)//DRBROWN disabled
+	  cout << "Added***[c]: " << DedExp(dedAtom, Deduction::BBSTR, atoms).toString() << endl;
 	
 	//-- We also need to record the reverse facts dr brown added
 	for(std::forward_list<TAtomRef>::iterator itr = atoms.begin(); itr != atoms.end(); ++itr)
@@ -330,11 +336,10 @@ namespace tarski {
 	  TAtomRef tmp;
 	  tmp = dedAtom; dedAtom = Latom; Latom = tmp;
 	  deds.emplace_back(dedAtom,Deduction::BBSTR,atoms);
-	  if (verbose && false)//DRBROWN disabled
-	    cout << "Added***: " << DedExp(dedAtom, Deduction::BBSTR, atoms).toString() << endl;
+	  if (verbose /*&& false*/)//DRBROWN disabled
+	    cout << "Added***[d]: " << DedExp(dedAtom, Deduction::BBSTR, atoms).toString() << endl;
 	  tmp = dedAtom; dedAtom = Latom; Latom = tmp;
 	}
-
       }
     }
   }

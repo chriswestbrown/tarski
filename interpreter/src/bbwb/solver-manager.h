@@ -46,7 +46,7 @@ namespace tarski {
       std::list<DedExp> v;
       return v;
     }
-
+    virtual std::string name() const = 0;
   };
 
 

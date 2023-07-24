@@ -6,6 +6,11 @@
 namespace tarski {
 
   SolverManager::SolverManager(int codes, TAndRef tand) : hasRan(false), hasSimplified(false) {
+    if (true) {
+      cout << "Solver manager instantiated on ";
+      tand->write(true);
+      cout << endl;
+    }
     dedM = new DedManager(tand);
     if (dedM->isUnsat()) return;
     t = dedM->getInitConjunct();
@@ -24,12 +29,12 @@ namespace tarski {
    */
   LisRef SolverManager::genLisResult() {
       Result r = deduceAll();
-      //      prettyPrintResult(); //-- CHRIS DEBUG
+      prettyPrintResult(); //-- CHRIS DEBUG
       LisRef l = new LisObj();
       if (isUnsat()) {
 
 	//-- CHRIS DEBUG
-	if (false) {
+	if (true) {
 	  if (solvers.size() == 0)
 	    cout << "Solvers never instantiated, no sorted print!" << endl;
 	  else
@@ -209,17 +214,17 @@ namespace tarski {
    */
   short SolverManager::deduceLoop(int i) {
     short retCode = 0;
-     // cerr << endl << endl;
-     // dedM->writeAll();
-     // cerr << endl << endl;
-     // cerr << "Calling solver[" << i << "]!!!" << endl;
+     cerr << endl << endl;
+     dedM->writeAll();
+     cerr << endl << endl;
+     cerr << "Calling solvers[" << i << "]!!! (" << solvers[i]->name() << ")" << endl;
     QuickSolver * q = solvers[i];
 
     // HACK! This is a hack to simulate no incrementality
-    if (i == 0) { delete q; q = solvers[i] = new BBSolver(t); solvers[i]->setDedM(dedM); }
-    else if (i == 1) { delete q; q = solvers[i] = new WBSolver(t); solvers[i]->setDedM(dedM); }
+    if (solvers[i]->name() == "BBSolver") { delete q; q = solvers[i] = new BBSolver(t); solvers[i]->setDedM(dedM); }
+    else if (solvers[i]->name() == "WBSolver") { delete q; q = solvers[i] = new WBSolver(t); solvers[i]->setDedM(dedM); }
     else
-    updateSolver(i);
+      updateSolver(i);
 
     bool res = true;
     DedExp d = q->deduce(t, res);

@@ -617,7 +617,7 @@ namespace tarski {
       Minisat::Solver S;
 
       // DEBUG
-      if (false)
+      if (verbose)
       {
 	cout << "\nSAT CHECK: " << toString(deds[toRemove].getDed()) << endl;
 	writeSatProblem(asSat);
@@ -631,13 +631,14 @@ namespace tarski {
       S.mkProblem(asSat.begin(), asSat.end());
       Minisat::lbool ret = S.solveLimited(s);
       if (ret == Minisat::toLbool(1)) { //-- This means "toRemove" is actually necessary
-        //cout << "\nSAT\n";
+        if (verbose) { cout << "\nSAT\n"; }
         for (size_t i = 0; i < depIdxs[toRemove].size(); i++)
 	  ;//DRBROWN asSat.pop_front();
         elim[toRemove] = true;
         numElim++;
       }
       else {
+        if (verbose) { cout << "\nUNSAT\n"; }
         for (size_t i = 0; i < depIdxs[toRemove].size(); i++) {
           //a stupid way to get around minisats restriction on
           //copy constructors and =
