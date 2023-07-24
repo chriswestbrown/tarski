@@ -152,6 +152,11 @@ Rend_Sample_2DS::Rend_Sample_2DS(Word C)
   
   //-- Set A to the minpol of sample point, and I to isolating int --/
   T = LELTI( C , SAMPLE );
+  // PushOutputContext(cerr);
+  // SWRITE("|T| = "); IWRITE(LENGTH(T)); SWRITE(" ");
+  // SWRITE("cell"); OWRITE(LELTI(C,INDX));
+  // SWRITE("\n");
+  // PopOutputContext();
   if (LENGTH(T) < 5) {
     //-- The sample point is in primitive representation. --//
     FIRST3(T,&t1,&t2,&t3); 
@@ -170,7 +175,7 @@ Rend_Sample_2DS::Rend_Sample_2DS(Word C)
       t = 0;
       I.W = LIST2(j2,j2); }
     else
-    t = s2;
+      t = s2;
   }
   else {
     /* The sample point is not in primitive representation.
@@ -257,8 +262,8 @@ Step1: /* Initialize and decide if refinement is even necessary. */
     // SWRITE("ASDFSADFSAFSF: ");
     // IPDWRITE(1,Ms,LIST1(LFS("x"))); SWRITE(" ");
     // OWRITE(Is); SWRITE("\n");
-    // Word Jnew = IPIIRB(Ms,BRILBRI(Is),tr,k);
-    // J = Jnew;    
+    Word Jnew = IPIIRB(Ms,BRILBRI(Is),tr,k);
+    J = Jnew;    
     // PopOutputContext();
   }
   else { // This case comes from qepcad primitive sample point
