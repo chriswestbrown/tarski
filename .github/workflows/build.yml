@@ -115,8 +115,8 @@ jobs:
       run: |
         git clone https://github.com/emscripten-core/emsdk.git
         cd emsdk
-        ./emsdk install 2.0.22
-        ./emsdk activate 2.0.22
+        ./emsdk install 3.1.22
+        ./emsdk activate 3.1.22
         cd ..
     - name: openssl-wasm
       run: |
@@ -127,7 +127,7 @@ jobs:
         emconfigure ./Configure linux-generic64 --prefix=$EMSDK/upstream/emscripten/system
         sed -i 's|^CROSS_COMPILE.*$|CROSS_COMPILE=|g' Makefile
         emmake make build_generated libssl.a libcrypto.a
-        cp -R include/openssl $EMSDK/upstream/emscripten/system/include
+        cp -R include/openssl $EMSDK/upstream/emscripten/cache/sysroot/include
         cp libcrypto.a libssl.a $EMSDK/upstream/emscripten/system/lib
         cd ..
     - name: build

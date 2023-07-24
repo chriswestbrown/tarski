@@ -26,7 +26,7 @@ $(info Tarski is about to be built for platform $(PLATFORM).)
 MROOT=-I../minisat
 TMROOT=../minisat
 extIncludesSACLIB:=-I${saclib}/include -I${qe}/source 
-extLibSACLIB:=${saclib}/lib/saclibd.a
+extLibSACLIB:=${saclib}/lib/saclibo.a
 extLibMINISAT:=../minisat/core/lib.a
 extIncludeMINISAT:=-I${TMROOT}/core
 extIncludesMD5:=
@@ -45,12 +45,12 @@ extLibQEPCAD:=  ${qe}/source/qepcad.a \
 		${qe}/extensions/lift2D/lift2Do.a \
 		${qe}/extensions/adj2d/adj2do.a \
 		${qe}/extensions/sfext/sfexto.a \
-		${qe}/source/qepcad.a
-
-# The rend extension will not be built on Windows MSYS2/CLANG*, otherwise always.
-ifneq ($(PLATFORM),WINDOWS)
-extLibQEPCAD += ${qe}/extensions/rend/rendo.a ${qe}/extensions/adj2d/adj2do.a ${qe}/extensions/lift2D/lift2Do.a
-endif
+		${qe}/source/qepcad.a \
+		${qe}/extensions/rend/rendo.a \
+		${qe}/extensions/adj2d/adj2do.a \
+    ${qe}/extensions/lift2D/lift2Do.a
+    
+# Note that the adj2do and lif2Do extensions had to be added twice (in this order).
 
 # Find the openssl include/lib folders automatically on a Mac. We assume that Homebrew is already installed.
 ifeq ($(PLATFORM),MAC)
@@ -64,7 +64,7 @@ endif
 ifeq ($(PLATFORM),WASM)
 WASM_OPENSSL_INCLUDE=$(EMSDK)/upstream/emscripten/system/include
 WASM_OPENSSL_LIB=$(EMSDK)/upstream/emscripten/system/lib
-extIncludesMd5:=-I$(WASM_OPENSSL_INCLUDE)
+extIncludesMd5:=-Icache/sysroot/include -Icache/sysroot/include/openssl
 extLibMD5:=$(WASM_OPENSSL_LIB)/libssl.a $(WASM_OPENSSL_LIB)/libcrypto.a
 endif
 
@@ -89,7 +89,7 @@ endif
 else
 # Otherwise, on WASM we use a different target suffix:
 TARGET_EXEC := tarski.js
-LDFLAGS += -s "EXTRA_EXPORTED_RUNTIME_METHODS=['cwrap']" -fexceptions -s ALLOW_MEMORY_GROWTH=1 -s SINGLE_FILE=1 -s MODULARIZE=1 -s EXPORT_NAME=Tarski -O3
+LDFLAGS += -s "EXTRA_EXPORTED_RUNTIME_METHODS=['cwrap']" -fwasm-exceptions -s ALLOW_MEMORY_GROWTH=1 -s SINGLE_FILE=1 -s MODULARIZE=1 -s EXPORT_NAME=Tarski -O3
 endif
 
 # On Mac and Windows MSYS2/CLANG* the rt library is not present, but otherwise it is necessary.
@@ -214,7 +214,7 @@ $(BUILD_DIR)/%.c.o: %.c
 CXXFLAGS += -fPIC
 ifeq ($(PLATFORM),WASM)
 CXXFLAGS += -s USE_ZLIB=1 -D_EMCC2_ -s EXPORTED_FUNCTIONS=[_TARSKIINIT,_TARSKIEVAL,_TARSKIEND] $(extIncludesMd5)
-CXXFLAGS += -s "EXTRA_EXPORTED_RUNTIME_METHODS=['cwrap']" -fexceptions -s ALLOW_MEMORY_GROWTH=1
+CXXFLAGS += -s "EXTRA_EXPORTED_RUNTIME_METHODS=['cwrap']" -fwasm-exceptions -s ALLOW_MEMORY_GROWTH=1
 endif
 
 # c++ source

@@ -40,7 +40,7 @@ EXTLIBS   =	${qe}/extensions/sfext/sfexto.a \
 		${qe}/extensions/lift2D/lift2Do.a \
 		${qe}/extensions/newadj/newadjo.a \
 		${qe}/extensions/adj2d/adj2do.a \
-		${saclib}/lib/saclibd.a \
+		${saclib}/lib/saclibo.a \
 		${SPECLFLAGS}
 
 EXTLIBSD  =	${qe}/extensions/sfext/sfextd.a \

@@ -1,0 +1,175 @@
+#!/bin/bash
+# This script is part of the regression test suite for Tarski.
+# See the script "regression" first. If two or more sets of outputs are already created,
+# use this script to get a comparison of them.
+
+OUTPUTDIRS=""
+LEGENDS=""
+REPORTDIR=report-`date +%Y-%m-%d-%T`
+FOLDER=.
+XFACTOR=0.4
+YFACTOR=8
+
+# R related settings (predefined colors and linetypes).
+# If there are more than 12 columns, this will not work. FIXME.
+R_COL[1]=red;	R_LTY[1]=1
+R_COL[2]=blue;	R_LTY[2]=1
+R_COL[3]=darkgreen;	R_LTY[3]=1
+R_COL[4]=black;	R_LTY[4]=1
+R_COL[5]=red;	R_LTY[5]=2
+R_COL[6]=blue;	R_LTY[6]=2
+R_COL[7]=darkgreen;	R_LTY[7]=2
+R_COL[8]=black;	R_LTY[8]=2
+R_COL[9]=red;	R_LTY[9]=3
+R_COL[10]=blue;	R_LTY[10]=3
+R_COL[11]=darkgreen;	R_LTY[11]=3
+R_COL[12]=black;	R_LTY[12]=3
+
+export LC_ALL=C
+
+usage() {
+ echo "$0 - compare two runs of the regression test suite for Tarski."
+ echo "Usage:"
+ echo " $0 [options]"
+ echo "  where options can be as follows (defaults in parentheses):"
+ echo "   -d <number1>,<number2>,...  set regression output directories to the given numbers, mandatory"
+ echo "   -l <string1>,<string2>,...  set legends for regression output directories (same as given for -d)"
+ echo "   -o <folder>                 generate output in folder ($REPORTDIR)"
+ echo "   -T <folder>                 take tests only from folder ($FOLDER)"
+ echo "   -x <number>                 display factor of showing R density graph, timings ($XFACTOR)"
+ echo "   -y <number>                 display factor of showing R density graph, density values ($YFACTOR)"
+ echo "   -h                          show this help"
+ exit 0
+ }
+
+while getopts "x:y:T:o:d:l:h" OPT; do
+ case $OPT in
+  x)
+   XFACTOR="$OPTARG"
+   ;;
+  y)
+   YFACTOR="$OPTARG"
+   ;;
+  d)
+   OUTPUTDIRS="$OPTARG"
+   ;;
+  l)
+   LEGENDS="$OPTARG"
+   ;;
+  o)
+   REPORTDIR="$OPTARG"
+   ;;
+  T)
+   FOLDER="$OPTARG"
+   ;;
+  h)
+   usage
+   ;;
+
+ esac
+done
+
+if [ "$OUTPUTDIRS" = "" ]; then
+ echo "Mandatory option -d was not given."
+ exit 1
+ fi
+
+if [ "$LEGENDS" = "" ]; then
+ LEGENDS="$OUTPUTDIRS"
+ fi
+
+mkdir -p $REPORTDIR
+
+CSV_UNION=$REPORTDIR/compare-union.csv
+CSV_INTERSECTION=$REPORTDIR/compare-intersection.csv
+echo "Test name,$LEGENDS" > $CSV_UNION
+echo "Test name,$LEGENDS" > $CSV_INTERSECTION
+OUTPUTDIRS_LIST=`echo $OUTPUTDIRS | tr , " "`
+
+R_PROG=$REPORTDIR/density-plot.r
+# Creating R input file
+echo "library(sm); data = NULL; group = NULL;" > $R_PROG
+
+R_XMAX=0
+echo $R_XMAX > $REPORTDIR/R_XMAX
+find $FOLDER -name '*.in' | grep -v node_modules | sort | while read IN; do
+ TESTNAME=`dirname $IN`/`basename $IN .in`
+ CSVLINE="$TESTNAME"
+ KEEPLINE_UNION=1
+ KEEPLINE_INTERSECTION=1
+ MAXCELL=0
+ echo $MAXCELL > $REPORTDIR/MAXCELL
+ for OUTPUTDIR in $OUTPUTDIRS_LIST; do
+  MAXCELL=`cat $REPORTDIR/MAXCELL`
+  test -s $TESTNAME.out || { # This test has no official output (just a 0-length empty file). Ignore.
+   KEEPLINE_UNION=0
+   KEEPLINE_INTERSECTION=0
+   }
+  test -r $OUTPUTDIR/$TESTNAME.xml && { # Test output exists for OUTPUTDIR.
+   cat $OUTPUTDIR/$TESTNAME.xml | grep --silent failures=\"0\" && {
+    # Correct output.
+    CELL=`cat $OUTPUTDIR/$TESTNAME.xml | grep time= | head -1 | sed s/".*time=\"\([0-9.]*\)\".*"/"\\1/"`
+    if [ `echo "$MAXCELL < $CELL" | bc -q` = 1 ]; then
+     MAXCELL=$CELL
+     echo $MAXCELL > $REPORTDIR/MAXCELL
+     fi
+    if [ "$CELL" = 0 ]; then
+     CELL=0.001 # technical zero -- if it is 0, no density plot will be shown, FIXME
+     fi
+    } || {
+    # Incorrect output.
+    CELL=error
+    KEEPLINE_INTERSECTION=0
+    }
+   CSVLINE="$CSVLINE,$CELL"
+   } || { # Test output does not exist for OUTPUTDIR. Ignore this test.
+   KEEPLINE_UNION=0
+   KEEPLINE_INTERSECTION=0
+   }
+  done # end of row
+ if [ $KEEPLINE_UNION = 1 ]; then
+  echo $CSVLINE >> $CSV_UNION
+  fi
+ if [ $KEEPLINE_INTERSECTION = 1 ]; then
+  echo $CSVLINE >> $CSV_INTERSECTION
+  R_XMAX=`cat $REPORTDIR/R_XMAX`
+  if [ `echo "$MAXCELL > $R_XMAX" | bc -q` = 1 ]; then
+   R_XMAX=$MAXCELL
+   echo $R_XMAX > $REPORTDIR/R_XMAX
+   fi
+  fi
+ done # end of table
+
+COLUMN=0
+LTYSLIST=""
+COLSLIST=""
+LEGENDLIST=""
+R_XMAX=`cat $REPORTDIR/R_XMAX`
+
+R_XMAX=`echo "scale=3; $R_XMAX * $XFACTOR" | bc -q`
+R_YMAX=$YFACTOR
+for OUTPUTDIR in $OUTPUTDIRS_LIST; do
+ COLUMN=$((COLUMN+1))
+ LEGEND=`echo $LEGENDS | cut -d, -f$COLUMN`
+ R_COLNAME=R$LEGEND
+ COLOR=${R_COL[$COLUMN]}
+ LTY=${R_LTY[$COLUMN]}
+ if [ $COLUMN = 1 ]; then
+  COLSLIST="'$COLOR'"
+  LTYSLIST=$LTY
+  LEGENDLIST="'$LEGEND'"
+ else
+  COLSLIST="$COLSLIST,'$COLOR'"
+  LTYSLIST="$LTYSLIST,$LTY"
+  LEGENDLIST="$LEGENDLIST,'$LEGEND'"
+  fi
+ echo "$R_COLNAME <- read.csv('compare-intersection.csv', header = T);" >> $R_PROG
+ echo "sm.density($R_COLNAME[,$((COLUMN+1)):$((COLUMN+1))],xlim=c(0,$R_XMAX),ylim=c(0,$R_YMAX),col='$COLOR',lty=$LTY,positive=TRUE,xlab='',ylab='');" >> $R_PROG
+ echo "par(new=TRUE);" >> $R_PROG
+ done
+# Final R related computations
+echo "legend('topright','groups',c($LEGENDLIST),lty=c($LTYSLIST),col=c($COLSLIST),ncol=2,bty=\"n\");" >> $R_PROG
+
+cd $REPORTDIR
+cat density-plot.r | R -q --save || echo "Problem when running R, please check."
+cd ..

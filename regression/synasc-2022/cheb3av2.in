@@ -1,0 +1,1 @@
+(qepcad-api-call[ex a0,a1 [all x[[-1<=x /\ x<=1] ==> [-m<=a0+a1 x+x^3 /\ a0+a1 x+x^3<=m]]]])

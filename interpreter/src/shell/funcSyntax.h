@@ -340,7 +340,8 @@ class WriteGeogebra : public TFPolyFun
     {
       if (itr != p->conjuncts.begin())
 	(*pout) << " /\\ ";
-      if (getPrecLevel(p) < getPrecLevel(*itr)) { (*pout) << "("; actOn(*itr); (*pout) << ")"; }
+      // force putting parentheses:
+      if (true || getPrecLevel(p) < getPrecLevel(*itr)) { (*pout) << "("; actOn(*itr); (*pout) << ")"; }
       else { actOn(*itr); }
     }    
     PopOutputContext();
@@ -352,7 +353,8 @@ class WriteGeogebra : public TFPolyFun
     {
       if (itr != p->disjuncts.begin())
 	(*pout) << " \\/ ";
-      if (getPrecLevel(p) < getPrecLevel(*itr)) { (*pout) << "("; actOn(*itr); (*pout) << ")"; }
+      // force putting parentheses:
+      if (true || getPrecLevel(p) < getPrecLevel(*itr)) { (*pout) << "("; actOn(*itr); (*pout) << ")"; }
       else { actOn(*itr); }
     }
     PopOutputContext();

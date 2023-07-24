@@ -15,6 +15,9 @@ namespace tarski {
   
 int getTermWidth()
 {
+#ifdef _EMCC2_
+  return 80; // hardcoded for now
+#else
 #ifndef __MINGW32__
   struct winsize w;
   ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
@@ -26,6 +29,7 @@ int getTermWidth()
   int cols = csbi.srWindow.Right - csbi.srWindow.Left + 1;
 #endif
   return cols;
+#endif
 }
 
 void writeToFit(const string& in, ostream& out, int N, int lineWrapIndent)

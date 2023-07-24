@@ -15,6 +15,7 @@ programs are then called.
 #include "rend.h"
 #include <cstring>
 
+#ifndef __MINGW32__
 void QepcadCls::PLOT2DCAD2FILE(Word D, Word P, Word J)
 {
 
@@ -93,7 +94,7 @@ Step4: /* Produce plot! */
 
   return;
 }
-
+#endif
 
 void QepcadCls::PLOT2DTOOUTPUTSTREAM(int Id1, int Id2, double x, double X, double y, double Y, double e,
 				     ostream& out,
