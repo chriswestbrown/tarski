@@ -26,7 +26,7 @@ $(info Tarski is about to be built for platform $(PLATFORM).)
 MROOT=-I../minisat
 TMROOT=../minisat
 extIncludesSACLIB:=-I${saclib}/include -I${qe}/source 
-extLibSACLIB:=${saclib}/lib/saclibo.a
+extLibSACLIB:=${saclib}/lib/saclibd.a
 extLibMINISAT:=../minisat/core/lib.a
 extIncludeMINISAT:=-I${TMROOT}/core
 extIncludesMD5:=
