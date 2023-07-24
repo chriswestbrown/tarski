@@ -12,7 +12,7 @@ Inputs
        is the target precision of refinement - i.e. we try to refine
        isolating intervals to a width of 1/2^k.
 Outputs
-   L : If t = 0, L is a list  (I_1,...,I_m)
+   L : If t = 0, L is a list  (I_1,...,I_m)  NOTE: Now I_j = (left,right,trend)
        of strongly disjoint intervals, each of which has
        logarithmic binary rational endpoints and is either open
        or one-point, and that are isolating intervals for the
@@ -22,6 +22,8 @@ Outputs
        the failure was due to mantissa limitation.
 ======================================================================*/
 #include "lift2d.h"
+
+static Word addTrend(Word J, Word t) { Word a, b; FIRST2(J,&a,&b); return LIST3(a,b,t); }
 
 void IBPRRIOAP(Word M,Word I,Word B,Word k, Word *L_,BDigit *t_)
 {
@@ -120,10 +122,10 @@ Step3: /* Isolate the roots of B(alpha,y) */
 	    /* Open interval! */
 	    j = -LSILW(FIRST(Lp));
 	    HIPIR(PDEG(B),Q,J,tc,j,k,&J,&j);
-	    Ls = COMP(HILBRI(J),Ls); }
+	    Ls = COMP( addTrend(HILBRI(J),tc),Ls); }
 	  else {
 	    /* 1-Point interval! */
-	    Ls = COMP(FIRST(Lp),Ls); }
+	    Ls = COMP( addTrend(FIRST(Lp),tc),Ls); }
 	}
 	L = CINV(Ls);
 	t = 0;

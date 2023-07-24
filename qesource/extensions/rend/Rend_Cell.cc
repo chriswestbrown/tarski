@@ -163,9 +163,15 @@ Word Rend_Cell::description(Rend_Win &W)
 	V = LIST2( parent -> description(W) ,  W.Y.W);
       else if (index == AD2D_N_In)
 	V = LIST2( parent -> description(W) ,  W.y.W);
-      else
+      else {
+	// PushOutputContext(cerr);
+	// SWRITE("Cell: "); OWRITE(LELTI(this->QEPCAD_Cell,INDX)); SWRITE(" ");
+	// PopOutputContext();
 	V = LIST2( parent -> description(W) , 
-		   sample -> coordinate(W.precis.y) ); }
+		   sample -> coordinate(W.precis.y) );
+	// PushOutputContext(cerr); SWRITE("\n\n"); PopOutputContext();
+      }
+      }
     else {
       
       ///////**** Sector over Section

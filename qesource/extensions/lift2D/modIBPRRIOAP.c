@@ -7,21 +7,30 @@ Inputs
    M : the minimal integral polynomial of an algebraic number
        \alpha.
    I : an open standard logarithmic isolating interval for \alpha.
-   B : a bivariate polynomial such that B(alpha,y) is squarefree
+   B : a bivariate polynomial such that B(alpha,y) is squarefree, and
+       \alpha is a simple (i.e. multiplicity one) root of disc_y(B).
    k : if k is NIL, only root isolation is performed.  Otherwise, k
        is the target precision of refinement - i.e. we try to refine
        isolating intervals to a width of 1/2^k.
 Outputs
    L : If t = 0, L is a list  (I_1,...,I_m)
-       of the form I_i = (a,b,e), where (a,b) is strongly disjoint interval with
+       of the form I_i = (a,b,e,F,t)
+       where (a,b) is strongly disjoint interval with
        logarithmic binary rational endpoints and is either open
-       or one-point, and e is either 0 or 1.  If e is zero, then (a,b)
-       is an isolating interval for exactly one root of B(alpha,y).
-       If e is 1, then the interval may contain roots, nothing is
-       known.
-   t : 0, 1 or 2.  If t = 1, the program failed to produce an
-       isolation list L because of exponent limitation.  If t = 2, 
-       the failure was due to mantissa limitation.
+       or one-point, e is 0 or 1, and F is 2-variate integral polynomial.
+       If e is zero, then (a,b) is an isolating interval for exactly one 
+       simple root of B(alpha,y), and F = B and t is the trend.
+       If e is 1, then (a,b) is an isolating interval for a double root 
+       of B(alpha,y) and for a simple root of F (a factor of B'(\alpha,y))
+       with trend t, and the two roots are equal.
+   t : 0, 1 or 2.  
+       If t = 0, L is as described above
+       If t = 1, the program failed to produce an
+       isolation list L because of exponent limitation.  
+       If t = 2, the failure was due to mantissa limitation.  
+       If t = 3 then either the leading coefficient's sign couldn't
+       be determined, or 
+       we encountered more than one "don't know" interval for a given poly.
 ======================================================================*/
 #include "lift2d.h"
 
@@ -35,7 +44,7 @@ void modIBPRRIOAP(Word M, Word I, Word B, Word k, Word *L_, BDigit *t_)
 	ieee F1,F2;
 	double p,w1,w2;
 	interval *A = NULL,K,*Q = NULL,*HICFP,J;
-
+	
 Step1: /* Convert the isolating interval for \alpha to a
           hardware interval. */
 	L = NIL;
@@ -112,97 +121,93 @@ Step3: /* Isolate the roots of B(alpha,y) */
 	/* Isolate the roots of B(alpha,y) */
 	modHIPRRID(PDEG(B),Q, &L,&t);
 	if (t != 0)
-	  goto Return;
+	  goto Return; // isolation failed
+	/* If there are multiple don't knows ... we have failed. */
+	else {
+	  Word failCount = 0;
+	  for(Word Lp = L; Lp != NIL; Lp = RED(Lp))
+	    if (THIRD(FIRST(Lp)) != 0)
+	      failCount++;
+	  if (failCount > 1) {
+	    t = 3;
+	    goto Return;
+	  }
+	}
 
  Step4: /* Refine roots? */
 	if (k == NIL)
 	  goto Return;
 	Ls = NIL;
-	for(Lp = L, tc = t1; Lp != NIL; Lp = RED(Lp), tc *= -1)
+	for(Lp = L, tc = t1; Lp != NIL; Lp = RED(Lp))
         { 
-	  FIRST2(FIRST(Lp),&a,&b);
+	  FIRST3(FIRST(Lp),&a,&b,&t); // iso interval is (a,b), with trend t
 
 	  /* Take proper care of 1-point intervals! */
 	  if (LBRNCOMP(a,b) == 0) {
-	    Ls = COMP(FIRST(Lp),Ls);
-	    continue; }
-	    
+	    // (a,a) is a simple root of B(alpha,y), and it is a simple root of linear poly
+	    Word Jpnew = LIST5(a,b,0,LIST4(1,LIST2(0,IMP2(1,SECOND(a))),0,LIST2(0,INEG(FIRST(a)))),t);
+	    Ls = COMP(Jpnew,Ls);
+	    tc *= -1;
+	    continue;
+	  }
+
+	  /* Compute j, current width. */
 	  Jp = LIST2(a,b);
 	  LBRIHI(FIRST(Lp),&J,&t);
 	  j = -LSILW(Jp);
 
-	  if (j < k) {
-	    if (THIRD(FIRST(Lp)) == 0) {
-	      /***** EXACTLY ONE ROOT ***********/
-	      HIPIR(PDEG(B),Q,J,tc,j,k,&J,&j); 
-	      Jp = HILBRI(J); }
-	    else {
-	      //-------------------------------------------------//	      
-	      /***** DON'T KNOW HOW MANY ROOTS **/
-	      /* This is horribly inefficient, but I'm going to
-		 isolate and refine all the roots of the the 
-		 derivative of B w.r.t. y over alpha, and if only 
-		 one root is in (a,b), it must be my double root.
-		 TODO: check for IPDER not being square-free as a poly in y!
-		*/
+	  /***** (a,b) is an isolating interval for a single, simple root ***********/
+	  if (THIRD(FIRST(Lp)) == 0) {
+	    HIPIR(PDEG(B),Q,J,tc,j,k,&J,&j); 
+	    Jp = HILBRI(J);
+	    Jp = LIST5(FIRST(Jp),SECOND(Jp),0,B,tc);
+	    tc *= -1;
+	  }
+
+	  /***** (a,b) is the only "don't know" interval. ***************************/
+	  /* isolate and refine all the roots of the the derivative of B w.r.t. y over alpha, and if only 
+	     one root is in (a,b), it must be the double root of B(alpha,y), and no other root of of
+	     B(alpha,y) can be in the interval (y the mean value theorem!).
+	  */
+	  else {
 	      /* PushOutputContext(cerr); */
 	      /* SWRITE("Don't know interval ("); LBRNWRITE(a); SWRITE(","); LBRNWRITE(b); SWRITE(") must be refined!\n"); */
 	      /* PopOutputContext(); */
 	      Word Bp = IPDER(2,B,2);
-	      IBPRRIOAP(M,I,IPPGSD(2,Bp),k,&Ld,&td);
+	      Word Bpsqf = IPPGSD(2,Bp);
+	      IBPRRIOAP(M,I,Bpsqf,k,&Ld,&td);
+	      
 	      if (td != 0) {
-	      	IBPRRIOAPSF(M,I,IPPGSD(2,Bp),8,k,&td,&Ld);
+	      	IBPRRIOAPSF(M,I,Bpsqf,8,k,&td,&Ld);
 	      	td = !Ld;
 	      }
 	      if (td == 0) {
+		//PushOutputContext(cerr); SWRITE("Ld = "); OWRITE(Ld); SWRITE("\n"); PopOutputContext();
 		// Filter out all isolating intervals not overlapping (a,b)
 		/* PushOutputContext(cerr); SWRITE("Before: |Ld| = "); IWRITE(LENGTH(Ld)); SWRITE("\n"); PopOutputContext(); */
-	      	while(LBRNCOMP(SECOND(FIRST(Ld)),a) <= 0)
-	      	  Ld = RED(Ld);
-		Word Ltmp = NIL;
-		while(Ld != NIL && LBRNCOMP(b,FIRST(FIRST(Ld))) >= 0) {
-		  Ltmp = COMP(FIRST(Ld),Ltmp);
-		  Ld = RED(Ld);
+		Word Leftover = NIL;
+		for(Word Ldp = Ld; Ldp != NIL; Ldp = RED(Ldp)) {
+		  int tst = ProveNotRoot(B,M,I,a,b,Bp,FIRST(Ldp));
+		  if (!tst)
+		    Leftover = COMP(FIRST(Ldp),Leftover);
 		}
-		Ld = CINV(Ltmp);
-
-		/* PushOutputContext(cerr); SWRITE("After: |Ld| = "); IWRITE(LENGTH(Ld)); SWRITE("\n"); PopOutputContext(); */
-		
-		// If there is only one interval, it contains the root beta of B(alpha,y),
-		// and is an isolating inteverval for beta as a root of B'(alpha,y)
-		if (LENGTH(Ld) == 1) {		  
-	      	  //Jp = FIRST(Ld);
-	      	  Jp = CCONC(FIRST(Ld),LIST1(Bp));
+		if (LENGTH(Leftover) == 1) {
+		  Word ap, bp, tb;
+		  FIRST3(FIRST(Leftover),&ap,&bp,&tb);
+		  Jp = LIST5(ap,bp,1,Bpsqf,tb);
+		  /* PushOutputContext(cerr); SWRITE("Successfully found the root of deriviative!"); PopOutputContext(); */
 		}
 		else {
-		  Word Leftover = NIL;
-		  for(Word Ldp = Ld; Ldp != NIL; Ldp = RED(Ldp)) {
-		    int tst = ProveNotRoot(B,M,I,a,b,Bp,FIRST(Ldp));
-		    if (!tst)
-		      Leftover = COMP(FIRST(Ldp),Leftover);
-		  }
-		  if (LENGTH(Leftover) == 1) {
-		    Jp = CCONC(FIRST(Leftover),LIST1(Bp));
-		    /* PushOutputContext(cerr); SWRITE("Successfully found the root of deriviative!"); PopOutputContext(); */
-		  }
-		  else {
-		    // We failed to determine which derivative root is the root of A we are looking for!
-		    /* PushOutputContext(cerr); SWRITE("Failed to find the root of deriviative!"); PopOutputContext(); */
-		  }
+		  // We failed to determine which derivative root is the root of A we are looking for!
+		  /* PushOutputContext(cerr); SWRITE("Failed to find the root of deriviative!"); PopOutputContext(); */
+		  t = 4;
+		  L = NIL;
+		  goto Return;
 		}
 	      }
-	      //-------------------------------------------------//
 	    }
-	  }
-	  /* PushOutputContext(cerr); SWRITE("Jp = "); OWRITE(Jp); SWRITE("\n"); PopOutputContext(); */
-	  Word Jpnew = NIL;
-	  if (RED2(Jp) == NIL) // i.e. length is 2
-	    Jpnew = CCONC(Jp,LIST1(THIRD(FIRST(Lp))));
-	  else
-	    Jpnew = LIST4(FIRST(Jp),SECOND(Jp),THIRD(FIRST(Lp)),THIRD(Jp));
-	  Ls = COMP(Jpnew,Ls);
-	  if (THIRD(FIRST(Lp)) != 0)
-	    tc *= -1;
+	  /* PushOutputContext(cerr); SWRITE("Jp = "); OWRITE(Jp); SWRITE("\n"); PopOutputContext(); */	
+	  Ls = COMP(Jp,Ls);
 	}
 	L = CINV(Ls);
 	t = 0;
@@ -310,7 +315,7 @@ Inputs:
   A : poly in x, y
   M : minpoly for root alpha of disc_y(A)
   I : isolating interval for alpha
-      NOTE: alpha is a simple foor if disc_y(A)!!!
+      NOTE: alpha is a simple root of disc_y(A)!!!
   a,b : LBRNs, an isolating interval for beta, a multiplicity two root of A(alpha,y) (necessarily the only such)
   Ap: derivative of A wrt y
   K : an isolating interval for a root of Ap(alpha,y)
@@ -321,10 +326,14 @@ Outputs:
  */
 Word ProveNotRoot(Word A, Word M, Word I, Word a, Word b, Word Ap, Word K)
 {
-  // restrict interval
+  // if (a,b) and K are non-intersecting, return TRUE
   Word ap = FIRST(K);
-  Word low = LBRNCOMP(a,ap) < 0 ? ap : a;
   Word bp = SECOND(K);
+  if (LBRNCOMP(bp,a) <= 0 || LBRNCOMP(b,ap) <= 0)
+    return TRUE;
+
+  // restrict interval: (low,hi) = (a,b) intersect K.
+  Word low = LBRNCOMP(a,ap) < 0 ? ap : a;
   Word hi = LBRNCOMP(b,bp) > 0 ? bp : b;
 
   // I should check whether (low,hi) still contains a root of Ap!
@@ -336,10 +345,22 @@ Word ProveNotRoot(Word A, Word M, Word I, Word a, Word b, Word Ap, Word K)
   Word Aright = IPBREI(2,A,1,LBRNRN(SECOND(I)));
 
   // check that Abot and Atop have no roots in I TODO: make these squarefree!
-  Word Lbot = IPRRISD(Abot,FIRST(I),SECOND(I));
-  if (Lbot != NIL) return FALSE;
-  Word Ltop = IPRRISD(Atop,FIRST(I),SECOND(I));
-  if (Ltop != NIL) return FALSE;
+  /* Word Lbot = IPRRISD(Abot,FIRST(I),SECOND(I)); */
+  /* if (Lbot != NIL) return FALSE; */
+  /* Word Ltop = IPRRISD(Atop,FIRST(I),SECOND(I)); */
+  /* if (Ltop != NIL) return FALSE; */
+  Word Lbot = IPRRID(Abot);
+  for(Word Lp = Lbot; Lp != NIL; Lp = RED(Lp)) {
+    Word R = FIRST(Lp);
+    if (IPIISFLBRN(Abot,R,FIRST(I),&R) > 0 && IPIISFLBRN(Abot,R,SECOND(I),&R) < 0)
+      return FALSE;
+  }
+  Word Ltop = IPRRID(Atop);
+  for(Word Lp = Ltop; Lp != NIL; Lp = RED(Lp)) {
+    Word R = FIRST(Lp);
+    if (IPIISFLBRN(Atop,R,FIRST(I),&R) > 0 && IPIISFLBRN(Atop,R,SECOND(I),&R) < 0)
+      return FALSE;
+  }
 
   // check that Aleft and Aright have no roots in (low,high) TODO: make these squarefree!
   //Word r_low = LBRNRN(low);

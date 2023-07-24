@@ -1,1 +1,11 @@
 These are example plot2d inputs from Zoltan's ISSAC 2023 demos.
+
+NOTE: check following for uninit problem!
+valgrind ../../../bin/tarski +N50000000 inA
+
+
+Outstanding to deal with:
+
+* bugE - total fail
+
+* bugF - ugly artifacts 

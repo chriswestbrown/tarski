@@ -58,6 +58,8 @@ $(LIB)(IBPELBRISIPR.o) \
 $(LIB)(IBPESISIPR.o) \
 $(LIB)(modIBPRRIOAPSF.o) \
 $(LIB)(modSIPRRISD.o) \
+$(LIB)(IBPRSRAN.o) \
+$(LIB)(IBPRSRANSF.o) \
 $(LIB)(modSIPRRID.o)
 
 ##################################################################

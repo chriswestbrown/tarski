@@ -40,5 +40,7 @@ void modIBPRRIOAP(Word M, Word I, Word B, Word k, Word *L_, BDigit *t_);
 void modIBPRRIOAPSF(Word M, Word I, Word B, Word p, Word k, BDigit *J_, BDigit *L_);
 Word modSIPRRID(BDigit *A);
 Word modSIPRRISD(BDigit *A, Word a, Word b);
+void IBPRSRAN(Word M, Word I, Word B, Word k, Word Jorig, Word tr, Word *Jp_, BDigit *t_);
+void IBPRSRANSF(Word M, Word I, Word B, Word k, Word Jorig, Word tr, Word p, Word *Jp_, BDigit *t_);
 
 #endif /* _LIFT2D_ */

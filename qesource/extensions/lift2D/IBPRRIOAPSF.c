@@ -25,8 +25,11 @@ Outputs
        logarithmic binary rational endpoints and is either open
        or one-point, and that are isolating intervals for the
        real roots of B(alpha,y).
+       IMPORTANT!  Now each I_j = (left,right,trend)
 ======================================================================*/
 #include "lift2d.h"
+
+static Word addTrend(Word J, Word t) { Word a, b; FIRST2(J,&a,&b); return LIST3(a,b,t); }
 
 void IBPRRIOAPSF(Word M, Word I, Word B, BDigit p,BDigit k, Word *J_, Word *L_)
 {
@@ -80,7 +83,7 @@ Step5: /* Refine the intervals. */
 	for(Lp = L; Lp != NIL; Lp = RED(Lp))
 	{
 	  Jp = SIPIR(c,FIRST(Lp),t,-k);
-	  Ls = COMP(Jp,Ls);
+	  Ls = COMP(addTrend(Jp,t),Ls);
 	  t = -t;
 	}
 	L = CINV(Ls);

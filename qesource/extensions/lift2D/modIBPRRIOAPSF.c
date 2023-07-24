@@ -29,12 +29,14 @@ Outputs
 ======================================================================*/
 #include "lift2d.h"
 
+Word ProveNotRoot(Word A, Word M, Word I, Word a, Word b, Word Ap, Word K);
+
 void modIBPRRIOAPSF(Word M, Word I, Word B, Word p, Word k, BDigit *J_, BDigit *L_)
 {
-	BDigit *Mp,*bp,*c,i,m,n,q1,q2,S,s,t;
+  BDigit *Mp,*bp,*c = NULL,i,m,n,q1,q2,S,s,t,tc;
 	Word a,b,Bp,I1,I2,J,K,L,Ls,Lp,T,Jp,Js,Ld;
 
-Step1: /* Convert the minimal polynomial to a software interval
+ Step1: /* Convert the minimal polynomial to a software interval
           polynomial. */
         n = PDEG(M);
         q1 = p + 3;
@@ -69,10 +71,21 @@ Step4: /*  Isolate the real roots of each basis polynomial. */
 	IBPELBRISIPR(B,J,p,c);
 	L = modSIPRRID(c);
 	if (L == 0)
-	  goto Step8;
-	t = c[s - q2 + 1];
+	  goto Return;
+	else  {
+	  Word failCount = 0;
+	  for(Word Lp = L; Lp != NIL; Lp = RED(Lp))
+	    if (THIRD(FIRST(Lp)) != 0)
+	      failCount++;
+	  if (failCount > 1) {
+	    t = 3;
+	    goto Return;
+	  }
+	}
+	
+	tc = c[s - q2 + 1];
 	if (EVEN(m))
-	  t = -t;
+	  tc = -tc;
 
 Step5: /* Refine roots? */
 	if (k == NIL)
@@ -84,48 +97,59 @@ Step5: /* Refine roots? */
 	  Jp = FIRST(Lp);
 	  FIRST2(Jp,&a,&b);
 
-	  /* For now I ignore the possibility that this
-	     might be a "don't know" interval, and I just
-	     don't try to refine such an interval. */
-	  if (LBRNCOMP(a,b) == 0 || -LSILW(Jp) >= k) {
-	    /* Don't Refine */
-	    Ls = COMP(Jp,Ls); }
-	  else {/* Refine! */
-	    /***** EXACTLY ONE ROOT ***********/
-	    if (THIRD(Jp) == 0) {
-	      Js = SIPIR(c,Jp,t,-k);
-	      Jp = LIST3(FIRST(Js),SECOND(Js),THIRD(Jp));
-	      Ls = COMP(Jp,Ls); }
-	    else {/***** DON'T KNOW HOW MANY ROOTS **/
-	      /* This is horribly inefficient, but I'm going to
-		 isolate and refine all the roots of the the 
-		 derivative of B w.r.t. y over alpha, and if only 
-		 one root is in (a,b), it must be my double root.
-		*/
-	      IBPRRIOAPSF(M,I,IPPGSD(2,IPDER(2,B,2)),p,k,&I,&Ld);
-	      if (Ld != 0) {
-		while(LBRNCOMP(SECOND(FIRST(Ld)),a) <= 0)
-		  Ld = RED(Ld);
-		if (LBRNCOMP(FIRST(FIRST(Ld)),a) >= 0 && 
-		    LBRNCOMP(SECOND(FIRST(Ld)),b) <= 0 &&
-		    (RED(Ld) == NIL || LBRNCOMP(FIRST(SECOND(Ld)),b) >= 0))
-		  Js = FIRST(Ld); 
-		Jp = LIST3(FIRST(Js),SECOND(Js),THIRD(Jp));
+	  /* Take proper care of 1-point intervals! */
+	  if (LBRNCOMP(a,b) == 0) {
+	    // (a,a) is a simple root of B(alpha,y), and it is a simple root of linear poly
+	    Word Jpnew = LIST5(a,b,0,LIST4(1,LIST2(0,IMP2(1,SECOND(a))),0,LIST2(0,INEG(FIRST(a)))),1);
+	    Ls = COMP(Jpnew,Ls);
+	    tc *= -1;
+	    continue;
+	  }
+
+	  /***** (a,b) is an isolating interval for a single, simple root ***********/
+	  if (THIRD(Jp) == 0) {
+	    Js = SIPIR(c,Jp,tc,-k);
+	    Jp = LIST5(FIRST(Js),SECOND(Js),0,B,tc);
+	    tc *= -1;
+	  }
+
+	  /***** (a,b) is the only "don't know" interval. ***************************/
+	  /* isolate and refine all the roots of the the derivative of B w.r.t. y over alpha, and if only 
+	     one root is in (a,b), it must be the double root of B(alpha,y), and no other root of of
+	     B(alpha,y) can be in the interval (y the mean value theorem!).
+	  */
+	  else {
+	    Word Bp = IPDER(2,B,2);
+	    Word Bpsqf = IPPGSD(2,Bp);
+	    IBPRRIOAPSF(M,I,Bpsqf,p,k,&I,&Ld);
+	    if (Ld != 0) {
+	      Word Leftover = NIL;
+	      for(Word Ldp = Ld; Ldp != NIL; Ldp = RED(Ldp)) {
+		int tst = ProveNotRoot(B,M,I,a,b,Bp,FIRST(Ldp));
+		if (!tst)
+		  Leftover = COMP(FIRST(Ldp),Leftover);
 	      }
-	      Ls = COMP(Jp,Ls);
+	      if (LENGTH(Leftover) == 1) {
+		Word ap, bp, tp;
+		FIRST3(FIRST(Leftover),&ap,&bp,&tp);		  
+		Jp = LIST5(ap,bp,1,Bpsqf,tp);
+	      }
+	      else {
+		// We failed to determine which derivative root is the root of A we are looking for!
+		t = 4;
+		L = NIL;
+		goto Return;
+	      }
 	    }
 	  }
 	  
-	  /* Update trend! */
-	  if (THIRD(Jp) == 0)
-	    t = -1*t; /* note the assumption that a "don't know" interval contains an even multiplicity of roots! */
+	  Ls = COMP(Jp,Ls);
 	}
 	L = CINV(Ls);
 
-Step8: /* Free arrays. */
-	FREEARRAY(c);
-	  
 Return: /* Return J and L. */
+	if (c != NULL)
+	  FREEARRAY(c);
 	*J_ = J;
 	*L_ = L;
 	return;

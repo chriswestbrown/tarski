@@ -84,8 +84,10 @@ class Rend_Sample_2DS : public Rend_Sample
    **     points for
    *********************************************************/
 private:
+  gcmemloc C; // this is the qepcad cell structure
+  gcmemloc I; // this will be the current best estimate iso interval
   int t;
-  gcmemloc A,I,C;
+  gcmemloc A; // for an old-style qepcad extended sample, this will be the minpol
 public:
   Rend_Sample_2DS(Word C);
   virtual ~Rend_Sample_2DS();
