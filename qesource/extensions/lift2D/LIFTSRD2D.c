@@ -282,13 +282,19 @@ Word LIFTSRD2D(Word c, Word D, Word P, Word L)
 	  Word Jp = FIRST(r);
 	  Word ap, bp, e, F, trend;
 	  FIRST5(Jp,&ap,&bp,&e,&F,&trend);
-	  SP = LIST6(RPFIP(2,F),
-		     LIST2(LBRNRN(ap),LBRNRN(bp)),
-		     M,
-		     I,
-		     COORDLIST,
-		     trend); 
-	  SLELTI(R,k,RED(r)); } }
+	  if (ap == 0 && ap == bp) {
+	    SP = LIST3(M,
+		       I,
+		       CCONC(COORDLIST,0));
+	  }
+	  else {
+	    SP = LIST6(RPFIP(2,F),
+		       LIST2(LBRNRN(ap),LBRNRN(bp)),
+		       M,
+		       I,
+		       COORDLIST,
+		       trend); 
+	    SLELTI(R,k,RED(r)); } }}
 
       /* CONSTRUCT CELL */
       cp = LIST10(FIRST(c_R),NIL,THIRD(c_R),UNDET,SP,

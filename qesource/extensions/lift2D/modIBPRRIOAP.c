@@ -135,19 +135,31 @@ Step3: /* Isolate the roots of B(alpha,y) */
 	}
 
  Step4: /* Refine roots? */
+	//PushOutputContext(cerr); OWRITE(L); SWRITE("\n"); PopOutputContext();
 	if (k == NIL)
 	  goto Return;
 	Ls = NIL;
 	for(Lp = L, tc = t1; Lp != NIL; Lp = RED(Lp))
         { 
-	  FIRST3(FIRST(Lp),&a,&b,&t); // iso interval is (a,b), with trend t
+	  FIRST3(FIRST(Lp),&a,&b,&t); // iso interval is (a,b), with t=0 for simple root, t=1 for double
 
 	  /* Take proper care of 1-point intervals! */
 	  if (LBRNCOMP(a,b) == 0) {
-	    // (a,a) is a simple root of B(alpha,y), and it is a simple root of linear poly
-	    Word Jpnew = LIST5(a,b,0,LIST4(1,LIST2(0,IMP2(1,SECOND(a))),0,LIST2(0,INEG(FIRST(a)))),t);
+	    // (a,a) is a root of B(alpha,y), and it is a simple root of linear poly
+	    Word Jpnew;
+	    if (a == 0 && t == 0) {
+	      Jpnew = LIST5(0,0,0,LIST2(1,LIST2(0,1)),1);
+	      tc *= -1;
+	    }
+	    else if (a == 0 && t != 0) {
+	      Jpnew = LIST5(0,0,1,LIST2(1,LIST2(0,1)),0);
+	    }
+	    else {
+	      Jpnew = LIST5(a,b,0,LIST4(1,LIST2(0,IMP2(1,SECOND(a))),0,LIST2(0,INEG(FIRST(a)))),1);
+	      if (t == 0)
+		tc *= -1;
+	    }
 	    Ls = COMP(Jpnew,Ls);
-	    tc *= -1;
 	    continue;
 	  }
 

@@ -95,14 +95,26 @@ Step5: /* Refine roots? */
 	for(Lp = L; Lp != NIL; Lp = RED(Lp))
         { 
 	  Jp = FIRST(Lp);
-	  FIRST2(Jp,&a,&b);
+	  Word tm;
+	  FIRST3(Jp,&a,&b,&tm);
 
 	  /* Take proper care of 1-point intervals! */
 	  if (LBRNCOMP(a,b) == 0) {
-	    // (a,a) is a simple root of B(alpha,y), and it is a simple root of linear poly
-	    Word Jpnew = LIST5(a,b,0,LIST4(1,LIST2(0,IMP2(1,SECOND(a))),0,LIST2(0,INEG(FIRST(a)))),1);
+	    // (a,a) is a root of B(alpha,y), and it is a simple root of linear poly
+	    Word Jpnew;
+	    if (a == 0 && t == 0) {
+	      Jpnew = LIST5(0,0,0,LIST2(1,LIST2(0,1)),1);
+	      tc *= -1;
+	    }
+	    else if (a == 0 && t != 0) {
+	      Jpnew = LIST5(0,0,1,LIST2(1,LIST2(0,1)),0);
+	    }
+	    else {
+	      Jpnew = LIST5(a,b,0,LIST4(1,LIST2(0,IMP2(1,SECOND(a))),0,LIST2(0,INEG(FIRST(a)))),1);
+	      if (t == 0)
+		tc *= -1;
+	    }
 	    Ls = COMP(Jpnew,Ls);
-	    tc *= -1;
 	    continue;
 	  }
 

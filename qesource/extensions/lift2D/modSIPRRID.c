@@ -40,7 +40,17 @@ Step2: /* Is 0 a root? */
 	  L = 0; /* This is a problem! */
 	  goto Step4; }
 	if (s == 0) {
-	  I = LIST3(0,0,0);
+	  Word n = A[0];
+	  if (n == 0) { I = LIST3(0,0,0); }
+	  else {
+	    Word p = A[3];
+	    Word q1 = p + 3;
+	    Word q2 = q1 + q1;
+	    Word s1 = SISIGN(A + 1 + q2); // A + 1 + q2 is the start of the degree 1 coefficient
+	    if (s1 == NIL) { I = LIST3(0,0,1); }
+	    if (s1 == 0) { I = LIST3(0,0,1); }
+	    else { I = LIST3(0,0,0); }
+	  }
 	  L = COMP(I,L); }
 	
 Step3: /* Isolate the negative roots. */

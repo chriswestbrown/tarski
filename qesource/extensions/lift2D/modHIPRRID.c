@@ -67,8 +67,11 @@ Step5: /* Include 0 if a root. */
 	  t = 2; /* This is a problem!!!! */
 	   goto Return; }
 	if (s == 0) {
-	   I = LIST3(0,0,0);
-	   L1 = COMP(I,L1); }
+	  if (n == 0) { I = LIST3(0,0,0); }
+	  else if (HISIGN(A[1]) == NIL) { I = LIST3(0,0,1); }
+	  else if (HISIGN(A[1]) == 0) { I = LIST3(0,0,1); }
+	  else { I = LIST3(0,0,0); }
+	  L1 = COMP(I,L1); }
 
 Step6: /* Concatenaate L_2 and L_1. */
 	L = CONC(L2,L1);
