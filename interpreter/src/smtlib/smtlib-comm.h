@@ -38,12 +38,21 @@ namespace tarski {
       int N = args.size();
       if (N < 1) { return new ErrObj("smt-load requires an argument (the file to load)."); }
 
-      // last argument must be file to load
+      // last argument must be file to load or smtlib string
       StrRef path = args[N-1]->str();
       if (path.is_null()) { return new ErrObj("smt-load requires its last argument to be of type std::string."); }
-      ifstream fin(path->val.c_str());
-      if (!fin) { return new ErrObj("file '" + path->val + "' not found in smt-load."); }            
-    
+      ifstream fin;
+      istringstream sin(path->val);
+      istream *smtin; // this will point to the actual smtlib input stream
+      if (path->val[0] != '(') {
+	fin.open(path->val.c_str());
+	if (!fin) { return new ErrObj("file '" + path->val + "' not found in smt-load."); }
+	smtin = &fin;
+      }
+      else {
+	smtin = &sin;
+      }
+
       // process other arguments
       bool clearDenominators = false;
       bool translate = false;
@@ -62,8 +71,8 @@ namespace tarski {
       {
 	std::ostringstream sout;
 	VarTranslationMapRef vtm = new VarTranslationMapObj(!translate);
-	readSMTRetTarskiString(fin,sout,vtm);
-	fin.close();
+	readSMTRetTarskiString(*smtin,sout,vtm);
+	//fin.close();
 	/* std::cerr << "TEST" << std::endl; */
 	/* std::cerr << sout.str(); */
 	/* std::cerr << "TEST" << std::endl; */
@@ -85,7 +94,7 @@ namespace tarski {
       }
     }
     std::string testArgs(std::vector<SRef> &args) { return ""; /* require(args,_str); */ }
-    std::string doc() { return "(smt-load [switch] <std::string>) where <std::string> is a filename, reads file <std::string> of smtlib input and attempts to interpret it as a Tarski formula.  When smtlib's (checksat) expression is encountered, the current formula is returned.  Note that at present very little syntax checking on the input is done.  By default, smtlib-load will not process inputs with non-constant denominators.  However, with the optional switch 'clear, smtlib-load will allow them, and clear them in the usual way but, and this is important, under the assumption that the formula \"guards\" denominators, i.e. that any branch of the formula with a denominator includes already implies the non-vanishing of that denominator.  SMT-LIB syntax has very few restrictions on the names of algebraic variables.  As a result, valid SMT-LIB variables in the input file may not be valid algebraic variables in Tarski.  By default, if such a variable occurs, an error will be returned.  To deal with this, you can give the 'translate flag, in which case smtlib-load returns a pair (F T) where F is the formula written with variables x0,x,... and T is a VarMapTranslate object.  Example:\n> (smtlib-load \"smt007.smt2\")\n\"Variable 'x!7' is valid for SMT-Lib, but not for Tarski. See documentation for details on how to enable variable mapping.\":err\n> (smtlib-load 'translate \"smt007.smt2\")\n( ex x2[2 x2^2 + 2 x1^2 + 2 x0^2 - 1 < 0 /\\ 3 x2 + 3 x1 + 3 x0 - 1 < 0]:tar (('x0,\"x!7\") ('x1,\"y?z\") ('x2,\"z\")):VarMapTranslate )"; 
+    std::string doc() { return "(smtlib-load [switch] <std::string>) where <std::string> is a filename or contains smtlib code and has a left parenthesis as first character, reads the file/string of smtlib input and attempts to interpret it as a Tarski formula.  When smtlib's (checksat) expression is encountered, the current formula is returned.  Note that at present very little syntax checking on the input is done.  By default, smtlib-load will not process inputs with non-constant denominators.  However, with the optional switch 'clear, smtlib-load will allow them, and clear them in the usual way but, and this is important, under the assumption that the formula \"guards\" denominators, i.e. that any branch of the formula with a denominator includes already implies the non-vanishing of that denominator.  SMT-LIB syntax has very few restrictions on the names of algebraic variables.  As a result, valid SMT-LIB variables in the input file may not be valid algebraic variables in Tarski.  By default, if such a variable occurs, an error will be returned.  To deal with this, you can give the 'translate flag, in which case smtlib-load returns a pair (F T) where F is the formula written with variables x0,x,... and T is a VarMapTranslate object.  Example:\n> (smtlib-load \"smt007.smt2\")\n\"Variable 'x!7' is valid for SMT-Lib, but not for Tarski. See documentation for details on how to enable variable mapping.\":err\n> (smtlib-load 'translate \"smt007.smt2\")\n( ex x2[2 x2^2 + 2 x1^2 + 2 x0^2 - 1 < 0 /\\ 3 x2 + 3 x1 + 3 x0 - 1 < 0]:tar (('x0,\"x!7\") ('x1,\"y?z\") ('x2,\"z\")):VarMapTranslate )"; 
     }
       std::string usage() { return "(smtlib-load [switch*] <std::string>)"; }
     std::string name() { return "smtlib-load"; }
