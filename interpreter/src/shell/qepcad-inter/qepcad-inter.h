@@ -95,6 +95,9 @@ public:
       else return new ErrObj("Symbol not understood");
     }
     // TODO!! check that F is quantifier free
+    if (!isQuantifierFree(F)) {
+      return new ErrObj("Input has quantifiers: 'qepcad-sat' requires a quantifier-free formula.  Try 'qepcad-qe'.  See (help 'qepcad-sat).");
+    }
     TAndRef Fp = new TAndObj();
     Fp->AND(F);
     bool conjunctionCase = isConjunctionOfAtoms(Fp);
