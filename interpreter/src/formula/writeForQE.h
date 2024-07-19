@@ -3,6 +3,7 @@
 
 #include "formula.h"
 #include "../onecell/varorder.h"
+#include <vector>
 
 namespace tarski {
   
@@ -48,6 +49,16 @@ std::string writeForQEPCADB(TFormRef F,
 			    VarOrderRef ord = NULL
 			    );
 
+// F : a prenex formula, ord : a preferred variable order
+// makeOrderProper(F,ord) reorders ord (if needed) to make
+// it proper with respect to any _root_ expressions, while
+// respecting quantifier block structure.  Throws a TarskiException
+// if this is not proper without replacing _root_ expressions.
+// NOTE: if F has no _root_ expressions this does nothing, so in
+//       that case it's up to the caller to make sure ord respects
+//       the quantifier block structure!
+void makeOrderProper(TFormRef F, std::vector<VarSet> &ord);
+  
 // Takes formula F and variables x and y appearing in F and returns
 // a "feature vector" describing how the x and y compare w.r.t. F.
  std::vector<float> getFeatures2Vars(TFormRef F, VarSet x, VarSet y);

@@ -371,6 +371,7 @@ vector<VarSet> getBrownVariableOrder(TFormRef F)
       res.push_back(vqv[j]);
   }
   reverse(res.begin(),res.end());
+  makeOrderProper(F,res);
   return res;
 }
 
