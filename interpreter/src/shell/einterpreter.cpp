@@ -872,6 +872,7 @@ public:
     try {
       TFormRef F = args[0]->tar()->val;
       vector<VarSet> V = getBrownVariableOrder(F);
+      
       LisRef res = new LisObj();
       for(int i = 0; i < V.size(); i++)
 	res->push_back(new SymObj(getPolyManagerPtr()->getName(V[i])));
