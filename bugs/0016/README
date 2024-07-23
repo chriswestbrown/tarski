@@ -1,0 +1,16 @@
+STATUS: OPEN
+
+SUMMARY
+There is a bug in sol G that causes a crash
+
+* in2 is the simplest example input I have for this bug
+
+It looks like sfcons/GEOTEST is where the problem stems
+from.  In Step 2 we are supposed to partition this set of
+cells so that (I believe) there is a single formula that
+separates the true from false cells in the stacks above
+cells.  That seems not to be working right so that when
+I go to construct the formula (call to NAIVESF in Step 3)
+I get a segfault.
+
+ACTION

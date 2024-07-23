@@ -1,0 +1,45 @@
+STATUS: OPEN
+
+SUMMARY
+Tarski currently only handles evaluation of extended tarski
+atoms when all variables are given values ... no "partial"
+evaluation.  Even this it does wrong, however, because it fails
+to account for the possibility that evaluation of all but the
+main variables may result in different factors that have
+common divisors, and so it gets the root counts wrong.
+Moreover, it doesn't check for nullification!  Here's an example
+the current code gets wrong:
+
+> (def F [ y > _root_2 (y-1) (-y + x)])
+:void
+> (evalf '(x y) '(1 20) F)
+true:tar
+> 
+
+ACTION
+I rewrote the code for evaluating void action(TExtAtomObj* p) in
+class EvalFormulaAtRationalPoint to not only fix this bug, but
+allow partial evaluation of _root_ constraints as long as we don't
+get a value for the LHS variable without getting values for all the
+remaining RHS variables.  Here are examples of things working correctly!
+
+> (evalf '(x) '(2) [x > 1 /\ y < _root_1 y^2 - x])
+[y < _root_1 y^2 - 2]:tar
+> (evalf '(x y) '(2 1) [x > 1 /\ y < _root_1 y^2 - x])
+false:tar
+>  (def F [ y > _root_2 (y-1) (-y + x)])
+:void
+> (evalf '(x y) '(1 20) F)
+false:tar
+
+
+
+
+TEMP STUFF!
+(def Fp [
+[vy^2 + vx^2 - 9 = 0 \/ vy^2 + vx^2 - 1 = 0 \/ [[-1(vx + 3) >= 0 \/ vx + 1 >= 0 \/ vy /= _root_1 vy^2 + vx^2 - 9] /\ [vx + 3 /= 0 \/ vy /= _root_1 vy^2 + vx^2 - 9] /\ [-1(vx + 1) >= 0 \/ vx - 1 >= 0 \/ [vy /= _root_1 vy^2 + vx^2 - 9 /\ vy /= _root_1 vy^2 + vx^2 - 1]] /\ [vx + 1 /= 0 \/ [vy /= _root_1 vy^2 + vx^2 - 9 /\ vy /= _root_1 vy^2 + vx^2 - 1]] /\ [-1(vx - 1) >= 0 \/ vx - 3 >= 0 \/ vy /= _root_1 vy^2 + vx^2 - 9] /\ [vx - 1 /= 0 \/ [vy /= _root_1 vy^2 + vx^2 - 9 /\ vy /= _root_1 vy^2 + vx^2 - 1]] /\ [vx - 3 /= 0 \/ vy /= _root_1 vy^2 + vx^2 - 9]]] /\ [[vy^2 + vx^2 - 9 /= 0 /\ vy^2 + vx^2 - 1 /= 0] \/ [-1(vx + 3) < 0 /\ vx + 1 < 0 /\ vy = _root_1 vy^2 + vx^2 - 9] \/ [vx + 3 = 0 /\ vy = _root_1 vy^2 + vx^2 - 9] \/ [-1(vx + 1) < 0 /\ vx - 1 < 0 /\ [vy = _root_1 vy^2 + vx^2 - 9 \/ vy = _root_1 vy^2 + vx^2 - 1]] \/ [vx + 1 = 0 /\ [vy = _root_1 vy^2 + vx^2 - 9 \/ vy = _root_1 vy^2 + vx^2 - 1]] \/ [-1(vx - 1) < 0 /\ vx - 3 < 0 /\ vy = _root_1 vy^2 + vx^2 - 9] \/ [vx - 1 = 0 /\ [vy = _root_1 vy^2 + vx^2 - 9 \/ vy = _root_1 vy^2 + vx^2 - 1]] \/ [vx - 3 = 0 /\ vy = _root_1 vy^2 + vx^2 - 9]]
+])
+
+(evalf '(vx vy) '(0 1) Fp)
+
+[[vy^2 + vx^2 - 9 /= 0 /\ vy^2 + vx^2 - 1 /= 0] \/ [-1(vx + 3) < 0 /\ vx + 1 < 0 /\ 0 = 1] \/ [vx + 3 = 0 /\ 0 = 1] \/ [-1(vx + 1) < 0 /\ vx - 1 < 0 /\ [0 = 1 \/ 0 = 2]] \/ [vx + 1 = 0 /\ [0 = 1 \/ 0 = 2]] \/ [-1(vx - 1) < 0 /\ vx - 3 < 0 /\ 0 = 1] \/ [vx - 1 = 0 /\ [0 = 1 \/ 0 = 2]] \/ [vx - 3 = 0 /\ 0 = 1]]
