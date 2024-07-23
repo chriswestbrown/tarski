@@ -628,35 +628,68 @@ public:
 
   /*
     The semantics of evaluation for indexed root expressions is a bit tricky.
-    I'm not going to try to handle the broadest interpretation of them - at least for now.
-    Instead, I'm going for essentially the most limited version, i.e. the evaluation
-    has to include values for all variables appearing in the indexed root expression.
+    Currently, we throw an error if we get a value for the LHS variable without 
+    getting values for all the aremaining RHS variables.
    */
   virtual void action(TExtAtomObj* p) 
-  {
+  {      
     VarKeyedMap<GCWord>& values = *pValue;
     VarSet z = p->getLHSVar(), X = p->getVars();
     Word alpha_z = values[z];
-    if (alpha_z == NIL)
-      throw TarskiException("Error in EvalFormulaAtRationalPoint! partial eval not yet supported!");
-    RealAlgNumRef alpha_z_ran = rationalToRealAlgNum(alpha_z);
     
-    // Verify that all variables appearing have values
+    // determine what variables will remain after the eval
+    VarSet varsRemaining = X;
     for(VarSet::iterator itr = X.begin(); itr != X.end(); ++itr)
-      if (values[*itr] == NIL)
-	throw TarskiException("Error in EvalFormulaAtRationalPoint! missing value for " + 
-			      p->getPolyManagerPtr()->getName(*itr)
-			      + "!");
-   
-    // For each factor, count the number of roots less than and greater than alpha_z
-    // NOTE: this could be done a lot faster than I'm doing it!
+      if (values[*itr] != NIL)
+	varsRemaining = varsRemaining - *itr;
+    if (alpha_z != NIL && !varsRemaining.isEmpty()) {
+      throw TarskiException("Error in EvalFormulaAtRationalPoint! Evaluation of 'var relop _root_k p' can only give a value to 'var' if all remaining variables in p are also given values.");
+    }
+
+    // eval each factor (but leave z unevaluated) and collect result in new factor object
+    FactRef Fe = new FactObj(*(p->getPolyManagerPtr()));
     values[z] = NIL;
+    try {
+      for(map<IntPolyRef,int>::iterator itr = p->factorsBegin(); itr != p->factorsEnd(); ++itr) {
+	GCWord content;
+	IntPolyRef A = itr->first->evalAtRationalPointMakePrim(values,content);
+	Fe->addMultiple(A,1);
+      }
+    }catch(exception e) {
+      values[z] = alpha_z;
+      throw e;
+    }
+    values[z] = alpha_z;
+
+    // if the result of the eval is zero the indexed root expression is false!
+    if (Fe->isZero()) {
+      res = new TConstObj(FALSE);
+      return;
+    }
+
+    // if the result has degree less than one in z, the indexed root expression is false!
+    int d = 0;
+    for(map<IntPolyRef,int>::iterator itr = Fe->factorBegin(); itr != Fe->factorEnd(); ++itr) {
+      int d_f = itr->first->degree(z);
+      d += (d_f > 0 ? d_f : 0);
+    }
+    if (d == 0) {
+      res = new TConstObj(FALSE);
+      return;
+    }
+
+    // if z does not have a value in this evaluation, return _root_ expression
+    TExtAtomRef etaNew = new TExtAtomObj(z,p->getRelop(),p->getRootIndex(),Fe);
+    if (alpha_z == NIL) {
+      res = etaNew;
+      return;
+    }
+
+    // z does have a value!  So now we need to isolate roots and all the rest!
+    RealAlgNumRef alpha_z_ran = rationalToRealAlgNum(alpha_z);
     int n_less = 0, n_greater = 0, n_equal = 0;
-    for(map<IntPolyRef,int>::iterator itr = p->factorsBegin(); itr != p->factorsEnd(); ++itr)
-    {
-      GCWord content;
-      IntPolyRef A = itr->first->evalAtRationalPointMakePrim(values,content);
-      vector<RealRootIUPRef> roots =  RealRootIsolateRobust(A);
+    for(map<IntPolyRef,int>::iterator itr = Fe->factorBegin(); itr != Fe->factorEnd(); ++itr) {
+      vector<RealRootIUPRef> roots =  RealRootIsolateRobust(itr->first);
       for(unsigned int i = 0; i < roots.size(); i++)
       {
 	int c = roots[i]->compareToRobust(alpha_z_ran);
@@ -665,13 +698,10 @@ public:
 	else n_greater++;
       }
     }
-    values[z] = alpha_z;
-
-    // get relop of alpha_z w.r.t. _root_index
-    int truth = p->detTruth(n_less, n_equal, n_greater);
+    int truth = etaNew->detTruth(n_less, n_equal, n_greater);
     res = new TConstObj(truth);
-  }
-
+}
+  
   virtual void action(TAndObj* p) {
     TAndRef A = new TAndObj();
     for(TAndObj::conjunct_iterator itr = p->conjuncts.begin(); itr != p->conjuncts.end(); ++itr) {
@@ -680,7 +710,11 @@ public:
       if (cv == 0) { res = new TConstObj(false); return; }
       if (cv != 1) { A->AND(res); }
     }
-    res = A;
+    switch (A->size()) {
+    case 0:  res = new TConstObj(true); break;
+    case 1:  res = *(A->begin()); break;
+    default: res = A; break;
+    }
  }
   virtual void action(TOrObj* p) {
     TOrRef A = new TOrObj();
@@ -690,7 +724,11 @@ public:
       if (cv == 1) { res = new TConstObj(true); return; }
       if (cv != 0) { A->OR(res); }
     }
-    res = A;
+    switch (A->size()) {
+    case 0:  res = new TConstObj(false); break;
+    case 1:  res = *(A->begin()); break;
+    default: res = A; break;
+    }
   }
   virtual void action(TQBObj* p) 
   {

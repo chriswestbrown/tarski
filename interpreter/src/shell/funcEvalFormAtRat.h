@@ -13,7 +13,15 @@ public:
   {
     if (args.size() < 3) { return new ErrObj("Function " + name() + " requires three arguments."); }
     if (args[0]->type() == _lis && args[1]->type() == _lis) { return executeList(input,args); }
-    else { return executeSingle(input,args); }
+    else if (args[0]->type() == _sym && args[1]->type() == _num) {
+      std::vector<SRef> modargs(args);
+      modargs[0] = new LisObj(args[0]);
+      modargs[1] = new LisObj(args[1]);
+      return executeList(input,modargs);
+    }
+    else {
+      return new ErrObj("Invalid arguments to function " + name() + ".");
+    }
   }
   SRef executeList(SRef input, std::vector<SRef> &args)
   {
@@ -35,32 +43,27 @@ public:
       value[X] = r->getVal();
     }
 
-    return new TarObj(evalFormulaAtRationalPoint(value,F->val));
+    SRef res;
+    try { res = new TarObj(evalFormulaAtRationalPoint(value,F->val)); }
+    catch(TarskiException e) { res = new ErrObj(e.what()); }    
+    return res;
   }
 
-  SRef executeSingle(SRef input, std::vector<SRef> &args)
-  {
-    SymRef x = args[0]->sym(); 
-    NumRef r = args[1]->num(); 
-    TarRef F = args[2]->tar();
-    const std::string emsg = "Function " + name() + " expects object of type ";
-    if (x.is_null()) { return new ErrObj(emsg + "sym for argument 1"); }
-    if (r.is_null()) { return new ErrObj(emsg + "num for argument 2"); }
-    if (F.is_null()) { return new ErrObj(emsg + "tar for argument 3"); }
-    PolyManager* PM = getPolyManagerPtr();
-    VarSet X = PM->getVar(x->val);
-    Word R = r->val;
-    /* EvalFormulaAtRational E(X,R); */
-    /* E(F->val); */
-    /* return new TarObj(E.res); */
-    return  new TarObj(evalFormulaAtRational(X,R,F->val));
-  }
   std::string testArgs(std::vector<SRef> &args) 
   { 
     std::string t1 = require(args,_sym,_num,_tar);
     return t1 == "" ? t1 : require(args,_lis,_lis,_tar);
   }
-  std::string doc() { return "Evaluate a formula with rational value for a variable, or a list of rational values for a list of variables."; }
+  std::string doc() { return "Evaluate a formula with rational value for a variable, or a list of rational values for a list of variables.\
+For example:\n\
+> (evalf '(y) '(3/2) [x^2 + x y - y^2 < z])\n\
+[-1(4 z - 4 x^2 - 6 x + 9) < 0]:tar\n\
+> (evalf '(y z) '(3/2 -2) [x^2 + x y - y^2 < z])\n\
+[4 x^2 + 6 x - 1 < 0]:tar\n\
+> (evalf '(y z x) '(3/2 -2 -1) [x^2 + x y - y^2 < z])]\n\
+true:tar\n\
+Note: partial evaluation of _root_ constraints is allowed as long as you do not give a value for the LHS variable without giving values for all the remaining RHS variables.\
+"; }
   std::string usage() { return "(evalf varname rat-num formula ) or (evalf list-varname list-rat-num formula )"; }
   std::string name() { return "evalf"; }
 };

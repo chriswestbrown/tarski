@@ -145,7 +145,7 @@ typedef GC_Hand<TExtAtomObj> TExtAtomRef;
 class TExtAtomObj : public TFormObj
 {
 public:
-  /* represents var relop _root_rootIndex F, where (for now) we assume F has a single factor */
+  /* represents var relop _root_rootIndex F */
   VarSet var;
   int rootIndex;
   FactRef F;
