@@ -184,6 +184,16 @@ namespace tarski {
 	  if (count == -1) throw TarskiException("Qepcad failure!");
 	  else if (ln == "TRUE") {
 	    intoQepcad.out() << "d-witness-list\n" << flush;
+
+	    // read though to the "Before Solution >" that preceeded the "d-witness-list" call
+	    {
+	      bool found = false;
+	      while(!found && getline(outofQepcad.in(),ln))
+		found = ln.find("Before Solution >") != string::npos;
+	      if (!found)
+		throw TarskiException("Qepcad failure: output terminated prematurely.");
+	    }
+	    
 	    int found = 0;	
 	    while(getline(outofQepcad.in(),ln))
 	    {
