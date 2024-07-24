@@ -111,9 +111,11 @@ int cmpTF(TExtAtomRef a_a, TExtAtomRef a_b)
   }
   if (itr_a == a_a->factorsEnd() && itr_b == a_b->factorsEnd())
   {
-    int t = ICOMP(a_a->F->content,a_b->F->content);
-    if (t == 0) { t = ICOMP(a_a->relop,a_b->relop); }
-    return t;
+    int t_index = ICOMP(a_a->getRootIndex(),a_b->getRootIndex());
+    int t_content = ICOMP(a_a->F->content,a_b->F->content);
+    int t_relop = ICOMP(a_a->getRelop(),a_b->getRelop());
+    int t = 4*t_index + 2*t_relop + 1*t_content;
+    return t < 0 ? -1 : (t > 0 ? 1 : 0);
   }
   return (itr_a == a_a->factorsEnd()) ? -1 : 1;
 }
