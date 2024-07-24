@@ -107,21 +107,46 @@ void QepcadCls::PREQNCONSTPOLY()
     SWRITE("ERROR! Invalid polynomial expression!\n");
     return; }
 
-  // Find index of poly P1 (or -P1)
-  pi = POLYLABEL(GVPF,P1,r,&t2);
-  if (t2 == 0) {   pi = POLYLABEL(GVPF,IPNEG(r,P1),r,&t3); }
-  
-  // ERROR: neither P1 nor -P1 is a projection factor
-  if (!t2 && !t3) {
-    SWRITE("ERROR! Polynomial not a projection factor!\n");
+  // Factor P1
+  Word s, c, L, Lh, r_eqc;
+  IPFACDB(r,P1,&s,&c,&L);
+  if (L == NIL) {
+    SWRITE("ERROR! A constant polynomial cannot be an equational constraint!\n");
     return; }
+  r_eqc = -1;
+  Lh = NIL;
+  while (L != NIL)
+  {
+    Word L_i, e_i, P_i, rh_i, Ph_i;
+    ADV(L,&L_i,&L);
+    FIRST2(L_i,&e_i,&P_i);
+    PSIMREP(r,P_i,&rh_i,&Ph_i);
+    if (r_eqc == -1)
+      r_eqc = rh_i;
+    else if (r_eqc != rh_i) {
+      SWRITE("ERROR! eqn-const-poly does not support a constraint polynomial with factors of different levels!\n");
+    return; }
+    Lh = COMP(Ph_i,Lh);
+  }
 
+  Word C_new = NIL;
+  for(Word K = Lh; K != NIL; K = RED(K)) {
+    Word P_next = FIRST(K), t2;   
+    // Find index of poly P_next
+    pi = POLYLABEL(GVPF,P_next,r_eqc,&t2);
+    // I think this is unnecessary now!!  if (t2 == 0) {   pi = POLYLABEL(GVPF,IPNEG(r,P1),r,&t3); }    
+    if (!t2) {
+      SWRITE("ERROR! Polynomial not a projection factor!\n");
+      return; }
+    C_new = COMP(pi,C_new); 
+  }
+  
   // Update list of equational constraints. 
-  E = LELTI(GVEQNCONST,r);
+  E = LELTI(GVEQNCONST,r_eqc);
   if (E == NIL)
-    SLELTI(GVPIVOT,r,LIST1(pi));
-  E = SUFFIX(E,LIST1(pi));
-  SLELTI(GVEQNCONST,r,E);
+    SLELTI(GVPIVOT,r_eqc,C_new);
+  E = SUFFIX(E,C_new);
+  SLELTI(GVEQNCONST,r_eqc,E);
     
   return;
 }
