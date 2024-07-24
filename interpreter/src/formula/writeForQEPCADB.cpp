@@ -46,7 +46,67 @@ public:
 };
   
   string writeForQEPCADBQFF(TFormRef F, bool endWithQuit, char solFormType, VarOrderRef ord);
-
+											    
+ class EQConstRec {
+   FactRef f;
+   VarOrderRef ord;
+   VarSet mainVar;
+   int num, level;
+   int degree;   // sum of squares of degrees of factors
+   int tdegree;  // sum of squares of total degrees of factors
+   int numTerms; // sum of squares of number of terms of factors
+ public:
+   EQConstRec(FactRef facts, VarOrderRef ord, int level) { // NOTE: require all facts of same level 'level'
+     f = facts;
+     num = f->numFactors();
+     this->level = level;
+     this->ord = ord;
+     mainVar = ord->getMainVariable(f->factorBegin()->first);
+     degree = tdegree = numTerms = 0;
+     for(auto itr = f->factorBegin(); itr != f->factorEnd(); ++itr) {
+       IntPolyRef p = itr->first;
+       int d = p->degree(mainVar), td = p->totalDegree();
+       degree += d*d;
+       tdegree += td*td;
+       int nt, sotd, maxlen;
+       p->sizeStats(nt,sotd,maxlen);
+       numTerms += nt*nt;
+     }
+   }
+   FactRef getFactors() { return f; }
+   bool operator<(const EQConstRec &r) const {
+     if (level != r.level) return level < r.level;
+     if (degree != r.degree) return degree < r.degree;
+     if (tdegree != r.tdegree) return tdegree < r.tdegree;
+     if (numTerms != r.numTerms) return numTerms < r.numTerms;
+     return f->cmp(r.f) < 0;
+   }
+ };
+   
+void sortEqationalConstriantAtoms(VarOrderRef ord, TAndRef Ge, vector<FactRef> &orderedConstraints) {
+  vector<EQConstRec> V;
+  for(TAndObj::conjunct_iterator itr = Ge->conjuncts.begin(); itr != Ge->conjuncts.end(); ++itr) {
+    TAtomRef a = asa<TAtomObj>(*itr);
+    if (!a.is_null()) {
+      FactRef f = new FactObj(a->getPolyManagerPtr());
+      int level = -1;
+      bool isMultiLevelConstraint = false;
+      for(std::map<IntPolyRef,int>::iterator itr = a->factorsBegin(); itr != a->factorsEnd(); ++itr) {
+	f->addFactor(itr->first,1);
+	if (level == -1) level = ord->level(itr->first);
+	else if (level != ord->level(itr->first)) isMultiLevelConstraint = true;
+      }
+      if (!isMultiLevelConstraint) {
+	EQConstRec R(f,ord,level);
+	V.push_back(R);
+      }
+    }
+  }
+  sort(V.begin(),V.end());
+  for(int i = 0; i < V.size(); i++)
+    orderedConstraints.push_back(V[i].getFactors());
+}
+  
 // This function is really only intended for existentially quantified conjunctions
 string writeForQEPCADB(TFormRef F, TFormRef &introducedAssumptions, bool endWithQuit,
 		       bool trackUnsatCore, char solFormType, VarOrderRef ord)
@@ -129,7 +189,14 @@ string writeForQEPCADB(TFormRef F, TFormRef &introducedAssumptions, bool endWith
 
   //-- STEP 5: Sort Ge elements by 1) increasing level, 2) increasing degree in "level" variable,
   //           3) increasing total degree, 4) increasing number of terms
-
+  VarOrderRef finalOrder = new VarOrderObj(ptrPM);
+  for(int i = vfv.size() - 1; i >= 0; --i)
+    finalOrder->push_back(vfv[i]);
+  for(int i = vqv.size() - 1; i >= 0; --i)
+    finalOrder->push_back(vqv[i]);
+    
+  vector<FactRef> EQC;
+  sortEqationalConstriantAtoms(finalOrder,Ge,EQC);
 
   // Set countNonStrict to the number of quantified variables *in the current order* that
   // must be treated as non-strict.  This means that the the first countNonStrict variables
@@ -167,18 +234,12 @@ string writeForQEPCADB(TFormRef F, TFormRef &introducedAssumptions, bool endWith
   }
   //  cout << "measure-zero-error" << endl;
   //   sout << "cell-choice-bound (SR,LD,HL)\n"; // T E S T ! ! !
-  if (Ge->size() > 0)
+  if (EQC.size() > 0)
   {
     sout << "prop-eqn-const" << endl;
     sout << "go" << endl;
-    for(TAndObj::conjunct_iterator itr = Ge->conjuncts.begin(); itr != Ge->conjuncts.end(); ++itr)
-    {
-      TAtomRef a = asa<TAtomObj>(*itr);
-      if (a.is_null() || a->F->numFactors() != 1) continue;
-      sout << "eqn-const-poly ";
-      PushOutputContext(sout); a->F->MultiplicityMap.begin()->first->write(*(a->F->M)); PopOutputContext();
-      sout << "." << endl;
-    }
+    for(int i = 0; i < EQC.size(); i++)
+      sout << "eqn-const-poly " << EQC[i]->toString() << " ." << endl;
   }
   else
     sout << "go" << endl;
@@ -262,7 +323,11 @@ string writeForQEPCADB(TFormRef F, TFormRef &introducedAssumptions, bool endWith
 
   //-- STEP 5: Sort Ge elements by 1) increasing level, 2) increasing degree in "level" variable,
   //           3) increasing total degree, 4) increasing number of terms
-  
+  VarOrderRef finalOrder = new VarOrderObj(ptrPM);
+  for(int i = vqv.size() - 1; i >= 0; --i)
+    finalOrder->push_back(vqv[i]);
+  vector<FactRef> EQC;
+  sortEqationalConstriantAtoms(finalOrder,Ge,EQC);  
 
   // Write QEPCADB input
   ostringstream sout;
@@ -274,18 +339,12 @@ string writeForQEPCADB(TFormRef F, TFormRef &introducedAssumptions, bool endWith
   sout << vqv.size() << endl;
   PushOutputContext(sout); G->write(); PopOutputContext();
   sout << "." << endl;
-  if (Ge->size() > 0)
+  if (EQC.size() > 0)
   {
     sout << "prop-eqn-const" << endl;
     sout << "go" << endl;
-    for(TAndObj::conjunct_iterator itr = Ge->conjuncts.begin(); itr != Ge->conjuncts.end(); ++itr)
-    {
-      TAtomRef a = asa<TAtomObj>(*itr);
-      if (a.is_null() || a->F->numFactors() != 1) continue;
-      sout << "eqn-const-poly ";
-      PushOutputContext(sout); a->F->MultiplicityMap.begin()->first->write(*(a->F->M)); PopOutputContext();
-      sout << "." << endl;
-    }
+    for(int i = 0; i < EQC.size(); i++)
+      sout << "eqn-const-poly " << EQC[i]->toString() << " ." << endl;
   }
   else
     sout << "go" << endl;
