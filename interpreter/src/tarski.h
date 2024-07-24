@@ -5,8 +5,8 @@
 
 namespace tarski {
 
-static const char * tarskiVersion     = "1.37";
-static const char * tarskiVersionDate = "Thu 19 Oct 2023 08:50:11 PM EDT";
+static const char * tarskiVersion     = "1.38";
+static const char * tarskiVersionDate = "Wed Jul 24 01:12:45 PM EDT 2024";
 
 /*******************************************************************
  * TarskiException - This is the basic exception class for all
