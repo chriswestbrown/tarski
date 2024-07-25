@@ -26,6 +26,7 @@ public:
     TFormRef F = args[0]->tar()->val;
     TFormRef A = TFormRef(new TConstObj(TRUE));
     bool numLeavesOnlyFlag = false;
+    char solFormType = 'T';
     VarOrderRef ord;
     
     for(int i = 1; i < args.size(); i++)
@@ -34,6 +35,8 @@ public:
 	A = args[1]->tar()->val;
       else if (args[i]->type() == _sym && args[i]->sym()->getVal() == "num-leaves-only")
 	numLeavesOnlyFlag = true;
+      else if (args[i]->type() == _sym && args[i]->sym()->getVal() == "E")
+	solFormType = 'E';
       else if (args[i]->type() == _lis)
       {
 	LisRef Lv = args[i]->lis();
@@ -48,6 +51,7 @@ public:
 
     TFormRef res;
     QepcadConnection qconn;
+    qconn.setSolFormType(solFormType);
     if (numLeavesOnlyFlag) { qconn.setSolFormType(0); qconn.setTrackNumberOfLeafCells(true); }
     if (!ord.is_null())
       qconn.setVarOrder(ord);
@@ -67,9 +71,10 @@ public:
   }
   string doc() 
   {
-    return "(qepcad-qe F) returns the result of calling QEPCADB on input formula F.  With the optional second argument A, where A is a tarski formula in the free variables of F, A is passed to QEPCADB as \"assumptions\".  Following F there are two other optional arguments: 1) 'num-leaves-only, which changes the behavior of qepcad-qe so that the number of \"leaf\" cells in the final CAD is what gets returned. 2) A variable ordering given as a list of variables (<var> ... <var>).  Note: the rightmost variable is eliminated first.";
+    return "(qepcad-qe F *optional-arguments*) returns the result of calling QEPCADB on input formula F.  By default the returned result is a tarski formula, but with optional argument 'E the result is an extended tarski formula, i.e. _root_k expressions are allowed. \
+NOTE: The following are not currently supported but are targeted for future releases. With the optional argument A, where A is a tarski formula in the free variables of F, A is passed to QEPCADB as \"assumptions\".  There are two other optional arguments: 1) 'num-leaves-only, which changes the behavior of qepcad-qe so that the number of \"leaf\" cells in the final CAD is what gets returned. 2) A variable ordering given as a list of variables (<var> ... <var>).  Note: the rightmost variable is eliminated first.";
   }
-  string usage() { return "(qepcad-qe <input-formula> <assumptions>) or (qepcad-qe <input-formula>)"; }
+  string usage() { return "(qepcad-qe <input-formula>) or (qepcad-qe <input-formula> 'E)"; }
   string name() { return "qepcad-qe"; }
 };
 
