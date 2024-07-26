@@ -382,7 +382,7 @@ public:
       R(F);
       return new TarObj(R.getRes());
     }
-    if (t->val == "level")
+    else if (t->val == "level")
     {
       Normalizer* p = NULL;
       switch(k->numerator())
@@ -400,7 +400,7 @@ public:
       return new TarObj(R.getRes());
     }
     else
-      return new ErrObj("Error in normtest: unknown norm type '" + t->val + "'.");
+      return new ErrObj("Error in normalize: unknown norm type '" + t->val + "'.");
   }
   string testArgs(vector<SRef> &args)
   {
@@ -413,7 +413,7 @@ public:
   {
     return "(normalize F), where F is a Tarski Formula, returns\
 a Tarski Formula resulting from applying the standard normalizer to F, or\
-(normtest t k F), where F is a Tarski Formula, returns\
+(normalize t k F), where F is a Tarski Formula, returns\
 a Tarski Formula resulting from applying a normalizer of type t \
 with normalization level k to F.  Supported types are 'raw or 'level.\
 Values for 'level are 1, 2, 3, 4 or 15.";

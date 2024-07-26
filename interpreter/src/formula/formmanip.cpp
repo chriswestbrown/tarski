@@ -440,6 +440,7 @@ public:
   VarSet res;
   void action(TConstObj* p) { res = p->getVars(); }
   void action(TAtomObj* p) { res = p->getVars(); }
+  void action(TExtAtomObj* p) { res = p->getVars(); }
   void action(TAndObj* p)
   { 
     VarSet V;

@@ -266,11 +266,15 @@ public:
     // there's some efficiency to it.
     TarRef y = x->tar(); 
     if (y.is_null()) { return new BooObj(false); }
-    TFormRef A; { RawNormalizer R(defaultNormalizer); R(this->val); A = R.getRes(); }
-    TFormRef B; { RawNormalizer R(defaultNormalizer); R(y->val); B = R.getRes(); }
+    Level1 basicNormalizer;	  
+    TFormRef A; { RawNormalizer R(basicNormalizer); R(this->val); A = R.getRes(); }
+    TFormRef B; { RawNormalizer R(basicNormalizer); R(y->val); B = R.getRes(); }
+    // A->write(true); cerr << endl;
+    // B->write(true); cerr << endl;
+    // I think I need the 'true' argument to make this work right!
     std::ostringstream s1, s2;
-    PushOutputContext(s1); A->write(); PopOutputContext();
-    PushOutputContext(s2); B->write(); PopOutputContext();
+    PushOutputContext(s1); A->write(true); PopOutputContext();
+    PushOutputContext(s2); B->write(true); PopOutputContext();
     return new BooObj(s1.str() == s2.str());
   }
 };

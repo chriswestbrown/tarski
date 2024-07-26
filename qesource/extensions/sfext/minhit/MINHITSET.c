@@ -23,6 +23,10 @@ Word MINHITSET(Word A, Word B)
 {
       Word L,As,C,Cp,p,Ap,T,s;
 
+      /* SWRITE("In MINHITSET\n"); */
+      /* SWRITE("A = "); OWRITE(A); SWRITE("\n"); */
+      /* SWRITE("B = "); OWRITE(B); SWRITE("\n"); */
+      
 Step1: /* Quick decisions. */
       if (A == NIL) return (NIL);
       if ((B == 0) || (FIRST(A) == NIL)) return (MC_FAIL);

@@ -115,7 +115,10 @@ class RawNormalizer : public TFPolyFun
   RawNormalizer(Normalizer* p) { normp = p; }
   void action(TConstObj* p) { res = p; }
   void action(TAtomObj* p) { res = normp->normalize(p); }
-  void action(TExtAtomObj* p) { throw TarskiException("RawNormalizer does not support _root_ expressions."); }
+  void action(TExtAtomObj* p) {
+    res = normp->normalize(p);
+    //throw TarskiException("RawNormalizer does not support _root_ expressions.");
+  }
   void action(TAndObj* p) 
   { 
     // 1: split into two conjunctions - pure atomic formulas, and non-pure atomic formulas

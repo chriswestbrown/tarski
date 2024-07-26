@@ -91,6 +91,42 @@ namespace tarski {
     return true;
   }
 
+
+  // The RHS content is thrown out. All factors made multiplicity one.
+  // Formula: z sigma _root_k p
+  // If p is zero or constant or if the sum of degrees in z of all factors is less than k, formula is false.
+  // if the factors of p are f1,..., fm and g1,...,gm where the fi's have positive degree in z and gj's not,
+  // then g1 /= 0 /\ ... /\ gm /= 0 /\ z relop _root_k f1 * ... fm
+  bool level1_extatom(TExtAtomRef A, TAndRef C)
+  {
+    VarSet z = A->getLHSVar();
+    vector<IntPolyRef> G;
+    FactRef F = new FactObj(A->getPolyManagerPtr());
+    int degreeSum = 0;
+    for(auto itr = A->factorsBegin(); itr != A->factorsEnd(); ++itr) {
+      IntPolyRef q = itr->first; 
+      int dz = q->degree(z);      
+      if (dz > 0) {
+	degreeSum += dz;
+	F->addFactor(q,1);
+      }
+      else
+	G.push_back(q);      
+    }
+    if (degreeSum < A->getRootIndex())
+      return false;
+
+    for(int i = 0; i < G.size(); i++) {
+      FactRef f = new FactObj(A->getPolyManagerPtr());
+      f->addFactor(G[i],1);
+      C->conjuncts.insert(new TAtomObj(f,NEOP));
+    }
+    C->conjuncts.insert(new TExtAtomObj(z,A->getRelop(),A->getRootIndex(),F));
+    
+    return true;
+  }
+
+
   TFormRef level1_and(TAndRef Cinit, TAtomRef* ptr = NULL)
   {
     TAndRef Cfinal = new TAndObj;
@@ -98,13 +134,22 @@ namespace tarski {
       switch ((*itr)->constValue()) {
       case FALSE:  return new TConstObj(FALSE); break;
       case TRUE: break;
-      default:
-	if (level1_atom(*itr,Cfinal) == false)
+      default: {
+	bool res = true;
+	switch((*itr)->getTFType()) { 
+	case TF_ATOM: res = level1_atom(*itr,Cfinal); break;
+	case TF_EXTATOM: res = level1_extatom(*itr,Cfinal); break;
+	default:
+	  throw TarskiException("In Level1 normalization, expected atomic formula!");
+	  break;
+	}	
+	if (res == false)
 	{
 	  if (ptr != NULL) { (*ptr) = *itr; }
 	  return new TConstObj(FALSE);
 	} 
 	break;
+      }
       }
     }
     if (0)
@@ -114,7 +159,6 @@ namespace tarski {
         cout << endl << endl;
       }
 
-
     return Cfinal;
   }
 
@@ -122,10 +166,12 @@ namespace tarski {
   {
     TAndRef A = asa<TAndObj>(F); 
     if (A.is_null())
-      {
-        TAtomRef T = asa<TAtomObj>(F); 
-        if (!T.is_null()) { A = new TAndObj; A->conjuncts.insert(T); }
-      }
+    {
+      A = new TAndObj();
+      A->AND(F);
+      // TAtomRef T = asa<TAtomObj>(F); 
+      // if (!T.is_null()) { A = new TAndObj; A->conjuncts.insert(T); }
+    }
     if (!A.is_null()) return level1_and(A,ptr);
     else return F;
   }
@@ -268,35 +314,35 @@ namespace tarski {
     map<IntPolyRef, pair<int,int> > whatWeKnow;
     set<TAtomRef> multiFactorAtoms;
     for(set<TFormRef>::iterator itr = Cinit->conjuncts.begin(); f && itr != Cinit->conjuncts.end(); ++itr)
-      {
-        TAtomRef A = asa<TAtomObj>(*itr); if (A.is_null()) { cerr << "Non-atom in conjunct!" << endl; exit(1); }
-        for(map<IntPolyRef,int>::iterator itrF = A->factorsBegin(); f && itrF != A->factorsEnd(); ++itrF)
-          f = addInfoTo(whatWeKnow,A,itrF->first,N);
-        if (A->F->numFactors() > 1)
-          multiFactorAtoms.insert(A);
-      }
+    {
+      TAtomRef A = asa<TAtomObj>(*itr); if (A.is_null()) { cerr << "Non-atom in conjunct!" << endl; exit(1); }
+      for(map<IntPolyRef,int>::iterator itrF = A->factorsBegin(); f && itrF != A->factorsEnd(); ++itrF)
+	f = addInfoTo(whatWeKnow,A,itrF->first,N);
+      if (A->F->numFactors() > 1)
+	multiFactorAtoms.insert(A);
+    }
     if (!f) { return new TConstObj(FALSE); }
 
     // Set up P, the vector of factors
     vector<NormPoly> P(N);
     for(map<IntPolyRef, pair<int,int> >::iterator itr = whatWeKnow.begin(); itr != whatWeKnow.end(); ++itr)
-      {
-        P[itr->second.second].f = itr->first;
-        P[itr->second.second].relop = itr->second.first;
-      }
+    {
+      P[itr->second.second].f = itr->first;
+      P[itr->second.second].relop = itr->second.first;
+    }
 
     //---------- LEVEL 3 SECTION -------------------------------
     // which tries to deduce signs of factors by what it knows of the signs of vars
     VarKeyedMap<int> varSign(ALOP);
     if (l3flags) 
-      { 
-        TConstRef res = levelThreePart(P,varSign,ptrPM); 
-        if (!res.is_null()) 
-          {
-            if (verbose) { cout << "Level 3 normalization found conflict in "; Cinit->write(); cout << endl; }
-            return res;
-          }
+    { 
+      TConstRef res = levelThreePart(P,varSign,ptrPM); 
+      if (!res.is_null()) 
+      {
+	if (verbose) { cout << "Level 3 normalization found conflict in "; Cinit->write(); cout << endl; }
+	return res;
       }
+    }
     if (l3flags & nf_ded_strengthenings) { for(unsigned int i = 0; i < P.size(); ++i) P[i].relop &= P[i].l3dedRelop; }
 
     //------------- LEVEL 4 SECTION --------------------------------
@@ -305,10 +351,10 @@ namespace tarski {
     // We must be careful about linear univariate polynomials, however, since they
     // might be the basis for a decision about the sign of a variable! 
     if (l3flags && l4flags)
-      {
-        TConstRef res = levelFourPart(P,varSign,ptrPM,Cinit,l4flags); 
-        if (!res.is_null()) return res;
-      }
+    {
+      TConstRef res = levelFourPart(P,varSign,ptrPM,Cinit,l4flags); 
+      if (!res.is_null()) return res;
+    }
     if (l4flags & nf_ded_strengthenings) { for(unsigned int i = 0; i < P.size(); ++i) P[i].relop &= P[i].l4dedRelop; }
 
     //------- Simplfify the multiFactorAtoms if possible ----------------
@@ -317,104 +363,104 @@ namespace tarski {
     vector<NormMFAtom> A(multiFactorAtoms.size());
     int M = 0; // Eventually set to the size of A, also used for assigning indices
     for(set<TAtomRef>::iterator itr = multiFactorAtoms.begin(); itr != multiFactorAtoms.end(); ++itr)
+    {
+      Q.push(M);    
+      A[M].in_queue = true;
+      A[M].relop = (*itr)->relop;
+      for(map<IntPolyRef,int>::iterator itrF = (*itr)->factorsBegin(); f && itrF != (*itr)->factorsEnd(); ++itrF)
       {
-        Q.push(M);    
-        A[M].in_queue = true;
-        A[M].relop = (*itr)->relop;
-        for(map<IntPolyRef,int>::iterator itrF = (*itr)->factorsBegin(); f && itrF != (*itr)->factorsEnd(); ++itrF)
-          {
-            int indexInP = whatWeKnow[itrF->first].second;
-            A[M].push_back(pair<int,int>(indexInP,itrF->second));
-            P[indexInP].mfaIndices.insert(M);      
-          }
-        ++M;
+	int indexInP = whatWeKnow[itrF->first].second;
+	A[M].push_back(pair<int,int>(indexInP,itrF->second));
+	P[indexInP].mfaIndices.insert(M);      
       }
+      ++M;
+    }
 
     // Simplification loop! Note A[i].relop == ALOP means it's been simplified away to TRUE
     while (!Q.empty())
+    {
+      // Dequeue i and process multi-factor atom A[i]
+      int i = Q.front(); Q.pop(); A[i].in_queue = false;
+      int nf = A[i].size();
+      int strengthencount = 0;
+      for(int j = 0; j < nf; ++j)
       {
-        // Dequeue i and process multi-factor atom A[i]
-        int i = Q.front(); Q.pop(); A[i].in_queue = false;
-        int nf = A[i].size();
-        int strengthencount = 0;
-        for(int j = 0; j < nf; ++j)
-          {
-            int k = A[i][j].first;
-            int factorRelop = P[k].relop & P[k].l3dedRelop & P[k].l4dedRelop; // Strongest relop we know!
-            switch(ACTIONS [A[i].relop] [A[i][j].second] [factorRelop])
-              {
-              case REP_W_TRUE:  
-                { for(int k = 0; k < nf; ++k) P[A[i][k].first].mfaIndices.erase(i); nf = 0; A[i].relop = NEOP;  }break;
-              case REP_W_FALSE: 
-                nf = 0; A[i].relop = EQOP; break;
-              case REMOVE_FACT: 
-                P[A[i][j].first].mfaIndices.erase(i); --nf; swap(A[i][j],A[i][nf]); --j; break;
-              case REM_W_SWAP:  
-                P[A[i][j].first].mfaIndices.erase(i); 
-                --nf; swap(A[i][j],A[i][nf]); --j; A[i].relop = reverseRelop(A[i].relop); break;
-              case ALLOWS_STR: ++strengthencount; break;
-              case DO_NOTHING: break;
-              case IMPOSSIBLE: 
-                cerr << "P[" << k << "] = "; P[k].f->write(*ptrPM); cerr << endl;
-                cerr << P[k].relop <<  P[k].l3dedRelop  <<  P[k].l4dedRelop << endl;
-                cerr << A[i].relop << ' ' << A[i][j].second <<  ' ' << factorRelop << " : ";
-                cerr << "Norm2 impossible case reached!" << endl; exit(1); break;
-              }
-          }
-        // Strenghten <= to < or >= to > if allowed.
-        if (nf > 0 && strengthencount == nf) { 
-          if (A[i].relop == GEOP) A[i].relop = GTOP; 
-          else if (A[i].relop == LEOP) A[i].relop = LTOP; } 
-
-        // If A[i] after processing consists of 0 or 1 atom, deal with it!
-        if (nf == 0 && (A[i].relop & GTOP))
-          A[i].relop = (EQOP|NEOP);
-        else if (nf == 0)
-          return new TConstObj(FALSE);
-        else if (nf == 1)
-          {
-            int k = A[i][0].first, relop = A[i].relop;
-            P[k].mfaIndices.erase(i);
-            if (A[i][0].second == 2) {
-              if (relop == GEOP) relop = (EQOP|NEOP);
-              else relop = EQOP;
-            }
-            if (P[k].relop != (P[k].relop & relop))
-              {
-                P[k].relop &= relop;
-                for(set<int>::iterator itr = P[k].mfaIndices.begin(); itr != P[k].mfaIndices.end(); ++itr)
-                  if (!A[*itr].in_queue) { Q.push(*itr); A[*itr].in_queue = true; }
-              }
-          }
-        A[i].resize(nf);	
+	int k = A[i][j].first;
+	int factorRelop = P[k].relop & P[k].l3dedRelop & P[k].l4dedRelop; // Strongest relop we know!
+	switch(ACTIONS [A[i].relop] [A[i][j].second] [factorRelop])
+	{
+	case REP_W_TRUE:  
+	  { for(int k = 0; k < nf; ++k) P[A[i][k].first].mfaIndices.erase(i); nf = 0; A[i].relop = NEOP;  }break;
+	case REP_W_FALSE: 
+	  nf = 0; A[i].relop = EQOP; break;
+	case REMOVE_FACT: 
+	  P[A[i][j].first].mfaIndices.erase(i); --nf; swap(A[i][j],A[i][nf]); --j; break;
+	case REM_W_SWAP:  
+	  P[A[i][j].first].mfaIndices.erase(i); 
+	  --nf; swap(A[i][j],A[i][nf]); --j; A[i].relop = reverseRelop(A[i].relop); break;
+	case ALLOWS_STR: ++strengthencount; break;
+	case DO_NOTHING: break;
+	case IMPOSSIBLE: 
+	  cerr << "P[" << k << "] = "; P[k].f->write(*ptrPM); cerr << endl;
+	  cerr << P[k].relop <<  P[k].l3dedRelop  <<  P[k].l4dedRelop << endl;
+	  cerr << A[i].relop << ' ' << A[i][j].second <<  ' ' << factorRelop << " : ";
+	  cerr << "Norm2 impossible case reached!" << endl; exit(1); break;
+	}
       }
+      // Strenghten <= to < or >= to > if allowed.
+      if (nf > 0 && strengthencount == nf) { 
+	if (A[i].relop == GEOP) A[i].relop = GTOP; 
+	else if (A[i].relop == LEOP) A[i].relop = LTOP; } 
+
+      // If A[i] after processing consists of 0 or 1 atom, deal with it!
+      if (nf == 0 && (A[i].relop & GTOP))
+	A[i].relop = (EQOP|NEOP);
+      else if (nf == 0)
+	return new TConstObj(FALSE);
+      else if (nf == 1)
+      {
+	int k = A[i][0].first, relop = A[i].relop;
+	P[k].mfaIndices.erase(i);
+	if (A[i][0].second == 2) {
+	  if (relop == GEOP) relop = (EQOP|NEOP);
+	  else relop = EQOP;
+	}
+	if (P[k].relop != (P[k].relop & relop))
+	{
+	  P[k].relop &= relop;
+	  for(set<int>::iterator itr = P[k].mfaIndices.begin(); itr != P[k].mfaIndices.end(); ++itr)
+	    if (!A[*itr].in_queue) { Q.push(*itr); A[*itr].in_queue = true; }
+	}
+      }
+      A[i].resize(nf);	
+    }
 
     //------- Reconstruct formula------------------------------
 
     // Add all the single factor atoms.
     TAndRef Res = new TAndObj;
     for(unsigned int i = 0; i < P.size(); ++i)
-      {    
-        bool implicit = false;
-        if (P[i].relop == NEOP) 
-          {
-            for(set<int>::iterator itr = P[i].mfaIndices.begin(); !implicit && itr != P[i].mfaIndices.end(); ++itr)
-              implicit = ((A[*itr].relop & EQOP) == 0);
-          }
-        if (P[i].relop != ALOP && !implicit && !((l3flags & nf_ded_implications) && P[i].implied))
-          Res->AND(makeAtom(*ptrPM,P[i].f,P[i].relop));
+    {    
+      bool implicit = false;
+      if (P[i].relop == NEOP) 
+      {
+	for(set<int>::iterator itr = P[i].mfaIndices.begin(); !implicit && itr != P[i].mfaIndices.end(); ++itr)
+	  implicit = ((A[*itr].relop & EQOP) == 0);
       }
+      if (P[i].relop != ALOP && !implicit && !((l3flags & nf_ded_implications) && P[i].implied))
+	Res->AND(makeAtom(*ptrPM,P[i].f,P[i].relop));
+    }
 
     // Add all the multi-factor atoms.
     for(unsigned int i = 0; i < A.size(); ++i)
-      {
-        if (A[i].relop == (EQOP|NEOP)) continue;
-        TAtomRef newA = new TAtomObj(*ptrPM);
-        newA->relop = A[i].relop;
-        for(unsigned int j = 0; j < A[i].size(); ++j)
-          newA->F->addFactor(P[A[i][j].first].f,A[i][j].second);
-        Res->AND(newA);
-      }
+    {
+      if (A[i].relop == (EQOP|NEOP)) continue;
+      TAtomRef newA = new TAtomObj(*ptrPM);
+      newA->relop = A[i].relop;
+      for(unsigned int j = 0; j < A[i].size(); ++j)
+	newA->F->addFactor(P[A[i][j].first].f,A[i][j].second);
+      Res->AND(newA);
+    }
 
     // Deal with the possiblity that we end up with one atom
     if (Res->size() == 0)

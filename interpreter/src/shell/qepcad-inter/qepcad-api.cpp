@@ -101,7 +101,8 @@ namespace tarski {
 
       // Do basic normalization to get rid of boolean constants, which qepcad
       // doesn't understand.
-      RawNormalizer R(defaultNormalizer);
+      Level1 basicNormalizer;
+      RawNormalizer R(basicNormalizer);
       R(T);
       T = R.getRes();
 

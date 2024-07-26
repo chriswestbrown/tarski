@@ -1,0 +1,39 @@
+(def Fa (normalize 'level 1 [ x /= 12 /\ [y > _root_2 (x - 1)(y^2 - 2 x + 3)]]))
+(def Faexpected [x - 12 /= 0 /\ x - 1 /= 0 /\ y > _root_2 y^2 - 2 x + 3])
+(def resa (if (equal? Fa Faexpected) "pass" "fail"))
+(display resa " : test extatoms01 - a\n")
+
+(def Fb (normalize 'level 1 [y > _root_2 (x - 1)(y^2 - 2 x + 3)]))
+(def Fbexpected [x - 1 /= 0 /\ y > _root_2 y^2 - 2 x + 3])
+(def resb (if (equal? Fb Fbexpected) "pass" "fail"))
+(display resb " : test extatoms01 - b\n")
+
+(def Fc (qepcad-api-call [ex y[ x <= 10 /\ [y > _root_2 (x - 5)(y^2 - 2 x + 3)]]]))
+(def Fcexpected [x - 10 <= 0 /\ x - 5 /= 0 /\ 2 x - 3 > 0])
+(def resc (if (equal? Fc Fcexpected) "pass" "fail"))
+(display resc " : test extatoms01 - c\n")
+
+(def Fd (qepcad-qe [ex y[ x <= 10 /\ [y > _root_2 (x - 5)(y^2 - 2 x + 3)]]]))
+(def Fdexpected [x - 10 <= 0 /\ x - 5 /= 0 /\ 2 x - 3 > 0])
+(def resd (if (equal? Fd Fdexpected) "pass" "fail"))
+(display resd " : test extatoms01 - d\n")
+
+(def Fe (get (qepcad-sat [ x <= 10 /\ [y > _root_2 (x - 5)(y^2 - 2 x + 3)]]) 0))
+(def Feexpected 'SAT)
+(def rese (if (equal? Fe Feexpected) "pass" "fail"))
+(display rese " : test extatoms01 - e\n")
+
+(display (if (equal? (normalize 'level 1 [ y > _root_1 x + 1 ]) [false]) "pass" "fail") " : test extatoms01 - f\n")
+
+(display (if (equal? (normalize 'level 1 [ y > _root_1 y + 1 ]) [ y > _root_1 y + 1 ]) "pass" "fail") " : test extatoms01 - g\n")
+
+(display (if (equal? (normalize 'level 1 [ y > _root_1 x^2 (y + 1)^2 ]) [ x /= 0 /\ y > _root_1 y + 1 ]) "pass" "fail") " : test extatoms01 - h\n")
+
+(def Fi (normalize 'level 1 (evalf 'x 1  [ex z[ z > _root_2 (x - y + 1) (x z^2 - x - y + 1)]])))
+(def Fiexpected [ex z[y - 2 /= 0 /\ z > _root_2 z^2 - y]])
+(def resi (if (equal? Fi Fiexpected) "pass" "fail"))
+(display resi " : test extatoms01 - i\n")
+
+
+
+
