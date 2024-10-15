@@ -280,20 +280,28 @@ IntPolyRef PolyManager::neg(IntPolyRef p)
 
 void PolyManager::nonZeroCoefficients(IntPolyRef p, VarSet Z, vector<IntPolyRef> &V)
 {
-  if (Z.none()) return;
+  // Zero has no non-zero coefficients!
+  if (p->isZero()) return;
+
+  // find x, the first var in Z s.t. p has positive degree in x
   VarSet::iterator itr = Z.begin();
+  while(itr != Z.end() && (*itr & p->svars).none())
+    ++itr;
+  if (itr == Z.end()) {
+    V.push_back(p);
+    return;
+  }
   VarSet x = *itr;
-  VarSet Zp = Z ^ x;
+
+  // Recurse on the coefficients of p as a polynomial in x
+  VarSet Zp = Z - x;
+  VarSet varsRemaining = p->getVars() - x;
   Word i = p->svars.positionInOrder(x);
-  if (i == 0) { return nonZeroCoefficients(p,Zp,V); }
   Word A = PMMVPO(p->slevel,p->sP,i);
   Word C = PCL(A);
-  if (Zp.none())
-    for(Word Cp = C; Cp != NIL; Cp = RED(Cp)) V.push_back(new IntPolyObj(p->slevel - 1,FIRST(Cp),Zp));
-  else
-    for(Word Cp = C; Cp != NIL; Cp = RED(Cp)) nonZeroCoefficients(new IntPolyObj(p->slevel - 1,FIRST(Cp),Zp),Zp,V);
-
-}
+  for(Word Cp = C; Cp != NIL; Cp = RED(Cp))
+    nonZeroCoefficients(new IntPolyObj(p->slevel - 1,FIRST(Cp),varsRemaining),Zp,V);
+} 
 
 // Special S-polynomial
 // Input: Polynomials p and q, variable x. deg_x(p) = deg_x(q) > 1.

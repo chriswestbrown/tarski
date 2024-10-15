@@ -1025,4 +1025,21 @@ void getFactors(TFormRef F, std::set<IntPolyRef> &W)
   return;
 }
 
+TFormRef nullifySys(IntPolyRef p, VarSet S, PolyManager* pM) {
+  if (p->isZero()) return new TConstObj(TRUE);
+  VarSet Sp = S & p->getVars();
+  TAndRef F = new TAndObj();
+  if (Sp.isEmpty())
+    F->AND(makeAtom(*pM,p,EQOP));
+  else {
+    vector<IntPolyRef> V;
+    pM->nonZeroCoefficients(p,Sp,V);
+    for(int i = 0; i < V.size(); i++) {
+      TAtomRef a = makeAtom(*pM,V[i],EQOP);
+      F->AND(a);
+    }
+  }
+  return F;
+}
+
 }//end namespace tarski

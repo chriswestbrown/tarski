@@ -108,8 +108,22 @@ namespace tarski {
     return res;
   }
 
+  SRef CommNullifySys::execute(SRef input, vector<SRef> &args) {
+    // Get polynomial p and varset S
+    AlgRef A = args[0]->alg();
+    IntPolyRef p = A->getVal();
+    LisRef vars = args[1]->lis();
+    VarSet S;
+    for(int i = 0; i < vars->length(); ++i)  {
+      if (vars->get(i)->type() != _sym) { 
+	return new ErrObj("Function 'nullify-sys' received as 2nd argument a list that contains non-symbol element '" + vars->get(i)->toStr() + "'."); 
+      }
+      S = S + interp->PM->getVar(vars->get(i)->sym()->val);
+    }
 
-  
-  
+    // (nullify-sys [ a x y^2 + y x - (a + y)] '(x))
+    
+    return new TarObj(nullifySys(p,S,interp->PM));
+  }
   
 }

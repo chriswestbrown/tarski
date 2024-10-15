@@ -72,6 +72,23 @@ namespace tarski {
     string name() { return "sub-disc-seq"; }
   };
 
-}
+  class CommNullifySys : public EICommand
+  {
+  public:
+    CommNullifySys(NewEInterpreter* ptr) : EICommand(ptr) { }
+    SRef execute(SRef input, vector<SRef> &args);
+    
+    string testArgs(vector<SRef> &args) {
+      return requirepre(args,_alg,_lis);
+    }
+    string doc() 
+    {
+      return "Returns formula F that is true exactly when all coefficients of P as a polynomial in v are zero.\
+Example: ";
+    }
+    string usage() { return "(nullify-sys P v)"; }
+    string name() { return "nullify-sys"; }
+  };
 
+}
 #endif

@@ -80,6 +80,13 @@ TFormRef evalFormulaAtRationalPoint(VarKeyedMap<GCWord> &value, TFormRef F);
  TFormRef splitNonStrict(TFormRef F);
 
  void getFactors(TFormRef F, std::set<IntPolyRef> &W);
- 
+
+ /** nullifysys(p,S,pM)
+ * Input: p a polynomials and S a set of vars
+ * Output: formula F that is true iff p 
+ */
+ TFormRef nullifySys(IntPolyRef p, VarSet S, PolyManager* pM);
+
+  
 }//end namespace tarski
 #endif

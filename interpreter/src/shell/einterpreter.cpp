@@ -1632,6 +1632,7 @@ void NewEInterpreter::init()
   add(new CommSolutionDimension(this));
   add(new CommDiscriminant(this));
   add(new CommSubDiscSeq(this));
+  add(new CommNullifySys(this));
   
   // add extended types
   addType(new RealAlgNumTypeObj(NULL));
