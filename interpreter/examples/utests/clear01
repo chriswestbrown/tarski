@@ -1,0 +1,33 @@
+(def F [all a, b[ex x[ b^2 + 4 a < 0 \/ x = 1/(a x + b)]]])
+(def targfair (normalize [all a,b[ex x[b^2 + 4 a < 0 \/ [a = 0 /\ b = 0] \/ [a x^2 + b x - 1 = 0 /\ a x + b /= 0]]]]))
+(def targnoguard (normalize [all a,b[ex x[b^2 + 4 a < 0 \/ a x^2 + b x - 1 = 0]]]))
+(def targnaive (normalize [all a,b[ex x[b^2 + 4 a < 0 \/ [a x^2 + b x - 1 = 0 /\ a x + b /= 0]]]]))
+
+(def expr (normalize (clear F 'fair)))
+(def res (if (equal? expr targfair) "pass" "fail"))
+(display res " : test clear01 - a\n")
+
+(def expr (normalize (clear F 'noguard)))
+(def res (if (equal? expr targnoguard) "pass" "fail"))
+(display res " : test clear01 - b\n")
+
+(def expr (normalize (clear F 'naive)))
+(def res (if (equal? expr targnaive) "pass" "fail"))
+(display res " : test clear01 - c\n")
+
+(def F [all x[ex y[ 1/x z - 2 = (1/(y + 1))^2]]])
+(def targfair (normalize [all x[ex y[x = 0 \/ [y^2 z + 2 y z + z - 2 x y^2 - 4 x y - 3 x = 0 /\ y + 1 /= 0]]]]))
+(def targnoguard (normalize [all x[ex y[y^2 z + 2 y z + z - 2 x y^2 - 4 x y - 3 x = 0]]]))
+(def targnaive (normalize [all x[ex y[y^2 z + 2 y z + z - 2 x y^2 - 4 x y - 3 x = 0 /\ x /= 0 /\ y + 1 /= 0]]]))
+
+(def expr (normalize (clear F 'fair)))
+(def res (if (equal? expr targfair) "pass" "fail"))
+(display res " : test clear01 - d\n")
+
+(def expr (normalize (clear F 'noguard)))
+(def res (if (equal? expr targnoguard) "pass" "fail"))
+(display res " : test clear01 - e\n")
+
+(def expr (normalize (clear F 'naive)))
+(def res (if (equal? expr targnaive) "pass" "fail"))
+(display res " : test clear01 - f\n")
