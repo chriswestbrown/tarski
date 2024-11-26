@@ -125,5 +125,23 @@ namespace tarski {
     
     return new TarObj(nullifySys(p,S,interp->PM));
   }
-  
+
+  SRef CommClear::execute(SRef input, vector<SRef> &args) {
+    if (args.size() == 0) return new ErrObj("Function 'clear' requires arguments!");
+    if (!args[0]->tar().is_null()) return args[0];
+    int clearProcess = 0;
+    if (args.size() > 1) {
+      SymRef s = args[1]->sym();
+      const string msg = "Second argument to function 'clear' must be 'fair, 'noguard or 'naive.";
+      if (s.is_null()) { return new ErrObj(msg); }
+      if (s->getVal() == "fair") clearProcess = 0;
+      else if (s->getVal() == "noguard") clearProcess = 1;
+      else if (s->getVal() == "naive") clearProcess = 2;
+      else { return new ErrObj(msg); }
+    }
+
+    UifRef F = args[0]->uif();
+    if (F.is_null()) return new ErrObj("Function 'clear' can only be called on objects of type uif (or tar).");
+    return F->clear(clearProcess);
+  }
 }

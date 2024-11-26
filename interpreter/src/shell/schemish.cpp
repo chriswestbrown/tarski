@@ -1,6 +1,10 @@
 #include "schemish.h"
+#include "einterpreter.h"
 #include "../tarski.h"
 #include "utils.h"
+#include "../algparse/nontarski.h"
+#include "../algparse/uninterpform.h"
+#include "../algparse/prettyprint.h"
 
 using namespace std;
 
@@ -196,6 +200,19 @@ inline int char2sym(char c)
 	 */
 	/* NOTE: uncommenting the line below allows non-constant denominators and automatically clears them. */
 	/* T = clearDenominators(T); */
+	
+	bool ncd = hasNonConstDenom(T,PM);
+	/*
+	cerr << "TEST: hasNonConstDenom is ... " << (ncd ? "true" : "false") << endl;
+	if (ncd) {
+	  PrettyPrint pp(cerr,PrettyPrint::mathematica);
+	  T->apply(pp);
+	  cerr << endl;
+	}
+        */
+	if (ncd)
+	  return new UifObj(T,PM);
+	
 	MapToTFormWithInterpolation MTTF(this);
 	T->apply(MTTF);
 	return new TarObj(MTTF.res);
@@ -236,6 +253,9 @@ num - number, integer or rational.  e.g. 123\n\
 str - string, e.g. \"hello\"\n\
 alg - algebraic, e.g. [x + y^2 - 5]\n\
 tar - tarski, e.g. [x + y^2 - 5 < 0]\n\
+uif - uninterpreted formula, e.g. [x + 1/(y^2 - 5) < 0].  This means\n\
+      that there is something like division that is not part of the\n\
+      language of tarski/extended-tarski formula\n\
 err - error\n\
 fun - function (builtin).  Note: def, set! and lambda are *not* fun's.\n\
 clo - closure.  These are user-defined functions\n\
@@ -372,6 +392,7 @@ SRef Interpreter::eval(Frame* env, SRef input)
   case _str: return input; break;
   case _err: return input; break;
   case _tar: return input; break;
+  case _uif: return input; break;
   case _alg: return input; break;
   case _clo: return input; break;
   case _fun: return input; break;    

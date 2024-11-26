@@ -257,7 +257,12 @@ TFormRef TAndObj::negate()
   TOrObj* p = new TOrObj;
   for(set<TFormRef>::iterator itr = conjuncts.begin(); itr != conjuncts.end(); ++itr)
     p->disjuncts.insert((*itr)->negate());
-  return p;
+  if (p->size() == 0)
+    return new TConstObj(false);
+  else if (p->size() == 1)
+    return *(p->begin());
+  else 
+    return p;
 }
 
 
@@ -300,7 +305,12 @@ TFormRef TOrObj::negate()
   TAndObj* p = new TAndObj;
   for(set<TFormRef>::iterator itr = disjuncts.begin(); itr != disjuncts.end(); ++itr)
     p->conjuncts.insert((*itr)->negate());
-  return p;
+  if (p->size() == 0)
+    return new TConstObj(true);
+  else if (p->size() == 1)
+    return *(p->begin());
+  else 
+    return p;
 }
 
 

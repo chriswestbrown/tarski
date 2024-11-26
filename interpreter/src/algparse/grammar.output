@@ -125,7 +125,7 @@ Nonterminals, with rules where they appear
 
 State 0
 
-    0 $accept: . O $end
+    0 $accept: • O $end
 
     LB  shift, and go to state 1
 
@@ -134,8 +134,8 @@ State 0
 
 State 1
 
-    1 O: LB . E RB
-    2  | LB . F RB
+    1 O: LB • E RB
+    2  | LB • F RB
 
     MINUS   shift, and go to state 3
     VAR     shift, and go to state 4
@@ -161,14 +161,14 @@ State 1
 
 State 2
 
-    0 $accept: O . $end
+    0 $accept: O • $end
 
     $end  shift, and go to state 22
 
 
 State 3
 
-   28 P: MINUS . P
+   28 P: MINUS • P
 
     MINUS  shift, and go to state 3
     VAR    shift, and go to state 4
@@ -181,22 +181,22 @@ State 3
 
 State 4
 
-   33 B: VAR .
+   33 B: VAR •
 
     $default  reduce using rule 33 (B)
 
 
 State 5
 
-   34 B: NUM .
+   34 B: NUM •
 
     $default  reduce using rule 34 (B)
 
 
 State 6
 
-   14 A: LP . F RP
-   35 B: LP . E RP
+   14 A: LP • F RP
+   35 B: LP • E RP
 
     MINUS   shift, and go to state 3
     VAR     shift, and go to state 4
@@ -222,21 +222,21 @@ State 6
 
 State 7
 
-   15 A: TCONST .
+   15 A: TCONST •
 
     $default  reduce using rule 15 (A)
 
 
 State 8
 
-   16 A: FCONST .
+   16 A: FCONST •
 
     $default  reduce using rule 16 (A)
 
 
 State 9
 
-   13 A: LB . F RB
+   13 A: LB • F RB
 
     MINUS   shift, and go to state 3
     VAR     shift, and go to state 4
@@ -262,7 +262,7 @@ State 9
 
 State 10
 
-    8 N: NEG . N
+    8 N: NEG • N
 
     MINUS   shift, and go to state 3
     VAR     shift, and go to state 4
@@ -286,15 +286,15 @@ State 10
 
 State 11
 
-   20 Q: QF . VAR
+   20 Q: QF • VAR
 
     VAR  shift, and go to state 30
 
 
 State 12
 
-   17 A: INTERP . VAR
-   18  | INTERP . PERCENT
+   17 A: INTERP • VAR
+   18  | INTERP • PERCENT
 
     VAR      shift, and go to state 31
     PERCENT  shift, and go to state 32
@@ -302,9 +302,9 @@ State 12
 
 State 13
 
-    2 O: LB F . RB
-    3 F: F . OR C
-    4  | F . LIMPLR C
+    2 O: LB F • RB
+    3 F: F • OR C
+    4  | F • LIMPLR C
 
     RB      shift, and go to state 33
     OR      shift, and go to state 34
@@ -313,8 +313,8 @@ State 13
 
 State 14
 
-    5 F: C .
-    6 C: C . AND N
+    5 F: C •
+    6 C: C • AND N
 
     AND  shift, and go to state 36
 
@@ -323,22 +323,22 @@ State 14
 
 State 15
 
-    7 C: N .
+    7 C: N •
 
     $default  reduce using rule 7 (C)
 
 
 State 16
 
-    9 N: A .
+    9 N: A •
 
     $default  reduce using rule 9 (N)
 
 
 State 17
 
-   10 A: Q . LB F RB
-   19 Q: Q . COMMA VAR
+   10 A: Q • LB F RB
+   19 Q: Q • COMMA VAR
 
     LB     shift, and go to state 37
     COMMA  shift, and go to state 38
@@ -346,11 +346,11 @@ State 17
 
 State 18
 
-    1 O: LB E . RB
-   11 A: E . RELOP ROOT P E
-   12  | E . RELOP E
-   21 E: E . PLUS T
-   22  | E . MINUS T
+    1 O: LB E • RB
+   11 A: E • RELOP ROOT P E
+   12  | E • RELOP E
+   21 E: E • PLUS T
+   22  | E • MINUS T
 
     PLUS   shift, and go to state 39
     MINUS  shift, and go to state 40
@@ -360,10 +360,10 @@ State 18
 
 State 19
 
-   23 E: T .
-   24 T: T . Pb
-   25  | T . MULT P
-   26  | T . DIV P
+   23 E: T •
+   24 T: T • Pb
+   25  | T • MULT P
+   26  | T • DIV P
 
     MULT  shift, and go to state 43
     DIV   shift, and go to state 44
@@ -379,15 +379,15 @@ State 19
 
 State 20
 
-   27 T: P .
+   27 T: P •
 
     $default  reduce using rule 27 (T)
 
 
 State 21
 
-   29 P: B . EXP P
-   30  | B .
+   29 P: B • EXP P
+   30  | B •
 
     EXP  shift, and go to state 47
 
@@ -396,14 +396,14 @@ State 21
 
 State 22
 
-    0 $accept: O $end .
+    0 $accept: O $end •
 
     $default  accept
 
 
 State 23
 
-   35 B: LP . E RP
+   35 B: LP • E RP
 
     MINUS  shift, and go to state 3
     VAR    shift, and go to state 4
@@ -418,16 +418,16 @@ State 23
 
 State 24
 
-   28 P: MINUS P .
+   28 P: MINUS P •
 
     $default  reduce using rule 28 (P)
 
 
 State 25
 
-    3 F: F . OR C
-    4  | F . LIMPLR C
-   14 A: LP F . RP
+    3 F: F • OR C
+    4  | F • LIMPLR C
+   14 A: LP F • RP
 
     RP      shift, and go to state 49
     OR      shift, and go to state 34
@@ -436,11 +436,11 @@ State 25
 
 State 26
 
-   11 A: E . RELOP ROOT P E
-   12  | E . RELOP E
-   21 E: E . PLUS T
-   22  | E . MINUS T
-   35 B: LP E . RP
+   11 A: E • RELOP ROOT P E
+   12  | E • RELOP E
+   21 E: E • PLUS T
+   22  | E • MINUS T
+   35 B: LP E • RP
 
     PLUS   shift, and go to state 39
     MINUS  shift, and go to state 40
@@ -450,9 +450,9 @@ State 26
 
 State 27
 
-    3 F: F . OR C
-    4  | F . LIMPLR C
-   13 A: LB F . RB
+    3 F: F • OR C
+    4  | F • LIMPLR C
+   13 A: LB F • RB
 
     RB      shift, and go to state 51
     OR      shift, and go to state 34
@@ -461,10 +461,10 @@ State 27
 
 State 28
 
-   11 A: E . RELOP ROOT P E
-   12  | E . RELOP E
-   21 E: E . PLUS T
-   22  | E . MINUS T
+   11 A: E • RELOP ROOT P E
+   12  | E • RELOP E
+   21 E: E • PLUS T
+   22  | E • MINUS T
 
     PLUS   shift, and go to state 39
     MINUS  shift, and go to state 40
@@ -473,42 +473,42 @@ State 28
 
 State 29
 
-    8 N: NEG N .
+    8 N: NEG N •
 
     $default  reduce using rule 8 (N)
 
 
 State 30
 
-   20 Q: QF VAR .
+   20 Q: QF VAR •
 
     $default  reduce using rule 20 (Q)
 
 
 State 31
 
-   17 A: INTERP VAR .
+   17 A: INTERP VAR •
 
     $default  reduce using rule 17 (A)
 
 
 State 32
 
-   18 A: INTERP PERCENT .
+   18 A: INTERP PERCENT •
 
     $default  reduce using rule 18 (A)
 
 
 State 33
 
-    2 O: LB F RB .
+    2 O: LB F RB •
 
     $default  reduce using rule 2 (O)
 
 
 State 34
 
-    3 F: F OR . C
+    3 F: F OR • C
 
     MINUS   shift, and go to state 3
     VAR     shift, and go to state 4
@@ -533,7 +533,7 @@ State 34
 
 State 35
 
-    4 F: F LIMPLR . C
+    4 F: F LIMPLR • C
 
     MINUS   shift, and go to state 3
     VAR     shift, and go to state 4
@@ -558,7 +558,7 @@ State 35
 
 State 36
 
-    6 C: C AND . N
+    6 C: C AND • N
 
     MINUS   shift, and go to state 3
     VAR     shift, and go to state 4
@@ -582,7 +582,7 @@ State 36
 
 State 37
 
-   10 A: Q LB . F RB
+   10 A: Q LB • F RB
 
     MINUS   shift, and go to state 3
     VAR     shift, and go to state 4
@@ -608,14 +608,14 @@ State 37
 
 State 38
 
-   19 Q: Q COMMA . VAR
+   19 Q: Q COMMA • VAR
 
     VAR  shift, and go to state 56
 
 
 State 39
 
-   21 E: E PLUS . T
+   21 E: E PLUS • T
 
     MINUS  shift, and go to state 3
     VAR    shift, and go to state 4
@@ -629,7 +629,7 @@ State 39
 
 State 40
 
-   22 E: E MINUS . T
+   22 E: E MINUS • T
 
     MINUS  shift, and go to state 3
     VAR    shift, and go to state 4
@@ -643,8 +643,8 @@ State 40
 
 State 41
 
-   11 A: E RELOP . ROOT P E
-   12  | E RELOP . E
+   11 A: E RELOP • ROOT P E
+   12  | E RELOP • E
 
     MINUS  shift, and go to state 3
     VAR    shift, and go to state 4
@@ -660,14 +660,14 @@ State 41
 
 State 42
 
-    1 O: LB E RB .
+    1 O: LB E RB •
 
     $default  reduce using rule 1 (O)
 
 
 State 43
 
-   25 T: T MULT . P
+   25 T: T MULT • P
 
     MINUS  shift, and go to state 3
     VAR    shift, and go to state 4
@@ -680,7 +680,7 @@ State 43
 
 State 44
 
-   26 T: T DIV . P
+   26 T: T DIV • P
 
     MINUS  shift, and go to state 3
     VAR    shift, and go to state 4
@@ -693,15 +693,15 @@ State 44
 
 State 45
 
-   24 T: T Pb .
+   24 T: T Pb •
 
     $default  reduce using rule 24 (T)
 
 
 State 46
 
-   31 Pb: B . EXP P
-   32   | B .
+   31 Pb: B • EXP P
+   32   | B •
 
     EXP  shift, and go to state 63
 
@@ -710,7 +710,7 @@ State 46
 
 State 47
 
-   29 P: B EXP . P
+   29 P: B EXP • P
 
     MINUS  shift, and go to state 3
     VAR    shift, and go to state 4
@@ -723,9 +723,9 @@ State 47
 
 State 48
 
-   21 E: E . PLUS T
-   22  | E . MINUS T
-   35 B: LP E . RP
+   21 E: E • PLUS T
+   22  | E • MINUS T
+   35 B: LP E • RP
 
     PLUS   shift, and go to state 39
     MINUS  shift, and go to state 40
@@ -734,29 +734,29 @@ State 48
 
 State 49
 
-   14 A: LP F RP .
+   14 A: LP F RP •
 
     $default  reduce using rule 14 (A)
 
 
 State 50
 
-   35 B: LP E RP .
+   35 B: LP E RP •
 
     $default  reduce using rule 35 (B)
 
 
 State 51
 
-   13 A: LB F RB .
+   13 A: LB F RB •
 
     $default  reduce using rule 13 (A)
 
 
 State 52
 
-    3 F: F OR C .
-    6 C: C . AND N
+    3 F: F OR C •
+    6 C: C • AND N
 
     AND  shift, and go to state 36
 
@@ -765,8 +765,8 @@ State 52
 
 State 53
 
-    4 F: F LIMPLR C .
-    6 C: C . AND N
+    4 F: F LIMPLR C •
+    6 C: C • AND N
 
     AND  shift, and go to state 36
 
@@ -775,16 +775,16 @@ State 53
 
 State 54
 
-    6 C: C AND N .
+    6 C: C AND N •
 
     $default  reduce using rule 6 (C)
 
 
 State 55
 
-    3 F: F . OR C
-    4  | F . LIMPLR C
-   10 A: Q LB F . RB
+    3 F: F • OR C
+    4  | F • LIMPLR C
+   10 A: Q LB F • RB
 
     RB      shift, and go to state 65
     OR      shift, and go to state 34
@@ -793,17 +793,17 @@ State 55
 
 State 56
 
-   19 Q: Q COMMA VAR .
+   19 Q: Q COMMA VAR •
 
     $default  reduce using rule 19 (Q)
 
 
 State 57
 
-   21 E: E PLUS T .
-   24 T: T . Pb
-   25  | T . MULT P
-   26  | T . DIV P
+   21 E: E PLUS T •
+   24 T: T • Pb
+   25  | T • MULT P
+   26  | T • DIV P
 
     MULT  shift, and go to state 43
     DIV   shift, and go to state 44
@@ -819,10 +819,10 @@ State 57
 
 State 58
 
-   22 E: E MINUS T .
-   24 T: T . Pb
-   25  | T . MULT P
-   26  | T . DIV P
+   22 E: E MINUS T •
+   24 T: T • Pb
+   25  | T • MULT P
+   26  | T • DIV P
 
     MULT  shift, and go to state 43
     DIV   shift, and go to state 44
@@ -838,7 +838,7 @@ State 58
 
 State 59
 
-   11 A: E RELOP ROOT . P E
+   11 A: E RELOP ROOT • P E
 
     MINUS  shift, and go to state 3
     VAR    shift, and go to state 4
@@ -851,9 +851,9 @@ State 59
 
 State 60
 
-   12 A: E RELOP E .
-   21 E: E . PLUS T
-   22  | E . MINUS T
+   12 A: E RELOP E •
+   21 E: E • PLUS T
+   22  | E • MINUS T
 
     PLUS   shift, and go to state 39
     MINUS  shift, and go to state 40
@@ -863,21 +863,21 @@ State 60
 
 State 61
 
-   25 T: T MULT P .
+   25 T: T MULT P •
 
     $default  reduce using rule 25 (T)
 
 
 State 62
 
-   26 T: T DIV P .
+   26 T: T DIV P •
 
     $default  reduce using rule 26 (T)
 
 
 State 63
 
-   31 Pb: B EXP . P
+   31 Pb: B EXP • P
 
     MINUS  shift, and go to state 3
     VAR    shift, and go to state 4
@@ -890,21 +890,21 @@ State 63
 
 State 64
 
-   29 P: B EXP P .
+   29 P: B EXP P •
 
     $default  reduce using rule 29 (P)
 
 
 State 65
 
-   10 A: Q LB F RB .
+   10 A: Q LB F RB •
 
     $default  reduce using rule 10 (A)
 
 
 State 66
 
-   11 A: E RELOP ROOT P . E
+   11 A: E RELOP ROOT P • E
 
     MINUS  shift, and go to state 3
     VAR    shift, and go to state 4
@@ -919,16 +919,16 @@ State 66
 
 State 67
 
-   31 Pb: B EXP P .
+   31 Pb: B EXP P •
 
     $default  reduce using rule 31 (Pb)
 
 
 State 68
 
-   11 A: E RELOP ROOT P E .
-   21 E: E . PLUS T
-   22  | E . MINUS T
+   11 A: E RELOP ROOT P E •
+   21 E: E • PLUS T
+   22  | E • MINUS T
 
     PLUS   shift, and go to state 39
     MINUS  shift, and go to state 40

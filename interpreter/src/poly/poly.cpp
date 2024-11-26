@@ -135,6 +135,11 @@ int IntPolyObj::read(VarContext &C, VarSet S) // Read from current saclib input 
   return t;
 }
 
+  GCWord IntPolyObj::iread() {
+    return IREAD();
+  }
+
+  
 /************************************************************
  * writeSMTLib
  ************************************************************/

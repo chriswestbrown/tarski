@@ -1,8 +1,8 @@
-/* A Bison parser, made by GNU Bison 3.5.1.  */
+/* A Bison parser, made by GNU Bison 3.8.2.  */
 
 /* Bison interface for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2020 Free Software Foundation,
+   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2021 Free Software Foundation,
    Inc.
 
    This program is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
 
 /* As a special exception, you may create a larger work that contains
    part or all of the Bison parser skeleton and distribute that work
@@ -31,8 +31,9 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
-/* Undocumented macros, especially those whose name start with YY_,
-   are private implementation details.  Do not rely on them.  */
+/* DO NOT RELY ON FEATURES THAT ARE NOT DOCUMENTED in the manual,
+   especially those whose name start with YY_ or yy_.  They are
+   private implementation details that can be changed or removed.  */
 
 #ifndef YY_ALG_GRAMMAR_TAB_HPP_INCLUDED
 # define YY_ALG_GRAMMAR_TAB_HPP_INCLUDED
@@ -58,38 +59,43 @@ extern int algdebug;
     int algparse(tarski::LexContext*, tarski::TarskiRef&);
  
 
-#line 62 "grammar.tab.hpp"
+#line 63 "grammar.tab.hpp"
 
-/* Token type.  */
+/* Token kinds.  */
 #ifndef ALGTOKENTYPE
 # define ALGTOKENTYPE
   enum algtokentype
   {
-    PLUS = 258,
-    MINUS = 259,
-    MULT = 260,
-    DIV = 261,
-    EXP = 262,
-    VAR = 263,
-    NUM = 264,
-    LP = 265,
-    RP = 266,
-    RELOP = 267,
-    TCONST = 268,
-    FCONST = 269,
-    LB = 270,
-    RB = 271,
-    AND = 272,
-    OR = 273,
-    LIMPLR = 274,
-    NEG = 275,
-    ROOT = 276,
-    LEXERR = 277,
-    QF = 278,
-    COMMA = 279,
-    INTERP = 280,
-    PERCENT = 281
+    ALGEMPTY = -2,
+    ALGEOF = 0,                    /* "end of file"  */
+    ALGerror = 256,                /* error  */
+    ALGUNDEF = 257,                /* "invalid token"  */
+    PLUS = 258,                    /* PLUS  */
+    MINUS = 259,                   /* MINUS  */
+    MULT = 260,                    /* MULT  */
+    DIV = 261,                     /* DIV  */
+    EXP = 262,                     /* EXP  */
+    VAR = 263,                     /* VAR  */
+    NUM = 264,                     /* NUM  */
+    LP = 265,                      /* LP  */
+    RP = 266,                      /* RP  */
+    RELOP = 267,                   /* RELOP  */
+    TCONST = 268,                  /* TCONST  */
+    FCONST = 269,                  /* FCONST  */
+    LB = 270,                      /* LB  */
+    RB = 271,                      /* RB  */
+    AND = 272,                     /* AND  */
+    OR = 273,                      /* OR  */
+    LIMPLR = 274,                  /* LIMPLR  */
+    NEG = 275,                     /* NEG  */
+    ROOT = 276,                    /* ROOT  */
+    LEXERR = 277,                  /* LEXERR  */
+    QF = 278,                      /* QF  */
+    COMMA = 279,                   /* COMMA  */
+    INTERP = 280,                  /* INTERP  */
+    PERCENT = 281                  /* PERCENT  */
   };
+  typedef enum algtokentype algtoken_kind_t;
 #endif
 
 /* Value type.  */
@@ -103,7 +109,7 @@ union algValue
   tarski::AlgebraicRef* algPtr;
   tarski::FormulaRef*   frmPtr;
 
-#line 107 "grammar.tab.hpp"
+#line 113 "grammar.tab.hpp"
 
 };
 #line 21 "grammar.ypp"
@@ -114,6 +120,8 @@ typedef union algValue ALGSTYPE;
 
 
 
+
 int algparse (tarski::LexContext *LC, tarski::TarskiRef &result);
+
 
 #endif /* !YY_ALG_GRAMMAR_TAB_HPP_INCLUDED  */

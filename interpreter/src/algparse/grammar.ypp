@@ -92,7 +92,6 @@ B : VAR { $$ = tarski::newVar($1);                    delete $1;  }
   | NUM { $$ = tarski::newNum($1);                    delete $1;  }
   | LP E RP {  $$ = tarski::copy($2);                 delete $1; delete $2; delete $3; }
   ;
-
 %%
 
   void algerror(tarski::LexContext *LC, tarski::TarskiRef &result, char const *msg)

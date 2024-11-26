@@ -43,6 +43,7 @@ class IntPolyObj : public GC_Obj
   Word slevel;
 
 public:
+  GCWord iread();
   IntPolyObj() { sP = 0; slevel = 0; }
   IntPolyObj(short int c) { sP = c; slevel = 0; }
   IntPolyObj(VarSet x) { sP = LIST2(1,1); slevel = 1; svars = x; } // x is assumed to be a single var
