@@ -28,6 +28,17 @@ public:
     bool numLeavesOnlyFlag = false;
     char solFormType = 'T';
     VarOrderRef ord;
+
+    // Do basic normalization to get rid of boolean constants, which qepcad
+    // doesn't understand.
+    Level1 basicNormalizer;
+    RawNormalizer R(basicNormalizer);
+    R(F);
+    F = R.getRes();
+
+    // Bail out if this is already a constant
+    { int tmp = F->constValue(); if (tmp != -1) { return new TarObj(new TConstObj(tmp)); } }
+
     
     for(int i = 1; i < args.size(); i++)
     {
