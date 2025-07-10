@@ -504,7 +504,10 @@ vector<BExpRef> translate(BExpRef LHS, int relop, BExpRef RHS) {
     static RPPair mul(const RPPair &a, const RPPair &b, PolyManager* pM) {
       return RPPair(BNumObj::mul(a.c, b.c), pM->prod(a.p, b.p));
     }
+    bool isZero() const { return p->isZero(); }
     static RPPair sum(const RPPair &a, const RPPair &b, PolyManager* pM) {
+      if (a.isZero()) return b;
+      if (b.isZero()) return a;
       bool ia = a.c->isint(), ib = b.c->isint();
       if (ia && ib) {
 	VarSet S;
@@ -515,8 +518,21 @@ vector<BExpRef> translate(BExpRef LHS, int relop, BExpRef RHS) {
 	RPPair res(new BNumObj(1),resp);
 	return res;
       }
-      else
-	throw BExpException("RPPair::sum this not yet implemented!");
+      else {
+	Word ra = ia ? RNINT(a.c->val()) : (Word)a.c->val();
+	Word rb = ib ? RNINT(b.c->val()) : (Word)b.c->val();
+	Word num_a = RNNUM(ra), den_a = RNDEN(ra);
+	Word num_b = RNNUM(rb), den_b = RNDEN(rb);
+	Word C,Ab,Bb;
+	IGCDCF(den_a,den_b,&C,&Ab,&Bb);
+	Word nnum_a = IPROD(num_a,Bb);
+	Word nnum_b = IPROD(num_b,Ab);
+	Word nden = IPROD(den_a,Bb);
+	IntPolyRef p_res = pM->sum(a.p->integerProduct(nnum_a),b.p->integerProduct(nnum_b));
+	BNumRef c_res = BNumObj::fromNumerDenom(1,nden);
+	RPPair res(c_res,p_res);
+	return res;
+      }
     }
     static RPPair neg(const RPPair &a) {
       return RPPair(a.c->negative(),a.p);
