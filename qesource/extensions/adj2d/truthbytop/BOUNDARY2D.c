@@ -3,7 +3,8 @@
 Boundary 2D.
 
 Takes current 2D set and sets truth values to define the boundary of
-the set.
+the set. NOTE: p is on the boundary of S iff in every neighborhood of p
+there has non-empty intersection with both S and its complement.
 I think this is assuming that we have a full CAD of 2-space.
 
 10/18/01 - just copied CLOSURE2D
@@ -81,18 +82,18 @@ Step6: /* Split cell list by dimension. */
    case 1: L1 = COMP(c,L1); break;
    case 2: L2 = COMP(c,L2); break; } }
 
- /* Find isolated true L0 cells */
+ /* Find isolated true L0 cells and isolated false L0 cells*/
  LI0 = NIL;
  for(Lp = L0; Lp != NIL; Lp = RED(Lp)) {
    v = FIRST(Lp);
-   if (GVERTEXLABEL(v,G) != TRUE)
-     continue;
+   Word tv_v = GVERTEXLABEL(v,G);
+   if (tv_v != TRUE && tv_v != FALSE) continue;
+   Word neg_tv_v = tv_v == TRUE ? FALSE : (tv_v == FALSE ? TRUE : UNDET);
    LH = NIL;
-   for(S = GPREDLIST(v,G), tc = 0, fc = 0; 
-       S != NIL && GVERTEXLABEL(FIRST(S),G) == FALSE; S = RED(S))
+   for(S = GPREDLIST(v,G); S != NIL && GVERTEXLABEL(FIRST(S),G) == neg_tv_v; S = RED(S))
      LH = CCONC(GPREDLIST(FIRST(S),G),LH);
    if (S == NIL) {
-     for(;LH != NIL && GVERTEXLABEL(FIRST(LH),G) == FALSE; LH = RED(LH));
+     for(;LH != NIL && GVERTEXLABEL(FIRST(LH),G) == neg_tv_v; LH = RED(LH));
      if (LH == NIL)
        LI0 = COMP(v,LI0);
    } }
