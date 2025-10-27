@@ -1395,14 +1395,16 @@ class Plot2D : public EICommand
     int Id1, Id2;
     string fname;
     bool showset;
+    bool showboundary;
   public:
-    Callback(int h, int w, double x, double X, double y, double Y, bool showset, const string &fn) {
+    Callback(int h, int w, double x, double X, double y, double Y, bool showset, bool showboundary, const string &fn) {
       Id1 = w; Id2 = h;
       this->x = x;
       this->X = X;
       this->y = y;
       this->Y = Y;
       this->showset = showset;
+      this->showboundary = showboundary;
       e = (X - x)/(w/2);
       fname = fn;
     }
@@ -1419,6 +1421,9 @@ class Plot2D : public EICommand
       }
       if (!*pout) {
 	throw TarskiException("Could not open file \"" + fname + "\"");
+      }
+      if (showboundary) {
+	Q.BOUNDARY2D(Q.GVPC, Q.GVPF, Q.GVPJ);
       }
       Q.PLOT2DTOOUTPUTSTREAM(Id1,Id2,x,X,y,Y,e,*pout,c,z,showset);
       if (fname == "-") {
@@ -1438,6 +1443,7 @@ public:
     // options
     bool optord = false;
     bool optshowset = false;
+    bool optboundary = false;
     VarSet v1, v2;
     string nm1, nm2;
     
@@ -1465,6 +1471,10 @@ public:
       else if (name->getVal() == "sset") {
 	BooRef L = arg->get(1)->boo();
 	optshowset = (L.is_null() || L->val != false); // permissive!
+      }
+      else if (name->getVal() == "boundary") {
+	BooRef L = arg->get(1)->boo();
+	optboundary = (L.is_null() || L->val != false); // permissive!
       }
       else {
 	throw TarskiException("unknown option \"" + name->getVal() + "\"");
@@ -1519,7 +1529,7 @@ public:
 
     //ex: (plot2d [x^4 + y^4 < 1 /\ y > (2 x - 1)^2 x] "600 600 -2 2 -2 2 foo.svg")
     string script = sout.str();
-    Callback f(h,w,x,X,y,Y,optshowset,fname);
+    Callback f(h,w,x,X,y,Y,optshowset,optboundary,fname);
     SRef res = qepcadAPICall(script,f,true);
     
     return res;
@@ -1535,7 +1545,8 @@ public:
   {
     return "Given a formula F in two variables, (plot2d F str) produces an svg plot of the formula.  The second argument, 'str', is a string that defines the basic plot parameters: pixelheight, pixelwidth, range of x and range of y, and output file name (or - for string output).  For example, (plot2d [x^4 + y^4 < 1 /\\ y >= (2 x - 1)^2 x] \"400 600 -2 2 -2 2 foo.svg\") produces an output file foo.svg, with height 400 and width 600, showing -2 < x < 2, and -2 < y < 2. Additional optional arguments may follow.  They take the form of (<name> <value>) pairs as described below:\n\
 * ord - specify which variable goes to which axis.  '(ord (<var1> <var2>)) puts <var1> on the horizontal axis and <var2> to the vertical axis.  Example: (plot2d [ y^2 = (2 x+1) (3 x - 1) x ] \"400 400 -2 2 -2 2 foo.svg\" '(ord (y x)))\n\
-* sset - set to true to show the semi-algebraic set rather than the CAD.  This plot option attempts to depict boundaries and special points in a nice way.  True points are blue, false boundaries and points of special significance are shown in gold.";
+* sset - set to true to show the semi-algebraic set rather than the CAD.  This plot option attempts to depict boundaries and special points in a nice way.  True points are blue, false boundaries and points of special significance are shown in gold.\n\
+* boundary - computes and plots the boundary of the set, rather than the set itself.";
   }
   string usage() { return "(plot2d F str [ <opt> ]+)"; }
   string name() { return "plot2d"; }  
