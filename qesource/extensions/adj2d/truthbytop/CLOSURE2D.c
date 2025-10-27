@@ -11,9 +11,18 @@ assuming that we have a full CAD of 2-space.
 #include "truthbytop.h"
 #include "adj2D.h"
 
+// Look in BOUNDARY2D for definition!
+extern Word checkAndClean2D(Word D);
+
 void QepcadCls::CLOSURE2D(Word D, Word P, Word J)
 {
   Word G,L,S,s,c,Sp,i,j,cl,cm,cr,E,Lp,L0,L1,L2,v,t;
+
+Step0: /* Check and clean D! */
+  if (checkAndClean2D(D) != 0) {
+    SWRITE("Error! CLOSURE2D requires a 'full' CAD of R^2 where all 2-level cells have truth values.");
+    goto Return;
+  }    
 
 Step1: /* Initialization. */
   G = NIL;
