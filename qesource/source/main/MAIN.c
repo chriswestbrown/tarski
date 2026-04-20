@@ -103,6 +103,7 @@ static int sendSignalAfterInterval(int seconds, int signum)
   return 0;
 #else
   return 1;
+#endif
 #else
   /* Create timer */
   timer_t timerid;
