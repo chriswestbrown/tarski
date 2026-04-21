@@ -14,10 +14,10 @@
 #      settings in a "make" that calls this recursively
 # ======================================================
 CCo        =  g++
-FLAGSo = -O4
+#FLAGSo = -O4
 
 CCd        =  g++
-FLAGSd = -g -rdynamic
+#FLAGSd = -g -rdynamic
 
 # ============================================================
 # The readline library is in different places on solaris, i.e.
@@ -36,11 +36,12 @@ INCLUDES  =	-I${saclib}/include \
 		${SPECIFLAGS} \
 		-I.
 
+# NOTE: Linking to saclibd.a b/c optimizer causes GC bug
 EXTLIBS   =	${qe}/extensions/sfext/sfexto.a \
 		${qe}/extensions/lift2D/lift2Do.a \
 		${qe}/extensions/newadj/newadjo.a \
 		${qe}/extensions/adj2d/adj2do.a \
-		${saclib}/lib/saclibo.a \
+		${saclib}/lib/saclibd.a \
 		${SPECLFLAGS}
 
 EXTLIBSD  =	${qe}/extensions/sfext/sfextd.a \
