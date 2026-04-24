@@ -37,9 +37,11 @@ Step1: /* Construct I, a set of implicants covering L_T. */
      I = NIL;
      for(L = L_T; L != NIL; L = RED(L)) {
        c = FIRST(L);
-       if (FMACELLEVAL(COMP(OROP,I),c,P) != TRUE)
-	 I = COMP(IMPCONS(c,L_F,L_A,P),I); }
-
+       if (FMACELLEVAL(COMP(OROP,I),c,P) != TRUE) {
+	 I = COMP(IMPCONS(c,L_F,L_A,P),I);
+	 SWRITE("new I elt = "); OWRITE(FIRST(I)); SWRITE("\n");
+       }
+     }
 Step2: /* Choose small subset of I that covers L_T. */
      X = MINCOVBF(L_T,I,P);
      if (!ISLIST(X))

@@ -34,7 +34,6 @@ Step1: /* Initialize. */
 
 Step2: /* Choose. */
        GVPC = D;
-       D = GVPC;
        P = GVPF;
 
        /* This is my 2D cell choice strategy! */

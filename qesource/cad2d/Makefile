@@ -19,7 +19,7 @@ FLAGSo = -O4
 
 CCd        =  g++
 linkCCd    =  g++
-FLAGSd = -g -DNO_SACLIB_MACROS
+FLAGSd = -g -DNO_SACLIB_MACROS -fPIC -pg
 
 # ============================================================
 # The readline library is in different places on solaris, i.e.

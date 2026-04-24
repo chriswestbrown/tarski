@@ -29,7 +29,7 @@ void FAIL(algName,msg)
 #endif
 {
        va_list argPtr;
-
+       
 Step0: /* Shutdown child processes! This is the QEPCAD-specific step. */
        ENDQEPCAD();
 

@@ -108,8 +108,9 @@ Word LIFTSRR2D(Word c, Word D, Word P)
   /* End of *really* ugly hack! */
 
 
-  /**************************************/
-  /* Go through the neighboring stacks! */
+  /**************************************
+   * Go through the neighboring stacks! Note: |S_L| = |S_R| b/c we require this to be
+   * a stack over a cell that is a simple root of one resultant, and has no other derivations
   /**************************************/
   i = 0;
   flag = FALSE;
@@ -128,18 +129,20 @@ Word LIFTSRR2D(Word c, Word D, Word P)
       s_L = FIRST(LELTI(c_L,SIGNPF));
       for(k = 1; s_L != NIL; s_L = RED(s_L), k++) {
 	if (FIRST(s_L) == 0) {
-	  r = LELTI(R,k);
+	  r = LELTI(R,k); // r is list of remaining roots for polynomial F_2,k
 	  SP = LIST5(LELTI(LELTI(LELTI(P,2),k),PO_POLY),FIRST(r),LIST2(0,LIST2(RNINT(1),LIST2(1,1))),0,0); /* SP */
-	  SLELTI(R,k,RED(r)); } }
+	  SLELTI(R,k,RED(r)); // remove the root we just used
+	} }
+      
+      //SWRITE("AAA INDX = "); OWRITE(CCONC(LELTI(c,INDX),LIST1(i))); SWRITE("\n");
 
 	/* CONSTRUCT CELL */
 	cp = LIST10(FIRST(c_L),NIL,THIRD(c_L),UNDET,SP,
 		  CCONC(LELTI(c,INDX),LIST1(i)),COMP(FIRST(LELTI(c_L,SIGNPF)),LELTI(c,SIGNPF)),
 		  NOTDET,
 		  LELTI(c_L,DEGSUB),LELTI(c_L,MULSUB));
-      S = COMP(cp,S);
-      flag = FALSE; }
-
+      flag = FALSE;
+    }
     else {
       /************************************************************
        ** CROSSINGS HERE!
@@ -154,29 +157,34 @@ Word LIFTSRR2D(Word c, Word D, Word P)
       so = FIRST(LELTI(FIRST(S),SIGNPF));
       for(s = NIL, k = 1; s_L != NIL; s_L = RED(s_L), s_R = RED(s_R), so = RED(so), k++) {
 	if (FIRST(s_L) == 0 || FIRST(s_R) == 0) {
-	  r = LELTI(R,k);
-
+	  r = LELTI(R,k); // r is list of remaining roots for polynomial F_2,k
+	  
 	  /* Define sample point if not already defined or if this version has a smaller isolating interval! */
-	  if (SP == NIL || RNCOMP(RNDIF(SECOND(FIRST(r)),FIRST(FIRST(r))),RNDIF(SECOND(SECOND(SP)),FIRST(SECOND(SP)))) < 0)
+	  if (SP == NIL || RNCOMP(RNDIF(SECOND(FIRST(r)),FIRST(FIRST(r))),RNDIF(SECOND(SECOND(SP)),FIRST(SECOND(SP)))) < 0) 
 	    SP = LIST5(LELTI(LELTI(LELTI(P,2),k),PO_POLY),FIRST(r),LIST2(0,LIST2(RNINT(1),LIST2(1,1))),0,0); /* SP */
 
-	  SLELTI(R,k,RED(r));
+	  SLELTI(R,k,RED(r)); // remove the root we just used
 	  s = COMP(0,s);
-	  m = COMP(LIST2(k,1),m);
+	  m = COMP(LIST2(k,1),m); // these are multiplicity one roots b/c simple root of resultant
 	}
 	else
-	  s = COMP(FIRST(so),s); }
+	  s = COMP(FIRST(so),s);
+      }
       s = COMP(CINV(s),LELTI(c,SIGNPF));
       m = CINV(m);
+
+      //SWRITE("BBB INDX = "); OWRITE(CCONC(LELTI(c,INDX),LIST1(i))); SWRITE("\n");
 
       cp = LIST10(FIRST(c_L),NIL,THIRD(c_L),UNDET,SP,
 		  CCONC(LELTI(c,INDX),LIST1(i)),s,NOTDET,
 		  LELTI(c_L,DEGSUB),m);
       
-      S = COMP(cp,S);
       S_L = RED2(S_L);
       S_R = RED2(S_R);
-    } }
+    }
+    
+    S = COMP(cp,S);
+  }
   
 
   /***********************************/

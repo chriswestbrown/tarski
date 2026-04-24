@@ -17,6 +17,8 @@ Word FMACELLEVAL(Word F, Word C, Word P)
 {
   Word t,L,i,j,k,op,s,S,ip,c,v,cp,n,t1,A1,A2,U_FLAG;
 
+  //FMAWRITE(F,P,LIST3(LFS("x"),LFS("y"),LFS("z")));
+  //printf("F = %d\n",F);
   switch(FIRST(F)) {
     
   case (TRUE) : t = TRUE;  break;

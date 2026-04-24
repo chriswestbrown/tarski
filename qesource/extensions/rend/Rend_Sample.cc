@@ -224,12 +224,12 @@ Step1: /* Initialize and decide if refinement is even necessary. */
     return LBRNP2PROD(LBRNSUM(FIRST(J),SECOND(J)),-1);
 
   // DEBUG!!!
-  // PushOutputContext(cerr);
-  // SWRITE("("); LBRNWRITE(FIRST(J)); SWRITE(","); LBRNWRITE(SECOND(J)); SWRITE(") ");
-  // SWRITE("Prec is "); IWRITE(LBRNILOW(J)); SWRITE("\n");
-  // OWRITE(S); SWRITE("\n");
-  // SWRITE("S = "); OWRITE(S); SWRITE("\n");
-  // PopOutputContext();
+   PushOutputContext(cerr);
+   SWRITE("("); LBRNWRITE(FIRST(J)); SWRITE(","); LBRNWRITE(SECOND(J)); SWRITE(") ");
+   SWRITE("Prec is "); IWRITE(LBRNILOW(J)); SWRITE("\n");
+   OWRITE(S); SWRITE("\n");
+   SWRITE("S = "); OWRITE(S); SWRITE("\n");
+   PopOutputContext();
 
   if (LENGTH(S) == 6) { // This case comes from LIFTSRD2D sample point
     Word B, J, M, I, cl, trend, a, A;

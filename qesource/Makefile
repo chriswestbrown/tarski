@@ -12,7 +12,7 @@ MAKE       =  make  # You must use gmake, but it may not be
 CCo        =  $(CXX)
 CCd        =  $(CXX)
 
-FLAGSo = -g -D__CORRECT_ISO_CPP_STRINGS_H_PROTO -fPIC -O3 
+FLAGSo = -g -D__CORRECT_ISO_CPP_STRINGS_H_PROTO -fPIC -O3
 
 FLAGSd = -g -D__CORRECT_ISO_CPP_STRINGS_H_PROTO -fPIC
 

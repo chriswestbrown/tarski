@@ -45,6 +45,8 @@ void QepcadCls2D::CONSTRUCT(Word c,Word k,Word f,Word Ps_,Word As)
         Word A1,As1,At,B,b,E,I,Ip,I1,J,Jp,L,M,P1,Ps1,Pt,Pt1,S,s,T,Q;
 	Word junk,a1,b1,t1,p1,j1;
 
+	/* chris */ Word dtm = ACLOCK();
+	
 Step1: /* Extract the projection factors from their attribute lists. */
 	Word Ps = Ps_;
        Pt = NIL;
@@ -71,11 +73,13 @@ Step2: /* Root cell. */
     
                              /*Int*/ Ths = ACLOCK();
        SLELTI(c,DEGSUB,PLDEG(Ps));
+       /* chris */ SWRITE("CONSTRUCT1 took ... ");
        CONSTRUCT1(c,k,f,Ps_,As);
        goto Return;
 
 Step3: /* Non-root cell, Irrational sample point. */
        s = LELTI(c,SAMPLE); FIRST3(s,&M,&J,&b);
+       /* chris */ SWRITE("CONSTRUCT "); OWRITE(LELTI(c,INDX)); SWRITE(" took ... ");
        if (PDEG(M) == 1      
                              /*Int*/ && PCRSP == 'y'
           ) goto Step4;
@@ -240,6 +244,7 @@ Step4: /* Non-root cell, Rational sample point. */
                              /*Int*/ NMCELL[k + 1] = NMCELL[k + 1] +  LENGTH(LELTI(c,CHILD));
 
 Return: /* Prepare for return. */
+       /* chris */ IWRITE(ACLOCK()-dtm); SWRITE("ms.\n");
        return;
 }
 

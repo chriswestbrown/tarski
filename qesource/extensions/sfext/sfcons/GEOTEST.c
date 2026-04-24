@@ -176,6 +176,7 @@ T = LBIBMS(LELTI(FIRST(G),5));
 Ap1 = NIL; Ap2 = NIL;
 for(App = CINV(Ap); App != NIL; App = RED(App)) {
   a = FIRST(App);
+  SWRITE("a = "); OWRITE(a); SWRITE("\n");
   i = POLINDEX2SIGINDEX(LELTI(P,k),SECOND(FIRST(a)));
   if (MEMBER(i,T))
     Ap1 = COMP(a,Ap1);

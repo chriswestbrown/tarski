@@ -164,12 +164,12 @@ Word Rend_Cell::description(Rend_Win &W)
       else if (index == AD2D_N_In)
 	V = LIST2( parent -> description(W) ,  W.y.W);
       else {
-	// PushOutputContext(cerr);
-	// SWRITE("Cell: "); OWRITE(LELTI(this->QEPCAD_Cell,INDX)); SWRITE(" ");
-	// PopOutputContext();
+	 PushOutputContext(cerr);
+	 SWRITE("Cell: "); OWRITE(LELTI(this->QEPCAD_Cell,INDX)); SWRITE(" ");
+	 PopOutputContext();
 	V = LIST2( parent -> description(W) , 
 		   sample -> coordinate(W.precis.y) );
-	// PushOutputContext(cerr); SWRITE("\n\n"); PopOutputContext();
+	 PushOutputContext(cerr); SWRITE("\n\n"); PopOutputContext();
       }
       }
     else {

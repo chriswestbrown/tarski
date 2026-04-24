@@ -36,7 +36,7 @@ Step1: /* Space is either empty or R^n. */
 Step2: /* Extended language. */
 
 	/* Construct the CAD on which we'll operate. */
-	if (s) { /* No simplification. */
+	if (s || TRUE /*DEBUG!!!*/) { /* No simplification. */
 	  Dp = SCADDSCON(D,NIL,n);
 	  Pp = P; }
 	else { /* Simplify! */

@@ -17,7 +17,7 @@ Word QepcadCls::PROJHO(Word r, Word A)
 {
        Word A1,A2,Ap,Ap1,Ap2,App,D,L,L1,P,Ps,R,R1,R11,R2,Rp,Rp11,Rpp,Rs,Rs1,
             S1,T,W,ap1,b,d,i,k,w;
-
+       SWRITE("IN HONG PROJECTION!!!!");
 Step1: /* $r = 2$. */
        if (r > 2) goto Step2;
        P = NIL; Ap = A;
